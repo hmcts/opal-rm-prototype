@@ -1,0 +1,157 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Hearing details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Hearing details</h1>
+
+      {% set scheduledHearingHtml %}
+        {{ xGovukAutocomplete({
+          id: "hearing-court",
+          name: "hearing-court",
+          label: {
+            text: "Select the court",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing to see matching courts."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["hearing-court"],
+          items: [
+            {
+              text: "Davids Magistrates Court"
+            },
+            {
+              text: "Davids Crown Court"
+            },
+            {
+              text: "Davids County Court"
+            }
+          ]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "hearing-date",
+          name: "hearing-date",
+          label: {
+            text: "Enter the hearing date",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 16/03/2026"
+          },
+          value: data["hearing-date"]
+        }) }}
+
+        {{ govukInput({
+          id: "hearing-courtroom-number",
+          name: "hearing-courtroom-number",
+          label: {
+            text: "Enter courtroom number",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-4",
+          attributes: {
+            inputmode: "numeric"
+          },
+          value: data["hearing-courtroom-number"]
+        }) }}
+
+        {{ govukInput({
+          id: "hearing-start-time",
+          name: "hearing-start-time",
+          label: {
+            text: "Start time of hearing",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 10:00 AM"
+          },
+          classes: "govuk-input--width-10",
+          value: data["hearing-start-time"]
+        }) }}
+      {% endset %}
+
+      {% set nonScheduledHearingHtml %}
+        {{ govukCharacterCount({
+          name: "hearing-non-scheduled-details",
+          id: "hearing-non-scheduled-details",
+          maxlength: 150,
+          label: {
+            text: "Enter court details",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Include the court location and court name."
+          },
+          rows: 4,
+          value: data["hearing-non-scheduled-details"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "hearing-date",
+          name: "hearing-date",
+          label: {
+            text: "Enter the hearing date",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 16/03/2026"
+          },
+          value: data["hearing-date"]
+        }) }}
+      {% endset %}
+
+      <form method="post" action="/hearing-details">
+        {{ govukRadios({
+          idPrefix: "hearing-type",
+          name: "hearing-type",
+          fieldset: {
+            legend: {
+              text: "How do you want to record the hearing?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "schedule-england-wales",
+              text: "Schedule a hearing in England and Wales",
+              checked: data["hearing-type"] == "schedule-england-wales",
+              conditional: {
+                html: scheduledHearingHtml
+              }
+            },
+            {
+              value: "non-scheduled",
+              text: "Create a non-scheduled hearing",
+              checked: data["hearing-type"] == "non-scheduled",
+              conditional: {
+                html: nonScheduledHearingHtml
+              }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

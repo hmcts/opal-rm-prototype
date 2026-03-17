@@ -1,0 +1,36 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Remove central authority details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Are you sure you want to remove the central authority's details?</h1>
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Central authority details"
+          }
+        },
+        rows: centralAuthorityCardRows
+      }) }}
+
+      <form method="post" action="/central-authority-details/remove">
+        {{ govukButton({
+          text: "Yes - remove",
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/central-authority-details">No - cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
