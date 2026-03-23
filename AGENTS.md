@@ -38,6 +38,12 @@
 - Validate work by running the prototype locally when needed and checking the affected journey or page manually.
 - You may use the existing Playwright installation for lightweight agent verification of prototype flows, screenshots, or page behaviour, but do not add or configure a formal automated test suite unless the user explicitly asks for one.
 
+## Running the prototype
+- Start the prototype locally from the repository root with `npm run dev`.
+- Do not default to `npm start` for local work unless the user explicitly asks for it; the Prototype Kit warns that `npm run dev` is the correct local development command.
+- When the server starts successfully, expect the prototype at `http://localhost:3000` and the manage page at `http://localhost:3000/manage-prototype`.
+- After starting the server, confirm it is responding before proceeding with further manual checks.
+
 ## Design system references
 - GOV.UK Design System: https://design-system.service.gov.uk/
 - GOV.UK Prototype Components: https://govuk-prototype-components.x-govuk.org/
