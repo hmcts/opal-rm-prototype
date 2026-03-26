@@ -1,0 +1,110 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Beneficiary - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% set newChildHtml %}
+        {{ govukInput({
+          id: "terms-beneficiary-child-name",
+          name: "terms-beneficiary-child-name",
+          label: {
+            text: "Name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["terms-beneficiary-draft"]["beneficiaryName"] if data["terms-beneficiary-draft"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "terms-beneficiary-child-date-of-birth",
+          name: "terms-beneficiary-child-date-of-birth",
+          label: {
+            text: "Date of birth (optional)",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 31/01/2023"
+          },
+          value: data["terms-beneficiary-draft"]["dateOfBirth"] if data["terms-beneficiary-draft"]
+        }) }}
+
+        {% if childAge !== null %}
+          <div class="app-age-box govuk-!-margin-top-4">
+            <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: {{ childAge }}</strong></p>
+          </div>
+        {% endif %}
+      {% endset %}
+
+      {% set newAdultHtml %}
+        {{ govukInput({
+          id: "terms-beneficiary-adult-name",
+          name: "terms-beneficiary-adult-name",
+          label: {
+            text: "Name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["terms-beneficiary-draft"]["beneficiaryName"] if data["terms-beneficiary-draft"] and data["terms-beneficiary-draft"]["beneficiaryType"] == "new-adult"
+        }) }}
+      {% endset %}
+
+      <span class="govuk-caption-l">Add order details</span>
+      <h1 class="govuk-heading-l">Beneficiary</h1>
+
+      <form method="post" action="/orders-applications-alternative/terms-per-beneficiary/beneficiary">
+        {{ govukRadios({
+          idPrefix: "terms-beneficiary-type",
+          name: "terms-beneficiary-type",
+          fieldset: {
+            legend: {
+              text: "Who is the beneficiary?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "applicant",
+              text: applicantBeneficiaryLabel,
+              checked: not data["terms-beneficiary-draft"] or data["terms-beneficiary-draft"]["beneficiaryType"] == "applicant"
+            },
+            {
+              value: "new-child",
+              text: "New child",
+              checked: data["terms-beneficiary-draft"] and data["terms-beneficiary-draft"]["beneficiaryType"] == "new-child",
+              conditional: {
+                html: newChildHtml
+              }
+            },
+            {
+              value: "new-adult",
+              text: "New adult",
+              checked: data["terms-beneficiary-draft"] and data["terms-beneficiary-draft"]["beneficiaryType"] == "new-adult",
+              conditional: {
+                html: newAdultHtml
+              }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

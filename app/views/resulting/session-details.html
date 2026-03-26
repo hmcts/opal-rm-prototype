@@ -1,0 +1,109 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% block pageTitle %}
+  Session details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting/case-details"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Session details</h1>
+
+      <form method="post" action="/resulting/session-details">
+        {{ govukInput({
+          id: "resulting-judge",
+          name: "resulting-judge",
+          label: {
+            text: "Judge",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-judge"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-magistrate-1",
+          name: "resulting-magistrate-1",
+          label: {
+            text: "Magistrate 1",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-magistrate-1"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-magistrate-2",
+          name: "resulting-magistrate-2",
+          label: {
+            text: "Magistrate 2",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-magistrate-2"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-magistrate-3",
+          name: "resulting-magistrate-3",
+          label: {
+            text: "Magistrate 3",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-magistrate-3"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-legal-advisor",
+          name: "resulting-legal-advisor",
+          label: {
+            text: "Legal advisor",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-legal-advisor"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-session-start-time",
+          name: "resulting-session-start-time",
+          label: {
+            text: "Session start time",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: data["resulting-session-start-time"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-session-end-time",
+          name: "resulting-session-end-time",
+          label: {
+            text: "Session end time",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: data["resulting-session-end-time"]
+        }) }}
+
+        {{ govukButton({
+          text: "Return to case details"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

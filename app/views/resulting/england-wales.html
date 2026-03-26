@@ -1,0 +1,92 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Search England and Wales hearings - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting"
+      }) }}
+
+      <h1 class="govuk-heading-l">Search England and Wales hearings</h1>
+
+      <form method="post" action="/resulting/england-wales">
+        {{ xGovukAutocomplete({
+          id: "resulting-ew-court",
+          name: "resulting-ew-court",
+          label: {
+            text: "Select the court",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing to see matching courts."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-ew-court"],
+          items: courtItems
+        }) }}
+
+        {{ mojDatePicker({
+          id: "resulting-ew-date",
+          name: "resulting-ew-date",
+          label: {
+            text: "Enter the hearing date",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 16/03/2026"
+          },
+          value: data["resulting-ew-date"]
+        }) }}
+
+        {{ govukButton({
+          text: "Search"
+        }) }}
+      </form>
+    </div>
+  </div>
+
+  {% if data["resulting-ew-court"] and data["resulting-ew-date"] %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        <h2 class="govuk-heading-m">Search matches</h2>
+
+        {% if searchMatches.length %}
+          {{ govukTable({
+            firstCellIsHeader: false,
+            head: [
+              {
+                text: "Court"
+              },
+              {
+                text: "Date"
+              },
+              {
+                text: "Courtroom"
+              },
+              {
+                text: "Number of records"
+              },
+              {
+                text: "Action"
+              }
+            ],
+            rows: searchRows
+          }) }}
+        {% else %}
+          <p class="govuk-body">No hearings matched your search.</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

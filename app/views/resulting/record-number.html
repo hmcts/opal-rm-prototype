@@ -1,0 +1,167 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/tabs/macro.njk" import govukTabs %}
+
+{% block pageTitle %}
+  Search by record - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting"
+      }) }}
+
+      {% set individualsHtml %}
+        {{ govukInput({
+          id: "resulting-record-search-last-name",
+          name: "resulting-record-search-last-name",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-half",
+          value: data["resulting-record-search-last-name"]
+        }) }}
+
+        {{ govukInput({
+          id: "resulting-record-search-first-names",
+          name: "resulting-record-search-first-names",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-half",
+          value: data["resulting-record-search-first-names"]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "resulting-record-search-individual-options",
+          name: "resulting-record-search-exact-match",
+          classes: "govuk-checkboxes--small",
+          items: [
+            {
+              value: "yes",
+              text: "Search exact match",
+              checked: data["resulting-record-search-exact-match"] == "yes"
+            }
+          ]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "resulting-record-search-individual-aliases",
+          name: "resulting-record-search-include-aliases",
+          classes: "govuk-checkboxes--small",
+          items: [
+            {
+              value: "yes",
+              text: "Include aliases",
+              checked: data["resulting-record-search-include-aliases"] == "yes"
+            }
+          ]
+        }) }}
+      {% endset %}
+
+      {% set companiesHtml %}
+        {{ govukInput({
+          id: "resulting-record-search-company-name",
+          name: "resulting-record-search-company-name",
+          label: {
+            text: "Company name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-two-thirds",
+          value: data["resulting-record-search-company-name"]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "resulting-record-search-company-options",
+          name: "resulting-record-search-exact-match",
+          classes: "govuk-checkboxes--small",
+          items: [
+            {
+              value: "yes",
+              text: "Search exact match",
+              checked: data["resulting-record-search-exact-match"] == "yes"
+            }
+          ]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "resulting-record-search-company-aliases",
+          name: "resulting-record-search-include-aliases",
+          classes: "govuk-checkboxes--small",
+          items: [
+            {
+              value: "yes",
+              text: "Include aliases",
+              checked: data["resulting-record-search-include-aliases"] == "yes"
+            }
+          ]
+        }) }}
+      {% endset %}
+
+      <span class="govuk-caption-l">Result a hearing</span>
+      <h1 class="govuk-heading-l">Search by record</h1>
+
+      <p class="govuk-body">
+        Use quick search to search by record number, or advanced search to search by applicant or respondent details.
+      </p>
+
+      <form method="post" action="/resulting/record-number">
+        <h2 class="govuk-heading-m">Quick search</h2>
+
+        {{ govukInput({
+          id: "resulting-record-number-search",
+          name: "resulting-record-number-search",
+          label: {
+            text: "Record number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 12345678 or 12345678A"
+          },
+          classes: "govuk-input--width-20",
+          value: data["resulting-record-number"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Advanced search</h2>
+
+        {{ govukTabs({
+          items: [
+            {
+              label: "Individuals",
+              id: "individuals",
+              panel: {
+                html: individualsHtml
+              }
+            },
+            {
+              label: "Companies",
+              id: "companies",
+              panel: {
+                html: companiesHtml
+              }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Search"
+          }) }}
+
+          <a class="govuk-link" href="/resulting">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Order details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Order details</h1>
+
+      {% set periodicalPaymentsHtml %}
+        {{ govukRadios({
+          idPrefix: "order-payment-frequency",
+          name: "order-payment-frequency",
+          fieldset: {
+            legend: {
+              text: "Payment frequency",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "weekly",
+              text: "Weekly",
+              checked: data["order-payment-frequency"] == "weekly"
+            },
+            {
+              value: "fortnightly",
+              text: "Fortnightly",
+              checked: data["order-payment-frequency"] == "fortnightly"
+            },
+            {
+              value: "monthly",
+              text: "Monthly",
+              checked: data["order-payment-frequency"] == "monthly"
+            },
+            {
+              value: "quarterly",
+              text: "Quarterly",
+              checked: data["order-payment-frequency"] == "quarterly"
+            },
+            {
+              value: "yearly",
+              text: "Yearly",
+              checked: data["order-payment-frequency"] == "yearly"
+            }
+          ]
+        }) }}
+      {% endset %}
+
+      <form method="post" action="/orders-applications-alternative/order-details">
+        <h2 class="govuk-heading-m">Application</h2>
+
+        {{ govukInput({
+          id: "order-application-code",
+          name: "order-application-code",
+          label: {
+            text: "Application code",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            html: 'For example, AA12345B. If you do not know the application code, you can <a class="govuk-link" href="#">search the list</a>.'
+          },
+          classes: "govuk-input--width-10",
+          value: data["order-application-code"]
+        }) }}
+
+        {{ govukInsetText({
+          html: '<span class="govuk-!-font-weight-bold">Application found</span><br>Application from EU Country for registration/recognition of an order in the family court'
+        }) }}
+
+        {{ govukInput({
+          id: "order-court-that-made-the-order",
+          name: "order-court-that-made-the-order",
+          label: {
+            text: "Court that made the order",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["order-court-that-made-the-order"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "order-date-order-made",
+          name: "order-date-order-made",
+          label: {
+            text: "Date order made",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 31/01/2023"
+          },
+          value: data["order-date-order-made"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Payments</h2>
+
+        {{ govukCheckboxes({
+          idPrefix: "order-payment-terms",
+          name: "order-payment-terms",
+          fieldset: {
+            legend: {
+              text: "Select payment terms",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "periodical-payments",
+              text: "Periodical payments",
+              checked: data["order-has-periodical-payments"] == "yes",
+              conditional: {
+                html: periodicalPaymentsHtml
+              }
+            },
+            {
+              value: "lump-sum",
+              text: "Lump sum",
+              checked: data["order-has-lump-sum"] == "yes"
+            }
+          ]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "order-date-arrears-last-updated",
+          name: "order-date-arrears-last-updated",
+          label: {
+            text: "Date arrears last updated",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 31/01/2023"
+          },
+          value: data["order-date-arrears-last-updated"]
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "order-managing-payments",
+          name: "order-managing-payments",
+          fieldset: {
+            legend: {
+              text: "Managing payments",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "payments-via-hmcts",
+              text: "Payments via HMCTS",
+              checked: data["order-managing-payments"] == "payments-via-hmcts"
+            },
+            {
+              value: "direct-payments-to-creditors",
+              text: "Direct payments to creditors",
+              hint: {
+                text: "HMCTS will not collect payments for this case"
+              },
+              checked: data["order-managing-payments"] == "direct-payments-to-creditors"
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

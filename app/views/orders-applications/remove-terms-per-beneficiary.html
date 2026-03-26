@@ -1,0 +1,71 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block pageTitle %}
+  Remove order terms - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">Are you sure you want to remove these order terms?</h1>
+
+      <div class="govuk-!-margin-bottom-8">
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-3">
+          {{ beneficiaryGroup.name }}
+          <span class="govuk-!-font-size-16 govuk-!-font-weight-regular govuk-!-margin-left-1">{{ beneficiaryGroup.role }}</span>
+          {{ govukTag({
+            text: beneficiaryGroup.tag,
+            classes: "govuk-tag--blue govuk-!-margin-left-2"
+          }) }}
+        </h2>
+
+        {{ govukTable({
+          firstCellIsHeader: false,
+          head: [
+            {
+              text: "Date order made"
+            },
+            {
+              text: "Payment"
+            },
+            {
+              text: "Frequency"
+            },
+            {
+              text: "Arrears"
+            },
+            {
+              text: "Creditor"
+            },
+            {
+              text: "Expiry date"
+            },
+            {
+              text: "Expiry notes"
+            },
+            {
+              text: "Status"
+            }
+          ],
+          rows: beneficiaryGroup.rows
+        }) }}
+      </div>
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukButton({
+          text: "Yes - remove order terms",
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/orders-applications/terms-per-beneficiary">No - cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
+

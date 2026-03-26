@@ -1,0 +1,31 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageTitle %}
+  Results submitted - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      {{ govukPanel({
+        titleText: "You've submitted these results"
+      }) }}
+
+      <h2 class="govuk-heading-m">Next steps</h2>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/resulting">Enter results for another session</a>
+      </p>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/">Return to the RM dashboard</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

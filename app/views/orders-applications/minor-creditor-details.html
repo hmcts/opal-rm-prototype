@@ -1,0 +1,393 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% block pageTitle %}
+  Minor creditor details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Minor creditor details</h1>
+
+      {% set individualHtml %}
+        {{ govukSelect({
+          id: "minor-creditor-title",
+          name: "minor-creditor-title",
+          label: {
+            text: "Title",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-quarter",
+          items: [
+            {
+              text: "Select",
+              value: "",
+              selected: not creditor.title
+            },
+            {
+              text: "Mr",
+              value: "Mr",
+              selected: creditor.title == "Mr"
+            },
+            {
+              text: "Mrs",
+              value: "Mrs",
+              selected: creditor.title == "Mrs"
+            },
+            {
+              text: "Ms",
+              value: "Ms",
+              selected: creditor.title == "Ms"
+            },
+            {
+              text: "Miss",
+              value: "Miss",
+              selected: creditor.title == "Miss"
+            },
+            {
+              text: "Dr",
+              value: "Dr",
+              selected: creditor.title == "Dr"
+            }
+          ]
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-first-names",
+          name: "minor-creditor-first-names",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Include their middle names"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.firstNames
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-last-name",
+          name: "minor-creditor-last-name",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.lastName
+        }) }}
+      {% endset %}
+
+      {% set organisationHtml %}
+        {{ govukInput({
+          id: "minor-creditor-organisation-name",
+          name: "minor-creditor-organisation-name",
+          label: {
+            text: "Organisation name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.organisationName
+        }) }}
+      {% endset %}
+
+      {% set ukBankDetailsHtml %}
+        {{ govukInput({
+          id: "minor-creditor-uk-name-on-account",
+          name: "minor-creditor-uk-name-on-account",
+          label: {
+            text: "Name on account",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.ukNameOnAccount
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-uk-sort-code",
+          name: "minor-creditor-uk-sort-code",
+          label: {
+            text: "Sort code",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Must be 6 digits long"
+          },
+          classes: "govuk-input--width-10",
+          value: creditor.ukSortCode
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-uk-account-number",
+          name: "minor-creditor-uk-account-number",
+          label: {
+            text: "Account number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Must be between 6 and 8 digits long"
+          },
+          classes: "govuk-input--width-10",
+          value: creditor.ukAccountNumber
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-uk-payment-reference",
+          name: "minor-creditor-uk-payment-reference",
+          label: {
+            text: "Payment reference",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.ukPaymentReference
+        }) }}
+      {% endset %}
+
+      {% set nonUkBankDetailsHtml %}
+        {{ govukInput({
+          id: "minor-creditor-non-uk-name-on-account",
+          name: "minor-creditor-non-uk-name-on-account",
+          label: {
+            text: "Name on account",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkNameOnAccount
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-bic-or-swift-code",
+          name: "minor-creditor-non-uk-bic-or-swift-code",
+          label: {
+            text: "BIC or SWIFT code",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Must be between 8 and 11 digits long"
+          },
+          classes: "govuk-input--width-10",
+          value: creditor.nonUkBicOrSwiftCode
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-iban",
+          name: "minor-creditor-non-uk-iban",
+          label: {
+            text: "IBAN",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkIban
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-payment-reference",
+          name: "minor-creditor-non-uk-payment-reference",
+          label: {
+            text: "Payment reference",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkPaymentReference
+        }) }}
+
+        <p class="govuk-body govuk-!-margin-bottom-2">Other details if required</p>
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-bank-name",
+          name: "minor-creditor-non-uk-bank-name",
+          label: {
+            text: "Bank name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkBankName
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-branch-office-or-sort-code",
+          name: "minor-creditor-non-uk-branch-office-or-sort-code",
+          label: {
+            text: "Branch code or sort code",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkBranchOfficeOrSortCode
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-non-uk-account-number",
+          name: "minor-creditor-non-uk-account-number",
+          label: {
+            text: "Account number",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.nonUkAccountNumber
+        }) }}
+      {% endset %}
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukRadios({
+          idPrefix: "minor-creditor-type",
+          name: "minor-creditor-type",
+          fieldset: {
+            legend: {
+              text: "Select creditor type",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "individual",
+              text: "Individual",
+              checked: creditor.creditorType == "individual",
+              conditional: {
+                html: individualHtml
+              }
+            },
+            {
+              value: "organisation",
+              text: "Organisation",
+              checked: creditor.creditorType == "organisation",
+              conditional: {
+                html: organisationHtml
+              }
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Address</h2>
+
+        {{ govukInput({
+          id: "minor-creditor-address-line-1",
+          name: "minor-creditor-address-line-1",
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.addressLine1
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-address-line-2",
+          name: "minor-creditor-address-line-2",
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.addressLine2
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-address-line-3",
+          name: "minor-creditor-address-line-3",
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.addressLine3
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-address-line-4",
+          name: "minor-creditor-address-line-4",
+          label: {
+            text: "Address line 4",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.addressLine4
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-address-line-5",
+          name: "minor-creditor-address-line-5",
+          label: {
+            text: "Address line 5",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: creditor.addressLine5
+        }) }}
+
+        {{ govukInput({
+          id: "minor-creditor-postcode",
+          name: "minor-creditor-postcode",
+          label: {
+            text: "Postcode",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: creditor.postcode
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Bank details</h2>
+
+        {{ govukRadios({
+          idPrefix: "minor-creditor-bank-account-type",
+          name: "minor-creditor-bank-account-type",
+          fieldset: {
+            legend: {
+              text: "Bank account type",
+              classes: "govuk-visually-hidden"
+            }
+          },
+          items: [
+            {
+              value: "uk-bank-account",
+              text: "UK bank account",
+              checked: creditor.bankAccountType == "uk-bank-account",
+              conditional: {
+                html: ukBankDetailsHtml
+              }
+            },
+            {
+              value: "non-uk-bank-account",
+              text: "Non-UK bank account",
+              checked: creditor.bankAccountType == "non-uk-bank-account",
+              conditional: {
+                html: nonUkBankDetailsHtml
+              }
+            },
+            {
+              divider: "or"
+            },
+            {
+              value: "none",
+              text: "None",
+              checked: creditor.bankAccountType == "none",
+              hint: {
+                text: "Cheques will be used if no payment details are added"
+              }
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save details"
+          }) }}
+
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+

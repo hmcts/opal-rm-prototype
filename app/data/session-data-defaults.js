@@ -79,7 +79,7 @@ module.exports = {
   'central-authority-remo-reference': '',
   'central-authority-reference': '',
   'central-authority-name': '',
-  'order-application-code': '29014',
+  'order-application-code': 'CJ0002',
   'order-court-that-made-the-order': 'Sąd Okręgowy w Warszawie',
   'order-date-order-made': '12/01/2026',
   'order-has-periodical-payments': 'yes',

@@ -1,129 +1,56 @@
 {% extends "layouts/main.html" %}
 
-{% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
-
 {% block pageTitle %}
-  Create a case – {{ serviceName }} – GOV.UK Prototype Kit
+  RM - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">Create a case</h1>
-
-      {% set applicantTypeOptions = [
-        {
-          text: "Select",
-          value: "",
-          selected: not data["applicant-type"]
-        },
-        {
-          text: "Individual",
-          value: "individual",
-          selected: data["applicant-type"] == "individual"
-        },
-        {
-          text: "Organisation",
-          value: "organisation",
-          selected: data["applicant-type"] == "organisation"
-        }
-      ] %}
-
-      {% set applicantTypeHtmlRemoIn %}
-        {{ govukSelect({
-          id: "applicant-type-remo-in",
-          name: "applicant-type-remo-in",
-          label: {
-            text: "Select applicant type",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-one-third",
-          items: applicantTypeOptions
-        }) }}
-      {% endset %}
-
-      {% set applicantTypeHtmlRemoOut %}
-        {{ govukSelect({
-          id: "applicant-type-remo-out",
-          name: "applicant-type-remo-out",
-          label: {
-            text: "Select applicant type",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-one-third",
-          items: applicantTypeOptions
-        }) }}
-      {% endset %}
-
-      <form method="post" action="/">
-        {{ govukRadios({
-          idPrefix: "case-type",
-          name: "case-type",
-          fieldset: {
-            legend: {
-              text: "Select a case type",
-              classes: "govuk-fieldset__legend--m"
-            }
-          },
-          items: [
-            {
-              value: "remo-in",
-              text: "REMO In",
-              checked: data["case-type"] == "remo-in",
-              conditional: {
-                html: applicantTypeHtmlRemoIn
-              }
-            },
-            {
-              value: "remo-out",
-              text: "REMO Out",
-              checked: data["case-type"] == "remo-out",
-              conditional: {
-                html: applicantTypeHtmlRemoOut
-              }
-            },
-            {
-              value: "remo-out-cms",
-              text: "REMO Out (CMS)",
-              checked: data["case-type"] == "remo-out-cms"
-            }
-          ]
-        }) }}
-
-        {{ govukRadios({
-          idPrefix: "has-order",
-          name: "has-order",
-          classes: "govuk-radios--inline",
-          fieldset: {
-            legend: {
-              text: "Do you have an order to add?",
-              classes: "govuk-fieldset__legend--m"
-            }
-          },
-          items: [
-            {
-              value: "yes",
-              text: "Yes",
-              checked: data["has-order"] == "yes"
-            },
-            {
-              value: "no",
-              text: "No",
-              checked: data["has-order"] == "no"
-            }
-          ]
-        }) }}
-
-        <div class="govuk-button-group">
-          {{ govukButton({
-            text: "Continue"
-          }) }}
-
-          <a class="govuk-link" href="/cancel">Cancel</a>
-        </div>
-      </form>
+  <div class="rm-primary-nav">
+    <div class="govuk-width-container">
+      <ul class="rm-primary-nav__list">
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Search</a>
+        </li>
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Accounts</a>
+        </li>
+        <li class="rm-primary-nav__item rm-primary-nav__item--active">
+          <a class="rm-primary-nav__link" href="/">RM</a>
+        </li>
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Reports</a>
+        </li>
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Administration</a>
+        </li>
+      </ul>
     </div>
+  </div>
+
+  <div class="govuk-width-container rm-dashboard">
+    <h1 class="govuk-heading-xl">RM</h1>
+
+    <section class="rm-dashboard-section" aria-labelledby="create-records-heading">
+      <h2 class="govuk-heading-l" id="create-records-heading">Create records</h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        <a class="govuk-link govuk-link--no-visited-state" href="/orders-applications">Enter Orders and Applications</a>
+      </p>
+      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
+        <a class="govuk-link govuk-link--no-visited-state" href="/orders-applications-alternative">Enter Orders and Applications (alternative)</a>
+      </p>
+    </section>
+
+    <section class="rm-dashboard-section" aria-labelledby="resulting-heading">
+      <h2 class="govuk-heading-l" id="resulting-heading">Resulting</h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        <a class="govuk-link govuk-link--no-visited-state" href="/resulting">Enter results</a>
+      </p>
+      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
+        <a class="govuk-link govuk-link--no-visited-state" href="/review-results">Review results</a>
+      </p>
+      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
+        <a class="govuk-link govuk-link--no-visited-state" href="/check-results">Check results</a>
+      </p>
+    </section>
   </div>
 {% endblock %}

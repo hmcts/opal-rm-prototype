@@ -1,0 +1,85 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Select a result - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting/case-details"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Select a result</h1>
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#resulting-result-code"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% if recordedResults.length %}
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: "Entered results"
+            }
+          },
+          rows: recordedResultRows
+        }) }}
+      {% endif %}
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
+      {% set resultLabelText = "Choose the result" %}
+      {% if recordedResults.length %}
+        {% set resultLabelText = "Add another result" %}
+      {% endif %}
+
+      <form method="post" action="/resulting/select-result">
+        {{ xGovukAutocomplete({
+          id: "resulting-result-code",
+          name: "resulting-result-code",
+          label: {
+            text: resultLabelText,
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing a result code or title to see matching results."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["resulting-result-code"],
+          items: resultItems,
+          errorMessage: selectionErrorMessage
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

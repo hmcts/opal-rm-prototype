@@ -1,0 +1,178 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block pageTitle %}
+  Check your answers - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting/case-details"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Check your answers</h1>
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {
+              text: "Case type"
+            },
+            value: {
+              text: caseTypeLabel
+            }
+          },
+          {
+            key: {
+              text: "Hearing details"
+            },
+            value: {
+              text: hearingDetailsText
+            }
+          }
+        ]
+      }) }}
+
+      {% set applicantWarningHtml %}
+        {{ govukWarningText({
+          text: "Applicant's personal information should not be shared.",
+          iconFallbackText: "Warning"
+        }) }}
+      {% endset %}
+
+      {% set respondentWarningHtml %}
+        {{ govukWarningText({
+          text: "Respondent's personal information should not be shared.",
+          iconFallbackText: "Warning"
+        }) }}
+      {% endset %}
+
+      <div class="govuk-summary-card govuk-!-margin-bottom-6">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Applicant details</h2>
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <a class="govuk-link" href="/resulting/applicant-details">Change</a>
+            </li>
+          </ul>
+        </div>
+        <div class="govuk-summary-card__content">
+          {% if showApplicantRestrictionWarning %}
+            {{ applicantWarningHtml | safe }}
+          {% endif %}
+
+          {{ govukSummaryList({
+            rows: applicantRows
+          }) }}
+        </div>
+      </div>
+
+      <div class="govuk-summary-card govuk-!-margin-bottom-6">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Respondent details</h2>
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <a class="govuk-link" href="/resulting/respondent-details">Change</a>
+            </li>
+          </ul>
+        </div>
+        <div class="govuk-summary-card__content">
+          {% if showRespondentRestrictionWarning %}
+            {{ respondentWarningHtml | safe }}
+          {% endif %}
+
+          {{ govukSummaryList({
+            rows: respondentRows
+          }) }}
+        </div>
+      </div>
+
+      {% if not isRemoOutCase %}
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: "Central authority details"
+            },
+            actions: {
+              items: [
+                {
+                  text: "Change",
+                  href: "/resulting/central-authority-details"
+                }
+              ]
+            }
+          },
+          rows: centralAuthorityRows
+        }) }}
+      {% endif %}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Results"
+          },
+          actions: {
+            items: [
+              {
+                text: "Change",
+                href: "/resulting/select-result"
+              }
+            ]
+          }
+        },
+        rows: resultsRows
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Comments and notes"
+          },
+          actions: {
+            items: [
+              {
+                text: "Change",
+                href: "/resulting/case-comments-and-notes"
+              }
+            ]
+          }
+        },
+        rows: caseCommentsRows
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Session details"
+          },
+          actions: {
+            items: [
+              {
+                text: "Change",
+                href: "/resulting/session-details"
+              }
+            ]
+          }
+        },
+        rows: sessionRows
+      }) }}
+
+      <form method="post" action="/resulting/check-your-answers">
+        {{ govukButton({
+          text: "Submit results"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

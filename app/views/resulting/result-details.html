@@ -1,0 +1,211 @@
+{% extends "layouts/main.html" %}
+
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  {% if isEditingResult %}
+    Edit result - {{ serviceName }} - GOV.UK Prototype Kit
+  {% else %}
+    Result details - {{ serviceName }} - GOV.UK Prototype Kit
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting/select-result"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <p class="govuk-body govuk-!-margin-bottom-1 govuk-!-font-weight-bold">{{ resultCode }}</p>
+      <h1 class="govuk-heading-l">{{ resultTitle }}</h1>
+
+      <p class="govuk-body govuk-!-margin-bottom-6">Category: {{ resultCategory }}</p>
+
+      {% if isEditingResult %}
+        {{ govukInsetText({
+          text: "Your previous answers have been loaded so you can update this result."
+        }) }}
+      {% endif %}
+
+      {{ govukInsetText({
+        html: '<span class="govuk-!-font-weight-bold">Result wording</span><br>' ~ resultWording
+      }) }}
+
+      {% set primaryButtonText = "Save" %}
+      {% if isEditingResult %}
+        {% set primaryButtonText = "Update result" %}
+      {% endif %}
+
+      <form method="post" action="/resulting/result-details">
+        {% for field in responseItems %}
+          {% set fieldHint = undefined %}
+          {% if field.hint %}
+            {% set fieldHint = {
+              text: field.hint
+            } %}
+          {% endif %}
+
+          {% if field.type == "textarea" %}
+            {{ govukTextarea({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              rows: 4,
+              hint: fieldHint,
+              value: field.value,
+              errorMessage: field.errorMessage,
+              attributes: {
+                maxlength: field.maxLength
+              }
+            }) }}
+          {% elif field.type == "date" %}
+            {{ mojDatePicker({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              value: field.value,
+              errorMessage: field.errorMessage
+            }) }}
+          {% elif field.type == "currency" %}
+            {{ govukInput({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-input--width-10",
+              prefix: {
+                text: "£"
+              },
+              value: field.value,
+              errorMessage: field.errorMessage,
+              attributes: {
+                inputmode: "decimal"
+              }
+            }) }}
+          {% elif field.type == "radios" %}
+            {{ govukRadios({
+              idPrefix: field.id,
+              name: field.id,
+              fieldset: {
+                legend: {
+                  text: field.prompt,
+                  classes: "govuk-fieldset__legend--s"
+                }
+              },
+              hint: fieldHint,
+              errorMessage: field.errorMessage,
+              items: field.items
+            }) }}
+          {% elif field.type == "checkboxes" %}
+            {{ govukCheckboxes({
+              idPrefix: field.id,
+              name: field.id,
+              fieldset: {
+                legend: {
+                  text: field.prompt,
+                  classes: "govuk-fieldset__legend--s"
+                }
+              },
+              hint: fieldHint,
+              errorMessage: field.errorMessage,
+              items: field.items
+            }) }}
+          {% elif field.type == "autocomplete" %}
+            {{ xGovukAutocomplete({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-!-width-two-thirds",
+              value: field.value,
+              errorMessage: field.errorMessage,
+              items: field.items
+            }) }}
+          {% elif field.type == "number" %}
+            {{ govukInput({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-input--width-10",
+              value: field.value,
+              errorMessage: field.errorMessage,
+              attributes: {
+                inputmode: "numeric"
+              }
+            }) }}
+          {% elif field.type == "time" %}
+            {{ govukInput({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-input--width-10",
+              value: field.value,
+              errorMessage: field.errorMessage
+            }) }}
+          {% else %}
+            {{ govukInput({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-!-width-two-thirds",
+              value: field.value,
+              errorMessage: field.errorMessage,
+              hint: fieldHint,
+              attributes: {
+                maxlength: field.maxLength
+              }
+            }) }}
+          {% endif %}
+        {% endfor %}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: primaryButtonText,
+            name: "action",
+            value: "save"
+          }) }}
+
+          {{ govukButton({
+            text: "Enter further result",
+            name: "action",
+            value: "add-further-result",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

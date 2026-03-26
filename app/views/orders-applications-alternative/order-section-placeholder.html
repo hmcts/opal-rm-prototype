@@ -1,0 +1,23 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+
+{% block pageTitle %}
+  {{ sectionTitle }} - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications-alternative/case-details"
+      }) }}
+
+      <h1 class="govuk-heading-l">{{ sectionTitle }}</h1>
+      <p class="govuk-body">This section has not been added to the prototype yet.</p>
+    </div>
+  </div>
+{% endblock %}
+
+

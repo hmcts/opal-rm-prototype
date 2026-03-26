@@ -1,0 +1,63 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Application details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Application details</h1>
+
+      {{ govukInsetText({
+        html: '<span class="govuk-!-font-weight-bold">Application found</span><br>' ~ applicationTitle
+      }) }}
+
+      <form method="post" action="/orders-applications-alternative/application-details/content">
+        {{ govukCharacterCount({
+          name: "application-foreign-court",
+          id: "application-foreign-court",
+          maxlength: 500,
+          label: {
+            text: "Enter foreign court that made the order",
+            classes: "govuk-label--s"
+          },
+          rows: 4,
+          value: data["application-foreign-court"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "application-order-date",
+          name: "application-order-date",
+          label: {
+            text: "Enter date the order was made",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 16/03/2026"
+          },
+          value: data["application-order-date"]
+        }) }}
+
+        {{ govukInsetText({
+          html: '<span class="govuk-!-font-weight-bold">Application wording</span><br>' ~ applicationWording
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

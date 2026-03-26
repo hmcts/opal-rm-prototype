@@ -1,0 +1,72 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}
+  Search results - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting/record-number"
+      }) }}
+
+      <span class="govuk-caption-l">Results are here</span>
+      <h1 class="govuk-heading-l">Search matches</h1>
+
+      <h2 class="govuk-heading-m">Select account to continue</h2>
+
+      <form method="post" action="/resulting/record-number/results">
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header"><span class="govuk-visually-hidden">Select</span></th>
+              <th scope="col" class="govuk-table__header">Account number</th>
+              <th scope="col" class="govuk-table__header">Respondent name</th>
+              <th scope="col" class="govuk-table__header">Applicant name</th>
+              <th scope="col" class="govuk-table__header">Balance</th>
+              <th scope="col" class="govuk-table__header">Hearing</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for match in searchMatches %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">
+                  <div class="govuk-radios govuk-radios--small">
+                    <div class="govuk-radios__item">
+                      <input class="govuk-radios__input" id="resulting-selected-record-id-{{ loop.index }}" name="resulting-selected-record-id" type="radio" value="{{ match.id }}" {{ checked("resulting-selected-record-id", match.id) }}>
+                      <label class="govuk-label govuk-radios__label" for="resulting-selected-record-id-{{ loop.index }}">
+                        <span class="govuk-visually-hidden">Select {{ match.accountNumber }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </td>
+                <td class="govuk-table__cell">{{ match.accountNumber }}</td>
+                <td class="govuk-table__cell">{{ match.respondentName }}</td>
+                <td class="govuk-table__cell">{{ match.applicantName }}</td>
+                <td class="govuk-table__cell">{{ match.balanceDisplay }}</td>
+                <td class="govuk-table__cell">{{ match.hearing }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Add results"
+          }) }}
+
+          <a class="govuk-link" href="/resulting/record-number">Search again</a>
+        </div>
+
+        <p class="govuk-body">
+          <a class="govuk-link" href="/resulting">Cancel</a>
+        </p>
+      </form>
+    </div>
+  </div>
+{% endblock %}

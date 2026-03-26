@@ -1,0 +1,83 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+
+{% block pageTitle %}
+  Case details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications/"
+      }) }}
+
+      <h1 class="govuk-heading-l">Case details</h1>
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {
+              text: "Case type"
+            },
+            value: {
+              text: caseTypeLabel
+            }
+          },
+          {
+            key: {
+              text: "Applicant type"
+            },
+            value: {
+              text: applicantTypeLabel
+            }
+          }
+        ]
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Party details</h2>
+
+      {{ govukTaskList({
+        idPrefix: "party-details",
+        items: partyDetailsItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">{{ caseSectionHeading }}</h2>
+
+      {{ govukTaskList({
+        idPrefix: caseSectionIdPrefix,
+        items: caseSectionItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">Additional information</h2>
+
+      {{ govukTaskList({
+        idPrefix: "additional-information",
+        items: additionalInformationItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-top-8">Check and submit</h2>
+
+      {% if canCheckCase %}
+        {{ govukButton({
+          text: "Check case",
+          href: "/orders-applications/check-case-details"
+        }) }}
+      {% else %}
+        <p class="govuk-body">You cannot proceed until all required sections have been completed.</p>
+      {% endif %}
+
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+      <p class="govuk-body">
+        <a class="govuk-link govuk-link--no-visited-state" href="/orders-applications/cancel-case-creation">Cancel case creation</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
+

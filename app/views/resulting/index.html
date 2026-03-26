@@ -1,0 +1,57 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+  Results - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/"
+      }) }}
+
+      <span class="govuk-caption-l">Result a hearing</span>
+      <h1 class="govuk-heading-l">Results</h1>
+
+      <form method="post" action="/resulting">
+        {{ govukRadios({
+          idPrefix: "resulting-search-mode",
+          name: "resulting-search-mode",
+          fieldset: {
+            legend: {
+              text: "How do you want to find the hearing?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "record-number",
+              text: "Search by record",
+              checked: data["resulting-search-mode"] == "record-number"
+            },
+            {
+              value: "england-wales",
+              text: "Search for a hearing in a session in England and Wales",
+              checked: data["resulting-search-mode"] == "england-wales"
+            },
+            {
+              value: "unscheduled",
+              text: "Search for an unscheduled hearing",
+              checked: data["resulting-search-mode"] == "unscheduled"
+            }
+          ]
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

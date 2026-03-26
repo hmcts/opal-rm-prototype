@@ -1,0 +1,81 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Create order terms - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications-alternative/case-details"
+      }) }}
+
+      <h1 class="govuk-heading-l">Create order terms</h1>
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#alternative-order-term-code"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% if recordedOrderTerms.length %}
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: "Entered order terms"
+            }
+          },
+          rows: recordedOrderTermRows
+        }) }}
+      {% endif %}
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
+      {% set resultLabelText = "Select the order term" %}
+      {% if recordedOrderTerms.length %}
+        {% set resultLabelText = "Add another order term" %}
+      {% endif %}
+
+      <form method="post" action="/orders-applications-alternative/select-order-term">
+        {{ xGovukAutocomplete({
+          id: "alternative-order-term-code",
+          name: "alternative-order-term-code",
+          label: {
+            text: resultLabelText,
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing an order term code or title to see matching order terms."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["alternative-order-term-code"],
+          items: resultItems,
+          errorMessage: selectionErrorMessage
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}
