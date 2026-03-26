@@ -12,3 +12,12 @@ usage-data-config.json
 .idea
 .deployment
 .vscode
+.venv/
+site/
+.pages/
+
+# Agent working artifacts
+PLAN.md
+TODO.md
+DECISIONS.md
+RESULT.md

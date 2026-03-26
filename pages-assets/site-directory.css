@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f2f1;
+  color: #0b0c0c;
+}
+
+.shell {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #505a5f;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+.lead {
+  margin: 0 0 24px;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.card {
+  margin-top: 24px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #b1b4b6;
+  border-radius: 8px;
+}
+
+a {
+  color: #1d70b8;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
