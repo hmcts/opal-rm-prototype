@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
@@ -17,6 +18,7 @@
   {% set backHref = backHref or "/orders-applications/case-details" %}
   {% set formAction = formAction or "/orders-applications/applicant-details" %}
   {% set cancelHref = cancelHref or "/orders-applications/cancel" %}
+  {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
@@ -29,6 +31,15 @@
       {% endif %}
 
       <h1 class="govuk-heading-l">Applicant details</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      {% set isOrganisationApplicant = data["applicant-type"] == "organisation" %}
 
       {% set aliasHtml %}
         <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
@@ -72,7 +83,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["applicant-third-party-name-or-organisation"]
+          value: data["applicant-third-party-name-or-organisation"],
+          errorMessage: formErrors["applicant-third-party-name-or-organisation"]
         }) }}
 
         {{ govukInput({
@@ -105,7 +117,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["applicant-third-party-address-line-1"]
+          value: data["applicant-third-party-address-line-1"],
+          errorMessage: formErrors["applicant-third-party-address-line-1"]
         }) }}
 
         {{ govukInput({
@@ -171,18 +184,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: [
-            {
-              text: "Poland",
-              value: "poland",
-              selected: data["applicant-third-party-country"] == "poland"
-            },
-            {
-              text: "United Kingdom",
-              value: "united-kingdom",
-              selected: data["applicant-third-party-country"] == "united-kingdom"
-            }
-          ]
+          errorMessage: formErrors["applicant-third-party-country"],
+          items: getCountrySelectItems(data["applicant-third-party-country"])
         }) }}
       {% endset %}
 
@@ -326,11 +329,36 @@
             classes: "govuk-label--s"
           },
           rows: 5,
-          value: data["applicant-restriction-reason"]
+          value: data["applicant-restriction-reason"],
+          errorMessage: formErrors["applicant-restriction-reason"]
         }) }}
       {% endset %}
 
       <form method="post" action="{{ formAction }}">
+        {% if isOrganisationApplicant %}
+          {{ govukInput({
+            id: "applicant-organisation-name",
+            name: "applicant-organisation-name",
+            label: {
+              text: "Organisation name",
+              classes: "govuk-label--s"
+            },
+            classes: "govuk-!-width-two-thirds",
+            value: data["applicant-organisation-name"],
+            errorMessage: formErrors["applicant-organisation-name"]
+          }) }}
+
+          {{ govukInput({
+            id: "applicant-foreign-authority-reference",
+            name: "applicant-foreign-authority-reference",
+            label: {
+              text: "Foreign authority reference",
+              classes: "govuk-label--s"
+            },
+            classes: "govuk-!-width-two-thirds",
+            value: data["applicant-foreign-authority-reference"]
+          }) }}
+        {% else %}
         {{ govukSelect({
           id: "applicant-title",
           name: "applicant-title",
@@ -339,7 +367,13 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-quarter",
+          errorMessage: formErrors["applicant-title"],
           items: [
+            {
+              text: "",
+              value: "",
+              selected: not data["applicant-title"]
+            },
             {
               text: "Mr",
               value: "mr",
@@ -379,7 +413,8 @@
             text: "Include their middle names"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["applicant-first-names"]
+          value: data["applicant-first-names"],
+          errorMessage: formErrors["applicant-first-names"]
         }) }}
 
         {{ govukInput({
@@ -390,7 +425,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["applicant-last-name"]
+          value: data["applicant-last-name"],
+          errorMessage: formErrors["applicant-last-name"]
         }) }}
 
         {{ govukCheckboxes({
@@ -414,10 +450,7 @@
           label: {
             text: "Date of birth",
             classes: "govuk-label--s"
-          },
-          hint: {
-            text: "For example, 31/01/2023"
-          },
+          },
           value: data["applicant-date-of-birth"]
         }) }}
 
@@ -425,6 +458,7 @@
           <div class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7">
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-0">Age: {{ applicantAge }}</p>
           </div>
+        {% endif %}
         {% endif %}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
@@ -559,34 +593,26 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: [
-            {
-              text: "Poland",
-              value: "poland",
-              selected: data["applicant-country"] == "poland"
-            },
-            {
-              text: "United Kingdom",
-              value: "united-kingdom",
-              selected: data["applicant-country"] == "united-kingdom"
-            }
-          ]
+          items: getCountrySelectItems(data["applicant-country"])
         }) }}
 
-        {{ govukCheckboxes({
-          idPrefix: "applicant-send-correspondence-to-third-party",
-          name: "applicant-send-correspondence-to-third-party",
-          items: [
-            {
-              value: "yes",
-              text: "Send correspondence to a third party",
-              checked: data["applicant-send-correspondence-to-third-party"] == "yes",
-              conditional: {
-                html: thirdPartyHtml
+        {% if not isOrganisationApplicant %}
+          {{ govukCheckboxes({
+            idPrefix: "applicant-send-correspondence-to-third-party",
+            name: "applicant-send-correspondence-to-third-party",
+            errorMessage: formErrors["applicant-send-correspondence-to-third-party"],
+            items: [
+              {
+                value: "yes",
+                text: "Send correspondence to a third party",
+                checked: data["applicant-send-correspondence-to-third-party"] == "yes",
+                conditional: {
+                  html: thirdPartyHtml
+                }
               }
-            }
-          ]
-        }) }}
+            ]
+          }) }}
+        {% endif %}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
@@ -601,6 +627,7 @@
               classes: "govuk-visually-hidden"
             }
           },
+          errorMessage: formErrors["applicant-bank-account-type"],
           items: [
             {
               value: "uk-bank-account",
@@ -631,25 +658,28 @@
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-        <h2 class="govuk-heading-m">Restrict personal information</h2>
-        <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
+        {% if not isOrganisationApplicant %}
+          <h2 class="govuk-heading-m">Restrict personal information</h2>
+          <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
 
-        {{ govukCheckboxes({
-          idPrefix: "applicant-restrict-personal-information",
-          name: "applicant-restrict-personal-information",
-          items: [
-            {
-              value: "yes",
-              text: "Applicant's personal information should not be shared",
-              checked: data["applicant-restrict-personal-information"] == "yes",
-              conditional: {
-                html: restrictionHtml
+          {{ govukCheckboxes({
+            idPrefix: "applicant-restrict-personal-information",
+            name: "applicant-restrict-personal-information",
+            errorMessage: formErrors["applicant-restrict-personal-information"],
+            items: [
+              {
+                value: "yes",
+                text: "Applicant's personal information should not be shared",
+                checked: data["applicant-restrict-personal-information"] == "yes",
+                conditional: {
+                  html: restrictionHtml
+                }
               }
-            }
-          ]
-        }) }}
+            ]
+          }) }}
 
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        {% endif %}
 
         <div class="govuk-button-group">
           {{ govukButton({

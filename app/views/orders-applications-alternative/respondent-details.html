@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
@@ -17,6 +18,7 @@
   {% set backHref = backHref or "/orders-applications-alternative/case-details" %}
   {% set formAction = formAction or "/orders-applications-alternative/respondent-details" %}
   {% set cancelHref = cancelHref or "/orders-applications-alternative/cancel" %}
+  {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
@@ -29,6 +31,13 @@
       {% endif %}
 
       <h1 class="govuk-heading-l">Respondent details</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
 
       {% set aliasHtml %}
         <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
@@ -72,7 +81,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["respondent-third-party-name-or-organisation"]
+          value: data["respondent-third-party-name-or-organisation"],
+          errorMessage: formErrors["respondent-third-party-name-or-organisation"]
         }) }}
 
         {{ govukInput({
@@ -105,7 +115,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["respondent-third-party-address-line-1"]
+          value: data["respondent-third-party-address-line-1"],
+          errorMessage: formErrors["respondent-third-party-address-line-1"]
         }) }}
 
         {{ govukInput({
@@ -171,18 +182,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: [
-            {
-              text: "United Kingdom",
-              value: "united-kingdom",
-              selected: data["respondent-third-party-country"] == "united-kingdom"
-            },
-            {
-              text: "Poland",
-              value: "poland",
-              selected: data["respondent-third-party-country"] == "poland"
-            }
-          ]
+          errorMessage: formErrors["respondent-third-party-country"],
+          items: getCountrySelectItems(data["respondent-third-party-country"])
         }) }}
       {% endset %}
 
@@ -196,7 +197,8 @@
             classes: "govuk-label--s"
           },
           rows: 5,
-          value: data["respondent-restriction-reason"]
+          value: data["respondent-restriction-reason"],
+          errorMessage: formErrors["respondent-restriction-reason"]
         }) }}
       {% endset %}
 
@@ -209,7 +211,13 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-quarter",
+          errorMessage: formErrors["respondent-title"],
           items: [
+            {
+              text: "",
+              value: "",
+              selected: not data["respondent-title"]
+            },
             {
               text: "Mr",
               value: "mr",
@@ -249,7 +257,8 @@
             text: "Include their middle names"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["respondent-first-names"]
+          value: data["respondent-first-names"],
+          errorMessage: formErrors["respondent-first-names"]
         }) }}
 
         {{ govukInput({
@@ -260,7 +269,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["respondent-last-name"]
+          value: data["respondent-last-name"],
+          errorMessage: formErrors["respondent-last-name"]
         }) }}
 
         {{ govukCheckboxes({
@@ -284,10 +294,7 @@
           label: {
             text: "Date of birth",
             classes: "govuk-label--s"
-          },
-          hint: {
-            text: "For example, 31/01/2023"
-          },
+          },
           value: data["respondent-date-of-birth"]
         }) }}
 
@@ -451,23 +458,13 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: [
-            {
-              text: "United Kingdom",
-              value: "united-kingdom",
-              selected: data["respondent-country"] == "united-kingdom"
-            },
-            {
-              text: "Poland",
-              value: "poland",
-              selected: data["respondent-country"] == "poland"
-            }
-          ]
+          items: getCountrySelectItems(data["respondent-country"])
         }) }}
 
         {{ govukCheckboxes({
           idPrefix: "respondent-send-correspondence-to-third-party",
           name: "respondent-send-correspondence-to-third-party",
+          errorMessage: formErrors["respondent-send-correspondence-to-third-party"],
           items: [
             {
               value: "yes",
@@ -488,6 +485,7 @@
         {{ govukCheckboxes({
           idPrefix: "respondent-restrict-personal-information",
           name: "respondent-restrict-personal-information",
+          errorMessage: formErrors["respondent-restrict-personal-information"],
           items: [
             {
               value: "yes",

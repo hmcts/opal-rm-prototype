@@ -12,27 +12,16 @@
 {% endblock %}
 
 {% block content %}
+  {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Order details</h1>
 
-      {% if selectionError %}
+      {% if errorSummary %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
-          errorList: [
-            {
-              text: selectionError,
-              href: "#order-application-code"
-            }
-          ]
+          errorList: errorSummary
         }) }}
-      {% endif %}
-
-      {% set selectionErrorMessage = undefined %}
-      {% if selectionError %}
-        {% set selectionErrorMessage = {
-          text: selectionError
-        } %}
       {% endif %}
 
       <form method="post" action="/orders-applications-alternative/order-details">
@@ -51,7 +40,7 @@
           classes: "govuk-!-width-two-thirds",
           value: data["order-application-code"],
           items: applicationItems,
-          errorMessage: selectionErrorMessage
+          errorMessage: formErrors["order-application-code"]
         }) }}
 
         <div
@@ -73,7 +62,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-input--width-20",
-          value: data["order-court-that-made-the-order"]
+          value: data["order-court-that-made-the-order"],
+          errorMessage: formErrors["order-court-that-made-the-order"]
         }) }}
 
         {{ mojDatePicker({
@@ -83,10 +73,8 @@
             text: "Date order made",
             classes: "govuk-label--s"
           },
-          hint: {
-            text: "For example, 31/01/2023"
-          },
-          value: data["order-date-order-made"]
+          value: data["order-date-order-made"],
+          errorMessage: formErrors["order-date-order-made"]
         }) }}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
@@ -100,10 +88,8 @@
             text: "Date arrears last updated",
             classes: "govuk-label--s"
           },
-          hint: {
-            text: "For example, 31/01/2023"
-          },
-          value: data["order-date-arrears-last-updated"]
+          value: data["order-date-arrears-last-updated"],
+          errorMessage: formErrors["order-date-arrears-last-updated"]
         }) }}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">

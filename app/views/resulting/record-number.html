@@ -68,45 +68,6 @@
         }) }}
       {% endset %}
 
-      {% set companiesHtml %}
-        {{ govukInput({
-          id: "resulting-record-search-company-name",
-          name: "resulting-record-search-company-name",
-          label: {
-            text: "Company name",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-input--width-two-thirds",
-          value: data["resulting-record-search-company-name"]
-        }) }}
-
-        {{ govukCheckboxes({
-          idPrefix: "resulting-record-search-company-options",
-          name: "resulting-record-search-exact-match",
-          classes: "govuk-checkboxes--small",
-          items: [
-            {
-              value: "yes",
-              text: "Search exact match",
-              checked: data["resulting-record-search-exact-match"] == "yes"
-            }
-          ]
-        }) }}
-
-        {{ govukCheckboxes({
-          idPrefix: "resulting-record-search-company-aliases",
-          name: "resulting-record-search-include-aliases",
-          classes: "govuk-checkboxes--small",
-          items: [
-            {
-              value: "yes",
-              text: "Include aliases",
-              checked: data["resulting-record-search-include-aliases"] == "yes"
-            }
-          ]
-        }) }}
-      {% endset %}
-
       <span class="govuk-caption-l">Result a hearing</span>
       <h1 class="govuk-heading-l">Search by record</h1>
 
@@ -142,13 +103,6 @@
               id: "individuals",
               panel: {
                 html: individualsHtml
-              }
-            },
-            {
-              label: "Companies",
-              id: "companies",
-              panel: {
-                html: companiesHtml
               }
             }
           ]

@@ -5,6 +5,7 @@
 
 const govukPrototypeKit = require('govuk-prototype-kit')
 const resultDefinitions = require('./data/resulting-result-definitions')
+const sessionDataDefaults = require('./data/session-data-defaults')
 const router = govukPrototypeKit.requests.setupRouter()
 
 const caseTypeLabels = {
@@ -26,11 +27,646 @@ const titleLabels = {
   dr: 'Dr'
 }
 
-const countryLabels = {
-  latvia: 'Latvia',
-  poland: 'Poland',
-  'united-kingdom': 'United Kingdom'
+const caseEnquiryRecords = [
+  {
+    id: 'order-case',
+    caseReference: 'RC0002-10458',
+    respondentHeading: 'Mr John MALIK',
+    kind: 'Order case',
+    kindTagClass: 'govuk-tag--blue',
+    caseType: 'REMO Out',
+    businessUnit: 'Bury St Edmunds',
+    applicantType: 'Organisation',
+    receivedFrom: 'Warsaw Regional Court',
+    lastUpdated: '09 Apr 2026',
+    arrearsTile: {
+      label: 'Arrears',
+      value: '£1,240.00'
+    },
+    atGlance: {
+      leftHeading: 'Respondent',
+      leftRows: [
+        ['Name', 'Mr John MALIK'],
+        ['Date of birth', '10 Aug 1984'],
+        ['Address', '24 High Street\nTwyford\nBerkshire\nRG10 9RT'],
+        ['National Insurance number', 'QQ 12 34 56 C']
+      ],
+      middleHeading: 'Case details',
+      middleRows: [
+        ['Case type', 'REMO Out order'],
+        ['Applicant', 'Uzturldizeklu garantiju fonda administracija'],
+        ['Court that made the order', 'Sąd Okręgowy w Warszawie'],
+        ['Date order made', '12 Jan 2025']
+      ],
+      rightHeading: 'Status and notes',
+      rightRows: [
+        ['Current status', 'Order terms recorded'],
+        ['Next hearing', '07 Apr 2026 at 10:00'],
+        ['Latest note', 'Awaiting confirmation of payment history from originating court']
+      ]
+    },
+    applicantSections: [
+      {
+        title: 'Organisation details',
+        rows: [
+          ['Applicant type', 'Organisation'],
+          ['Organisation name', 'Uzturldizeklu garantiju fonda administracija'],
+          ['Foreign authority reference', 'CXD-2736549-PL']
+        ]
+      },
+      {
+        title: 'Contact details',
+        rows: [
+          ['Main email address', 'maintenance@kela.fi'],
+          ['Other email address', 'Not provided'],
+          ['Main telephone number', '+358 40 123 4567'],
+          ['Other telephone number', 'Not provided']
+        ]
+      },
+      {
+        title: 'Address',
+        rows: [
+          ['Address', 'Perintakeskus, PL 50\nHelsinki\n00601\nFinland']
+        ]
+      },
+      {
+        title: 'Bank details',
+        rows: [
+          ['Bank account type', 'Non-UK bank account'],
+          ['Name on account', 'Maintenance Recovery Unit'],
+          ['BIC or SWIFT code', 'NDEAFIHH'],
+          ['IBAN', 'FI2112345600000785']
+        ]
+      }
+    ],
+    respondentSections: [
+      {
+        title: 'Personal details',
+        rows: [
+          ['Title', 'Mr'],
+          ['First names', 'John'],
+          ['Last name', 'Malik'],
+          ['Date of birth', '10 Aug 1984'],
+          ['National Insurance number', 'QQ 12 34 56 C']
+        ]
+      },
+      {
+        title: 'Contact details',
+        rows: [
+          ['Main email address', 'john.malik@example.test'],
+          ['Other email address', 'Not provided'],
+          ['Main telephone number', '+44 7700 900321'],
+          ['Other telephone number', 'Not provided']
+        ]
+      },
+      {
+        title: 'Address',
+        rows: [
+          ['Address', '24 High Street\nTwyford\nBerkshire\nRG10 9RT']
+        ]
+      }
+    ],
+    caseRows: [
+      ['Application code', 'EA0002'],
+      ['Application found', 'Application for registration of a foreign order in the UK Family Court'],
+      ['Order terms', 'MAT, MLUMP'],
+      ['Date arrears last updated', '09 Jan 2025'],
+      ['Interest and indexation', 'Interest applies, retain liability order']
+    ],
+    hearingRows: [
+      ['Hearing type', 'Hearing outside England and Wales'],
+      ['Date', '07 Apr 2026'],
+      ['Time', '10:00'],
+      ['Venue', 'Warsaw Regional Court'],
+      ['Courtroom', 'Remote hearing room 2']
+    ],
+    historyItems: [
+      { title: 'Result recorded', meta: '09 Apr 2026 at 11:15', body: 'Temporary order recorded for review.' },
+      { title: 'Order terms updated', meta: '08 Apr 2026 at 16:30', body: 'MAT and MLUMP terms added to the case.' },
+      { title: 'Case created', meta: '01 Apr 2026 at 09:10', body: 'Order received from Warsaw Regional Court.' }
+    ],
+    notesRows: [
+      ['Case note', 'Awaiting updated arrears schedule from the originating authority.'],
+      ['Internal note', 'Minor creditor details confirmed with applicant organisation.']
+    ]
+  },
+  {
+    id: 'application-case',
+    caseReference: 'HC0006-20485',
+    respondentHeading: 'Ms Elena NOWAK',
+    kind: 'Application case',
+    kindTagClass: 'govuk-tag--turquoise',
+    caseType: 'REMO In',
+    businessUnit: 'Bury St Edmunds',
+    applicantType: 'Individual',
+    receivedFrom: 'Finnish Central Authority',
+    lastUpdated: '10 Apr 2026',
+    arrearsTile: {
+      label: 'Arrears',
+      value: '£0.00'
+    },
+    atGlance: {
+      leftHeading: 'Respondent',
+      leftRows: [
+        ['Name', 'Ms Elena NOWAK'],
+        ['Date of birth', '14 Feb 1990'],
+        ['Address', '99 Market Street\nLeeds\nLS1 4AB'],
+        ['National Insurance number', 'Not provided']
+      ],
+      middleHeading: 'Application details',
+      middleRows: [
+        ['Case type', 'REMO In application'],
+        ['Application code', 'RC0001'],
+        ['Application found', 'Application for Registration/recognition of a foreign order in the UK Family Court'],
+        ['Hearing date', '18 Mar 2025']
+      ],
+      rightHeading: 'Status and notes',
+      rightRows: [
+        ['Current status', 'Awaiting hearing'],
+        ['Hearing venue', 'Bury St Edmunds'],
+        ['Latest note', 'Central authority reference checked and accepted']
+      ]
+    },
+    applicantSections: [
+      {
+        title: 'Personal details',
+        rows: [
+          ['Applicant type', 'Individual'],
+          ['Title', 'Ms'],
+          ['First names', 'Anna Maria'],
+          ['Last name', 'Korhonen'],
+          ['Date of birth', '14 Feb 1986']
+        ]
+      },
+      {
+        title: 'Contact details',
+        rows: [
+          ['Main email address', 'anna.korhonen@example.test'],
+          ['Other email address', 'Not provided'],
+          ['Main telephone number', '+358 40 111 222'],
+          ['Other telephone number', 'Not provided']
+        ]
+      },
+      {
+        title: 'Address',
+        rows: [
+          ['Address', '12 Market Square\nHelsinki\n00100\nFinland']
+        ]
+      },
+      {
+        title: 'Bank details',
+        rows: [
+          ['Bank account type', 'Non-UK bank account'],
+          ['Name on account', 'Anna Korhonen'],
+          ['BIC or SWIFT code', 'NDEAFIHH'],
+          ['IBAN', 'FI2112345600000785']
+        ]
+      }
+    ],
+    respondentSections: [
+      {
+        title: 'Personal details',
+        rows: [
+          ['Title', 'Ms'],
+          ['First names', 'Elena'],
+          ['Last name', 'Nowak'],
+          ['Date of birth', '14 Feb 1990'],
+          ['National Insurance number', 'Not provided']
+        ]
+      },
+      {
+        title: 'Contact details',
+        rows: [
+          ['Main email address', 'elena.nowak@example.test'],
+          ['Other email address', 'Not provided'],
+          ['Main telephone number', '+44 7700 900456'],
+          ['Other telephone number', 'Not provided']
+        ]
+      },
+      {
+        title: 'Address',
+        rows: [
+          ['Address', '99 Market Street\nLeeds\nLS1 4AB']
+        ]
+      }
+    ],
+    caseRows: [
+      ['Application code', 'RC0001'],
+      ['Application found', 'Application for Registration/recognition of a foreign order in the UK Family Court'],
+      ['Foreign court', 'District Court of Helsinki'],
+      ['Date order made', '12 Mar 2025'],
+      ['Central authority reference', 'FI-CA-20485']
+    ],
+    hearingRows: [
+      ['Hearing type', 'Hearing outside England and Wales'],
+      ['Date', '18 Mar 2025'],
+      ['Time', '09:30'],
+      ['Venue', 'Remote hearing'],
+      ['Courtroom', 'Not applicable']
+    ],
+    historyItems: [
+      { title: 'Hearing created', meta: '10 Apr 2026 at 09:45', body: 'Remote hearing scheduled and linked to the application.' },
+      { title: 'Application details updated', meta: '09 Apr 2026 at 15:20', body: 'Foreign court and order date confirmed.' },
+      { title: 'Case created', meta: '08 Apr 2026 at 10:00', body: 'Application received from Finnish Central Authority.' }
+    ],
+    notesRows: [
+      ['Case note', 'Respondent requested contact by email where possible.'],
+      ['Internal note', 'Application wording confirmed against reference data.']
+    ]
+  }
+]
+
+function cloneData(value) {
+  return JSON.parse(JSON.stringify(value))
 }
+
+function buildBaseSessionData() {
+  return cloneData(sessionDataDefaults)
+}
+
+function buildCreateDataScenarios() {
+  return {
+    'main-application': {
+      label: 'Orders and applications: application journey',
+      description: 'Seeds the main journey with applicant, respondent, central authority, application and hearing details.',
+      redirectTo: '/orders-applications/case-details',
+      sessionData: {
+        ...buildBaseSessionData(),
+        'case-type': 'remo-in',
+        'applicant-type': 'individual',
+        'has-order': 'no',
+        'applicant-title': 'ms',
+        'applicant-first-names': 'Anna Maria',
+        'applicant-last-name': 'Korhonen',
+        'applicant-date-of-birth': '14/02/1986',
+        'applicant-main-email-address': 'anna.korhonen@example.test',
+        'applicant-main-telephone-number': '+35840111222',
+        'applicant-address-line-1': '12 Market Square',
+        'applicant-address-line-2': 'Helsinki',
+        'applicant-postal-or-zip-code': '00100',
+        'applicant-country': 'finland',
+        'applicant-bank-account-type': 'non-uk-bank-account',
+        'applicant-bank-non-uk-name-on-account': 'Anna Korhonen',
+        'applicant-bank-bic-or-swift-code': 'NDEAFIHH',
+        'applicant-bank-iban': 'FI2112345600000785',
+        'respondent-title': 'mr',
+        'respondent-first-names': 'David',
+        'respondent-last-name': 'Smith',
+        'respondent-date-of-birth': '09/07/1983',
+        'respondent-main-email-address': 'david.smith@example.test',
+        'respondent-main-telephone-number': '+447700900123',
+        'respondent-address-line-1': '99 High Street',
+        'respondent-address-line-2': 'Reading',
+        'respondent-postal-or-zip-code': 'RG1 9RT',
+        'respondent-country': 'united-kingdom',
+        'central-authority-name': 'Finnish Central Authority',
+        'central-authority-reference': 'FI-CA-20485',
+        'application-code': 'RC0001',
+        'application-foreign-court': 'District Court of Helsinki',
+        'application-order-date': '12/03/2025',
+        'hearing-type': 'non-scheduled',
+        'hearing-date': '18/03/2025',
+        'hearing-non-scheduled-details': 'Remote hearing listed by the central authority',
+        'applicant-details-completed': 'yes',
+        'respondent-details-completed': 'yes',
+        'central-authority-details-completed': 'yes',
+        'application-details-completed': 'yes',
+        'hearing-details-completed': 'yes'
+      }
+    },
+    'alternative-order': {
+      label: 'Orders and applications (alternative): order journey',
+      description: 'Seeds the alternative journey with an organisation applicant, order details, an order term, and interest/indexation.',
+      redirectTo: '/orders-applications-alternative/case-details',
+      sessionData: {
+        ...buildBaseSessionData(),
+        'orders-applications-alternative': {
+          'case-type': 'remo-out',
+          'applicant-type': 'organisation',
+          'has-order': 'yes',
+          'applicant-organisation-name': 'Uzturldizeklu garantiju fonda administracija',
+          'applicant-foreign-authority-reference': 'CXD-2736549-PL',
+          'applicant-main-email-address': 'maintenance@kela.fi',
+          'applicant-main-telephone-number': '+358401234567',
+          'applicant-address-line-1': 'Perintakeskus, PL 50',
+          'applicant-address-line-2': 'Helsinki',
+          'applicant-postal-or-zip-code': '00601',
+          'applicant-country': 'finland',
+          'applicant-bank-account-type': 'non-uk-bank-account',
+          'applicant-bank-non-uk-name-on-account': 'Maintenance Recovery Unit',
+          'applicant-bank-bic-or-swift-code': 'NDEAFIHH',
+          'applicant-bank-iban': 'FI2112345600000785',
+          'respondent-title': 'mr',
+          'respondent-first-names': 'John',
+          'respondent-last-name': 'Malik',
+          'respondent-date-of-birth': '10/08/1984',
+          'respondent-address-line-1': '24 High Street',
+          'respondent-address-line-2': 'Twyford',
+          'respondent-postal-or-zip-code': 'RG10 9RT',
+          'respondent-country': 'united-kingdom',
+          'order-application-code': 'EA0002',
+          'order-court-that-made-the-order': 'Sąd Okręgowy w Warszawie',
+          'order-date-order-made': '12/01/2025',
+          'order-date-arrears-last-updated': '09/01/2025',
+          'entered-order-terms': [
+            {
+              code: 'MAT',
+              title: 'Maintenance Order for wife/Adult',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording: 'Order for payment by John Malik to Applicant payable through the Court for the benefit of the Complainant. The sum of £250.00 to be paid every month from 01 Jan 2025 until 01 Jan 2026.',
+              responses: {
+                amount: '250',
+                frequency: 'month',
+                expiry: '01/01/2026',
+                arrears: '100',
+                creditor: 'applicant',
+                respondent: 'John Malik',
+                payment: 'payable through the Court',
+                commencement: '01/01/2025'
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Applicant'
+            }
+          ],
+          'interest-and-indexation-completed': 'yes',
+          'interest-applies': 'yes',
+          'indexation-type': 'retain-liability-order',
+          'case-comment': 'Scenario data for testing order flow',
+          'applicant-details-completed': 'yes',
+          'respondent-details-completed': 'yes',
+          'order-details-completed': 'yes'
+        }
+      }
+    },
+    resulting: {
+      label: 'Resulting: record selected',
+      description: 'Seeds the resulting journey with a selected record, party details, and one result already entered.',
+      redirectTo: '/resulting/case-details',
+      sessionData: {
+        ...buildBaseSessionData(),
+        'resulting-search-mode': 'record-number',
+        'resulting-selected-record-id': '18392016A',
+        'case-type': 'remo-in',
+        'applicant-type': 'individual',
+        'applicant-title': 'ms',
+        'applicant-first-names': 'Patricia',
+        'applicant-last-name': 'Arket',
+        'applicant-main-email-address': 'patricia.arket@example.test',
+        'applicant-main-telephone-number': '+447700900124',
+        'applicant-address-line-1': '15 North Road',
+        'applicant-address-line-2': 'Leeds',
+        'applicant-postal-or-zip-code': 'LS1 4AB',
+        'applicant-country': 'united-kingdom',
+        'applicant-bank-account-type': 'uk-bank-account',
+        'respondent-title': 'mr',
+        'respondent-first-names': 'Edward',
+        'respondent-last-name': 'Fisher',
+        'respondent-date-of-birth': '23/06/2002',
+        'respondent-address-line-1': '99 High Street',
+        'respondent-address-line-2': 'Reading',
+        'respondent-postal-or-zip-code': 'RG10 9RT',
+        'respondent-country': 'united-kingdom',
+        'hearing-date': '07/04/2026',
+        'hearing-start-time': '10:00',
+        'hearing-court': 'Bury St Edmunds',
+        'hearing-courtroom-number': 'Courtroom 3',
+        'resulting-recorded-results': [
+          {
+            code: 'MTEMP',
+            title: 'Temporary order',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            wording: 'Temporary order for payment by Edward Fisher to Applicant. Pending review.',
+            responses: {
+              creditor: 'Applicant',
+              respondent: 'Edward Fisher',
+              reason: 'Pending review'
+            }
+          }
+        ],
+        'resulting-session-details-completed': 'yes',
+        'resulting-judge': 'District Judge Patel',
+        'resulting-session-start-time': '10:00',
+        'resulting-session-end-time': '11:15',
+        'applicant-details-completed': 'yes',
+        'respondent-details-completed': 'yes'
+      }
+    }
+  }
+}
+
+const countryNames = [
+  'Afghanistan',
+  'Albania',
+  'Algeria',
+  'Andorra',
+  'Angola',
+  'Antigua and Barbuda',
+  'Argentina',
+  'Armenia',
+  'Australia',
+  'Austria',
+  'Azerbaijan',
+  'Bahamas',
+  'Bahrain',
+  'Bangladesh',
+  'Barbados',
+  'Belarus',
+  'Belgium',
+  'Belize',
+  'Benin',
+  'Bhutan',
+  'Bolivia',
+  'Bosnia and Herzegovina',
+  'Botswana',
+  'Brazil',
+  'Brunei',
+  'Bulgaria',
+  'Burkina Faso',
+  'Burundi',
+  'Cabo Verde',
+  'Cambodia',
+  'Cameroon',
+  'Canada',
+  'Central African Republic',
+  'Chad',
+  'Chile',
+  'China',
+  'Colombia',
+  'Comoros',
+  'Congo',
+  'Costa Rica',
+  "Côte d'Ivoire",
+  'Croatia',
+  'Cuba',
+  'Cyprus',
+  'Czechia',
+  'Democratic Republic of the Congo',
+  'Denmark',
+  'Djibouti',
+  'Dominica',
+  'Dominican Republic',
+  'Ecuador',
+  'Egypt',
+  'El Salvador',
+  'Equatorial Guinea',
+  'Eritrea',
+  'Estonia',
+  'Eswatini',
+  'Ethiopia',
+  'Fiji',
+  'Finland',
+  'France',
+  'Gabon',
+  'Gambia',
+  'Georgia',
+  'Germany',
+  'Ghana',
+  'Greece',
+  'Grenada',
+  'Guatemala',
+  'Guinea',
+  'Guinea-Bissau',
+  'Guyana',
+  'Haiti',
+  'Honduras',
+  'Hungary',
+  'Iceland',
+  'India',
+  'Indonesia',
+  'Iran',
+  'Iraq',
+  'Ireland',
+  'Israel',
+  'Italy',
+  'Jamaica',
+  'Japan',
+  'Jordan',
+  'Kazakhstan',
+  'Kenya',
+  'Kiribati',
+  'Kuwait',
+  'Kyrgyzstan',
+  'Laos',
+  'Latvia',
+  'Lebanon',
+  'Lesotho',
+  'Liberia',
+  'Libya',
+  'Liechtenstein',
+  'Lithuania',
+  'Luxembourg',
+  'Madagascar',
+  'Malawi',
+  'Malaysia',
+  'Maldives',
+  'Mali',
+  'Malta',
+  'Marshall Islands',
+  'Mauritania',
+  'Mauritius',
+  'Mexico',
+  'Micronesia',
+  'Moldova',
+  'Monaco',
+  'Mongolia',
+  'Montenegro',
+  'Morocco',
+  'Mozambique',
+  'Myanmar',
+  'Namibia',
+  'Nauru',
+  'Nepal',
+  'Netherlands',
+  'New Zealand',
+  'Nicaragua',
+  'Niger',
+  'Nigeria',
+  'North Korea',
+  'North Macedonia',
+  'Norway',
+  'Oman',
+  'Pakistan',
+  'Palau',
+  'Palestine',
+  'Panama',
+  'Papua New Guinea',
+  'Paraguay',
+  'Peru',
+  'Philippines',
+  'Poland',
+  'Portugal',
+  'Qatar',
+  'Romania',
+  'Russia',
+  'Rwanda',
+  'Saint Kitts and Nevis',
+  'Saint Lucia',
+  'Saint Vincent and the Grenadines',
+  'Samoa',
+  'San Marino',
+  'Sao Tome and Principe',
+  'Saudi Arabia',
+  'Senegal',
+  'Serbia',
+  'Seychelles',
+  'Sierra Leone',
+  'Singapore',
+  'Slovakia',
+  'Slovenia',
+  'Solomon Islands',
+  'Somalia',
+  'South Africa',
+  'South Korea',
+  'South Sudan',
+  'Spain',
+  'Sri Lanka',
+  'Sudan',
+  'Suriname',
+  'Sweden',
+  'Switzerland',
+  'Syria',
+  'Taiwan',
+  'Tajikistan',
+  'Tanzania',
+  'Thailand',
+  'Timor-Leste',
+  'Togo',
+  'Tonga',
+  'Trinidad and Tobago',
+  'Tunisia',
+  'Turkey',
+  'Turkmenistan',
+  'Tuvalu',
+  'Uganda',
+  'Ukraine',
+  'United Arab Emirates',
+  'United Kingdom',
+  'United States',
+  'Uruguay',
+  'Uzbekistan',
+  'Vanuatu',
+  'Vatican City',
+  'Venezuela',
+  'Vietnam',
+  'Yemen',
+  'Zambia',
+  'Zimbabwe'
+]
+
+function slugifyCountryName(countryName) {
+  return countryName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
+const countryLabels = Object.fromEntries(
+  countryNames.map((countryName) => [slugifyCountryName(countryName), countryName])
+)
 
 const applicationDefinitionList = [
   {
@@ -611,10 +1247,14 @@ function getMinorCreditorCards(sessionData) {
 }
 
 function getApplicantFullName(sessionData) {
+  if (sessionData['applicant-type'] === 'organisation') {
+    return sessionData['applicant-organisation-name'] || ''
+  }
+
   return [
     sessionData['applicant-title']
       ? sessionData['applicant-title'].charAt(0).toUpperCase() +
-        sessionData['applicant-title'].slice(1)
+          sessionData['applicant-title'].slice(1)
       : '',
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
@@ -624,6 +1264,10 @@ function getApplicantFullName(sessionData) {
 }
 
 function getApplicantCreditorLabel(sessionData) {
+  if (sessionData['applicant-type'] === 'organisation' && hasValue(sessionData['applicant-organisation-name'])) {
+    return sessionData['applicant-organisation-name']
+  }
+
   const applicantName = [
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
@@ -746,6 +1390,25 @@ function getCountryLabel(country) {
   return countryLabels[country] || formatTextValue(country)
 }
 
+function getCountrySelectItems(selectedCountry) {
+  return [
+    {
+      text: '',
+      value: '',
+      selected: !selectedCountry
+    },
+    ...countryNames.map((countryName) => {
+      const value = slugifyCountryName(countryName)
+
+      return {
+        text: countryName,
+        value,
+        selected: selectedCountry === value
+      }
+    })
+  ]
+}
+
 function getTitleLabel(title) {
   return titleLabels[title] || formatTextValue(title)
 }
@@ -826,7 +1489,7 @@ function getAlternativeOrderDetailsSummaryRows(sessionData) {
 function getHearingTypeLabel(hearingType) {
   const labels = {
     'schedule-england-wales': 'Schedule a hearing in England and Wales',
-    'non-scheduled': 'Create a non-scheduled hearing'
+    'non-scheduled': 'Record a hearing outside of England and Wales'
   }
 
   return labels[hearingType] || ''
@@ -1195,7 +1858,7 @@ function getResultingSearchCriteriaRows(sessionData) {
 
   if (sessionData['resulting-search-mode'] === 'unscheduled') {
     return [
-      buildSummaryRow('Hearing type', 'Unscheduled hearing'),
+      buildSummaryRow('Hearing type', 'Hearing outside England and Wales'),
       buildSummaryRow(
         'Hearing date',
         formatDateLong(sessionData['resulting-unscheduled-date'])
@@ -1277,6 +1940,27 @@ function getResultDefinition(resultCode, journey = 'results') {
       normaliseResultResponse(code, response, index)
     )
   }
+}
+
+function buildCaseEnquiryRows(rows) {
+  return rows.map(([label, value]) => {
+    if (String(value).includes('\n')) {
+      return buildSummaryHtmlRow(label, formatLinesHtml(String(value).split('\n')))
+    }
+
+    return buildSummaryRow(label, value)
+  })
+}
+
+function buildCaseEnquirySections(sections) {
+  return sections.map((section) => ({
+    title: section.title,
+    rows: buildCaseEnquiryRows(section.rows)
+  }))
+}
+
+function getCaseEnquiryRecord(recordId) {
+  return caseEnquiryRecords.find((record) => record.id === recordId)
 }
 
 function getResultOptionItems(selectedResultCode, journey = 'results') {
@@ -1566,6 +2250,15 @@ function getResultingSessionItems(sessionData) {
   ]
 }
 
+function canCheckResultingCase(sessionData) {
+  return Boolean(
+    sessionData['applicant-details-completed'] &&
+      sessionData['respondent-details-completed'] &&
+      hasSavableRecordedResult(sessionData) &&
+      hasCompletedSessionDetails(sessionData)
+  )
+}
+
 function getResultingCaseCommentsItems(sessionData) {
   return [
     {
@@ -1705,6 +2398,233 @@ function getResultValueForDisplay(field, value) {
   }
 
   return value
+}
+
+function buildFieldError(text) {
+  return { text }
+}
+
+function isChecked(value) {
+  return asArray(value).includes('yes')
+}
+
+function buildErrorSummary(errors) {
+  return Object.entries(errors).map(([field, error]) => ({
+    text: error.text,
+    href: `#${field}`
+  }))
+}
+
+function validateApplicantDetails(body, applicantType) {
+  const errors = {}
+
+  if (applicantType === 'organisation') {
+    if (!hasValue(getSingleValue(body['applicant-organisation-name']))) {
+      errors['applicant-organisation-name'] = buildFieldError('Enter an organisation name')
+    }
+
+    if (!hasValue(getSingleValue(body['applicant-bank-account-type']))) {
+      errors['applicant-bank-account-type'] = buildFieldError('Select a bank account type')
+    }
+
+    return errors
+  }
+
+  if (!hasValue(getSingleValue(body['applicant-title']))) {
+    errors['applicant-title'] = buildFieldError('Select a title')
+  }
+
+  if (!hasValue(getSingleValue(body['applicant-first-names']))) {
+    errors['applicant-first-names'] = buildFieldError('Enter first names')
+  }
+
+  if (!hasValue(getSingleValue(body['applicant-last-name']))) {
+    errors['applicant-last-name'] = buildFieldError('Enter a last name')
+  }
+
+  if (!hasValue(getSingleValue(body['applicant-bank-account-type']))) {
+    errors['applicant-bank-account-type'] = buildFieldError('Select a bank account type')
+  }
+
+  if (isChecked(body['applicant-send-correspondence-to-third-party'])) {
+    if (!hasValue(getSingleValue(body['applicant-third-party-name-or-organisation']))) {
+      errors['applicant-third-party-name-or-organisation'] = buildFieldError('Enter a name or organisation')
+    }
+
+    if (!hasValue(getSingleValue(body['applicant-third-party-address-line-1']))) {
+      errors['applicant-third-party-address-line-1'] = buildFieldError('Enter address line 1')
+    }
+
+    if (!hasValue(getSingleValue(body['applicant-third-party-country']))) {
+      errors['applicant-third-party-country'] = buildFieldError('Select a country')
+    }
+  }
+
+  if (
+    isChecked(body['applicant-restrict-personal-information']) &&
+    !hasValue(getSingleValue(body['applicant-restriction-reason']))
+  ) {
+    errors['applicant-restriction-reason'] = buildFieldError('Enter a reason')
+  }
+
+  return errors
+}
+
+function validateRespondentDetails(body) {
+  const errors = {}
+
+  if (!hasValue(getSingleValue(body['respondent-title']))) {
+    errors['respondent-title'] = buildFieldError('Select a title')
+  }
+
+  if (!hasValue(getSingleValue(body['respondent-first-names']))) {
+    errors['respondent-first-names'] = buildFieldError('Enter first names')
+  }
+
+  if (!hasValue(getSingleValue(body['respondent-last-name']))) {
+    errors['respondent-last-name'] = buildFieldError('Enter a last name')
+  }
+
+  if (isChecked(body['respondent-send-correspondence-to-third-party'])) {
+    if (!hasValue(getSingleValue(body['respondent-third-party-name-or-organisation']))) {
+      errors['respondent-third-party-name-or-organisation'] = buildFieldError('Enter a name or organisation')
+    }
+
+    if (!hasValue(getSingleValue(body['respondent-third-party-address-line-1']))) {
+      errors['respondent-third-party-address-line-1'] = buildFieldError('Enter address line 1')
+    }
+
+    if (!hasValue(getSingleValue(body['respondent-third-party-country']))) {
+      errors['respondent-third-party-country'] = buildFieldError('Select a country')
+    }
+  }
+
+  if (
+    isChecked(body['respondent-restrict-personal-information']) &&
+    !hasValue(getSingleValue(body['respondent-restriction-reason']))
+  ) {
+    errors['respondent-restriction-reason'] = buildFieldError('Enter a reason')
+  }
+
+  return errors
+}
+
+function parseDateInput(dateString) {
+  const value = String(getSingleValue(dateString) || '').trim()
+
+  if (!value) {
+    return { kind: 'missing' }
+  }
+
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+
+  if (!match) {
+    return { kind: 'invalid' }
+  }
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day)
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return { kind: 'invalid' }
+  }
+
+  return { kind: 'valid', date }
+}
+
+function validateAlternativeOrderDetails(body) {
+  const errors = {}
+  const selectedApplicationCode = String(
+    getSingleValue(body['order-application-code']) || ''
+  )
+    .trim()
+    .toUpperCase()
+
+  if (!hasValue(selectedApplicationCode)) {
+    errors['order-application-code'] = buildFieldError('Select an application code')
+  } else if (!getApplicationDefinition(selectedApplicationCode)) {
+    errors['order-application-code'] = buildFieldError('Select an application code from the list')
+  }
+
+  if (!hasValue(getSingleValue(body['order-court-that-made-the-order']))) {
+    errors['order-court-that-made-the-order'] = buildFieldError('Enter the court that made the order')
+  }
+
+  const orderMadeDate = parseDateInput(body['order-date-order-made'])
+
+  if (orderMadeDate.kind === 'missing') {
+    errors['order-date-order-made'] = buildFieldError('Enter the date order made')
+  } else if (orderMadeDate.kind === 'invalid') {
+    errors['order-date-order-made'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+  } else {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (orderMadeDate.date > today) {
+      errors['order-date-order-made'] = buildFieldError('Future dates are invalid')
+    }
+  }
+
+  const arrearsLastUpdatedDate = parseDateInput(body['order-date-arrears-last-updated'])
+
+  if (arrearsLastUpdatedDate.kind === 'missing') {
+    errors['order-date-arrears-last-updated'] = buildFieldError('Enter the date arrears last updated')
+  } else if (arrearsLastUpdatedDate.kind === 'invalid') {
+    errors['order-date-arrears-last-updated'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+  } else {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (arrearsLastUpdatedDate.date > today) {
+      errors['order-date-arrears-last-updated'] = buildFieldError('Future dates are invalid')
+    }
+  }
+
+  return errors
+}
+
+function buildApplicantDetailsViewData(baseData, body) {
+  return {
+    ...baseData,
+    ...body,
+    'applicant-add-aliases': isChecked(body['applicant-add-aliases']) ? 'yes' : '',
+    'applicant-bank-account-type': getSingleValue(body['applicant-bank-account-type']) || '',
+    'applicant-send-correspondence-to-third-party': isChecked(
+      body['applicant-send-correspondence-to-third-party']
+    )
+      ? 'yes'
+      : '',
+    'applicant-restrict-personal-information': isChecked(
+      body['applicant-restrict-personal-information']
+    )
+      ? 'yes'
+      : ''
+  }
+}
+
+function buildRespondentDetailsViewData(baseData, body) {
+  return {
+    ...baseData,
+    ...body,
+    'respondent-add-aliases': isChecked(body['respondent-add-aliases']) ? 'yes' : '',
+    'respondent-send-correspondence-to-third-party': isChecked(
+      body['respondent-send-correspondence-to-third-party']
+    )
+      ? 'yes'
+      : '',
+    'respondent-restrict-personal-information': isChecked(
+      body['respondent-restrict-personal-information']
+    )
+      ? 'yes'
+      : ''
+  }
 }
 
 function getDefinitionWording(definition, responses) {
@@ -1949,6 +2869,38 @@ function getAlternativeOrderTermResponseItems(sessionData) {
 }
 
 function getApplicantSummaryRows(sessionData) {
+  if (sessionData['applicant-type'] === 'organisation') {
+    return [
+      buildSummaryRow('Organisation name', sessionData['applicant-organisation-name']),
+      buildSummaryRow(
+        'Foreign authority reference',
+        sessionData['applicant-foreign-authority-reference']
+      ),
+      buildSummaryRow('Main email address', sessionData['applicant-main-email-address']),
+      buildSummaryRow('Other email address', sessionData['applicant-other-email-address']),
+      buildSummaryRow(
+        'Main telephone number',
+        sessionData['applicant-main-telephone-number']
+      ),
+      buildSummaryRow(
+        'Other telephone number',
+        sessionData['applicant-other-telephone-number']
+      ),
+      buildSummaryHtmlRow(
+        "Applicant's address",
+        formatLinesHtml([
+          sessionData['applicant-address-line-1'],
+          sessionData['applicant-address-line-2'],
+          sessionData['applicant-address-line-3'],
+          sessionData['applicant-address-line-4'],
+          sessionData['applicant-address-line-5'],
+          sessionData['applicant-postal-or-zip-code'],
+          getCountryLabel(sessionData['applicant-country'])
+        ])
+      )
+    ]
+  }
+
   const rows = [
     buildSummaryRow('Title', getTitleLabel(sessionData['applicant-title'])),
     buildSummaryRow('First names', sessionData['applicant-first-names']),
@@ -2822,6 +3774,75 @@ function canCheckAlternativeCase(sessionData) {
   )
 }
 
+router.get('/create-data', (req, res) => {
+  const scenarios = buildCreateDataScenarios()
+
+  return res.render('create-data/index', {
+    scenarioItems: Object.entries(scenarios).map(([key, scenario]) => ({
+      key,
+      ...scenario
+    }))
+  })
+})
+
+router.post('/create-data/:scenarioKey', (req, res, next) => {
+  const scenarios = buildCreateDataScenarios()
+  const scenario = scenarios[req.params.scenarioKey]
+
+  if (!scenario) {
+    return res.redirect('/create-data')
+  }
+
+  req.session.data = cloneData(scenario.sessionData)
+
+  return redirectWithSessionSave(req, res, next, scenario.redirectTo)
+})
+
+router.get('/case-enquiry', (req, res) => {
+  return res.render('case-enquiry/index', {
+    enquiryCaseRows: caseEnquiryRecords.map((record) => ([
+      {
+        text: record.caseReference
+      },
+      {
+        text: `${record.caseType} ${record.kind.replace(' case', '').toLowerCase()}`
+      },
+      {
+        html: `<a class="govuk-link govuk-link--no-visited-state" href="/case-enquiry/${record.id}">${record.respondentHeading}</a>`
+      },
+      {
+        text: record.businessUnit
+      },
+      {
+        text: record.lastUpdated
+      },
+      {
+        html: `<a class="govuk-link govuk-link--no-visited-state" href="/case-enquiry/${record.id}">View case</a>`
+      }
+    ]))
+  })
+})
+
+router.get('/case-enquiry/:recordId', (req, res) => {
+  const enquiryCase = getCaseEnquiryRecord(req.params.recordId)
+
+  if (!enquiryCase) {
+    return res.redirect('/case-enquiry')
+  }
+
+  return res.render('case-enquiry/detail', {
+    enquiryCase,
+    atGlanceLeftRows: buildCaseEnquiryRows(enquiryCase.atGlance.leftRows),
+    atGlanceMiddleRows: buildCaseEnquiryRows(enquiryCase.atGlance.middleRows),
+    atGlanceRightRows: buildCaseEnquiryRows(enquiryCase.atGlance.rightRows),
+    applicantSections: buildCaseEnquirySections(enquiryCase.applicantSections),
+    respondentSections: buildCaseEnquirySections(enquiryCase.respondentSections),
+    caseRows: buildCaseEnquiryRows(enquiryCase.caseRows),
+    hearingRows: buildCaseEnquiryRows(enquiryCase.hearingRows),
+    notesRows: buildCaseEnquiryRows(enquiryCase.notesRows)
+  })
+})
+
 function getAgeFromDateString(dateString) {
   if (!dateString) {
     return null
@@ -2853,6 +3874,11 @@ function getAgeFromDateString(dateString) {
 
   return age
 }
+
+router.use((req, res, next) => {
+  res.locals.getCountrySelectItems = getCountrySelectItems
+  next()
+})
 
 // Add your routes here
 router.get('/', (req, res) => {
@@ -2969,15 +3995,35 @@ router.get('/orders-applications/applicant-details', (req, res) => {
 })
 
 router.post('/orders-applications/applicant-details', (req, res, next) => {
-  req.session.data['applicant-add-aliases'] = req.body['applicant-add-aliases']
+  const errors = validateApplicantDetails(req.body, req.session.data['applicant-type'])
+
+  if (Object.keys(errors).length > 0) {
+    delete req.session.data['applicant-details-completed']
+
+    return res.render('orders-applications/applicant-details', {
+      data: buildApplicantDetailsViewData(req.session.data, req.body),
+      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  req.session.data['applicant-add-aliases'] = isChecked(req.body['applicant-add-aliases'])
     ? 'yes'
     : ''
   req.session.data['applicant-bank-account-type'] =
-    req.body['applicant-bank-account-type'] || 'uk-bank-account'
-  req.session.data['applicant-send-correspondence-to-third-party'] =
-    req.body['applicant-send-correspondence-to-third-party'] ? 'yes' : ''
-  req.session.data['applicant-restrict-personal-information'] =
-    req.body['applicant-restrict-personal-information'] ? 'yes' : ''
+    getSingleValue(req.body['applicant-bank-account-type']) || ''
+  req.session.data['applicant-send-correspondence-to-third-party'] = isChecked(
+    req.body['applicant-send-correspondence-to-third-party']
+  )
+    ? 'yes'
+    : ''
+  req.session.data['applicant-restrict-personal-information'] = isChecked(
+    req.body['applicant-restrict-personal-information']
+  )
+    ? 'yes'
+    : ''
+
   req.session.data['applicant-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
@@ -2992,13 +4038,32 @@ router.get('/orders-applications/respondent-details', (req, res) => {
 })
 
 router.post('/orders-applications/respondent-details', (req, res, next) => {
-  req.session.data['respondent-add-aliases'] = req.body['respondent-add-aliases']
+  const errors = validateRespondentDetails(req.body)
+
+  if (Object.keys(errors).length > 0) {
+    delete req.session.data['respondent-details-completed']
+
+    return res.render('orders-applications/respondent-details', {
+      data: buildRespondentDetailsViewData(req.session.data, req.body),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
     ? 'yes'
     : ''
-  req.session.data['respondent-send-correspondence-to-third-party'] =
-    req.body['respondent-send-correspondence-to-third-party'] ? 'yes' : ''
-  req.session.data['respondent-restrict-personal-information'] =
-    req.body['respondent-restrict-personal-information'] ? 'yes' : ''
+  req.session.data['respondent-send-correspondence-to-third-party'] = isChecked(
+    req.body['respondent-send-correspondence-to-third-party']
+  )
+    ? 'yes'
+    : ''
+  req.session.data['respondent-restrict-personal-information'] = isChecked(
+    req.body['respondent-restrict-personal-information']
+  )
+    ? 'yes'
+    : ''
+
   req.session.data['respondent-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
@@ -3719,15 +4784,35 @@ router.get('/orders-applications-alternative/applicant-details', (req, res) => {
 })
 
 router.post('/orders-applications-alternative/applicant-details', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['applicant-add-aliases'] = req.body['applicant-add-aliases']
+  const errors = validateApplicantDetails(req.body, getOrdersApplicationsAlternativeData(req)['applicant-type'])
+
+  if (Object.keys(errors).length > 0) {
+    delete getOrdersApplicationsAlternativeData(req)['applicant-details-completed']
+
+    return res.render('orders-applications-alternative/applicant-details', {
+      data: buildApplicantDetailsViewData(getOrdersApplicationsAlternativeData(req), req.body),
+      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  getOrdersApplicationsAlternativeData(req)['applicant-add-aliases'] = isChecked(
+    req.body['applicant-add-aliases']
+  )
     ? 'yes'
     : ''
   getOrdersApplicationsAlternativeData(req)['applicant-bank-account-type'] =
-    req.body['applicant-bank-account-type'] || 'uk-bank-account'
+    getSingleValue(req.body['applicant-bank-account-type']) || ''
   getOrdersApplicationsAlternativeData(req)['applicant-send-correspondence-to-third-party'] =
-    req.body['applicant-send-correspondence-to-third-party'] ? 'yes' : ''
+    isChecked(req.body['applicant-send-correspondence-to-third-party'])
+      ? 'yes'
+      : ''
   getOrdersApplicationsAlternativeData(req)['applicant-restrict-personal-information'] =
-    req.body['applicant-restrict-personal-information'] ? 'yes' : ''
+    isChecked(req.body['applicant-restrict-personal-information'])
+      ? 'yes'
+      : ''
+
   getOrdersApplicationsAlternativeData(req)['applicant-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
@@ -3742,13 +4827,32 @@ router.get('/orders-applications-alternative/respondent-details', (req, res) => 
 })
 
 router.post('/orders-applications-alternative/respondent-details', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['respondent-add-aliases'] = req.body['respondent-add-aliases']
+  const errors = validateRespondentDetails(req.body)
+
+  if (Object.keys(errors).length > 0) {
+    delete getOrdersApplicationsAlternativeData(req)['respondent-details-completed']
+
+    return res.render('orders-applications-alternative/respondent-details', {
+      data: buildRespondentDetailsViewData(getOrdersApplicationsAlternativeData(req), req.body),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  getOrdersApplicationsAlternativeData(req)['respondent-add-aliases'] = isChecked(
+    req.body['respondent-add-aliases']
+  )
     ? 'yes'
     : ''
   getOrdersApplicationsAlternativeData(req)['respondent-send-correspondence-to-third-party'] =
-    req.body['respondent-send-correspondence-to-third-party'] ? 'yes' : ''
+    isChecked(req.body['respondent-send-correspondence-to-third-party'])
+      ? 'yes'
+      : ''
   getOrdersApplicationsAlternativeData(req)['respondent-restrict-personal-information'] =
-    req.body['respondent-restrict-personal-information'] ? 'yes' : ''
+    isChecked(req.body['respondent-restrict-personal-information'])
+      ? 'yes'
+      : ''
+
   getOrdersApplicationsAlternativeData(req)['respondent-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
@@ -3864,7 +4968,8 @@ router.get('/orders-applications-alternative/order-details', (req, res) => {
       getOrdersApplicationsAlternativeData(req)['order-application-code']
     ),
     applicationLookupJson: getApplicationLookupJson(),
-    selectionError: null,
+    errors: {},
+    errorSummary: null,
     orderApplicationTitle:
       orderApplicationDefinition?.title ||
       'Application from EU Country for registration or recognition of an order in the family court'
@@ -3883,15 +4988,19 @@ router.post('/orders-applications-alternative/order-details', (req, res, next) =
     .toUpperCase()
 
   getOrdersApplicationsAlternativeData(req)['order-application-code'] = selectedApplicationCode
-
+  const errors = validateAlternativeOrderDetails(req.body)
   const orderApplicationDefinition = getApplicationDefinition(selectedApplicationCode)
 
-  if (!orderApplicationDefinition) {
+  if (Object.keys(errors).length > 0) {
+    delete getOrdersApplicationsAlternativeData(req)['order-details-completed']
+
     return res.render('orders-applications-alternative/order-details', {
       applicationItems: getApplicationOptionItems(selectedApplicationCode),
       applicationLookupJson: getApplicationLookupJson(),
-      selectionError: 'Select an application code from the list.',
+      errors,
+      errorSummary: buildErrorSummary(errors),
       orderApplicationTitle:
+        orderApplicationDefinition?.title ||
         'Application from EU Country for registration or recognition of an order in the family court'
     })
   }
@@ -5199,6 +6308,224 @@ router.get('/check-results/:index', (req, res) => {
   return res.render('check-results/detail', checkEntry)
 })
 
+router.get('/create-and-validate-draft-orders', (req, res) => {
+  const toReviewRows = [
+    {
+      id: 0,
+      applicant: 'NOWAK, Anna',
+      respondent: 'NOWAK, Piotr',
+      hearingDate: '16 March 2026',
+      created: 'Today',
+      submittedBy: 'david.watts'
+    },
+    {
+      id: 1,
+      applicant: 'ARKET, Patricia',
+      respondent: 'FISHER, Edward',
+      hearingDate: '21 March 2026',
+      created: 'Today',
+      submittedBy: 'joe.bloggs'
+    },
+    {
+      id: 2,
+      applicant: 'AYRE, Jane',
+      respondent: 'FISHER, Evan',
+      hearingDate: '22 March 2026',
+      created: '1 day ago',
+      submittedBy: 'emily.davis'
+    }
+  ]
+
+  return res.render('create-and-validate-draft-orders/index', {
+    toReviewTableRows: toReviewRows.map((row) => [
+      {
+        text: row.applicant
+      },
+      {
+        html: `<a class="govuk-link" href="/create-and-validate-draft-orders/${row.id}">${escapeHtml(row.respondent)}</a>`
+      },
+      {
+        text: row.hearingDate
+      },
+      {
+        text: row.created
+      },
+      {
+        text: row.submittedBy
+      }
+    ])
+  })
+})
+
+router.get('/create-and-validate-draft-orders/:index', (req, res) => {
+  const index = Number(req.params.index)
+  const draftOrderEntries = [
+    {
+      respondentName: 'Mr Piotr NOWAK',
+      caseTypeLabel: 'REMO In',
+      applicantTypeLabel: 'Individual',
+      submittedBy: 'david.watts',
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'david.watts',
+          at: '7 April 2026 at 9:15am'
+        },
+        {
+          action: 'Rejected',
+          by: 'emily.davis',
+          at: '7 April 2026 at 11:40am',
+          note: 'Please clarify the temporary creditor and arrears wording.'
+        },
+        {
+          action: 'Resubmitted',
+          by: 'david.watts',
+          at: '7 April 2026 at 2:05pm'
+        }
+      ],
+      isApplicationJourney: false,
+      isRemoOutCase: false,
+      applicantRows: [
+        buildSummaryRow('Title', 'Mrs'),
+        buildSummaryRow('First names', 'Anna'),
+        buildSummaryRow('Last name', 'Nowak'),
+        buildSummaryRow('Date of birth', '8 June 1982'),
+        buildSummaryHtmlRow(
+          'Address',
+          formatLinesHtml(['Zlota 59', '00-120', 'Warszawa', 'Poland'])
+        )
+      ],
+      respondentRows: [
+        buildSummaryRow('Title', 'Mr'),
+        buildSummaryRow('First names', 'Piotr'),
+        buildSummaryRow('Last name', 'Nowak'),
+        buildSummaryRow('National Insurance number', 'QA123456E'),
+        buildSummaryHtmlRow(
+          'Address',
+          formatLinesHtml(['Flat 1B', '24 High Street', 'Twyford', 'Berkshire', 'RG10 9JB'])
+        )
+      ],
+      centralAuthorityRows: [
+        buildSummaryRow('REMO reference', 'PL-REM-2026-117'),
+        buildSummaryRow('Name', 'Polish Central Authority')
+      ],
+      beneficiaryGroups: [
+        {
+          name: 'Anna Nowak',
+          subtitle: 'Applicant',
+          tag: 'Draft',
+          rows: [
+            [
+              { text: '12 January 2026' },
+              { text: 'Payable through the Court' },
+              { text: 'Monthly' },
+              { text: '£400.00' },
+              { text: 'Anna Nowak' },
+              { text: '12 January 2027' },
+              { text: '-' },
+              { text: 'Active' }
+            ]
+          ]
+        },
+        {
+          name: 'Agnieszka Kowalska',
+          subtitle: 'Minor creditor',
+          tag: 'Draft',
+          rows: [
+            [
+              { text: '12 January 2026' },
+              { text: 'Payable between the parties' },
+              { text: 'One-off' },
+              { text: '£0.00' },
+              { text: 'Agnieszka Kowalska' },
+              { text: '30 April 2026' },
+              { text: 'Lump sum for school fees' },
+              { text: 'Active' }
+            ]
+          ]
+        }
+      ],
+      interestAndIndexationRows: [
+        buildSummaryRow('Interest', 'No'),
+        buildSummaryRow('Indexation', 'Not applicable')
+      ],
+      caseCommentsRows: [
+        buildSummaryRow('Case comment', 'Draft order ready for validation'),
+        buildSummaryRow('Case note', 'Creditor details checked against application')
+      ]
+    },
+    {
+      respondentName: 'Mr Edward FISHER',
+      caseTypeLabel: 'REMO Out',
+      applicantTypeLabel: 'Individual',
+      submittedBy: 'joe.bloggs',
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'joe.bloggs',
+          at: '6 April 2026 at 4:10pm'
+        }
+      ],
+      isApplicationJourney: false,
+      isRemoOutCase: true,
+      applicantRows: [
+        buildSummaryRow('Title', 'Ms'),
+        buildSummaryRow('First names', 'Patricia'),
+        buildSummaryRow('Last name', 'Arket'),
+        buildSummaryHtmlRow(
+          'Address',
+          formatLinesHtml(['84 REDA', 'GDANSKA', 'POLAND'])
+        )
+      ],
+      respondentRows: [
+        buildSummaryRow('Title', 'Mr'),
+        buildSummaryRow('First names', 'Edward'),
+        buildSummaryRow('Last name', 'Fisher'),
+        buildSummaryHtmlRow(
+          'Address',
+          formatLinesHtml(['99 High Street', 'Reading', 'RG10 9RT'])
+        )
+      ],
+      centralAuthorityRows: [],
+      beneficiaryGroups: [
+        {
+          name: 'Patricia Arket',
+          subtitle: 'Applicant',
+          tag: 'Draft',
+          rows: [
+            [
+              { text: '7 January 2026' },
+              { text: 'Payable through the Court' },
+              { text: 'Monthly' },
+              { text: '£120.00' },
+              { text: 'Patricia Arket' },
+              { text: '-' },
+              { text: '-' },
+              { text: 'Active' }
+            ]
+          ]
+        }
+      ],
+      interestAndIndexationRows: [
+        buildSummaryRow('Interest', 'Yes'),
+        buildSummaryRow('Indexation', 'RPI')
+      ],
+      caseCommentsRows: [
+        buildSummaryRow('Case comment', 'Final draft order awaiting validation'),
+        buildSummaryRow('Case note', '-')
+      ]
+    }
+  ]
+
+  const draftOrderEntry = draftOrderEntries[index]
+
+  if (!draftOrderEntry) {
+    return res.redirect('/create-and-validate-draft-orders')
+  }
+
+  return res.render('create-and-validate-draft-orders/detail', draftOrderEntry)
+})
+
 router.post('/resulting', (req, res, next) => {
   req.session.data['resulting-search-mode'] =
     getSingleValue(req.body['resulting-search-mode']) || ''
@@ -5277,8 +6604,8 @@ router.post('/resulting/record-number/results', (req, res, next) => {
   req.session.data['hearing-court'] = selectedMatch.courtVenue
   req.session.data['hearing-courtroom-number'] = selectedMatch.courtroom
 
-  return redirectWithSessionSave(req, res, next, '/resulting/select-result')
-})
+  return redirectWithSessionSave(req, res, next, '/resulting/case-details')
+  })
 
 router.get('/resulting/england-wales', (req, res) => {
   return res.render('resulting/england-wales', {
@@ -5344,12 +6671,13 @@ router.get('/resulting/case-details', (req, res) => {
     additionalInformationItems: getResultingCaseCommentsItems(req.session.data),
     sessionItems: getResultingSessionItems(req.session.data),
     recordedResults: getRecordedResults(req.session.data),
+    canCheckCase: canCheckResultingCase(req.session.data),
     saveError: null
   })
 })
 
 router.post('/resulting/case-details', (req, res, next) => {
-  if (!hasSavableRecordedResult(req.session.data)) {
+  if (!canCheckResultingCase(req.session.data)) {
     return res.render('resulting/case-details', {
       accountContextLabel: getResultingAccountContextLabel(req.session.data),
       caseTypeLabel:
@@ -5360,7 +6688,8 @@ router.post('/resulting/case-details', (req, res, next) => {
       additionalInformationItems: getResultingCaseCommentsItems(req.session.data),
       sessionItems: getResultingSessionItems(req.session.data),
       recordedResults: getRecordedResults(req.session.data),
-      saveError: 'Add at least one final or interim result before saving changes.'
+      canCheckCase: canCheckResultingCase(req.session.data),
+      saveError: 'Complete all required sections and add at least one final or interim result before checking results.'
     })
   }
 
@@ -5378,15 +6707,39 @@ router.get('/resulting/applicant-details', (req, res) => {
 })
 
 router.post('/resulting/applicant-details', (req, res, next) => {
-  req.session.data['applicant-add-aliases'] = req.body['applicant-add-aliases']
+  const errors = validateApplicantDetails(req.body, req.session.data['applicant-type'])
+
+  if (Object.keys(errors).length > 0) {
+    delete req.session.data['applicant-details-completed']
+
+    return res.render('orders-applications/applicant-details', {
+      data: buildApplicantDetailsViewData(req.session.data, req.body),
+      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
+      accountContextLabel: getResultingAccountContextLabel(req.session.data),
+      backHref: '/resulting/case-details',
+      formAction: '/resulting/applicant-details',
+      cancelHref: '/resulting/case-details',
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  req.session.data['applicant-add-aliases'] = isChecked(req.body['applicant-add-aliases'])
     ? 'yes'
     : ''
   req.session.data['applicant-bank-account-type'] =
-    req.body['applicant-bank-account-type'] || 'uk-bank-account'
-  req.session.data['applicant-send-correspondence-to-third-party'] =
-    req.body['applicant-send-correspondence-to-third-party'] ? 'yes' : ''
-  req.session.data['applicant-restrict-personal-information'] =
-    req.body['applicant-restrict-personal-information'] ? 'yes' : ''
+    getSingleValue(req.body['applicant-bank-account-type']) || ''
+  req.session.data['applicant-send-correspondence-to-third-party'] = isChecked(
+    req.body['applicant-send-correspondence-to-third-party']
+  )
+    ? 'yes'
+    : ''
+  req.session.data['applicant-restrict-personal-information'] = isChecked(
+    req.body['applicant-restrict-personal-information']
+  )
+    ? 'yes'
+    : ''
+
   req.session.data['applicant-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/resulting/case-details')
@@ -5402,13 +6755,36 @@ router.get('/resulting/respondent-details', (req, res) => {
 })
 
 router.post('/resulting/respondent-details', (req, res, next) => {
-  req.session.data['respondent-add-aliases'] = req.body['respondent-add-aliases']
+  const errors = validateRespondentDetails(req.body)
+
+  if (Object.keys(errors).length > 0) {
+    delete req.session.data['respondent-details-completed']
+
+    return res.render('orders-applications/respondent-details', {
+      data: buildRespondentDetailsViewData(req.session.data, req.body),
+      accountContextLabel: getResultingAccountContextLabel(req.session.data),
+      backHref: '/resulting/case-details',
+      formAction: '/resulting/respondent-details',
+      cancelHref: '/resulting/case-details',
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
     ? 'yes'
     : ''
-  req.session.data['respondent-send-correspondence-to-third-party'] =
-    req.body['respondent-send-correspondence-to-third-party'] ? 'yes' : ''
-  req.session.data['respondent-restrict-personal-information'] =
-    req.body['respondent-restrict-personal-information'] ? 'yes' : ''
+  req.session.data['respondent-send-correspondence-to-third-party'] = isChecked(
+    req.body['respondent-send-correspondence-to-third-party']
+  )
+    ? 'yes'
+    : ''
+  req.session.data['respondent-restrict-personal-information'] = isChecked(
+    req.body['respondent-restrict-personal-information']
+  )
+    ? 'yes'
+    : ''
+
   req.session.data['respondent-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/resulting/case-details')
@@ -5696,7 +7072,7 @@ router.get('/resulting/check-your-answers', (req, res) => {
     return res.redirect('/resulting')
   }
 
-  if (!hasSavableRecordedResult(req.session.data)) {
+  if (!canCheckResultingCase(req.session.data)) {
     return res.redirect('/resulting/case-details')
   }
 

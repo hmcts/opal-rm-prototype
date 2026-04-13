@@ -207,28 +207,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: [
-            {
-              text: "Select",
-              value: "",
-              selected: not data["central-authority-country"]
-            },
-            {
-              text: "Latvia",
-              value: "latvia",
-              selected: data["central-authority-country"] == "latvia"
-            },
-            {
-              text: "Poland",
-              value: "poland",
-              selected: data["central-authority-country"] == "poland"
-            },
-            {
-              text: "United Kingdom",
-              value: "united-kingdom",
-              selected: data["central-authority-country"] == "united-kingdom"
-            }
-          ]
+          items: getCountrySelectItems(data["central-authority-country"])
         }) }}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">

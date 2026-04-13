@@ -4,3 +4,27 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 #}
 
 {% extends "govuk-prototype-kit/layouts/govuk-branded.njk" %}
+
+{% from "moj/components/header/macro.njk" import mojHeader %}
+
+{% block header %}
+  {{ mojHeader({
+    organisationLabel: {
+      text: "HMCTS Opal",
+      href: "/"
+    },
+    serviceLabel: {
+      text: serviceName,
+      href: "/"
+    },
+    navigation: {
+      label: "Account navigation",
+      items: [
+        {
+          text: "Sign out",
+          href: "#"
+        }
+      ]
+    }
+  }) }}
+{% endblock %}

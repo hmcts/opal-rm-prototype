@@ -9,6 +9,8 @@
 {% endblock %}
 
 {% block content %}
+  {% set currentSearchMode = data["resulting-search-mode"] or "" %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
@@ -33,17 +35,17 @@
             {
               value: "record-number",
               text: "Search by record",
-              checked: data["resulting-search-mode"] == "record-number"
+              checked: currentSearchMode == "record-number"
             },
             {
               value: "england-wales",
               text: "Search for a hearing in a session in England and Wales",
-              checked: data["resulting-search-mode"] == "england-wales"
+              checked: currentSearchMode == "england-wales"
             },
             {
               value: "unscheduled",
-              text: "Search for an unscheduled hearing",
-              checked: data["resulting-search-mode"] == "unscheduled"
+              text: "Search for a hearing outside England and Wales",
+              checked: currentSearchMode == "unscheduled"
             }
           ]
         }) }}

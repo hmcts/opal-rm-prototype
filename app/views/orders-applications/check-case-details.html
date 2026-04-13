@@ -43,17 +43,21 @@
       }) }}
 
       {% set applicantWarningHtml %}
+      {% if data["applicant-restrict-personal-information"] == "yes" %}
         {{ govukWarningText({
           text: "Applicant's personal information should not be shared.",
           iconFallbackText: "Warning"
         }) }}
+      {% endif %}
       {% endset %}
 
       {% set respondentWarningHtml %}
+      {% if data["respondent-restrict-personal-information"] == "yes" %}
         {{ govukWarningText({
           text: "Respondent's personal information should not be shared.",
           iconFallbackText: "Warning"
         }) }}
+      {% endif %}
       {% endset %}
 
       <div class="govuk-summary-card govuk-!-margin-bottom-6">

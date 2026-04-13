@@ -26,8 +26,8 @@ const adjournedHearingFields = [
   }
 ]
 
-const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY']
-const createCreditorNextStepCodes = ['MAT', 'MCHILD', 'MLUMP', 'MPAY']
+const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY', 'MTEMP']
+const createCreditorNextStepCodes = ['MAT', 'MCHILD', 'MLUMP', 'MPAY', 'MTEMP']
 
 const rawResultDefinitions = {
   MAT: {
@@ -123,7 +123,7 @@ const rawResultDefinitions = {
         name: 'Education',
         prompt: 'Expiry terms',
         type: 'menu-checkbox',
-        mandatory: 'Yes',
+        mandatory: 'No',
         min: '0',
         max: '1',
         options: 'Order until completion of full-time eduction'
@@ -292,6 +292,31 @@ const rawResultDefinitions = {
       {
         name: 'Details',
         prompt: 'Non-standard details',
+        type: 'text-1000',
+        mandatory: 'Yes'
+      }
+    ]
+  },
+  MTEMP: {
+    title: 'Temporary order',
+    category: 'FINAL',
+    wordingTemplate: 'Temporary order for payment by {Respondent} to {Creditor}. {Reason}.',
+    responses: [
+      {
+        name: 'Creditor',
+        prompt: 'Creditor name',
+        type: 'text-60',
+        mandatory: 'Yes'
+      },
+      {
+        name: 'Respondent',
+        prompt: 'Respondent name',
+        type: 'text-60',
+        mandatory: 'Yes'
+      },
+      {
+        name: 'Reason',
+        prompt: 'Reason for order',
         type: 'text-1000',
         mandatory: 'Yes'
       }

@@ -85,15 +85,18 @@
         items: sessionItems
       }) }}
 
-      <p class="govuk-body govuk-!-margin-top-8">
-        You must add at least one final or interim result before saving changes.
-      </p>
+      <h2 class="govuk-heading-m govuk-!-margin-top-8">Check and submit</h2>
 
-      <form method="post" action="/resulting/case-details">
+      {% if canCheckCase %}
         {{ govukButton({
-          text: "Save changes"
+          text: "Check results",
+          href: "/resulting/check-your-answers"
         }) }}
-      </form>
+      {% else %}
+        <p class="govuk-body">
+          Complete all required sections and add at least one final or interim result before checking results.
+        </p>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
