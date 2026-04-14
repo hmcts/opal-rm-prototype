@@ -31,7 +31,7 @@ const createCreditorNextStepCodes = ['MAT', 'MCHILD', 'MLUMP', 'MPAY', 'MTEMP']
 
 const rawResultDefinitions = {
   MAT: {
-    title: 'Maintenance Order for wife/Adult',
+    title: 'Matrimonial Order for Adult',
     category: 'FINAL',
     wordingTemplate:
       'Order for payment by {Respondent} to {Creditor} {Payment} for the benefit of the Complainant.\nThe sum of £ {Amount} to be paid every {Frequency} from {Commencement} until {Expiry}.',

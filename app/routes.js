@@ -371,7 +371,7 @@ function buildCreateDataScenarios() {
           'entered-order-terms': [
             {
               code: 'MAT',
-              title: 'Maintenance Order for wife/Adult',
+              title: 'Matrimonial Order for Adult',
               category: 'FINAL',
               categoryLabel: 'Final',
               wording: 'Order for payment by John Malik to Applicant payable through the Court for the benefit of the Complainant. The sum of £250.00 to be paid every month from 01 Jan 2025 until 01 Jan 2026.',
@@ -2279,7 +2279,7 @@ function getResultingResultsSummaryRows(sessionData) {
       text: `${result.code} - ${result.title}`
     },
     value: {
-      html: `<strong>${escapeHtml(result.categoryLabel)}</strong><br>${escapeHtml(result.wording)}`
+      text: result.wording
     }
   }))
 }
@@ -2290,7 +2290,7 @@ function getRecordedResultManagementRows(sessionData) {
       text: `${result.code} - ${result.title}`
     },
     value: {
-      html: `<strong>${escapeHtml(result.categoryLabel)}</strong><br>${escapeHtml(result.wording)}`
+      text: result.wording
     },
     actions: {
       items: [
@@ -2375,6 +2375,36 @@ function getCurrentResultResponses(sessionData) {
   return sessionData['resulting-current-result-responses'] || {}
 }
 
+function getSharedResultFrequency(sessionData) {
+  return getSingleValue(sessionData['resulting-shared-frequency']) || ''
+}
+
+function findFrequencyField(resultDefinition) {
+  if (!resultDefinition) {
+    return null
+  }
+
+  return (
+    resultDefinition.responses.find((field) =>
+      ['frequency', 'terms frequency'].includes(normaliseComparableText(field.name || field.prompt))
+    ) || null
+  )
+}
+
+function getEffectiveResultResponses(sessionData, resultDefinition) {
+  const responses = {
+    ...getCurrentResultResponses(sessionData)
+  }
+  const sharedFrequency = getSharedResultFrequency(sessionData)
+  const frequencyField = findFrequencyField(resultDefinition)
+
+  if (frequencyField && !hasValue(responses[frequencyField.id]) && hasValue(sharedFrequency)) {
+    responses[frequencyField.id] = sharedFrequency
+  }
+
+  return responses
+}
+
 function isEditingRecordedResult(sessionData) {
   const editIndex = Number(sessionData['resulting-edit-result-index'])
   return Number.isInteger(editIndex) && editIndex >= 0
@@ -2430,10 +2460,6 @@ function validateApplicantDetails(body, applicantType) {
     return errors
   }
 
-  if (!hasValue(getSingleValue(body['applicant-title']))) {
-    errors['applicant-title'] = buildFieldError('Select a title')
-  }
-
   if (!hasValue(getSingleValue(body['applicant-first-names']))) {
     errors['applicant-first-names'] = buildFieldError('Enter first names')
   }
@@ -2472,10 +2498,6 @@ function validateApplicantDetails(body, applicantType) {
 
 function validateRespondentDetails(body) {
   const errors = {}
-
-  if (!hasValue(getSingleValue(body['respondent-title']))) {
-    errors['respondent-title'] = buildFieldError('Select a title')
-  }
 
   if (!hasValue(getSingleValue(body['respondent-first-names']))) {
     errors['respondent-first-names'] = buildFieldError('Enter first names')
@@ -2645,7 +2667,7 @@ function getDefinitionWording(definition, responses) {
 
 function getResultWording(sessionData) {
   const definition = getResultDefinition(sessionData['resulting-result-code'])
-  return getDefinitionWording(definition, getCurrentResultResponses(sessionData))
+  return getDefinitionWording(definition, getEffectiveResultResponses(sessionData, definition))
 }
 
 function validateResultResponses(resultDefinition, body) {
@@ -2698,7 +2720,7 @@ function validateResultResponses(resultDefinition, body) {
 
 function getResultingResponseItems(sessionData) {
   const definition = getResultDefinition(sessionData['resulting-result-code'])
-  const values = getCurrentResultResponses(sessionData)
+  const values = getEffectiveResultResponses(sessionData, definition)
   const errors = sessionData['resulting-result-errors'] || {}
 
   if (!definition) {
@@ -2718,6 +2740,32 @@ function getResultingResponseItems(sessionData) {
         }
       : undefined
   }))
+}
+
+function applySharedFrequencyToRecordedResults(recordedResults, sharedFrequency) {
+  if (!hasValue(sharedFrequency)) {
+    return recordedResults
+  }
+
+  return recordedResults.map((result) => {
+    const resultDefinition = getResultDefinition(result.code)
+    const frequencyField = findFrequencyField(resultDefinition)
+
+    if (!frequencyField) {
+      return result
+    }
+
+    const responses = {
+      ...(result.responses || {}),
+      [frequencyField.id]: sharedFrequency
+    }
+
+    return {
+      ...result,
+      responses,
+      wording: getDefinitionWording(resultDefinition, responses)
+    }
+  })
 }
 
 function getRecordedOrderTerms(sessionData) {
@@ -2789,7 +2837,7 @@ function getRecordedOrderTermManagementRows(sessionData) {
       text: `${term.code} - ${term.title}`
     },
     value: {
-      html: `<strong>${escapeHtml(term.categoryLabel)}</strong><br>${escapeHtml(term.wording)}`
+      text: term.wording
     },
     actions: {
       items: [
@@ -2810,12 +2858,11 @@ function getOrderTermReviewRows(orderTerm) {
   const rows = [
     buildSummaryRow('Order term code', orderTerm?.code || ''),
     buildSummaryRow('Order term title', orderTerm?.title || ''),
-    buildSummaryRow('Category', orderTerm?.categoryLabel || ''),
     buildSummaryRow('Order term wording', orderTerm?.wording || '')
   ]
 
   if (hasValue(orderTerm?.creditorLabel)) {
-    rows.splice(3, 0, buildSummaryRow('Creditor', orderTerm.creditorLabel))
+    rows.splice(2, 0, buildSummaryRow('Creditor', orderTerm.creditorLabel))
   }
 
   return rows
@@ -3503,7 +3550,6 @@ function getApplicationItems(sessionData) {
 }
 
 function getOrderItems(sessionData) {
-  const canStartOrder = hasCompletedPartyDetails(sessionData)
   const hasOrderDetails = hasCompletedOrderDetails(sessionData)
   const hasMinorCreditorDetails = hasMinorCreditors(sessionData)
   const hasTermsDetails = hasTermsPerBeneficiary(sessionData)
@@ -3515,14 +3561,8 @@ function getOrderItems(sessionData) {
       title: {
         text: 'Order details'
       },
-      href: canStartOrder ? '/orders-applications/order-details' : undefined,
-      status: hasOrderDetails
-        ? getTaskStatusTag('provided')
-        : canStartOrder
-          ? getTaskStatusTag('required')
-          : {
-              text: 'Cannot start yet'
-            }
+      href: '/orders-applications/order-details',
+      status: hasOrderDetails ? getTaskStatusTag('provided') : getTaskStatusTag('required')
     },
     {
       title: {
@@ -4164,10 +4204,6 @@ router.get('/orders-applications/order-details', (req, res) => {
 
   if (isApplicationJourney(req.session.data)) {
     return res.redirect('/orders-applications/application-details')
-  }
-
-  if (!hasCompletedPartyDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
   }
 
   return res.render('orders-applications/order-details')
@@ -7008,14 +7044,31 @@ router.post('/resulting/result-details', (req, res, next) => {
 
   delete req.session.data['resulting-result-errors']
 
-  const recordedResults = getRecordedResults(req.session.data)
+  const frequencyField = findFrequencyField(resultDefinition)
+  const sharedFrequency = frequencyField ? getSingleValue(values[frequencyField.id]) || '' : ''
+
+  if (frequencyField && hasValue(sharedFrequency)) {
+    req.session.data['resulting-shared-frequency'] = sharedFrequency
+  }
+
+  const recordedResults = applySharedFrequencyToRecordedResults(
+    getRecordedResults(req.session.data),
+    getSharedResultFrequency(req.session.data)
+  )
+  const savedResponses =
+    frequencyField && hasValue(getSharedResultFrequency(req.session.data))
+      ? {
+          ...values,
+          [frequencyField.id]: getSharedResultFrequency(req.session.data)
+        }
+      : values
   const savedResult = {
     code: resultDefinition.code,
     title: resultDefinition.title,
     category: resultDefinition.category,
     categoryLabel: getResultCategoryLabel(resultDefinition.category),
-    wording: getResultWording(req.session.data),
-    responses: values
+    wording: getDefinitionWording(resultDefinition, savedResponses),
+    responses: savedResponses
   }
   const editIndex = Number(req.session.data['resulting-edit-result-index'])
 
