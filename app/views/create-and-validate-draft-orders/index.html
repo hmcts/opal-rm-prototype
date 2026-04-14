@@ -1,0 +1,57 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block pageTitle %}
+  Create and validate draft orders - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/"
+      }) }}
+
+      <span class="govuk-caption-l">Create records</span>
+      <h1 class="govuk-heading-l">Create and validate draft orders</h1>
+
+      <ul class="rm-tabs govuk-!-margin-bottom-6">
+        <li class="rm-tabs__item rm-tabs__item--active">
+          <a class="rm-tabs__link" href="/create-and-validate-draft-orders">To review</a>
+        </li>
+        <li class="rm-tabs__item">
+          <a class="rm-tabs__link" href="#">Rejected</a>
+        </li>
+        <li class="rm-tabs__item">
+          <a class="rm-tabs__link" href="#">Validated</a>
+        </li>
+      </ul>
+
+      <h2 class="govuk-heading-m">To review</h2>
+
+      {{ govukTable({
+        head: [
+          {
+            text: "Applicant"
+          },
+          {
+            text: "Respondent"
+          },
+          {
+            text: "Hearing date"
+          },
+          {
+            text: "Created"
+          },
+          {
+            text: "Submitted by"
+          }
+        ],
+        rows: toReviewTableRows
+      }) }}
+    </div>
+  </div>
+{% endblock %}

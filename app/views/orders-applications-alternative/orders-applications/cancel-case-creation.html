@@ -1,0 +1,51 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+  Cancel case creation - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Are you sure you want to discard this case?</h1>
+
+      <p class="govuk-body">If you discard it, you will lose the information you have entered.</p>
+
+      <form method="post" action="/orders-applications-alternative/cancel-case-creation">
+        {{ govukRadios({
+          idPrefix: "cancel-case-creation",
+          name: "cancel-case-creation",
+          fieldset: {
+            legend: {
+              text: "Do you want to discard this case?",
+              classes: "govuk-fieldset__legend--m govuk-visually-hidden"
+            }
+          },
+          items: [
+            {
+              value: "yes",
+              text: "Yes, discard this case"
+            },
+            {
+              value: "no",
+              text: "No, go back to case details"
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/case-details">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

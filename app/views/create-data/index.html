@@ -1,0 +1,62 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Create data - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/"
+      }) }}
+
+      <h1 class="govuk-heading-l">Create data</h1>
+
+      <p class="govuk-body">
+        Choose a scenario to populate the prototype with representative data and jump straight into that journey.
+      </p>
+
+      {% for scenario in scenarioItems %}
+        <div class="govuk-summary-card govuk-!-margin-bottom-6">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">{{ scenario.label }}</h2>
+          </div>
+          <div class="govuk-summary-card__content">
+            {{ govukSummaryList({
+              rows: [
+                {
+                  key: {
+                    text: "What it does"
+                  },
+                  value: {
+                    text: scenario.description
+                  }
+                },
+                {
+                  key: {
+                    text: "Landing page"
+                  },
+                  value: {
+                    text: scenario.redirectTo
+                  }
+                }
+              ]
+            }) }}
+
+            <form method="post" action="/create-data/{{ scenario.key }}">
+              {{ govukButton({
+                text: "Create scenario data"
+              }) }}
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

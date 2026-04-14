@@ -1,0 +1,90 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Lump sum payment - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Lump sum payment</h1>
+
+      <form method="post" action="/orders-applications/lump-sum-payment">
+        <h2 class="govuk-heading-m">Payment</h2>
+
+        {{ govukInput({
+          id: "lump-sum-amount",
+          name: "lump-sum-amount",
+          label: {
+            text: "Amount",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          prefix: {
+            text: "£"
+          },
+          inputmode: "decimal",
+          value: data["lump-sum-amount"] or "500"
+        }) }}
+
+        {{ mojDatePicker({
+          id: "lump-sum-enter-pay-by-date",
+          name: "lump-sum-enter-pay-by-date",
+          label: {
+            text: "Enter pay by date",
+            classes: "govuk-label--s"
+          },
+          value: data["lump-sum-enter-pay-by-date"] or "06/04/2026"
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        {{ govukCharacterCount({
+          name: "lump-sum-reason-for-payment",
+          id: "lump-sum-reason-for-payment",
+          maxlength: 250,
+          label: {
+            text: "Reason for payment",
+            classes: "govuk-label--s"
+          },
+          rows: 5,
+          value: data["lump-sum-reason-for-payment"] or "Single contribution to purchase beds for the children."
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        {{ govukRadios({
+          idPrefix: "lump-sum-creditor",
+          name: "lump-sum-creditor",
+          fieldset: {
+            legend: {
+              text: "Select creditor",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          hint: {
+            html: 'If the required minor creditor is not listed, <a class="govuk-link" href="/orders-applications/minor-creditors">add minor creditor details</a> first before then re-entering the order details'
+          },
+          items: creditorItems
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+

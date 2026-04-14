@@ -1,0 +1,150 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Order terms - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% set expiresOnDateHtml %}
+        {{ mojDatePicker({
+          id: "terms-expiry-date",
+          name: "terms-expiry-date",
+          label: {
+            text: "Expiry date",
+            classes: "govuk-label--s"
+          },
+          value: data["terms-expiry-date"]
+        }) }}
+      {% endset %}
+
+      <span class="govuk-caption-l">{{ beneficiary.beneficiaryName }}</span>
+      <h1 class="govuk-heading-l">Order terms</h1>
+
+      <form method="post" action="/orders-applications-alternative/terms-per-beneficiary/order-terms">
+        <h2 class="govuk-heading-m">Payments</h2>
+
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Frequency</p>
+        <p class="govuk-body">{{ frequencyLabel }}</p>
+
+        {{ govukInput({
+          id: "terms-amount",
+          name: "terms-amount",
+          label: {
+            text: "Amount",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          prefix: {
+            text: "£"
+          },
+          inputmode: "decimal",
+          value: data["terms-amount"] or "120"
+        }) }}
+
+        {{ govukInput({
+          id: "terms-arrears",
+          name: "terms-arrears",
+          label: {
+            text: "Arrears",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          prefix: {
+            text: "£"
+          },
+          inputmode: "decimal",
+          value: data["terms-arrears"] or "120"
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Order expiry</h2>
+
+        {{ govukRadios({
+          idPrefix: "terms-expiry-type",
+          name: "terms-expiry-type",
+          fieldset: {
+            legend: {
+              text: "When does the order expire?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "expires-on-date",
+              text: "Expires on a date",
+              checked: not data["terms-expiry-type"] or data["terms-expiry-type"] == "expires-on-date",
+              conditional: {
+                html: expiresOnDateHtml
+              }
+            },
+            {
+              value: "no-expiry",
+              text: "No expiry",
+              checked: data["terms-expiry-type"] == "no-expiry"
+            }
+          ]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "terms-additional-terms-after-expiry",
+          name: "terms-additional-terms-after-expiry",
+          items: [
+            {
+              value: "yes",
+              text: "Additional terms affect order expiry",
+              hint: {
+                text: "Add details to case comment or notes"
+              },
+              checked: data["terms-additional-terms-after-expiry"] == "yes"
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        {{ govukRadios({
+          idPrefix: "terms-creditor",
+          name: "terms-creditor",
+          fieldset: {
+            legend: {
+              text: "Select creditor",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          hint: {
+            html: 'If the required minor creditor is not listed, <a class="govuk-link" href="/orders-applications-alternative/minor-creditors">add minor creditor details</a> first before re-entering order details'
+          },
+          items: creditorItems
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Review terms",
+            name: "action",
+            value: "review-terms"
+          }) }}
+
+          {{ govukButton({
+            text: "Add more terms",
+            name: "action",
+            value: "add-more-terms",
+            classes: "govuk-button--secondary"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/case-details">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

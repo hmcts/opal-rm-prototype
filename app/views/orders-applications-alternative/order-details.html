@@ -1,0 +1,109 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Order details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set formErrors = errors or {} %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Order details</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      <form method="post" action="/orders-applications-alternative/order-details">
+        <h2 class="govuk-heading-m">Application</h2>
+
+        {{ xGovukAutocomplete({
+          id: "order-application-code",
+          name: "order-application-code",
+          label: {
+            text: "Application code",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing an application code or title to see matching applications."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["order-application-code"],
+          items: applicationItems,
+          errorMessage: formErrors["order-application-code"]
+        }) }}
+
+        <div
+          id="order-application-found-panel"
+          class="govuk-inset-text govuk-!-display-none"
+          data-application-found-panel
+          data-application-input-id="order-application-code"
+          data-application-input-text-id="order-application-code"
+          data-application-lookup='{{ applicationLookupJson | escape }}'>
+          <span class="govuk-!-font-weight-bold">Application found</span><br>
+          <span data-application-found-title></span>
+        </div>
+
+        {{ govukInput({
+          id: "order-court-that-made-the-order",
+          name: "order-court-that-made-the-order",
+          label: {
+            text: "Court that made the order",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-20",
+          value: data["order-court-that-made-the-order"],
+          errorMessage: formErrors["order-court-that-made-the-order"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "order-date-order-made",
+          name: "order-date-order-made",
+          label: {
+            text: "Date order made",
+            classes: "govuk-label--s"
+          },
+          value: data["order-date-order-made"],
+          errorMessage: formErrors["order-date-order-made"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Arrears</h2>
+
+        {{ mojDatePicker({
+          id: "order-date-arrears-last-updated",
+          name: "order-date-arrears-last-updated",
+          label: {
+            text: "Date arrears last updated",
+            classes: "govuk-label--s"
+          },
+          value: data["order-date-arrears-last-updated"],
+          errorMessage: formErrors["order-date-arrears-last-updated"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

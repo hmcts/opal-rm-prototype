@@ -1,0 +1,216 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/tabs/macro.njk" import govukTabs %}
+
+{% block pageTitle %}
+  {{ enquiryCase.respondentHeading }} - Case enquiry - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="rm-primary-nav">
+    <div class="govuk-width-container">
+      <ul class="rm-primary-nav__list">
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Search</a>
+        </li>
+        <li class="rm-primary-nav__item rm-primary-nav__item--active">
+          <a class="rm-primary-nav__link" href="/">Accounts</a>
+        </li>
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Reports</a>
+        </li>
+        <li class="rm-primary-nav__item">
+          <a class="rm-primary-nav__link" href="#">Administration</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  {% set atGlanceHtml %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ enquiryCase.atGlance.leftHeading }}</h2>
+        {{ govukSummaryList({
+          rows: atGlanceLeftRows
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ enquiryCase.atGlance.middleHeading }}</h2>
+        {{ govukSummaryList({
+          rows: atGlanceMiddleRows
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ enquiryCase.atGlance.rightHeading }}</h2>
+        {{ govukSummaryList({
+          rows: atGlanceRightRows
+        }) }}
+      </div>
+    </div>
+  {% endset %}
+
+  {% set applicantHtml %}
+    {% for section in applicantSections %}
+      <section class="rm-enquiry-detail-section">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ section.title }}</h2>
+        {{ govukSummaryList({
+          rows: section.rows
+        }) }}
+      </section>
+    {% endfor %}
+  {% endset %}
+
+  {% set respondentHtml %}
+    {% for section in respondentSections %}
+      <section class="rm-enquiry-detail-section">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ section.title }}</h2>
+        {{ govukSummaryList({
+          rows: section.rows
+        }) }}
+      </section>
+    {% endfor %}
+  {% endset %}
+
+  {% set caseHtml %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-half">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">{{ enquiryCase.kind }}</h2>
+        {{ govukSummaryList({
+          rows: caseRows
+        }) }}
+      </div>
+      <div class="govuk-grid-column-one-half">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">Hearing details</h2>
+        {{ govukSummaryList({
+          rows: hearingRows
+        }) }}
+      </div>
+    </div>
+  {% endset %}
+
+  {% set historyHtml %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-half">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">History</h2>
+        <ol class="rm-timeline">
+          {% for item in enquiryCase.historyItems %}
+            <li class="rm-timeline__item">
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ item.title }}</h3>
+              <p class="govuk-body-s govuk-secondary-text-colour govuk-!-margin-bottom-2">{{ item.meta }}</p>
+              <p class="govuk-body govuk-!-margin-bottom-0">{{ item.body }}</p>
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+      <div class="govuk-grid-column-one-half">
+        <h2 class="govuk-heading-m rm-enquiry-section-heading">History and notes</h2>
+        {{ govukSummaryList({
+          rows: notesRows
+        }) }}
+      </div>
+    </div>
+  {% endset %}
+
+  <div class="govuk-width-container rm-dashboard">
+    {{ govukBackLink({
+      text: "Back",
+      href: "/case-enquiry"
+    }) }}
+
+    <div class="rm-enquiry-header">
+      <div class="rm-enquiry-header__title">
+        <span class="govuk-caption-xl">{{ enquiryCase.caseReference }}</span>
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-3">{{ enquiryCase.respondentHeading }}</h1>
+        {{ govukTag({
+          text: enquiryCase.kind,
+          classes: enquiryCase.kindTagClass
+        }) }}
+      </div>
+
+      <div class="rm-enquiry-header__actions">
+        {{ govukButton({
+          text: "Add case note",
+          href: "#",
+          classes: "govuk-button--secondary rm-enquiry-header__button"
+        }) }}
+        {{ govukButton({
+          text: "More actions",
+          href: "#",
+          classes: "govuk-button--secondary rm-enquiry-header__button"
+        }) }}
+      </div>
+    </div>
+
+    <div class="govuk-grid-row govuk-!-margin-bottom-4">
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Case type</p>
+        <p class="govuk-body govuk-!-margin-bottom-0">{{ enquiryCase.caseType }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Applicant type</p>
+        <p class="govuk-body govuk-!-margin-bottom-0">{{ enquiryCase.applicantType }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Business unit</p>
+        <p class="govuk-body govuk-!-margin-bottom-0">{{ enquiryCase.businessUnit }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Received from</p>
+        <p class="govuk-body govuk-!-margin-bottom-0">{{ enquiryCase.receivedFrom }}</p>
+      </div>
+    </div>
+
+    <div class="govuk-grid-row govuk-!-margin-bottom-6">
+      <div class="govuk-grid-column-one-quarter">
+        <div class="rm-metric-card rm-metric-card--mid">
+          <p class="govuk-heading-s govuk-!-margin-bottom-3">{{ enquiryCase.arrearsTile.label }}</p>
+          <p class="govuk-heading-l govuk-!-margin-bottom-0">{{ enquiryCase.arrearsTile.value }}</p>
+        </div>
+      </div>
+    </div>
+
+    {{ govukTabs({
+      items: [
+        {
+          label: "At a glance",
+          id: "at-a-glance",
+          panel: {
+            html: atGlanceHtml
+          }
+        },
+        {
+          label: "Applicant",
+          id: "applicant",
+          panel: {
+            html: applicantHtml
+          }
+        },
+        {
+          label: "Respondent",
+          id: "respondent",
+          panel: {
+            html: respondentHtml
+          }
+        },
+        {
+          label: enquiryCase.kind,
+          id: "case-details",
+          panel: {
+            html: caseHtml
+          }
+        },
+        {
+          label: "History and notes",
+          id: "history-notes",
+          panel: {
+            html: historyHtml
+          }
+        }
+      ]
+    }) }}
+  </div>
+{% endblock %}

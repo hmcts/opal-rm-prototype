@@ -5,9 +5,160 @@
 
 // Add extra styles here
 
+.govuk-width-container {
+  max-width: 1280px;
+}
+
 .app-age-box {
   background-color: #f3f2f1;
   border-left: 4px solid #1d70b8;
   padding: 10px 15px;
   max-width: 260px;
+}
+
+.rm-primary-nav {
+  border-top: 6px solid #1d70b8;
+  border-bottom: 1px solid #b1b4b6;
+  margin-bottom: 40px;
+}
+
+.rm-primary-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+
+.rm-primary-nav__item {
+  margin: 0;
+}
+
+.rm-primary-nav__link {
+  color: #1d70b8;
+  display: inline-block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 16px 0 12px;
+  text-decoration: none;
+  border-bottom: 4px solid transparent;
+}
+
+.rm-primary-nav__link:hover {
+  color: #003078;
+}
+
+.rm-primary-nav__item--active .rm-primary-nav__link {
+  border-bottom-color: #1d70b8;
+}
+
+.rm-dashboard {
+  padding-bottom: 40px;
+}
+
+.rm-dashboard-section {
+  margin-bottom: 40px;
+}
+
+.rm-tabs {
+  border-bottom: 1px solid #b1b4b6;
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rm-tabs__item {
+  margin: 0;
+}
+
+.rm-tabs__link {
+  border-bottom: 4px solid transparent;
+  color: #1d70b8;
+  display: inline-block;
+  padding: 0 0 12px;
+  text-decoration: none;
+}
+
+.rm-tabs__link:hover {
+  color: #003078;
+  text-decoration: underline;
+}
+
+.rm-tabs__item--active .rm-tabs__link {
+  border-bottom-color: #1d70b8;
+  color: #0b0c0c;
+  font-weight: 700;
+}
+
+.rm-enquiry-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.rm-enquiry-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.rm-enquiry-header__button {
+  margin-bottom: 0;
+}
+
+.rm-metric-card {
+  min-height: 140px;
+  padding: 20px;
+}
+
+.rm-metric-card--light {
+  background: #f3f2f1;
+}
+
+.rm-metric-card--mid {
+  background: #d2e2f1;
+  color: #12436d;
+}
+
+.rm-metric-card--dark {
+  background: #1d70b8;
+  color: #ffffff;
+}
+
+.rm-enquiry-section-heading {
+  border-bottom: 4px solid #1d70b8;
+  padding-bottom: 8px;
+}
+
+.rm-enquiry-detail-section {
+  margin-bottom: 32px;
+}
+
+.rm-timeline {
+  border-left: 4px solid #1d70b8;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.rm-timeline__item {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.rm-timeline__item::before {
+  background: #1d70b8;
+  border-radius: 50%;
+  content: '';
+  height: 12px;
+  left: -28px;
+  position: absolute;
+  top: 4px;
+  width: 12px;
 }

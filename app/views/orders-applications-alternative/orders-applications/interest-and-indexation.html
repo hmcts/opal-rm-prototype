@@ -1,0 +1,90 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+  Interest and indexation - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Interest and indexation</h1>
+
+      <form method="post" action="/orders-applications-alternative/interest-and-indexation">
+        {{ govukRadios({
+          classes: "govuk-radios--inline",
+          idPrefix: "interest-applies",
+          name: "interest-applies",
+          fieldset: {
+            legend: {
+              text: "Does interest apply?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "yes",
+              text: "Yes",
+              checked: data["interest-applies"] == "yes" or not data["interest-applies"]
+            },
+            {
+              value: "no",
+              text: "No",
+              checked: data["interest-applies"] == "no"
+            }
+          ]
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "indexation-type",
+          name: "indexation-type",
+          fieldset: {
+            legend: {
+              text: "What type of indexation applies?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "rpi",
+              text: "Retail Price Index (RPI)",
+              checked: data["indexation-type"] == "rpi" or not data["indexation-type"]
+            },
+            {
+              value: "cpi",
+              text: "Consumer Price Index (CPI)",
+              checked: data["indexation-type"] == "cpi"
+            },
+            {
+              value: "other-indexation",
+              text: "Other indexation",
+              checked: data["indexation-type"] == "other-indexation"
+            },
+            {
+              divider: "or"
+            },
+            {
+              value: "no-indexation",
+              text: "No indexation",
+              checked: data["indexation-type"] == "no-indexation"
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

@@ -1,0 +1,76 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Application details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Application details</h1>
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#application-code"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
+      <form method="post" action="/orders-applications-alternative/application-details">
+        {{ xGovukAutocomplete({
+          id: "application-code",
+          name: "application-code",
+          label: {
+            text: "Application code",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing an application code or title to see matching applications."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["application-code"],
+          items: applicationItems,
+          errorMessage: selectionErrorMessage
+        }) }}
+
+        <div
+          id="application-found-panel"
+          class="govuk-inset-text govuk-!-display-none"
+          data-application-found-panel
+          data-application-input-id="application-code"
+          data-application-input-text-id="application-code"
+          data-application-lookup='{{ applicationLookupJson | escape }}'>
+          <span class="govuk-!-font-weight-bold">Application found</span><br>
+          <span data-application-found-title></span>
+        </div>
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

@@ -1,0 +1,63 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+  Select creditor - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications-alternative/order-term-details"
+      }) }}
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#alternative-order-term-creditor"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-m">Select creditor</h1>
+
+      <p class="govuk-body">
+        If the required minor creditor is not listed, <a class="govuk-link" href="/orders-applications-alternative/minor-creditors">add minor creditor details</a> first before re-entering order term details.
+      </p>
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
+      <form method="post" action="/orders-applications-alternative/order-term-creditor">
+        {{ govukRadios({
+          idPrefix: "alternative-order-term-creditor",
+          name: "alternative-order-term-creditor",
+          items: creditorItems,
+          errorMessage: selectionErrorMessage
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Add to order term and review"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/order-term-creditor/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

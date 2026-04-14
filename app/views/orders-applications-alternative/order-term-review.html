@@ -1,0 +1,56 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Review order term - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications-alternative/order-term-creditor"
+      }) }}
+
+      <h1 class="govuk-heading-l">Review order term</h1>
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: orderTerm.code ~ " - " ~ orderTerm.title
+          },
+          actions: {
+            items: [
+              {
+                text: "Change",
+                href: "/orders-applications-alternative/order-term/" ~ orderTerm.index ~ "/change"
+              },
+              {
+                text: "Remove",
+                href: "/orders-applications-alternative/order-term/" ~ orderTerm.index ~ "/delete"
+              }
+            ]
+          }
+        },
+        rows: orderTermRows
+      }) }}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Return to case details",
+          href: "/orders-applications-alternative/case-details"
+        }) }}
+
+        {{ govukButton({
+          text: "Add more terms",
+          href: "/orders-applications-alternative/select-order-term",
+          classes: "govuk-button--secondary"
+        }) }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

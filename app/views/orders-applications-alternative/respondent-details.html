@@ -1,0 +1,515 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Respondent details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set backHref = backHref or "/orders-applications-alternative/case-details" %}
+  {% set formAction = formAction or "/orders-applications-alternative/respondent-details" %}
+  {% set cancelHref = cancelHref or "/orders-applications-alternative/cancel" %}
+  {% set formErrors = errors or {} %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: backHref
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Respondent details</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      {% set aliasHtml %}
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
+
+        {{ govukInput({
+          id: "respondent-alias-1-first-names",
+          name: "respondent-alias-1-first-names",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-alias-1-first-names"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-alias-1-last-name",
+          name: "respondent-alias-1-last-name",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-alias-1-last-name"]
+        }) }}
+
+        <p class="govuk-body">
+          <a class="govuk-link govuk-link--no-visited-state" href="#">Add another alias</a>
+        </p>
+      {% endset %}
+
+      {% set thirdPartyHtml %}
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Third party details</h2>
+        <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence.</p>
+
+        {{ govukInput({
+          id: "respondent-third-party-name-or-organisation",
+          name: "respondent-third-party-name-or-organisation",
+          label: {
+            text: "Name or organisation",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-name-or-organisation"],
+          errorMessage: formErrors["respondent-third-party-name-or-organisation"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-relationship",
+          name: "respondent-third-party-relationship",
+          label: {
+            text: "Relationship to the respondent",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-relationship"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-reference",
+          name: "respondent-third-party-reference",
+          label: {
+            text: "Reference (if applicable)",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-reference"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-address-line-1",
+          name: "respondent-third-party-address-line-1",
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-address-line-1"],
+          errorMessage: formErrors["respondent-third-party-address-line-1"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-address-line-2",
+          name: "respondent-third-party-address-line-2",
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-address-line-2"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-address-line-3",
+          name: "respondent-third-party-address-line-3",
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-address-line-3"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-address-line-4",
+          name: "respondent-third-party-address-line-4",
+          label: {
+            text: "Address line 4",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-address-line-4"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-address-line-5",
+          name: "respondent-third-party-address-line-5",
+          label: {
+            text: "Address line 5",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-third-party-address-line-5"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-third-party-postal-or-zip-code",
+          name: "respondent-third-party-postal-or-zip-code",
+          label: {
+            text: "Postal or zip code",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: data["respondent-third-party-postal-or-zip-code"]
+        }) }}
+
+        {{ govukSelect({
+          id: "respondent-third-party-country",
+          name: "respondent-third-party-country",
+          label: {
+            text: "Country",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["respondent-third-party-country"],
+          items: getCountrySelectItems(data["respondent-third-party-country"])
+        }) }}
+      {% endset %}
+
+      {% set restrictionHtml %}
+        {{ govukCharacterCount({
+          id: "respondent-restriction-reason",
+          name: "respondent-restriction-reason",
+          maxlength: 500,
+          label: {
+            text: "Reason",
+            classes: "govuk-label--s"
+          },
+          rows: 5,
+          value: data["respondent-restriction-reason"],
+          errorMessage: formErrors["respondent-restriction-reason"]
+        }) }}
+      {% endset %}
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukSelect({
+          id: "respondent-title",
+          name: "respondent-title",
+          label: {
+            text: "Title",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-quarter",
+          errorMessage: formErrors["respondent-title"],
+          items: [
+            {
+              text: "",
+              value: "",
+              selected: not data["respondent-title"]
+            },
+            {
+              text: "Mr",
+              value: "mr",
+              selected: data["respondent-title"] == "mr"
+            },
+            {
+              text: "Mrs",
+              value: "mrs",
+              selected: data["respondent-title"] == "mrs"
+            },
+            {
+              text: "Ms",
+              value: "ms",
+              selected: data["respondent-title"] == "ms"
+            },
+            {
+              text: "Miss",
+              value: "miss",
+              selected: data["respondent-title"] == "miss"
+            },
+            {
+              text: "Dr",
+              value: "dr",
+              selected: data["respondent-title"] == "dr"
+            }
+          ]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-first-names",
+          name: "respondent-first-names",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Include their middle names"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-first-names"],
+          errorMessage: formErrors["respondent-first-names"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-last-name",
+          name: "respondent-last-name",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-last-name"],
+          errorMessage: formErrors["respondent-last-name"]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "respondent-add-aliases",
+          name: "respondent-add-aliases",
+          items: [
+            {
+              value: "yes",
+              text: "Add aliases",
+              checked: data["respondent-add-aliases"] == "yes",
+              conditional: {
+                html: aliasHtml
+              }
+            }
+          ]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "respondent-date-of-birth",
+          name: "respondent-date-of-birth",
+          label: {
+            text: "Date of birth",
+            classes: "govuk-label--s"
+          },
+          value: data["respondent-date-of-birth"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-national-insurance-number",
+          name: "respondent-national-insurance-number",
+          label: {
+            text: "UK National Insurance number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, QQ123456C"
+          },
+          classes: "govuk-input--width-20",
+          value: data["respondent-national-insurance-number"]
+        }) }}
+
+        {{ govukTextarea({
+          id: "respondent-other-personal-information",
+          name: "respondent-other-personal-information",
+          label: {
+            text: "Other personal information",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, a passport number, social security number, or military service number"
+          },
+          rows: 4,
+          value: data["respondent-other-personal-information"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Contact details</h2>
+
+        {{ govukInput({
+          id: "respondent-main-email-address",
+          name: "respondent-main-email-address",
+          label: {
+            text: "Main email address",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-main-email-address"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-other-email-address",
+          name: "respondent-other-email-address",
+          label: {
+            text: "Other email address",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-other-email-address"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-main-telephone-number",
+          name: "respondent-main-telephone-number",
+          label: {
+            text: "Main telephone number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For international numbers include the country code"
+          },
+          classes: "govuk-input--width-20",
+          value: data["respondent-main-telephone-number"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-other-telephone-number",
+          name: "respondent-other-telephone-number",
+          label: {
+            text: "Other telephone number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For international numbers include the country code"
+          },
+          classes: "govuk-input--width-20",
+          value: data["respondent-other-telephone-number"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Address</h2>
+
+        {{ govukInput({
+          id: "respondent-address-line-1",
+          name: "respondent-address-line-1",
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-address-line-1"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-address-line-2",
+          name: "respondent-address-line-2",
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-address-line-2"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-address-line-3",
+          name: "respondent-address-line-3",
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-address-line-3"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-address-line-4",
+          name: "respondent-address-line-4",
+          label: {
+            text: "Address line 4",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-address-line-4"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-address-line-5",
+          name: "respondent-address-line-5",
+          label: {
+            text: "Address line 5",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-address-line-5"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-postal-or-zip-code",
+          name: "respondent-postal-or-zip-code",
+          label: {
+            text: "Postal or zip code",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: data["respondent-postal-or-zip-code"]
+        }) }}
+
+        {{ govukSelect({
+          id: "respondent-country",
+          name: "respondent-country",
+          label: {
+            text: "Country",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          items: getCountrySelectItems(data["respondent-country"])
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "respondent-send-correspondence-to-third-party",
+          name: "respondent-send-correspondence-to-third-party",
+          errorMessage: formErrors["respondent-send-correspondence-to-third-party"],
+          items: [
+            {
+              value: "yes",
+              text: "Send correspondence to a third party",
+              checked: data["respondent-send-correspondence-to-third-party"] == "yes",
+              conditional: {
+                html: thirdPartyHtml
+              }
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Restrict personal information</h2>
+        <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the respondent's details with third parties</p>
+
+        {{ govukCheckboxes({
+          idPrefix: "respondent-restrict-personal-information",
+          name: "respondent-restrict-personal-information",
+          errorMessage: formErrors["respondent-restrict-personal-information"],
+          items: [
+            {
+              value: "yes",
+              text: "Respondent's personal information should not be shared",
+              checked: data["respondent-restrict-personal-information"] == "yes",
+              conditional: {
+                html: restrictionHtml
+              }
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

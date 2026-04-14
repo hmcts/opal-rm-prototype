@@ -1,0 +1,236 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block pageTitle %}
+  Create and validate draft orders - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/create-and-validate-draft-orders"
+      }) }}
+
+      <span class="govuk-caption-l">Create and validate draft orders</span>
+      <h1 class="govuk-heading-l">Check case details</h1>
+
+      {{ govukTag({
+        text: "To review",
+        classes: "govuk-tag--light-blue govuk-!-margin-bottom-6"
+      }) }}
+
+      <h2 class="govuk-heading-m">Review history</h2>
+      <p class="govuk-body govuk-!-margin-bottom-5">
+        Submitted by {{ submittedBy }}.
+      </p>
+
+      <div class="govuk-!-margin-bottom-7">
+        {% for event in reviewHistory %}
+          <div class="govuk-!-padding-left-3 govuk-!-margin-bottom-4" style="border-left: 4px solid #1d70b8;">
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">
+              {{ event.action }} <span class="govuk-!-font-weight-regular">by {{ event.by }}</span>
+            </p>
+            <p class="govuk-body govuk-secondary-text-colour govuk-!-margin-bottom-1">{{ event.at }}</p>
+            {% if event.note %}
+              <p class="govuk-body govuk-!-margin-bottom-0">{{ event.note }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {
+              text: "Case type"
+            },
+            value: {
+              text: caseTypeLabel
+            }
+          },
+          {
+            key: {
+              text: "Applicant type"
+            },
+            value: {
+              text: applicantTypeLabel
+            }
+          }
+        ]
+      }) }}
+
+      {% set applicantWarningHtml %}
+      {% if data["applicant-restrict-personal-information"] == "yes" %}
+        {{ govukWarningText({
+          text: "Applicant's personal information should not be shared.",
+          iconFallbackText: "Warning"
+        }) }}
+      {% endif %}
+      {% endset %}
+
+      {% set respondentWarningHtml %}
+      {% if data["respondent-restrict-personal-information"] == "yes" %}
+        {{ govukWarningText({
+          text: "Respondent's personal information should not be shared.",
+          iconFallbackText: "Warning"
+        }) }}
+      {% endif %}
+      {% endset %}
+
+      <div class="govuk-summary-card govuk-!-margin-bottom-6">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Applicant details</h2>
+        </div>
+        <div class="govuk-summary-card__content">
+          {{ applicantWarningHtml | safe }}
+          {{ govukSummaryList({
+            rows: applicantRows
+          }) }}
+        </div>
+      </div>
+
+      <div class="govuk-summary-card govuk-!-margin-bottom-6">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Respondent details</h2>
+        </div>
+        <div class="govuk-summary-card__content">
+          {{ respondentWarningHtml | safe }}
+          {{ govukSummaryList({
+            rows: respondentRows
+          }) }}
+        </div>
+      </div>
+
+      {% if not isRemoOutCase %}
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: "Central authority details"
+            }
+          },
+          rows: centralAuthorityRows
+        }) }}
+      {% endif %}
+
+      <div class="govuk-summary-card govuk-!-margin-bottom-6">
+        <div class="govuk-summary-card__title-wrapper">
+          <h2 class="govuk-summary-card__title">Order details</h2>
+        </div>
+        <div class="govuk-summary-card__content">
+          {% for beneficiaryGroup in beneficiaryGroups %}
+            <div class="govuk-!-margin-bottom-8">
+              <h3 class="govuk-heading-s govuk-!-margin-bottom-3">
+                {{ beneficiaryGroup.name }}
+                <span class="govuk-!-font-size-16 govuk-!-font-weight-regular govuk-!-margin-left-1">{{ beneficiaryGroup.subtitle }}</span>
+                {{ govukTag({
+                  text: beneficiaryGroup.tag,
+                  classes: "govuk-tag--blue govuk-!-margin-left-2"
+                }) }}
+              </h3>
+
+              {{ govukTable({
+                firstCellIsHeader: false,
+                head: [
+                  {
+                    text: "Date order made"
+                  },
+                  {
+                    text: "Payment"
+                  },
+                  {
+                    text: "Frequency"
+                  },
+                  {
+                    text: "Arrears"
+                  },
+                  {
+                    text: "Creditor"
+                  },
+                  {
+                    text: "Expiry date"
+                  },
+                  {
+                    text: "Expiry notes"
+                  },
+                  {
+                    text: "Status"
+                  }
+                ],
+                rows: beneficiaryGroup.rows
+              }) }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Interest and indexation"
+          }
+        },
+        rows: interestAndIndexationRows
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Case comment and notes"
+          }
+        },
+        rows: caseCommentsRows
+      }) }}
+
+      <form method="post" action="#">
+        {{ govukRadios({
+          idPrefix: "draft-order-review-decision",
+          name: "draft-order-review-decision",
+          fieldset: {
+            legend: {
+              text: "Select review decision",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "approve",
+              text: "Approve draft order"
+            },
+            {
+              value: "reject",
+              text: "Reject draft order",
+              conditional: {
+                html: govukCharacterCount({
+                  name: "rejection-reason",
+                  id: "rejection-reason",
+                  maxlength: 255,
+                  label: {
+                    text: "Enter reason for rejection"
+                  }
+                })
+              }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="#">Delete draft order</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

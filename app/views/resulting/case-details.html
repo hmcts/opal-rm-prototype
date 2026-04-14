@@ -1,0 +1,102 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+
+{% block pageTitle %}
+  Resulting case details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/resulting"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Case details</h1>
+
+      {% if saveError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: saveError,
+              href: "#resulting-results-heading"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {
+              text: "Case type"
+            },
+            value: {
+              text: caseTypeLabel
+            }
+          },
+          {
+            key: {
+              text: "Hearing details"
+            },
+            value: {
+              text: hearingDetailsText
+            }
+          }
+        ]
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Party details</h2>
+
+      {{ govukTaskList({
+        idPrefix: "resulting-party-details",
+        items: partyDetailsItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8" id="resulting-results-heading">Results</h2>
+
+      {{ govukTaskList({
+        idPrefix: "resulting-results",
+        items: resultsItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">Additional information</h2>
+
+      {{ govukTaskList({
+        idPrefix: "resulting-additional-information",
+        items: additionalInformationItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">Session details</h2>
+
+      {{ govukTaskList({
+        idPrefix: "resulting-session-details",
+        items: sessionItems
+      }) }}
+
+      <h2 class="govuk-heading-m govuk-!-margin-top-8">Check and submit</h2>
+
+      {% if canCheckCase %}
+        {{ govukButton({
+          text: "Check results",
+          href: "/resulting/check-your-answers"
+        }) }}
+      {% else %}
+        <p class="govuk-body">
+          Complete all required sections and add at least one eligible result before checking results.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
