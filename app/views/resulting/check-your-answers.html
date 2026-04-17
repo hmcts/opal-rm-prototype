@@ -121,22 +121,30 @@
         }) }}
       {% endif %}
 
-      {{ govukSummaryList({
-        card: {
-          title: {
-            text: "Results"
+      <h2 class="govuk-heading-m">Results</h2>
+
+      {% for resultCard in resultCards %}
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: resultCard.title
+            },
+            actions: {
+              items: [
+                {
+                  text: "Change",
+                  href: resultCard.changeHref
+                },
+                {
+                  text: "Remove",
+                  href: resultCard.removeHref
+                }
+              ]
+            }
           },
-          actions: {
-            items: [
-              {
-                text: "Change",
-                href: "/resulting/select-result"
-              }
-            ]
-          }
-        },
-        rows: resultsRows
-      }) }}
+          rows: resultCard.rows
+        }) }}
+      {% endfor %}
 
       {{ govukSummaryList({
         card: {

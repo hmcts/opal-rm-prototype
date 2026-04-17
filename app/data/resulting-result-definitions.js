@@ -27,10 +27,11 @@ const adjournedHearingFields = [
 ]
 
 const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY', 'MTEMP']
-const createCreditorNextStepCodes = ['MAT', 'MCHILD', 'MLUMP', 'MPAY', 'MTEMP']
 
 const rawResultDefinitions = {
   MAT: {
+    supportsOrders: true,
+    requiresCreditor: true,
     title: 'Matrimonial Order for Adult',
     category: 'FINAL',
     wordingTemplate:
@@ -65,30 +66,36 @@ const rawResultDefinitions = {
         name: 'Creditor',
         prompt: 'Creditor name',
         type: 'text-60',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Respondent',
         prompt: 'Respondent name',
         type: 'text-60',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Payment',
         prompt: 'Payment arrangement',
         type: 'menu-radio',
         mandatory: 'Yes',
-        options: 'payable through the Court, payable between the parties'
+        options: 'payable through the Court, payable between the parties',
+        ordersHidden: true
       },
       {
         name: 'Commencement',
-        prompt: 'Commencement Date',
+        prompt: 'Date order made',
         type: 'date',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       }
     ]
   },
   MCHILD: {
+    supportsOrders: true,
+    requiresCreditor: true,
     title: 'Maintenace Order for child(ren)',
     category: 'FINAL',
     wordingTemplate:
@@ -135,27 +142,38 @@ const rawResultDefinitions = {
         mandatory: 'Yes'
       },
       {
+        name: 'Child DOB',
+        prompt: 'Date of birth',
+        type: 'date',
+        mandatory: 'No'
+      },
+      {
         name: 'Respondent',
         prompt: 'Respondent name',
         type: 'text-60',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Payment',
         prompt: 'Payment arrangement',
         type: 'menu-radio',
         mandatory: 'Yes',
-        options: 'payable through the Court, payable between the parties'
+        options: 'payable through the Court, payable between the parties',
+        ordersHidden: true
       },
       {
         name: 'Commencement',
-        prompt: 'Commencement Date',
+        prompt: 'Date order made',
         type: 'date',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       }
     ]
   },
   MLUMP: {
+    supportsOrders: true,
+    requiresCreditor: true,
     title: 'Lump sum order',
     category: 'FINAL',
     wordingTemplate:
@@ -171,36 +189,43 @@ const rawResultDefinitions = {
         name: 'Creditor',
         prompt: 'Creditor name',
         type: 'text-60',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Respondent',
         prompt: 'Respondent name',
         type: 'text-60',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Payment',
         prompt: 'Payment arrangement',
         type: 'menu-radio',
         mandatory: 'Yes',
-        options: 'payable through the Court, payable between the parties'
+        options: 'payable through the Court, payable between the parties',
+        ordersHidden: true
       },
       {
         name: 'Reason',
         prompt: 'Reason for order',
         type: 'text-1000',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       },
       {
         name: 'Due',
         prompt: 'Cost due by date',
         type: 'date',
-        mandatory: 'Yes'
+        mandatory: 'Yes',
+        ordersHidden: true
       }
     ]
   },
   MNSTD: {
+    supportsOrders: true,
+    requiresCreditor: false,
     title: 'Non-standard order',
     category: 'ANCILLARY',
     wordingTemplate: '{Details}',
@@ -279,7 +304,9 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MPAY: {
-    title: 'Ordered to pay arrears (no adjourment)',
+    supportsOrders: true,
+    requiresCreditor: true,
+    title: 'Ordered to pay arrears (no adjournment)',
     category: 'FINAL',
     wordingTemplate: 'Order to pay arrears of {Arrears}. {Details}',
     responses: [
@@ -298,6 +325,8 @@ const rawResultDefinitions = {
     ]
   },
   MTEMP: {
+    supportsOrders: true,
+    requiresCreditor: true,
     title: 'Temporary order',
     category: 'FINAL',
     wordingTemplate: 'Temporary order for payment by {Respondent} to {Creditor}. {Reason}.',
@@ -323,6 +352,7 @@ const rawResultDefinitions = {
     ]
   },
   MAEO: {
+    requiresCreditor: false,
     title: 'Attachment of Earnings Order made',
     category: 'FINAL',
     wordingTemplate:
@@ -349,12 +379,14 @@ const rawResultDefinitions = {
     ]
   },
   MWDN: {
+    requiresCreditor: false,
     title: 'Withdrawn',
     category: 'FINAL',
     wordingTemplate: 'Withdrawn',
     responses: []
   },
   MREMT: {
+    requiresCreditor: false,
     title: 'Arrears remitted',
     category: 'FINAL',
     wordingTemplate: 'Arrears in the sum of £{Amount} remitted. {Reason}.',
@@ -374,6 +406,7 @@ const rawResultDefinitions = {
     ]
   },
   MBAIL: {
+    requiresCreditor: false,
     title: 'Bailiff Service Ordered',
     category: 'INTERIM',
     wordingTemplate:
@@ -381,6 +414,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MCMTP: {
+    requiresCreditor: false,
     title: 'Contempt Proceedings',
     category: 'INTERIM',
     wordingTemplate:
@@ -388,6 +422,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MTPDA: {
+    requiresCreditor: false,
     title: 'Interim Third Party Debt Order (with adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -395,6 +430,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MTPDO: {
+    requiresCreditor: false,
     title: 'Third Party Debt Order (no adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -402,6 +438,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MCOO: {
+    requiresCreditor: false,
     title: 'Charging Order (with adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -409,6 +446,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MCON: {
+    requiresCreditor: false,
     title: 'Charging Order (no adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -416,6 +454,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MWOC: {
+    requiresCreditor: false,
     title: 'Warrant of Control (with adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -423,6 +462,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MWCN: {
+    requiresCreditor: false,
     title: 'Warrant of Control (no adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -430,6 +470,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MWOA: {
+    requiresCreditor: false,
     title: 'Warrant of Arrest (with adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -437,6 +478,7 @@ const rawResultDefinitions = {
     responses: adjournedHearingFields
   },
   MWAN: {
+    requiresCreditor: false,
     title: 'Warrant of Arrest (no adjournment)',
     category: 'INTERIM',
     wordingTemplate:
@@ -450,10 +492,10 @@ module.exports = Object.fromEntries(
     code,
     {
       ...definition,
-      journeys: orderAndResultJourneyCodes.includes(code)
+      journeys: definition.supportsOrders || orderAndResultJourneyCodes.includes(code)
         ? ['orders', 'results']
         : ['results'],
-      nextStep: createCreditorNextStepCodes.includes(code)
+      nextStep: definition.requiresCreditor
         ? 'create-creditor'
         : undefined
     }

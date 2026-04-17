@@ -1,7 +1,8 @@
 {% extends "layouts/main.html" %}
 
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block pageTitle %}
   Application details - {{ serviceName }} - GOV.UK Prototype Kit
@@ -12,8 +13,27 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Application details</h1>
 
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#application-code"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
       <form method="post" action="/orders-applications/application-details">
-        {{ govukInput({
+        {{ xGovukAutocomplete({
           id: "application-code",
           name: "application-code",
           label: {
@@ -21,11 +41,24 @@
             classes: "govuk-label--s"
           },
           hint: {
-            html: 'For example, 29014. If you do not know the application code, you can <a class="govuk-link" href="#">search the list</a>.'
+            text: "Start typing an application code or title to see matching applications."
           },
-          classes: "govuk-input--width-10",
-          value: data["application-code"]
+          classes: "govuk-!-width-two-thirds",
+          value: data["application-code"],
+          items: applicationItems,
+          errorMessage: selectionErrorMessage
         }) }}
+
+        <div
+          id="application-found-panel"
+          class="govuk-inset-text govuk-!-display-none"
+          data-application-found-panel
+          data-application-input-id="application-code"
+          data-application-input-text-id="application-code"
+          data-application-lookup='{{ applicationLookupJson | escape }}'>
+          <span class="govuk-!-font-weight-bold">Application found</span><br>
+          <span data-application-found-title></span>
+        </div>
 
         <div class="govuk-button-group">
           {{ govukButton({
