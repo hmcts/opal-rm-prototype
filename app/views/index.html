@@ -1,66 +1,38 @@
 {% extends "layouts/main.html" %}
 
+{% set showNav = true %}
+{% set activeNav = "cases" %}
+
 {% block pageTitle %}
   RM - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
-  <div class="rm-primary-nav">
-    <div class="govuk-width-container">
-      <ul class="rm-primary-nav__list">
-        <li class="rm-primary-nav__item">
-          <a class="rm-primary-nav__link" href="#">Search</a>
-        </li>
-        <li class="rm-primary-nav__item rm-primary-nav__item--active">
-          <a class="rm-primary-nav__link" href="/">Accounts</a>
-        </li>
-        <li class="rm-primary-nav__item">
-          <a class="rm-primary-nav__link" href="#">Reports</a>
-        </li>
-        <li class="rm-primary-nav__item">
-          <a class="rm-primary-nav__link" href="#">Administration</a>
-        </li>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">Cases</h1>
+
+      <h2 class="govuk-heading-m">Create records</h2>
+      <ul class="govuk-list">
+        <li><a href="/orders-applications" class="govuk-link">Enter Orders and Applications</a></li>
+        <li><a href="/orders-applications-alternative" class="govuk-link">Enter Orders and Applications (alternative)</a></li>
+        <li><a href="/create-and-validate-draft-orders" class="govuk-link">Create and validate draft orders</a></li>
+        <li><a href="/create-data" class="govuk-link">Create data</a></li>
       </ul>
+
+      <h2 class="govuk-heading-m">Resulting</h2>
+      <ul class="govuk-list">
+        <li><a href="/resulting" class="govuk-link">Enter results</a></li>
+        <li><a href="/review-results" class="govuk-link">Review results</a></li>
+        <li><a href="/check-results" class="govuk-link">Check results</a></li>
+      </ul>
+
+      <h2 class="govuk-heading-m">Enquiries</h2>
+      <ul class="govuk-list">
+        <li><a href="/case-enquiry" class="govuk-link">Case enquiry</a></li>
+      </ul>
+
     </div>
-  </div>
-
-  <div class="govuk-width-container rm-dashboard">
-    <h1 class="govuk-heading-xl">RM</h1>
-
-    <section class="rm-dashboard-section" aria-labelledby="create-records-heading">
-      <h2 class="govuk-heading-l" id="create-records-heading">Create records</h2>
-      <p class="govuk-body govuk-!-margin-bottom-0">
-        <a class="govuk-link govuk-link--no-visited-state" href="/orders-applications">Enter Orders and Applications</a>
-      </p>
-      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
-        <a class="govuk-link govuk-link--no-visited-state" href="/orders-applications-alternative">Enter Orders and Applications (alternative)</a>
-      </p>
-      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
-        <a class="govuk-link govuk-link--no-visited-state" href="/create-and-validate-draft-orders">Create and validate draft orders</a>
-      </p>
-      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
-        <a class="govuk-link govuk-link--no-visited-state" href="/create-data">Create data</a>
-      </p>
-    </section>
-
-    <section class="rm-dashboard-section" aria-labelledby="resulting-heading">
-      <h2 class="govuk-heading-l" id="resulting-heading">Resulting</h2>
-      <p class="govuk-body govuk-!-margin-bottom-0">
-        <a class="govuk-link govuk-link--no-visited-state" href="/resulting">Enter results</a>
-      </p>
-      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
-        <a class="govuk-link govuk-link--no-visited-state" href="/review-results">Review results</a>
-      </p>
-      <p class="govuk-body govuk-!-margin-bottom-0 govuk-!-margin-top-2">
-        <a class="govuk-link govuk-link--no-visited-state" href="/check-results">Check results</a>
-      </p>
-    </section>
-
-    <section class="rm-dashboard-section" aria-labelledby="enquiries-heading">
-      <h2 class="govuk-heading-l" id="enquiries-heading">Enquiries</h2>
-      <p class="govuk-body govuk-!-margin-bottom-0">
-        <a class="govuk-link govuk-link--no-visited-state" href="/case-enquiry">Case enquiry</a>
-      </p>
-    </section>
   </div>
 {% endblock %}

@@ -5,7 +5,9 @@
 
 // Add extra styles here
 
-.govuk-width-container {
+.govuk-width-container,
+.moj-header__container,
+.moj-primary-navigation__container {
   max-width: 1280px;
 }
 
@@ -14,43 +16,6 @@
   border-left: 4px solid #1d70b8;
   padding: 10px 15px;
   max-width: 260px;
-}
-
-.rm-primary-nav {
-  border-top: 6px solid #1d70b8;
-  border-bottom: 1px solid #b1b4b6;
-  margin-bottom: 40px;
-}
-
-.rm-primary-nav__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 24px;
-}
-
-.rm-primary-nav__item {
-  margin: 0;
-}
-
-.rm-primary-nav__link {
-  color: #1d70b8;
-  display: inline-block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  padding: 16px 0 12px;
-  text-decoration: none;
-  border-bottom: 4px solid transparent;
-}
-
-.rm-primary-nav__link:hover {
-  color: #003078;
-}
-
-.rm-primary-nav__item--active .rm-primary-nav__link {
-  border-bottom-color: #1d70b8;
 }
 
 .rm-dashboard {
