@@ -2603,8 +2603,8 @@ function getResultingResultsStatus(sessionData) {
   if (!recordedResults.length) {
     return {
       tag: {
-        text: 'Not provided',
-        classes: 'govuk-tag--grey'
+        text: 'Required',
+        classes: 'govuk-tag--purple'
       }
     }
   }
@@ -2613,7 +2613,7 @@ function getResultingResultsStatus(sessionData) {
     return {
       tag: {
         text: 'Provided',
-        classes: 'govuk-tag--turquoise'
+        classes: 'govuk-tag--blue'
       }
     }
   }
@@ -3108,8 +3108,8 @@ function getAlternativeOrderTermsStatus(sessionData) {
   if (!enteredTerms.length && !hasPendingOrderTerm) {
     return {
       tag: {
-        text: 'Not provided',
-        classes: 'govuk-tag--grey'
+        text: 'Required',
+        classes: 'govuk-tag--purple'
       }
     }
   }
@@ -3118,7 +3118,7 @@ function getAlternativeOrderTermsStatus(sessionData) {
     return {
       tag: {
         text: 'Provided',
-        classes: 'govuk-tag--turquoise'
+        classes: 'govuk-tag--blue'
       }
     }
   }
@@ -3801,7 +3801,7 @@ function getTaskStatusTag(status) {
     return {
       tag: {
         text: 'Provided',
-        classes: 'govuk-tag--turquoise'
+        classes: 'govuk-tag--blue'
       }
     }
   }
@@ -3968,7 +3968,7 @@ function getSingleTaskStatusTag(status) {
     return {
       tag: {
         text: 'Provided',
-        classes: 'govuk-tag--turquoise'
+        classes: 'govuk-tag--blue'
       }
     }
   }
@@ -3984,8 +3984,8 @@ function getSingleTaskStatusTag(status) {
 
   return {
     tag: {
-      text: 'Not provided',
-      classes: 'govuk-tag--grey'
+      text: 'Required',
+      classes: 'govuk-tag--purple'
     }
   }
 }
