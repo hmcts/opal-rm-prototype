@@ -6,6 +6,7 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 {% extends "govuk-prototype-kit/layouts/govuk-branded.njk" %}
 
 {% from "moj/components/header/macro.njk" import mojHeader %}
+{% from "moj/components/primary-navigation/macro.njk" import mojPrimaryNavigation %}
 
 {% block header %}
   {{ mojHeader({
@@ -27,4 +28,37 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
       ]
     }
   }) }}
+
+  {% if showNav === true %}
+  {{ mojPrimaryNavigation({
+    label: "Primary navigation",
+    items: [
+      {
+        text: "Search",
+        href: "#",
+        active: activeNav == "search"
+      },
+      {
+        text: "Cases",
+        href: "#",
+        active: activeNav == "cases"
+      },
+      {
+        text: "Finance",
+        href: "#",
+        active: activeNav == "finance"
+      },
+      {
+        text: "Reports",
+        href: "#",
+        active: activeNav == "reports"
+      },
+      {
+        text: "Administration",
+        href: "#",
+        active: activeNav == "administration"
+      }
+    ]
+  }) }}
+  {% endif %}
 {% endblock %}
