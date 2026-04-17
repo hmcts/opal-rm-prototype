@@ -27,6 +27,263 @@ const titleLabels = {
   dr: 'Dr'
 }
 
+const applicationDefinitionList = [
+  {
+    group: 'APPEAL',
+    code: 'AP00001',
+    title: 'Application to Appeal',
+    registerText:
+      'Application to appeal an Order made on [order date] by [court] for [order terms]. On the grounds [grounds for appeal].',
+    act: 'Application to Appeal'
+  },
+  {
+    group: 'Conversion Cases',
+    code: 'CV00001',
+    title: 'Conversion of EU/WAC case from pay direct between parties to pay HMCTS',
+    registerText: 'Application for [application details].',
+    act: 'Conversion Cases Pay Direct to Pay HMCTS'
+  },
+  {
+    group: 'OTBM',
+    code: 'CA89001',
+    title:
+      'Application under schedule 1 Children Act 1989 or the Domestic Proceedings & Magistrates Courts Act 1978, applying Jurisdictional Provisions in this Legislation  (schedule 1 para 14 Children Act 1989 and Section 30 DPMCA 1978)',
+    registerText: 'Application for [application details].',
+    act: 'Children Act 1989'
+  },
+  {
+    group: 'OTBM',
+    code: 'HC07001',
+    title: 'Applications for a Final Order to be made',
+    registerText: 'Application for [application details].',
+    act: 'Hague Convention 2007'
+  },
+  {
+    group: 'OTBM',
+    code: 'MO20001',
+    title: 'Applications for a Provisional Order to be confirmed',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Facilities for Enforcement) Act 1920'
+  },
+  {
+    group: 'OTBM',
+    code: 'MO72001',
+    title: 'Applications for a Provisional Order to be confirmed',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'OTBM',
+    code: 'MO72002',
+    title: 'Application for a Final Order to be made',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO IN',
+    code: 'CJ82001',
+    title:
+      'Application from non-EU Country for registration recognition of an Order in the UK Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Civil Jurisdiction & Judgements Act 1982; Hague Convention 2007'
+  },
+  {
+    group: 'REMO IN',
+    code: 'CJ82002',
+    title: 'Application from EU Country for registration/recognition of an order in the family court',
+    registerText: 'Application for [application details].',
+    act: 'Civil Jurisdiction & Judgements Act 1982; Hague Convention 2007'
+  },
+  {
+    group: 'REMO IN',
+    code: 'CJ82003',
+    title: 'Application from EU Country for registration/recognition of an order in the family court',
+    registerText: 'Application for [application details].',
+    act: 'Civil Jurisdiction and Judgements Act 1982; Hague Convention 2007; EU Reg 04/2009'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO20002',
+    title: 'Application for Registration of a foreign order in the UK Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Facilities for Enforcement) Act 1920'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO50001',
+    title: 'Application to register a Scottish or Northern Ireland order in the Family Court other UK Jurisdictions',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders Act 1950'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO58001',
+    title:
+      'Enforcement of orders made by the High Court or registered in the High Court under MO(FE)A 1920 or MAO 1950 in the Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders Act 1958'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO72003',
+    title: 'Application for Registration/recognition of a foreign order in the UK Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO72004',
+    title: 'Application for Registration/recognition of a foreign courts order in the UK Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO72005',
+    title:
+      'Countries that are only able to send applications to the Family Court under the UN Convention (Part 2 Maintenance orders (Reciprocal Enforcement) Act 1972',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO IN',
+    code: 'MO72006',
+    title: 'Application for registration of a USA Order in the UK Family Court',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO IN',
+    code: 'XX00001',
+    title: 'UK Residents - Applications where both parties reside in England or Wales (HOME CASES)',
+    registerText: 'Application for [application details].',
+    act:
+      'England/Wales orders made payable to HMCTS by a District Judge and Foreign Order from European/H07 Countries where the parties now live in England/Wales'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'CA20001',
+    title: 'Application under Commonwealth Act 1920',
+    registerText: 'Application for [application details].',
+    act: 'Commonwealth Act 1920'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'CA89002',
+    title: 'Application under UK Children Act 1989',
+    registerText: 'Application for [application details].',
+    act: 'Children Act 1989'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'EU20001',
+    title: 'Application under withdrawal Agreement (WAC)',
+    registerText: 'Application for [application details].',
+    act: 'EU–UK Withdrawal Agreement (2019) (as implemented by the European Union (Withdrawal Agreement) Act 2020)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'HC07002',
+    title: 'Application for an Order to be made abroad',
+    registerText: 'Application for [application details].',
+    act: 'Hague Convention 2007'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'HC07003',
+    title: 'Application under Hague Convention 2007',
+    registerText: 'Application for [application details].',
+    act: 'Hague Convention 2007'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'HC73001',
+    title: 'Application under Hague Convention 1973',
+    registerText: 'Application for [application details].',
+    act: 'Hague Convention 1973'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'LC00001',
+    title: 'Application under Lugano Convention',
+    registerText: 'Application for [application details].',
+    act: 'Lugano Convention'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO20003',
+    title: 'Application for a Provisional Order to be made in the UK and confirmed abroad',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Facilities for Enforcement) Act 1920'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72007',
+    title: 'Application for a Provisional Order to be made in the UK and confirmed abroad',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72008',
+    title: 'Application for documents to be signed and sworn for an Order to be made abroad',
+    registerText: 'Application for [application details].',
+    act: 'Maintenance Orders (Reciprocal Enforcement) Act 1972'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72009',
+    title: 'Application for a Final Order to be made  (RCJ Countries as per Fam Court Index Table 4)',
+    registerText: 'Application for [application details].',
+    act:
+      'Section 3, Maintenance Orders (Reciprocal Enforcement) Act 1972, as modified by the Reciprocal Enforcement of Maintenance Orders (Hague Convention Countries) Order 1993 (SI 1993/593)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72010',
+    title: 'FCDO Countries as per FAM Court Index - Table 4',
+    registerText: 'Application for [application details].',
+    act:
+      'Section 3, Maintenance Orders (Reciprocal Enforcement) Act 1972, as modified by the Reciprocal Enforcement of Maintenance Orders (Hague Convention Countries) Order 1993 (SI 1993/593)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72011',
+    title: 'All "Agent" Countries as per the FAM Court Index Table 4',
+    registerText: 'Application for [application details].',
+    act:
+      'Section 3, Maintenance Orders (Reciprocal Enforcement) Act 1972, as modified by the Reciprocal Enforcement of Maintenance Orders (Hague Convention Countries) Order 1993 (SI 1993/593)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'MO72012',
+    title: 'Application under USA Part I & II',
+    registerText: 'Application for [application details].',
+    act: 'Part I of the Maintenance Orders (Reciprocal Enforcement) Act 1972 (as applied to the United States via reciprocal enforcement orders)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'UN56001',
+    title: 'Application under United Nations 1956 [sometimes called the New York Convention 1956]',
+    registerText: 'Application for [application details].',
+    act: 'United Nations 1956 (New York Convention)'
+  },
+  {
+    group: 'REMO OUT',
+    code: 'RE72001',
+    title: 'Application under Reciprocal Maintenance Act 1972',
+    registerText: 'Application for [application details].',
+    act: 'Reciprocal Enforcement Act 1972'
+  },
+  {
+    group: 'VARIATION',
+    code: 'AV00001',
+    title: 'Application to Vary/Revoke an Order',
+    registerText: 'Application to Vary/Revoke an Order made on [order date] sitting at [court] for [order terms].',
+    act: 'Application to Vary/Revoke an Order'
+  }
+]
+
 const caseEnquiryRecords = [
   {
     id: 'order-case',
@@ -127,7 +384,7 @@ const caseEnquiryRecords = [
       }
     ],
     caseRows: [
-      ['Application code', 'EA0002'],
+      ['Application code', 'MO20002'],
       ['Application found', 'Application for registration of a foreign order in the UK Family Court'],
       ['Order terms', 'MAT, MLUMP'],
       ['Date arrears last updated', '09 Jan 2025'],
@@ -176,7 +433,7 @@ const caseEnquiryRecords = [
       middleHeading: 'Application details',
       middleRows: [
         ['Case type', 'REMO In application'],
-        ['Application code', 'RC0001'],
+        ['Application code', 'MO72003'],
         ['Application found', 'Application for Registration/recognition of a foreign order in the UK Family Court'],
         ['Hearing date', '18 Mar 2025']
       ],
@@ -251,7 +508,7 @@ const caseEnquiryRecords = [
       }
     ],
     caseRows: [
-      ['Application code', 'RC0001'],
+      ['Application code', 'MO72003'],
       ['Application found', 'Application for Registration/recognition of a foreign order in the UK Family Court'],
       ['Foreign court', 'District Court of Helsinki'],
       ['Date order made', '12 Mar 2025'],
@@ -321,7 +578,7 @@ function buildCreateDataScenarios() {
         'respondent-country': 'united-kingdom',
         'central-authority-name': 'Finnish Central Authority',
         'central-authority-reference': 'FI-CA-20485',
-        'application-code': 'RC0001',
+        'application-code': 'CA89001',
         'application-foreign-court': 'District Court of Helsinki',
         'application-order-date': '12/03/2025',
         'hearing-type': 'non-scheduled',
@@ -364,7 +621,7 @@ function buildCreateDataScenarios() {
           'respondent-address-line-2': 'Twyford',
           'respondent-postal-or-zip-code': 'RG10 9RT',
           'respondent-country': 'united-kingdom',
-          'order-application-code': 'EA0002',
+          'order-application-code': 'MO20002',
           'order-court-that-made-the-order': 'Sąd Okręgowy w Warszawie',
           'order-date-order-made': '12/01/2025',
           'order-date-arrears-last-updated': '09/01/2025',
@@ -668,190 +925,12 @@ const countryLabels = Object.fromEntries(
   countryNames.map((countryName) => [slugifyCountryName(countryName), countryName])
 )
 
-const applicationDefinitionList = [
-  {
-    code: 'RC0001',
-    title: 'Applications for a Provisional Order to be confirmed',
-    act: '(Reciprocating Countries) Section 7 Maintenance Orders (Reciprocal Enforcement) Act 1972'
-  },
-  {
-    code: 'EA0001',
-    title: 'Applications for a Provisional Order to be confirmed',
-    act: '(EA Countries) Section 4 Maintenance Orders (Facilities for Enforcement) Act 1920'
-  },
-  {
-    code: 'UC0001',
-    title: 'Application for a Final Order to be made',
-    act: '(UN Convention Countries) Part 2 Maintenance Orders (Reciprocal Enforcement) Act 1972'
-  },
-  {
-    code: 'HC0001',
-    title: 'Applications for a Final Order to be made',
-    act: 'Claim for Maintenance under Articles 10 and 11 - Hague Convention 2007'
-  },
-  {
-    code: 'CA0001',
-    title:
-      'Application under schedule 1 Children Act 1989 or the Domestic Proceedings and Magistrates Courts Act 1978',
-    act:
-      'Application under schedule 1 Children Act 1989 or the Domestic Proceedings and Magistrates Courts Act 1978, applying jurisdictional provisions in this legislation'
-  },
-  {
-    code: 'RC0002',
-    title: 'Application for registration or recognition of a foreign order in the UK Family Court',
-    act: "Reciprocating Countries' Part 1 Maintenance Orders (Reciprocal Enforcement) Act 1972"
-  },
-  {
-    code: 'MO0001',
-    title: 'Application for registration or recognition of a foreign court order in the UK Family Court',
-    act:
-      'Part 1 of the Maintenance Orders (Reciprocal Enforcement) Act 1972 as modified by the Reciprocal Enforcement Orders (Hague Convention Countries) Order 1993'
-  },
-  {
-    code: 'CJ0001',
-    title:
-      'Application from non-EU Country for registration or recognition of an order in the UK Family Court',
-    act:
-      'Civil Jurisdiction and Judgements Act 1982, Hague Convention 2007 and International Recovery of Maintenance Regulations 2012 as applies to non EU countries'
-  },
-  {
-    code: 'CJ0002',
-    title: 'Application from EU Country for registration or recognition of an order in the family court',
-    act:
-      'Civil Jurisdiction and Judgements Act 1982, Hague Convention 2007 and International Recovery of Maintenance Regulations 2012 as applied to EU countries'
-  },
-  {
-    code: 'EU0001',
-    title: 'Application from EU Country for registration or recognition of an order in the family court',
-    act:
-      'EU Reg 04/2009 Forms, Civil Jurisdiction and Judgements Act 1982, Hague Convention 2007 and International Recovery of Maintenance Regulations 2012 as applied to EU countries'
-  },
-  {
-    code: 'EA0002',
-    title: 'Application for registration of a foreign order in the UK Family Court',
-    act: '(EA Countries) Maintenance Orders (Facilities for Enforcement) Act 1920'
-  },
-  {
-    code: 'UC0002',
-    title: 'Countries able to send applications to the Family Court under the UN Convention',
-    act:
-      'Applications to the Family Court under the UN Convention (Part 2 Maintenance Orders (Reciprocal Enforcement) Act 1972)'
-  },
-  {
-    code: 'US0001',
-    title: 'Application for registration of a USA Order in the UK Family Court',
-    act:
-      'Maintenance Orders (Reciprocal Enforcement) Act 1972 as modified by the Reciprocal Enforcement of Maintenance (United States of America Orders 1995 and 2007)'
-  },
-  {
-    code: 'OU0001',
-    title: 'Application to register a Scottish or Northern Ireland order in the Family Court',
-    act:
-      'Other UK Jurisdictions (Maintenance Orders Act 1950 and Part 32 Chapter II of the Family Proceedings Rules 2010)'
-  },
-  {
-    code: 'MO0002',
-    title:
-      'Enforcement of orders made by the High Court or registered in the High Court in the Family Court',
-    act: 'Maintenance Orders Act 1958, Part 32 Chapter III of the Family Procedure Rules'
-  },
-  {
-    code: 'EW0001',
-    title: 'UK Residents - Applications where both parties reside in England or Wales',
-    act:
-      'England and Wales orders made payable to HMCTS by a District Judge and foreign orders from European and H07 countries where the parties now live in England and Wales'
-  },
-  {
-    code: 'RC0003',
-    title: 'Application for a Provisional Order to be made in the UK and confirmed abroad',
-    act: '(Reciprocating Country) Section 3 Maintenance Orders (Reciprocal Enforcement) Act 1972'
-  },
-  {
-    code: 'EA0003',
-    title: 'Application for a Provisional Order to be made in the UK and confirmed abroad',
-    act: '(EA Countries) Section 3 Maintenance Orders (Facilities for Enforcement) Act 1920'
-  },
-  {
-    code: 'UC0003',
-    title: 'Application for documents to be signed and sworn for an order to be made abroad',
-    act: '(UN Convention Countries) Part 2 Maintenance Orders Reciprocal Enforcement Act 1972'
-  },
-  {
-    code: 'HC0002',
-    title: 'Application for an order to be made abroad',
-    act: 'Countries reciprocating with the UK under Hague Convention 2007'
-  },
-  {
-    code: 'HC0003',
-    title: 'Application for a Final Order to be made in RCJ Countries',
-    act:
-      'Table 4 (Hague Convention Countries) Section 3 Maintenance Orders (Reciprocal Enforcement) Act as modified by the Reciprocal Enforcement Orders (Hague Convention Countries) Order 1993'
-  },
-  {
-    code: 'HC0004',
-    title: 'FCDO Countries as per FAM Court Index - Table 4',
-    act:
-      'Table 4 (Hague Convention Countries) Section 3 Maintenance Orders (Reciprocal Enforcement) Act as modified by the Reciprocal Enforcement Orders (Hague Convention Countries) Order 1993'
-  },
-  {
-    code: 'HC0005',
-    title: 'All Agent Countries as per the FAM Court Index Table 4',
-    act:
-      'Table 4 (Hague Convention Countries) Section 3 Maintenance Orders (Reciprocal Enforcement) Act as modified by the Reciprocal Enforcement Orders (Hague Convention Countries) Order 1993'
-  },
-  {
-    code: 'CW0001',
-    title: 'Application under Commonwealth Act 1920',
-    act: 'Commonwealth Act 1920'
-  },
-  {
-    code: 'UN0001',
-    title: 'Application under United Nations 1956',
-    act: 'United Nations 1956, sometimes called the New York Convention 1956'
-  },
-  {
-    code: 'HC0006',
-    title: 'Application under Hague Convention 2007',
-    act: 'Hague Convention 2007'
-  },
-  {
-    code: 'HC0007',
-    title: 'Application under Hague Convention 1973',
-    act: 'Hague Convention 1973'
-  },
-  {
-    code: 'US0002',
-    title: 'Application under USA Part I and II',
-    act: 'USA Part I and II'
-  },
-  {
-    code: 'CA0002',
-    title: 'Application under UK Children Act 1989',
-    act: 'Children Act 1989'
-  },
-  {
-    code: 'WA0001',
-    title: 'Application under Withdrawal Agreement',
-    act: 'Withdrawal Agreement (WAC)'
-  },
-  {
-    code: 'LU0001',
-    title: 'Application under Lugano Convention',
-    act: 'Lugano Convention'
-  },
-  {
-    code: 'RE0001',
-    title: 'Application under Reciprocal Maintenance Act 1972',
-    act: 'Reciprocal Enforcement Act 1972'
-  }
-]
-
 const applicationDefinitions = Object.fromEntries(
   applicationDefinitionList.map((definition) => [
     definition.code,
     {
       ...definition,
-      wordingTemplate: `Application to progress under ${definition.act}, relating to an order made by {{foreignCourt}} on {{orderDate}}.`
+      wordingTemplate: definition.registerText
     }
   ])
 )
@@ -1217,22 +1296,70 @@ function getApplicationDefinition(applicationCode) {
   return applicationDefinitions[String(getSingleValue(applicationCode) || '').trim().toUpperCase()] || null
 }
 
-function getApplicationOptionItems(selectedApplicationCode) {
+function getApplicationGroupsForCaseType(caseType) {
+  const sharedGroups = ['APPEAL', 'Conversion Cases', 'OTBM']
+
+  if (caseType === 'remo-in') {
+    return ['REMO IN', ...sharedGroups]
+  }
+
+  if (caseType === 'remo-out') {
+    return ['REMO OUT', ...sharedGroups]
+  }
+
+  if (caseType === 'remo-out-cms') {
+    return null
+  }
+
+  return sharedGroups
+}
+
+function getApplicationDefinitionsForCaseType(caseType) {
+  const allowedGroups = getApplicationGroupsForCaseType(caseType)
+
+  if (!allowedGroups) {
+    return applicationDefinitionList
+  }
+
+  return applicationDefinitionList.filter((definition) => allowedGroups.includes(definition.group))
+}
+
+function getApplicationDefinitionsByGroup(group) {
+  return applicationDefinitionList.filter((definition) => definition.group === group)
+}
+
+function isApplicationDefinitionAvailableForCaseType(applicationCode, caseType) {
+  const definition = getApplicationDefinition(applicationCode)
+
+  if (!definition) {
+    return false
+  }
+
+  const allowedGroups = getApplicationGroupsForCaseType(caseType)
+
+  if (!allowedGroups) {
+    return true
+  }
+
+  return allowedGroups.includes(definition.group)
+}
+
+function getApplicationOptionItems(selectedApplicationCode, caseType) {
   const selectedCode = String(getSingleValue(selectedApplicationCode) || '')
     .trim()
     .toUpperCase()
 
-  return applicationDefinitionList.map((definition) => ({
+  return getApplicationDefinitionsForCaseType(caseType).map((definition) => ({
     text: `${definition.code} - ${definition.title}`,
     value: definition.code,
     selected: definition.code === selectedCode
   }))
 }
 
-function getApplicationLookupJson() {
+function getApplicationLookupJson(caseType) {
   return JSON.stringify(
     Object.fromEntries(
-      applicationDefinitionList.map((definition) => [definition.code, definition.title])
+      getApplicationDefinitionsForCaseType(caseType).map((definition) => [definition.code, definition.title])
     )
   )
 }
@@ -1440,6 +1567,124 @@ function getApplicationTitle(sessionData) {
   return definition ? definition.title : ''
 }
 
+function getResultingApplicationTitle(sessionData) {
+  const otbmDefinitions = getApplicationDefinitionsByGroup('OTBM')
+  const selectedDefinition = getApplicationDefinition(sessionData['application-code'])
+
+  if (selectedDefinition?.group === 'OTBM') {
+    return selectedDefinition.title
+  }
+
+  return otbmDefinitions[0]?.title || ''
+}
+
+function getApplicationResponseValues(sessionData) {
+  return sessionData['application-response-values'] || {}
+}
+
+function getAlternativeApplicationResponseValues(sessionData) {
+  return sessionData['application-response-values'] || {}
+}
+
+function getApplicationRegisterTokens(definition) {
+  if (!definition?.registerText) {
+    return []
+  }
+
+  return [...new Set(Array.from(definition.registerText.matchAll(/\[([^\]]+)\]/g), (match) => match[1].trim()))]
+}
+
+function getApplicationResponseFieldType(token) {
+  const normalisedToken = normaliseComparableText(token)
+
+  if (normalisedToken.includes('date')) {
+    return 'date'
+  }
+
+  if (normalisedToken.includes('grounds') || normalisedToken.includes('details') || normalisedToken.includes('terms')) {
+    return 'textarea'
+  }
+
+  if (normalisedToken.includes('court')) {
+    return 'text'
+  }
+
+  return 'text'
+}
+
+function getApplicationResponseFieldId(token) {
+  return `application-field-${normaliseComparableText(token).replace(/\s+/g, '-')}`
+}
+
+function getApplicationResponsePrompt(token) {
+  const text = cleanWorkbookText(token)
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function getApplicationResponseFields(sessionData) {
+  const definition = getApplicationDefinition(sessionData['application-code'])
+  const values = getApplicationResponseValues(sessionData)
+
+  if (!definition) {
+    return []
+  }
+
+  return getApplicationRegisterTokens(definition).map((token) => ({
+    id: getApplicationResponseFieldId(token),
+    token,
+    prompt: getApplicationResponsePrompt(token),
+    type: getApplicationResponseFieldType(token),
+    value: values[getApplicationResponseFieldId(token)] || ''
+  }))
+}
+
+function getAlternativeApplicationResponseFields(sessionData) {
+  const definition = getApplicationDefinition(sessionData['application-code'])
+  const values = getAlternativeApplicationResponseValues(sessionData)
+
+  if (!definition) {
+    return []
+  }
+
+  return getApplicationRegisterTokens(definition).map((token) => ({
+    id: getApplicationResponseFieldId(token),
+    token,
+    prompt: getApplicationResponsePrompt(token),
+    type: getApplicationResponseFieldType(token),
+    value: values[getApplicationResponseFieldId(token)] || ''
+  }))
+}
+
+function getApplicationPlaceholderValue(sessionData, token) {
+  const fieldId = getApplicationResponseFieldId(token)
+  const value = getApplicationResponseValues(sessionData)[fieldId]
+
+  if (!hasValue(value)) {
+    return `[${token}]`
+  }
+
+  if (getApplicationResponseFieldType(token) === 'date') {
+    return formatDateLong(value)
+  }
+
+  return value
+}
+
+function getAlternativeApplicationPlaceholderValue(sessionData, token) {
+  const fieldId = getApplicationResponseFieldId(token)
+  const value = getAlternativeApplicationResponseValues(sessionData)[fieldId]
+
+  if (!hasValue(value)) {
+    return `[${token}]`
+  }
+
+  if (getApplicationResponseFieldType(token) === 'date') {
+    return formatDateLong(value)
+  }
+
+  return value
+}
+
 function getApplicationWording(sessionData) {
   const definition = getApplicationDefinition(sessionData['application-code'])
 
@@ -1447,16 +1692,21 @@ function getApplicationWording(sessionData) {
     return ''
   }
 
-  const foreignCourt = hasValue(sessionData['application-foreign-court'])
-    ? sessionData['application-foreign-court']
-    : '[foreign court]'
-  const orderDate = hasValue(sessionData['application-order-date'])
-    ? formatDateLong(sessionData['application-order-date'])
-    : '[date order made]'
+  return definition.wordingTemplate.replace(/\[([^\]]+)\]/g, (match, token) =>
+    getApplicationPlaceholderValue(sessionData, token)
+  )
+}
 
-  return definition.wordingTemplate
-    .replace('{{foreignCourt}}', foreignCourt)
-    .replace('{{orderDate}}', orderDate)
+function getAlternativeApplicationWording(sessionData) {
+  const definition = getApplicationDefinition(sessionData['application-code'])
+
+  if (!definition) {
+    return ''
+  }
+
+  return definition.wordingTemplate.replace(/\[([^\]]+)\]/g, (match, token) =>
+    getAlternativeApplicationPlaceholderValue(sessionData, token)
+  )
 }
 
 function getApplicationSummaryRows(sessionData) {
@@ -1875,8 +2125,7 @@ function getResultingRecordsRows(sessionData) {
     [sessionData['respondent-first-names'], sessionData['respondent-last-name']]
       .filter(hasValue)
       .join(' ') || 'Piotr Nowak'
-  const applicationTitle =
-    getApplicationTitle(sessionData) || 'Maintenance Orders Reciprocal Enforcement Act 1972'
+  const applicationTitle = getResultingApplicationTitle(sessionData) || 'Application under Commonwealth Act 1920'
 
   const sampleRows = [
     {
@@ -1936,9 +2185,9 @@ function getResultDefinition(resultCode, journey = 'results') {
     wordingTemplate: cleanWorkbookText(definition.wordingTemplate),
     journeys: definition.journeys || ['results'],
     nextStep: cleanWorkbookText(definition.nextStep),
-    responses: (definition.responses || []).map((response, index) =>
-      normaliseResultResponse(code, response, index)
-    )
+    responses: (definition.responses || [])
+      .map((response, index) => normaliseResultResponse(code, response, index))
+      .filter((response) => !(journey === 'orders' && response.hideInOrders))
   }
 }
 
@@ -2053,8 +2302,11 @@ function splitResultOptions(options) {
 }
 
 function normaliseResultResponse(resultCode, response, index) {
-  const name = cleanWorkbookText(response.name || response.prompt || `Field ${index + 1}`)
-  const prompt = cleanWorkbookText(response.prompt || response.name || `Field ${index + 1}`)
+  const rawName = cleanWorkbookText(response.name || response.prompt || `Field ${index + 1}`)
+  const rawPrompt = cleanWorkbookText(response.prompt || response.name || `Field ${index + 1}`)
+  const hideInOrders = Boolean(response.ordersHidden) || rawName.includes('*')
+  const name = rawName.replace(/\*/g, '').trim()
+  const prompt = rawPrompt.replace(/\*/g, '').trim()
   const type = getResultInputType(response.type)
   const minSelections = type === 'checkboxes' ? getNumericConstraint(response.min) : undefined
   const maxSelections = type === 'checkboxes' ? getNumericConstraint(response.max) : undefined
@@ -2075,7 +2327,8 @@ function normaliseResultResponse(resultCode, response, index) {
     minSelections,
     maxSelections,
     hint: cleanWorkbookText(response.hint),
-    options: splitResultOptions(response.options)
+    options: splitResultOptions(response.options),
+    hideInOrders
   }
 }
 
@@ -2107,8 +2360,19 @@ function getResultFieldOptionItems(field, value) {
       ? englandAndWalesCourts
       : field.options
 
+  const isTermsFrequencyField = ['frequency', 'terms frequency'].includes(
+    normaliseComparableText(field.name || field.prompt)
+  )
+
+  const getFrequencyOptionLabel = (option) =>
+    String(option || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+
   return optionValues.map((option) => ({
-    text: option,
+    text: isTermsFrequencyField ? getFrequencyOptionLabel(option) : option,
     value: option,
     checked: Array.isArray(value) ? value.includes(option) : value === option,
     selected: value === option
@@ -2304,6 +2568,32 @@ function getRecordedResultManagementRows(sessionData) {
         }
       ]
     }
+  }))
+}
+
+function getResultReviewRows(result) {
+  const resultDefinition = getResultDefinition(result?.code, 'results')
+  const rows = [
+    buildSummaryRow('Result code', result?.code || ''),
+    buildSummaryRow('Result title', result?.title || ''),
+    buildSummaryRow('Result wording', result?.wording || '')
+  ]
+
+  if (resultDefinition) {
+    resultDefinition.responses.forEach((field) => {
+      rows.push(buildSummaryRow(field.prompt, getResultValueForDisplay(field, result?.responses?.[field.id])))
+    })
+  }
+
+  return rows
+}
+
+function getResultingResultCards(sessionData) {
+  return getRecordedResults(sessionData).map((result) => ({
+    title: `${result.code} - ${result.title}`,
+    rows: getResultReviewRows(result),
+    changeHref: `/resulting/result/${result.index}/change`,
+    removeHref: `/resulting/result/${result.index}/delete`
   }))
 }
 
@@ -2528,6 +2818,13 @@ function validateRespondentDetails(body) {
     errors['respondent-restriction-reason'] = buildFieldError('Enter a reason')
   }
 
+  if (
+    isChecked(body['respondent-add-employer-details']) &&
+    !hasValue(getSingleValue(body['respondent-employer-name']))
+  ) {
+    errors['respondent-employer-name'] = buildFieldError('Enter employer name')
+  }
+
   return errors
 }
 
@@ -2561,7 +2858,7 @@ function parseDateInput(dateString) {
   return { kind: 'valid', date }
 }
 
-function validateAlternativeOrderDetails(body) {
+function validateAlternativeOrderDetails(body, caseType) {
   const errors = {}
   const selectedApplicationCode = String(
     getSingleValue(body['order-application-code']) || ''
@@ -2571,7 +2868,7 @@ function validateAlternativeOrderDetails(body) {
 
   if (!hasValue(selectedApplicationCode)) {
     errors['order-application-code'] = buildFieldError('Select an application code')
-  } else if (!getApplicationDefinition(selectedApplicationCode)) {
+  } else if (!isApplicationDefinitionAvailableForCaseType(selectedApplicationCode, caseType)) {
     errors['order-application-code'] = buildFieldError('Select an application code from the list')
   }
 
@@ -2636,6 +2933,9 @@ function buildRespondentDetailsViewData(baseData, body) {
     ...baseData,
     ...body,
     'respondent-add-aliases': isChecked(body['respondent-add-aliases']) ? 'yes' : '',
+    'respondent-add-employer-details': isChecked(body['respondent-add-employer-details'])
+      ? 'yes'
+      : '',
     'respondent-send-correspondence-to-third-party': isChecked(
       body['respondent-send-correspondence-to-third-party']
     )
@@ -2837,7 +3137,7 @@ function getRecordedOrderTermManagementRows(sessionData) {
       text: `${term.code} - ${term.title}`
     },
     value: {
-      text: term.wording
+      text: hasValue(term.creditorLabel) ? `Creditor: ${term.creditorLabel}` : 'Entered'
     },
     actions: {
       items: [
@@ -2855,14 +3155,35 @@ function getRecordedOrderTermManagementRows(sessionData) {
 }
 
 function getOrderTermReviewRows(orderTerm) {
+  const orderTermDefinition = getResultDefinition(orderTerm?.code, 'orders')
   const rows = [
     buildSummaryRow('Order term code', orderTerm?.code || ''),
-    buildSummaryRow('Order term title', orderTerm?.title || ''),
-    buildSummaryRow('Order term wording', orderTerm?.wording || '')
+    buildSummaryRow('Order term title', orderTerm?.title || '')
   ]
 
   if (hasValue(orderTerm?.creditorLabel)) {
-    rows.splice(2, 0, buildSummaryRow('Creditor', orderTerm.creditorLabel))
+    rows.push(buildSummaryRow('Creditor', orderTerm.creditorLabel))
+  }
+
+  if (orderTermDefinition) {
+    orderTermDefinition.responses.forEach((field) => {
+      const value = orderTerm?.responses?.[field.id]
+      let displayValue = ''
+
+      if (Array.isArray(value)) {
+        displayValue = value.join(', ')
+      } else if (hasValue(value)) {
+        if (field.type === 'date') {
+          displayValue = formatDateLong(value)
+        } else if (field.type === 'currency') {
+          displayValue = formatCurrency(value)
+        } else {
+          displayValue = value
+        }
+      }
+
+      rows.push(buildSummaryRow(field.prompt, displayValue))
+    })
   }
 
   return rows
@@ -3057,6 +3378,29 @@ function getRespondentSummaryRows(sessionData) {
       ])
     )
   ]
+
+  if (sessionData['respondent-add-employer-details']) {
+    rows.push(
+      buildSummaryRow('Employer name', sessionData['respondent-employer-name']),
+      buildSummaryRow('Employee reference', sessionData['respondent-employee-reference']),
+      buildSummaryRow('Employer email address', sessionData['respondent-employer-email-address']),
+      buildSummaryRow(
+        'Employer telephone number',
+        sessionData['respondent-employer-telephone-number']
+      ),
+      buildSummaryHtmlRow(
+        'Employer address',
+        formatLinesHtml([
+          sessionData['respondent-employer-address-line-1'],
+          sessionData['respondent-employer-address-line-2'],
+          sessionData['respondent-employer-address-line-3'],
+          sessionData['respondent-employer-address-line-4'],
+          sessionData['respondent-employer-address-line-5'],
+          sessionData['respondent-employer-postcode']
+        ])
+      )
+    )
+  }
 
   if (sessionData['respondent-send-correspondence-to-third-party']) {
     rows.push(
@@ -3949,6 +4293,7 @@ router.get('/orders-applications/case-details', (req, res) => {
   }
 
   return res.render('orders-applications/case-details', {
+    detailsPageHeading: isApplicationJourney(req.session.data) ? 'Case details' : 'Order details',
     caseTypeLabel: caseTypeLabels[caseType] || caseType,
     applicantTypeLabel:
       applicantTypeLabels[req.session.data['applicant-type']] || 'Not selected',
@@ -4093,6 +4438,11 @@ router.post('/orders-applications/respondent-details', (req, res, next) => {
   req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
     ? 'yes'
     : ''
+  req.session.data['respondent-add-employer-details'] = isChecked(
+    req.body['respondent-add-employer-details']
+  )
+    ? 'yes'
+    : ''
   req.session.data['respondent-send-correspondence-to-third-party'] = isChecked(
     req.body['respondent-send-correspondence-to-third-party']
   )
@@ -4206,7 +4556,13 @@ router.get('/orders-applications/order-details', (req, res) => {
     return res.redirect('/orders-applications/application-details')
   }
 
-  return res.render('orders-applications/order-details')
+  return res.render('orders-applications/order-details', {
+    applicationItems: getApplicationOptionItems(
+      req.session.data['order-application-code'],
+      req.session.data['case-type']
+    ),
+    applicationLookupJson: getApplicationLookupJson(req.session.data['case-type'])
+  })
 })
 
 router.post('/orders-applications/order-details', (req, res, next) => {
@@ -4241,7 +4597,14 @@ router.get('/orders-applications/application-details', (req, res) => {
     return res.redirect('/orders-applications/case-details')
   }
 
-  return res.render('orders-applications/application-details')
+  return res.render('orders-applications/application-details', {
+    applicationItems: getApplicationOptionItems(
+      req.session.data['application-code'],
+      req.session.data['case-type']
+    ),
+    applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
+    selectionError: null
+  })
 })
 
 router.post('/orders-applications/application-details', (req, res, next) => {
@@ -4249,8 +4612,22 @@ router.post('/orders-applications/application-details', (req, res, next) => {
     return res.redirect('/orders-applications/case-details')
   }
 
-  req.session.data['application-code'] = getSingleValue(req.body['application-code']) || ''
+  const selectedApplicationCode = String(getSingleValue(req.body['application-code']) || '')
+    .trim()
+    .toUpperCase()
+
+  req.session.data['application-code'] = selectedApplicationCode
+
+  if (!isApplicationDefinitionAvailableForCaseType(selectedApplicationCode, req.session.data['case-type'])) {
+    return res.render('orders-applications/application-details', {
+      applicationItems: getApplicationOptionItems(selectedApplicationCode, req.session.data['case-type']),
+      applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
+      selectionError: 'Select an application code from the list.'
+    })
+  }
+
   delete req.session.data['application-details-completed']
+  delete req.session.data['application-response-values']
 
   return redirectWithSessionSave(req, res, next, '/orders-applications/application-details/content')
 })
@@ -4269,8 +4646,12 @@ router.get('/orders-applications/application-details/content', (req, res) => {
   }
 
   return res.render('orders-applications/application-details-content', {
+    applicationCode: req.session.data['application-code'],
     applicationTitle: getApplicationTitle(req.session.data),
-    applicationWording: getApplicationWording(req.session.data)
+    applicationWording: getApplicationWording(req.session.data),
+    responseItems: getApplicationResponseFields(req.session.data),
+    formAction: '/orders-applications/application-details/content',
+    cancelHref: '/orders-applications/cancel'
   })
 })
 
@@ -4282,10 +4663,22 @@ router.post('/orders-applications/application-details/content', (req, res, next)
     return res.redirect('/orders-applications/case-details')
   }
 
+  const applicationResponseValues = Object.fromEntries(
+    getApplicationResponseFields(req.session.data).map((field) => [
+      field.id,
+      getSingleValue(req.body[field.id]) || ''
+    ])
+  )
+
+  req.session.data['application-response-values'] = applicationResponseValues
   req.session.data['application-foreign-court'] =
-    getSingleValue(req.body['application-foreign-court']) || ''
+    applicationResponseValues[getApplicationResponseFieldId('court')] ||
+    applicationResponseValues[getApplicationResponseFieldId('foreign court')] ||
+    ''
   req.session.data['application-order-date'] =
-    getSingleValue(req.body['application-order-date']) || ''
+    applicationResponseValues[getApplicationResponseFieldId('order date')] ||
+    applicationResponseValues[getApplicationResponseFieldId('date order made')] ||
+    ''
   req.session.data['application-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
@@ -4733,6 +5126,9 @@ router.get('/orders-applications-alternative/case-details', (req, res) => {
   }
 
   return res.render('orders-applications-alternative/case-details', {
+    detailsPageHeading: isApplicationJourney(getOrdersApplicationsAlternativeData(req))
+      ? 'Case details'
+      : 'Order details',
     caseTypeLabel: caseTypeLabels[caseType] || caseType,
     applicantTypeLabel:
       applicantTypeLabels[getOrdersApplicationsAlternativeData(req)['applicant-type']] || 'Not selected',
@@ -4880,6 +5276,11 @@ router.post('/orders-applications-alternative/respondent-details', (req, res, ne
   )
     ? 'yes'
     : ''
+  getOrdersApplicationsAlternativeData(req)['respondent-add-employer-details'] = isChecked(
+    req.body['respondent-add-employer-details']
+  )
+    ? 'yes'
+    : ''
   getOrdersApplicationsAlternativeData(req)['respondent-send-correspondence-to-third-party'] =
     isChecked(req.body['respondent-send-correspondence-to-third-party'])
       ? 'yes'
@@ -5001,9 +5402,10 @@ router.get('/orders-applications-alternative/order-details', (req, res) => {
 
   return res.render('orders-applications-alternative/order-details', {
     applicationItems: getApplicationOptionItems(
-      getOrdersApplicationsAlternativeData(req)['order-application-code']
+      getOrdersApplicationsAlternativeData(req)['order-application-code'],
+      getOrdersApplicationsAlternativeData(req)['case-type']
     ),
-    applicationLookupJson: getApplicationLookupJson(),
+    applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
     errors: {},
     errorSummary: null,
     orderApplicationTitle:
@@ -5024,15 +5426,21 @@ router.post('/orders-applications-alternative/order-details', (req, res, next) =
     .toUpperCase()
 
   getOrdersApplicationsAlternativeData(req)['order-application-code'] = selectedApplicationCode
-  const errors = validateAlternativeOrderDetails(req.body)
+  const errors = validateAlternativeOrderDetails(
+    req.body,
+    getOrdersApplicationsAlternativeData(req)['case-type']
+  )
   const orderApplicationDefinition = getApplicationDefinition(selectedApplicationCode)
 
   if (Object.keys(errors).length > 0) {
     delete getOrdersApplicationsAlternativeData(req)['order-details-completed']
 
     return res.render('orders-applications-alternative/order-details', {
-      applicationItems: getApplicationOptionItems(selectedApplicationCode),
-      applicationLookupJson: getApplicationLookupJson(),
+      applicationItems: getApplicationOptionItems(
+        selectedApplicationCode,
+        getOrdersApplicationsAlternativeData(req)['case-type']
+      ),
+      applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
       errors,
       errorSummary: buildErrorSummary(errors),
       orderApplicationTitle:
@@ -5226,10 +5634,6 @@ router.post('/orders-applications-alternative/order-term-details', (req, res, ne
     savedOrderTerm.creditorLabel = existingRecordedTerm.creditorLabel || ''
   }
 
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-
   if (orderTermDefinition.nextStep === 'create-creditor') {
     const pendingOrderTerm = {
       ...savedOrderTerm
@@ -5249,6 +5653,10 @@ router.post('/orders-applications-alternative/order-term-details', (req, res, ne
   } else {
     recordedTerms.push(savedOrderTerm)
   }
+
+  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
 
   const savedOrderTermIndex = Number.isInteger(editIndex) && existingRecordedTerm
     ? editIndex
@@ -5369,9 +5777,10 @@ router.get('/orders-applications-alternative/application-details', (req, res) =>
 
   return res.render('orders-applications-alternative/application-details', {
     applicationItems: getApplicationOptionItems(
-      getOrdersApplicationsAlternativeData(req)['application-code']
+      getOrdersApplicationsAlternativeData(req)['application-code'],
+      getOrdersApplicationsAlternativeData(req)['case-type']
     ),
-    applicationLookupJson: getApplicationLookupJson(),
+    applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
     selectionError: null
   })
 })
@@ -5387,15 +5796,24 @@ router.post('/orders-applications-alternative/application-details', (req, res, n
 
   getOrdersApplicationsAlternativeData(req)['application-code'] = selectedApplicationCode
 
-  if (!getApplicationDefinition(selectedApplicationCode)) {
+  if (
+    !isApplicationDefinitionAvailableForCaseType(
+      selectedApplicationCode,
+      getOrdersApplicationsAlternativeData(req)['case-type']
+    )
+  ) {
     return res.render('orders-applications-alternative/application-details', {
-      applicationItems: getApplicationOptionItems(selectedApplicationCode),
-      applicationLookupJson: getApplicationLookupJson(),
+      applicationItems: getApplicationOptionItems(
+        selectedApplicationCode,
+        getOrdersApplicationsAlternativeData(req)['case-type']
+      ),
+      applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
       selectionError: 'Select an application code from the list.'
     })
   }
 
   delete getOrdersApplicationsAlternativeData(req)['application-details-completed']
+  delete getOrdersApplicationsAlternativeData(req)['application-response-values']
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/application-details/content')
 })
@@ -5414,8 +5832,12 @@ router.get('/orders-applications-alternative/application-details/content', (req,
   }
 
   return res.render('orders-applications-alternative/application-details-content', {
+    applicationCode: getOrdersApplicationsAlternativeData(req)['application-code'],
     applicationTitle: getApplicationTitle(getOrdersApplicationsAlternativeData(req)),
-    applicationWording: getApplicationWording(getOrdersApplicationsAlternativeData(req))
+    applicationWording: getAlternativeApplicationWording(getOrdersApplicationsAlternativeData(req)),
+    responseItems: getAlternativeApplicationResponseFields(getOrdersApplicationsAlternativeData(req)),
+    formAction: '/orders-applications-alternative/application-details/content',
+    cancelHref: '/orders-applications-alternative/cancel'
   })
 })
 
@@ -5427,10 +5849,22 @@ router.post('/orders-applications-alternative/application-details/content', (req
     return res.redirect('/orders-applications-alternative/case-details')
   }
 
+  const applicationResponseValues = Object.fromEntries(
+    getAlternativeApplicationResponseFields(getOrdersApplicationsAlternativeData(req)).map((field) => [
+      field.id,
+      getSingleValue(req.body[field.id]) || ''
+    ])
+  )
+
+  getOrdersApplicationsAlternativeData(req)['application-response-values'] = applicationResponseValues
   getOrdersApplicationsAlternativeData(req)['application-foreign-court'] =
-    getSingleValue(req.body['application-foreign-court']) || ''
+    applicationResponseValues[getApplicationResponseFieldId('court')] ||
+    applicationResponseValues[getApplicationResponseFieldId('foreign court')] ||
+    ''
   getOrdersApplicationsAlternativeData(req)['application-order-date'] =
-    getSingleValue(req.body['application-order-date']) || ''
+    applicationResponseValues[getApplicationResponseFieldId('order date')] ||
+    applicationResponseValues[getApplicationResponseFieldId('date order made')] ||
+    ''
   getOrdersApplicationsAlternativeData(req)['application-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
@@ -6810,6 +7244,11 @@ router.post('/resulting/respondent-details', (req, res, next) => {
   req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
     ? 'yes'
     : ''
+  req.session.data['respondent-add-employer-details'] = isChecked(
+    req.body['respondent-add-employer-details']
+  )
+    ? 'yes'
+    : ''
   req.session.data['respondent-send-correspondence-to-third-party'] = isChecked(
     req.body['respondent-send-correspondence-to-third-party']
   )
@@ -7137,7 +7576,7 @@ router.get('/resulting/check-your-answers', (req, res) => {
     applicantRows: getApplicantSummaryRows(req.session.data),
     respondentRows: getRespondentSummaryRows(req.session.data),
     centralAuthorityRows: getCentralAuthoritySummaryRows(req.session.data),
-    resultsRows: getResultingResultsSummaryRows(req.session.data),
+    resultCards: getResultingResultCards(req.session.data),
     caseCommentsRows: getResultingCaseCommentsRows(req.session.data),
     sessionRows: getResultingSessionSummaryRows(req.session.data),
     showApplicantRestrictionWarning: Boolean(

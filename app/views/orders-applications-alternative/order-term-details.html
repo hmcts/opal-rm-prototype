@@ -33,10 +33,6 @@
         }) }}
       {% endif %}
 
-      {{ govukInsetText({
-        html: '<span class="govuk-!-font-weight-bold">Order term wording</span><br>' ~ resultWording
-      }) }}
-
       <form method="post" action="/orders-applications-alternative/order-term-details">
         {% for field in responseItems %}
           {% set fieldHint = undefined %}

@@ -202,6 +202,128 @@
         }) }}
       {% endset %}
 
+      {% set employerDetailsHtml %}
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-4">Employer details</h2>
+
+        {{ govukInput({
+          id: "respondent-employer-name",
+          name: "respondent-employer-name",
+          label: {
+            text: "Employer name",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-name"],
+          errorMessage: formErrors["respondent-employer-name"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employee-reference",
+          name: "respondent-employee-reference",
+          label: {
+            text: "Employee reference",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "If employee reference not known, add National Insurance number"
+          },
+          classes: "govuk-input--width-20",
+          value: data["respondent-employee-reference"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-email-address",
+          name: "respondent-employer-email-address",
+          label: {
+            text: "Employer email address",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-email-address"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-telephone-number",
+          name: "respondent-employer-telephone-number",
+          label: {
+            text: "Employer telephone number",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-20",
+          value: data["respondent-employer-telephone-number"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m">Employer address</h2>
+
+        {{ govukInput({
+          id: "respondent-employer-address-line-1",
+          name: "respondent-employer-address-line-1",
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-address-line-1"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-address-line-2",
+          name: "respondent-employer-address-line-2",
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-address-line-2"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-address-line-3",
+          name: "respondent-employer-address-line-3",
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-address-line-3"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-address-line-4",
+          name: "respondent-employer-address-line-4",
+          label: {
+            text: "Address line 4",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-address-line-4"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-address-line-5",
+          name: "respondent-employer-address-line-5",
+          label: {
+            text: "Address line 5",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-address-line-5"]
+        }) }}
+
+        {{ govukInput({
+          id: "respondent-employer-postcode",
+          name: "respondent-employer-postcode",
+          label: {
+            text: "Postcode",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-10",
+          value: data["respondent-employer-postcode"]
+        }) }}
+      {% endset %}
+
       <form method="post" action="{{ formAction }}">
         {{ govukSelect({
           id: "respondent-title",
@@ -324,6 +446,21 @@
           },
           rows: 4,
           value: data["respondent-other-personal-information"]
+        }) }}
+
+        {{ govukCheckboxes({
+          idPrefix: "respondent-add-employer-details",
+          name: "respondent-add-employer-details",
+          items: [
+            {
+              value: "yes",
+              text: "Add employer details",
+              checked: data["respondent-add-employer-details"] == "yes",
+              conditional: {
+                html: employerDetailsHtml
+              }
+            }
+          ]
         }) }}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">

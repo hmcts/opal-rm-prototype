@@ -2,7 +2,9 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
 {% block pageTitle %}
@@ -14,11 +16,29 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Application details</h1>
 
-      {{ govukInsetText({
-        html: '<span class="govuk-!-font-weight-bold">Application found</span><br>' ~ applicationTitle
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: {
+              text: "Application code"
+            },
+            value: {
+              text: applicationCode
+            }
+          },
+          {
+            key: {
+              text: "Application title"
+            },
+            value: {
+              text: applicationTitle
+            }
+          }
+        ]
       }) }}
 
-      <form method="post" action="/orders-applications/application-details/content">
+      <form method="post" action="{{ formAction }}">
+        {#
         {{ govukCharacterCount({
           name: "application-foreign-court",
           id: "application-foreign-court",
@@ -41,16 +61,55 @@
           value: data["application-order-date"]
         }) }}
 
+        #}
+
         {{ govukInsetText({
           html: '<span class="govuk-!-font-weight-bold">Application wording</span><br>' ~ applicationWording
         }) }}
+
+        {% for field in responseItems %}
+          {% if field.type == "date" %}
+            {{ mojDatePicker({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              value: field.value
+            }) }}
+          {% elif field.type == "textarea" %}
+            {{ govukCharacterCount({
+              name: field.id,
+              id: field.id,
+              maxlength: 1000,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              rows: 4,
+              value: field.value
+            }) }}
+          {% else %}
+            {{ govukInput({
+              id: field.id,
+              name: field.id,
+              label: {
+                text: field.prompt,
+                classes: "govuk-label--s"
+              },
+              classes: "govuk-!-width-two-thirds",
+              value: field.value
+            }) }}
+          {% endif %}
+        {% endfor %}
 
         <div class="govuk-button-group">
           {{ govukButton({
             text: "Return to case details"
           }) }}
 
-          <a class="govuk-link" href="/orders-applications/cancel">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
         </div>
       </form>
     </div>

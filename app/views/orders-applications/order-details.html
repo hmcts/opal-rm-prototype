@@ -1,5 +1,7 @@
 {% extends "layouts/main.html" %}
 
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
@@ -14,6 +16,11 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/orders-applications/case-details"
+      }) }}
+
       <h1 class="govuk-heading-l">Order details</h1>
 
       {% set periodicalPaymentsHtml %}
@@ -59,7 +66,7 @@
       <form method="post" action="/orders-applications/order-details">
         <h2 class="govuk-heading-m">Application</h2>
 
-        {{ govukInput({
+        {{ xGovukAutocomplete({
           id: "order-application-code",
           name: "order-application-code",
           label: {
@@ -67,15 +74,20 @@
             classes: "govuk-label--s"
           },
           hint: {
-            html: 'For example, AA12345B. If you do not know the application code, you can <a class="govuk-link" href="#">search the list</a>.'
+            text: "Start typing an application code or title to see matching applications."
           },
-          classes: "govuk-input--width-10",
-          value: data["order-application-code"]
+          items: applicationItems
         }) }}
 
-        {{ govukInsetText({
-          html: '<span class="govuk-!-font-weight-bold">Application found</span><br>Application from EU Country for registration/recognition of an order in the family court'
-        }) }}
+        <div
+          id="order-application-found-panel"
+          class="govuk-inset-text govuk-!-display-none"
+          data-application-panel
+          data-application-code-field="order-application-code"
+          data-application-lookup='{{ applicationLookupJson | escape }}'>
+          <span class="govuk-!-font-weight-bold">Application found</span><br>
+          <span data-application-found-title></span>
+        </div>
 
         {{ govukInput({
           id: "order-court-that-made-the-order",
