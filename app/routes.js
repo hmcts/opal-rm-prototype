@@ -593,63 +593,117 @@ function buildCreateDataScenarios() {
     },
     'alternative-order': {
       label: 'Orders and applications (alternative): order journey',
-      description: 'Seeds the alternative journey with an organisation applicant, order details, an order term, and interest/indexation.',
+      description: 'Seeds the alternative journey with a REMO Out individual applicant, three order terms, and completed order metadata.',
       redirectTo: '/orders-applications-alternative/case-details',
       sessionData: {
         ...buildBaseSessionData(),
         'orders-applications-alternative': {
           'case-type': 'remo-out',
-          'applicant-type': 'organisation',
+          'applicant-type': 'individual',
           'has-order': 'yes',
-          'applicant-organisation-name': 'Uzturldizeklu garantiju fonda administracija',
-          'applicant-foreign-authority-reference': 'CXD-2736549-PL',
-          'applicant-main-email-address': 'maintenance@kela.fi',
-          'applicant-main-telephone-number': '+358401234567',
-          'applicant-address-line-1': 'Perintakeskus, PL 50',
-          'applicant-address-line-2': 'Helsinki',
-          'applicant-postal-or-zip-code': '00601',
-          'applicant-country': 'finland',
-          'applicant-bank-account-type': 'non-uk-bank-account',
-          'applicant-bank-non-uk-name-on-account': 'Maintenance Recovery Unit',
-          'applicant-bank-bic-or-swift-code': 'NDEAFIHH',
-          'applicant-bank-iban': 'FI2112345600000785',
+          'applicant-title': 'mrs',
+          'applicant-first-names': 'Anna',
+          'applicant-last-name': 'Nowak',
+          'applicant-date-of-birth': '08/06/1985',
+          'applicant-main-email-address': 'anna.nowak@example.test',
+          'applicant-main-telephone-number': '+447700900221',
+          'applicant-address-line-1': '14 Birch Close',
+          'applicant-address-line-2': 'Leeds',
+          'applicant-address-line-4': 'West Yorkshire',
+          'applicant-postal-or-zip-code': 'LS14 2AB',
+          'applicant-country': 'united-kingdom',
+          'applicant-bank-account-type': 'uk-bank-account',
+          'applicant-bank-name-on-account': 'Anna Nowak',
+          'applicant-bank-sort-code': '20-45-67',
+          'applicant-bank-account-number': '12345678',
+          'applicant-bank-payment-reference': 'NOWAK-FAMILY',
           'respondent-title': 'mr',
-          'respondent-first-names': 'John',
-          'respondent-last-name': 'Malik',
-          'respondent-date-of-birth': '10/08/1984',
-          'respondent-address-line-1': '24 High Street',
-          'respondent-address-line-2': 'Twyford',
-          'respondent-postal-or-zip-code': 'RG10 9RT',
-          'respondent-country': 'united-kingdom',
-          'order-application-code': 'MO20002',
-          'order-court-that-made-the-order': 'Sąd Okręgowy w Warszawie',
-          'order-date-order-made': '12/01/2025',
-          'order-date-arrears-last-updated': '09/01/2025',
+          'respondent-first-names': 'Piotr',
+          'respondent-last-name': 'Nowak',
+          'respondent-date-of-birth': '19/11/1982',
+          'respondent-main-email-address': 'piotr.nowak@example.test',
+          'respondent-main-telephone-number': '+48500111222',
+          'respondent-address-line-1': 'ul. Marszalkowska 24',
+          'respondent-address-line-2': 'Warszawa',
+          'respondent-postal-or-zip-code': '00-576',
+          'respondent-country': 'poland',
+          'order-application-code': 'HC07003',
+          'order-court-that-made-the-order': 'Leeds Family Court',
+          'order-date-order-made': '14/02/2026',
+          'order-date-arrears-last-updated': '01/04/2026',
           'entered-order-terms': [
             {
               code: 'MAT',
               title: 'Matrimonial Order for Adult',
               category: 'FINAL',
               categoryLabel: 'Final',
-              wording: 'Order for payment by John Malik to Applicant payable through the Court for the benefit of the Complainant. The sum of £250.00 to be paid every month from 01 Jan 2025 until 01 Jan 2026.',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 325.00 to be paid every month from 14 February 2026 until 14 February 2027.',
               responses: {
-                amount: '250',
-                frequency: 'month',
-                expiry: '01/01/2026',
-                arrears: '100',
-                creditor: 'applicant',
-                respondent: 'John Malik',
-                payment: 'payable through the Court',
-                commencement: '01/01/2025'
+                'result-mat-amount': '325',
+                'result-mat-frequency': 'month',
+                'result-mat-expiry': '14/02/2027',
+                'result-mat-arrears': '150',
+                'result-mat-creditor': 'Anna Nowak',
+                'result-mat-respondent': 'Piotr Nowak',
+                'result-mat-payment': 'payable through the Court',
+                'result-mat-commencement': '14/02/2026',
               },
               creditor: 'applicant',
-              creditorLabel: 'Applicant'
+              creditorLabel: 'Anna Nowak'
+            },
+            {
+              code: 'MCHILD',
+              title: 'Maintenace Order for child(ren)',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 15 March 2034.',
+              responses: {
+                'result-mchild-amount': '220',
+                'result-mchild-frequency': 'month',
+                'result-mchild-expiry': '15/03/2034',
+                'result-mchild-arrears': '80',
+                'result-mchild-education': ['Order until completion of full-time eduction'],
+                'result-mchild-beneficiary': 'Sofia Nowak',
+                'result-mchild-child-dob': '15/03/2016',
+                'result-mchild-respondent': 'Piotr Nowak',
+                'result-mchild-payment': 'payable through the Court',
+                'result-mchild-commencement': '14/02/2026'
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Anna Nowak'
+            },
+            {
+              code: 'MCHILD',
+              title: 'Maintenace Order for child(ren)',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
+              responses: {
+                'result-mchild-amount': '220',
+                'result-mchild-frequency': 'month',
+                'result-mchild-expiry': '22/09/2036',
+                'result-mchild-arrears': '80',
+                'result-mchild-education': ['Order until completion of full-time eduction'],
+                'result-mchild-beneficiary': 'Michal Nowak',
+                'result-mchild-child-dob': '22/09/2018',
+                'result-mchild-respondent': 'Piotr Nowak',
+                'result-mchild-payment': 'payable through the Court',
+                'result-mchild-commencement': '14/02/2026'
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Anna Nowak'
             }
           ],
           'interest-and-indexation-completed': 'yes',
-          'interest-applies': 'yes',
-          'indexation-type': 'retain-liability-order',
-          'case-comment': 'Scenario data for testing order flow',
+          'interest-applies': 'no',
+          'indexation-type': 'no-indexation',
+          'managing-payments-completed': 'yes',
+          'order-managing-payments': 'payments-via-court',
+          'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
+          'case-notes': 'Applicant lives in the UK and respondent lives in Poland. MAT plus 2 MCHILD terms recorded.',
           'applicant-details-completed': 'yes',
           'respondent-details-completed': 'yes',
           'order-details-completed': 'yes'
@@ -1070,7 +1124,10 @@ function hasCompletedInterestAndIndexation(sessionData) {
 }
 
 function hasCompletedManagingPayments(sessionData) {
-  return Boolean(sessionData['managing-payments-completed'])
+  return Boolean(
+    sessionData['managing-payments-completed'] &&
+      ['payments-via-court', 'direct-payments'].includes(sessionData['order-managing-payments'])
+  )
 }
 
 function hasCaseCommentsAndNotes(sessionData) {
@@ -6658,7 +6715,11 @@ router.get('/orders-applications-alternative/managing-payments', (req, res) => {
 })
 
 router.post('/orders-applications-alternative/managing-payments', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['managing-payments-completed'] = 'yes'
+  const alternativeData = getOrdersApplicationsAlternativeData(req)
+
+  alternativeData['managing-payments-completed'] = hasCompletedManagingPayments(alternativeData)
+    ? 'yes'
+    : ''
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
 })
