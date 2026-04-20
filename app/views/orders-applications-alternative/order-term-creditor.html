@@ -1,12 +1,14 @@
 {% extends "layouts/main.html" %}
 
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageTitle %}
-  Select creditor - {{ serviceName }} - GOV.UK Prototype Kit
+  Creditor - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
@@ -29,30 +31,84 @@
         }) }}
       {% endif %}
 
-      <h1 class="govuk-heading-m">Select creditor</h1>
-
-      <p class="govuk-body">
-        If the required minor creditor is not listed, <a class="govuk-link" href="/orders-applications-alternative/minor-creditors">add minor creditor details</a> first before re-entering order term details.
-      </p>
-
-      {% set selectionErrorMessage = undefined %}
-      {% if selectionError %}
-        {% set selectionErrorMessage = {
-          text: selectionError
-        } %}
-      {% endif %}
+      <h1 class="govuk-heading-l">Creditor</h1>
 
       <form method="post" action="/orders-applications-alternative/order-term-creditor">
-        {{ govukRadios({
-          idPrefix: "alternative-order-term-creditor",
-          name: "alternative-order-term-creditor",
-          items: creditorItems,
-          errorMessage: selectionErrorMessage
-        }) }}
+
+        {% if pendingMinorCreditor %}
+
+          {{ govukSummaryList({
+            card: {
+              title: {
+                text: pendingMinorCreditorCard.title
+              },
+              actions: {
+                items: [
+                  {
+                    text: "Change",
+                    href: "/orders-applications-alternative/order-term-creditor/add-minor-creditor"
+                  },
+                  {
+                    text: "Remove",
+                    href: "/orders-applications-alternative/order-term-creditor/remove-minor-creditor"
+                  }
+                ]
+              }
+            },
+            rows: pendingMinorCreditorCard.rows
+          }) }}
+
+          <input type="hidden" name="alternative-order-term-creditor" value="new-minor-creditor">
+
+        {% else %}
+
+          {% set majorCreditorConditionalHtml %}
+            {{ xGovukAutocomplete({
+              id: "alternative-major-creditor-code",
+              name: "alternative-major-creditor-code",
+              label: {
+                text: "Select major creditor",
+                classes: "govuk-label--s"
+              },
+              value: majorCreditorValue,
+              items: majorCreditorItems
+            }) }}
+          {% endset %}
+
+          {% set selectionErrorMessage = undefined %}
+          {% if selectionError %}
+            {% set selectionErrorMessage = { text: selectionError } %}
+          {% endif %}
+
+          {% set trailingItems = [
+            {
+              value: "major-creditor",
+              text: "Major creditor",
+              checked: selectedCreditor === "major-creditor",
+              conditional: { html: majorCreditorConditionalHtml }
+            },
+            { divider: "or" },
+            {
+              value: "add-new-minor-creditor",
+              text: "Add new minor creditor",
+              checked: selectedCreditor === "add-new-minor-creditor"
+            }
+          ] %}
+
+          {% set allItems = [applicantItem].concat(existingMinorCreditorItems).concat(trailingItems) %}
+
+          {{ govukRadios({
+            idPrefix: "alternative-order-term-creditor",
+            name: "alternative-order-term-creditor",
+            items: allItems,
+            errorMessage: selectionErrorMessage
+          }) }}
+
+        {% endif %}
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Add to order term and review"
+            text: "Continue"
           }) }}
 
           <a class="govuk-link" href="/orders-applications-alternative/order-term-creditor/cancel">Cancel</a>

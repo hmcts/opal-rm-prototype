@@ -339,6 +339,17 @@
           value: creditor.postcode
         }) }}
 
+        {{ govukSelect({
+          id: "minor-creditor-country",
+          name: "minor-creditor-country",
+          label: {
+            text: "Country",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          items: countryItems
+        }) }}
+
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <h2 class="govuk-heading-m">Bank details</h2>

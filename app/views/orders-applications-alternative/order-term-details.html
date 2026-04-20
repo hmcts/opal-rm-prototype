@@ -27,12 +27,6 @@
       <p class="govuk-body govuk-!-margin-bottom-1 govuk-!-font-weight-bold">{{ resultCode }}</p>
       <h2 class="govuk-heading-m">{{ resultTitle }}</h2>
 
-      {% if isEditingOrderTerm %}
-        {{ govukInsetText({
-          text: "Your previous answers have been loaded so you can update this order term."
-        }) }}
-      {% endif %}
-
       <form method="post" action="/orders-applications-alternative/order-term-details">
         {% for field in responseItems %}
           {% set fieldHint = undefined %}
@@ -175,26 +169,11 @@
         {% endfor %}
 
         <div class="govuk-button-group">
-          {% if requiresCreditor %}
-            {{ govukButton({
-              text: "Enter creditor details",
-              name: "action",
-              value: "enter-creditor-details"
-            }) }}
-          {% else %}
-            {{ govukButton({
-              text: "Return to case details",
-              name: "action",
-              value: "return-to-case-details"
-            }) }}
+          {{ govukButton({
+            text: "Continue"
+          }) }}
 
-            {{ govukButton({
-              text: "Enter further order term",
-              name: "action",
-              value: "add-further-order-term",
-              classes: "govuk-button--secondary"
-            }) }}
-          {% endif %}
+          <a class="govuk-link" href="/orders-applications-alternative/select-order-term">Cancel</a>
         </div>
       </form>
     </div>

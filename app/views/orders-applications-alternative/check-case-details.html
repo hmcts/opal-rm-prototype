@@ -207,6 +207,23 @@
           },
           rows: interestAndIndexationRows
         }) }}
+
+        {{ govukSummaryList({
+          card: {
+            title: {
+              text: "Managing payments"
+            },
+            actions: {
+              items: [
+                {
+                  text: "Change",
+                  href: "/orders-applications-alternative/managing-payments"
+                }
+              ]
+            }
+          },
+          rows: managingPaymentsRows
+        }) }}
       {% endif %}
 
       {{ govukSummaryList({
