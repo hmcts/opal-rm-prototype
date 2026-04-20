@@ -641,7 +641,7 @@ function buildCreateDataScenarios() {
                 'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 325.00 to be paid every month from 14 February 2026 until 14 February 2027.',
               responses: {
                 'result-mat-amount': '325',
-                'result-mat-frequency': 'month',
+                'result-mat-frequency': 'monthly',
                 'result-mat-expiry': '14/02/2027',
                 'result-mat-arrears': '150',
                 'result-mat-creditor': 'Anna Nowak',
@@ -661,7 +661,7 @@ function buildCreateDataScenarios() {
                 'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 15 March 2034.',
               responses: {
                 'result-mchild-amount': '220',
-                'result-mchild-frequency': 'month',
+                'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '15/03/2034',
                 'result-mchild-arrears': '80',
                 'result-mchild-education': ['Order until completion of full-time eduction'],
@@ -683,7 +683,7 @@ function buildCreateDataScenarios() {
                 'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
               responses: {
                 'result-mchild-amount': '220',
-                'result-mchild-frequency': 'month',
+                'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '22/09/2036',
                 'result-mchild-arrears': '80',
                 'result-mchild-education': ['Order until completion of full-time eduction'],
@@ -4010,20 +4010,20 @@ function getPartyDetailsItems(sessionData) {
   const items = [
     {
       title: {
-        text: 'Applicant'
-      },
-      href: '/orders-applications/applicant-details',
-      status: getTaskStatusTag(
-        sessionData['applicant-details-completed'] ? 'provided' : 'required'
-      )
-    },
-    {
-      title: {
         text: 'Respondent'
       },
       href: '/orders-applications/respondent-details',
       status: getTaskStatusTag(
         sessionData['respondent-details-completed'] ? 'provided' : 'required'
+      )
+    },
+    {
+      title: {
+        text: 'Applicant'
+      },
+      href: '/orders-applications/applicant-details',
+      status: getTaskStatusTag(
+        sessionData['applicant-details-completed'] ? 'provided' : 'required'
       )
     }
   ]
@@ -4256,20 +4256,20 @@ function getAlternativePartyDetailsItems(sessionData) {
   const items = [
     {
       title: {
-        text: 'Applicant'
-      },
-      href: '/orders-applications-alternative/applicant-details',
-      status: getTaskStatusTag(
-        sessionData['applicant-details-completed'] ? 'provided' : 'required'
-      )
-    },
-    {
-      title: {
         text: 'Respondent'
       },
       href: '/orders-applications-alternative/respondent-details',
       status: getTaskStatusTag(
         sessionData['respondent-details-completed'] ? 'provided' : 'required'
+      )
+    },
+    {
+      title: {
+        text: 'Applicant'
+      },
+      href: '/orders-applications-alternative/applicant-details',
+      status: getTaskStatusTag(
+        sessionData['applicant-details-completed'] ? 'provided' : 'required'
       )
     }
   ]
