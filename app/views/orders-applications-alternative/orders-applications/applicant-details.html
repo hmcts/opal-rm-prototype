@@ -331,7 +331,7 @@
       {% endset %}
 
       <form method="post" action="{{ formAction }}">
-        {{ govukSelect({
+        {{ govukInput({
           id: "applicant-title",
           name: "applicant-title",
           label: {
@@ -339,33 +339,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-quarter",
-          items: [
-            {
-              text: "Mr",
-              value: "mr",
-              selected: data["applicant-title"] == "mr"
-            },
-            {
-              text: "Mrs",
-              value: "mrs",
-              selected: data["applicant-title"] == "mrs"
-            },
-            {
-              text: "Ms",
-              value: "ms",
-              selected: data["applicant-title"] == "ms"
-            },
-            {
-              text: "Miss",
-              value: "miss",
-              selected: data["applicant-title"] == "miss"
-            },
-            {
-              text: "Dr",
-              value: "dr",
-              selected: data["applicant-title"] == "dr"
-            }
-          ]
+          value: data["applicant-title"]
         }) }}
 
         {{ govukInput({
@@ -414,7 +388,8 @@
           label: {
             text: "Date of birth",
             classes: "govuk-label--s"
-          },
+          },
+
           value: data["applicant-date-of-birth"]
         }) }}
 

@@ -1,12 +1,10 @@
 {% extends "layouts/main.html" %}
 
-{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
-{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}
   Order details - {{ serviceName }} - GOV.UK Prototype Kit
@@ -16,11 +14,6 @@
   {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({
-        text: "Back",
-        href: "/orders-applications-alternative/case-details"
-      }) }}
-
       <h1 class="govuk-heading-l">Order details</h1>
 
       {% if errorSummary %}
@@ -37,28 +30,14 @@
           id: "order-application-code",
           name: "order-application-code",
           label: {
-            text: "Application code",
+            text: "Select application",
             classes: "govuk-label--s"
-          },
-          hint: {
-            text: "Start typing an application code or title to see matching applications."
           },
           classes: "govuk-!-width-two-thirds",
           value: data["order-application-code"],
           items: applicationItems,
           errorMessage: formErrors["order-application-code"]
         }) }}
-
-        <div
-          id="order-application-found-panel"
-          class="govuk-inset-text govuk-!-display-none"
-          data-application-found-panel
-          data-application-input-id="order-application-code"
-          data-application-input-text-id="order-application-code"
-          data-application-lookup='{{ applicationLookupJson | escape }}'>
-          <span class="govuk-!-font-weight-bold">Application found</span><br>
-          <span data-application-found-title></span>
-        </div>
 
         {{ govukInput({
           id: "order-court-that-made-the-order",
@@ -111,5 +90,3 @@
     </div>
   </div>
 {% endblock %}
-
-

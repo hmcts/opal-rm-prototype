@@ -3120,6 +3120,12 @@ function hasSavableOrderTerm(sessionData) {
 }
 
 function getAlternativeOrderTermsStatus(sessionData) {
+  if (!hasCompletedOrderDetails(sessionData)) {
+    return {
+      text: 'Cannot start yet'
+    }
+  }
+
   const enteredTerms = getRecordedOrderTerms(sessionData)
   const hasPendingOrderTerm = Boolean(sessionData['alternative-pending-order-term'])
 
@@ -4010,6 +4016,7 @@ function getApplicationItems(sessionData) {
 }
 
 function getOrderItems(sessionData) {
+  const canStartOrder = hasCompletedPartyDetails(sessionData)
   const hasOrderDetails = hasCompletedOrderDetails(sessionData)
   const hasMinorCreditorDetails = hasMinorCreditors(sessionData)
   const hasTermsDetails = hasTermsPerBeneficiary(sessionData)
@@ -4021,8 +4028,14 @@ function getOrderItems(sessionData) {
       title: {
         text: 'Order details'
       },
-      href: '/orders-applications/order-details',
-      status: hasOrderDetails ? getTaskStatusTag('provided') : getTaskStatusTag('required')
+      href: canStartOrder ? '/orders-applications/order-details' : undefined,
+      status: hasOrderDetails
+        ? getTaskStatusTag('provided')
+        : canStartOrder
+          ? getTaskStatusTag('required')
+          : {
+              text: 'Cannot start yet'
+            }
     },
     {
       title: {
@@ -4107,31 +4120,38 @@ function getSingleTaskStatusTag(status) {
 }
 
 function getAlternativeOrderItems(sessionData) {
+  const canStartOrder = hasCompletedPartyDetails(sessionData)
+  const hasOrderDetails = hasCompletedOrderDetails(sessionData)
+
   return [
     {
       title: {
         text: 'Order details'
       },
-      href: '/orders-applications-alternative/order-details',
-      status: getSingleTaskStatusTag(
-        hasCompletedOrderDetails(sessionData) ? 'provided' : 'not-provided'
-      )
+      href: canStartOrder ? '/orders-applications-alternative/order-details' : undefined,
+      status: hasOrderDetails
+        ? getSingleTaskStatusTag('provided')
+        : canStartOrder
+          ? getSingleTaskStatusTag('not-provided')
+          : {
+              text: 'Cannot start yet'
+            }
     },
     {
       title: {
         text: 'Order terms'
       },
-      href: '/orders-applications-alternative/select-order-term',
+      href: hasOrderDetails ? '/orders-applications-alternative/select-order-term' : undefined,
       status: getAlternativeOrderTermsStatus(sessionData)
     },
     {
       title: {
         text: 'Interest and indexation'
       },
-      href: hasCompletedOrderDetails(sessionData)
+      href: hasOrderDetails
         ? '/orders-applications-alternative/interest-and-indexation'
         : undefined,
-      status: hasCompletedOrderDetails(sessionData)
+      status: hasOrderDetails
         ? hasCompletedInterestAndIndexation(sessionData)
           ? getTaskStatusTag('provided')
           : getTaskStatusTag('required')
@@ -4143,10 +4163,10 @@ function getAlternativeOrderItems(sessionData) {
       title: {
         text: 'Managing payments'
       },
-      href: hasCompletedOrderDetails(sessionData)
+      href: hasOrderDetails
         ? '/orders-applications-alternative/managing-payments'
         : undefined,
-      status: hasCompletedOrderDetails(sessionData)
+      status: hasOrderDetails
         ? hasCompletedManagingPayments(sessionData)
           ? getTaskStatusTag('provided')
           : getTaskStatusTag('required')
@@ -4851,13 +4871,80 @@ router.post('/orders-applications/hearing-details', (req, res, next) => {
     return res.redirect('/orders-applications/case-details')
   }
 
-  req.session.data['hearing-type'] = getSingleValue(req.body['hearing-type']) || ''
-  req.session.data['hearing-court'] = getSingleValue(req.body['hearing-court']) || ''
+  const hearingLocation = getSingleValue(req.body['hearing-location']) || ''
+
+  req.session.data['hearing-type'] =
+    hearingLocation === 'yes'
+      ? 'schedule-england-wales'
+      : hearingLocation === 'no'
+        ? 'non-scheduled'
+        : ''
+  delete req.session.data['hearing-details-completed']
+
+  const nextPage =
+    req.session.data['hearing-type'] === 'schedule-england-wales'
+      ? '/orders-applications/hearing-details-england-wales'
+      : req.session.data['hearing-type'] === 'non-scheduled'
+        ? '/orders-applications/hearing-details-outside-england-wales'
+        : '/orders-applications/hearing-details'
+
+  return redirectWithSessionSave(req, res, next, nextPage)
+})
+
+router.get('/orders-applications/hearing-details-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(req.session.data) ||
+    !hasCompletedApplicationDetails(req.session.data)
+  ) {
+    return res.redirect('/orders-applications/case-details')
+  }
+
+  if (req.session.data['hearing-type'] !== 'schedule-england-wales') {
+    return res.redirect('/orders-applications/hearing-details')
+  }
+
+  return res.render('orders-applications/hearing-details-england-wales')
+})
+
+router.post('/orders-applications/hearing-details-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(req.session.data)) {
+    return res.redirect('/orders-applications/case-details')
+  }
+
+  req.session.data['hearing-type'] = 'schedule-england-wales'
   req.session.data['hearing-date'] = getSingleValue(req.body['hearing-date']) || ''
+  req.session.data['hearing-court'] = getSingleValue(req.body['hearing-court']) || ''
   req.session.data['hearing-courtroom-number'] =
     getSingleValue(req.body['hearing-courtroom-number']) || ''
   req.session.data['hearing-start-time'] =
     getSingleValue(req.body['hearing-start-time']) || ''
+  req.session.data['hearing-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
+})
+
+router.get('/orders-applications/hearing-details-outside-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(req.session.data) ||
+    !hasCompletedApplicationDetails(req.session.data)
+  ) {
+    return res.redirect('/orders-applications/case-details')
+  }
+
+  if (req.session.data['hearing-type'] !== 'non-scheduled') {
+    return res.redirect('/orders-applications/hearing-details')
+  }
+
+  return res.render('orders-applications/hearing-details-outside-england-wales')
+})
+
+router.post('/orders-applications/hearing-details-outside-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(req.session.data)) {
+    return res.redirect('/orders-applications/case-details')
+  }
+
+  req.session.data['hearing-type'] = 'non-scheduled'
+  req.session.data['hearing-date'] = getSingleValue(req.body['hearing-date']) || ''
   req.session.data['hearing-non-scheduled-details'] =
     getSingleValue(req.body['hearing-non-scheduled-details']) || ''
   req.session.data['hearing-details-completed'] = 'yes'
@@ -6198,13 +6285,83 @@ router.post('/orders-applications-alternative/hearing-details', (req, res, next)
     return res.redirect('/orders-applications-alternative/case-details')
   }
 
-  getOrdersApplicationsAlternativeData(req)['hearing-type'] = getSingleValue(req.body['hearing-type']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-court'] = getSingleValue(req.body['hearing-court']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-date'] = getSingleValue(req.body['hearing-date']) || ''
+  const hearingLocation = getSingleValue(req.body['hearing-location']) || ''
+
+  getOrdersApplicationsAlternativeData(req)['hearing-type'] =
+    hearingLocation === 'yes'
+      ? 'schedule-england-wales'
+      : hearingLocation === 'no'
+        ? 'non-scheduled'
+        : ''
+  delete getOrdersApplicationsAlternativeData(req)['hearing-details-completed']
+
+  const nextPage =
+    getOrdersApplicationsAlternativeData(req)['hearing-type'] === 'schedule-england-wales'
+      ? '/orders-applications-alternative/hearing-details-england-wales'
+      : getOrdersApplicationsAlternativeData(req)['hearing-type'] === 'non-scheduled'
+        ? '/orders-applications-alternative/hearing-details-outside-england-wales'
+        : '/orders-applications-alternative/hearing-details'
+
+  return redirectWithSessionSave(req, res, next, nextPage)
+})
+
+router.get('/orders-applications-alternative/hearing-details-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
+    !hasCompletedApplicationDetails(getOrdersApplicationsAlternativeData(req))
+  ) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  if (getOrdersApplicationsAlternativeData(req)['hearing-type'] !== 'schedule-england-wales') {
+    return res.redirect('/orders-applications-alternative/hearing-details')
+  }
+
+  return res.render('orders-applications-alternative/hearing-details-england-wales')
+})
+
+router.post('/orders-applications-alternative/hearing-details-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  getOrdersApplicationsAlternativeData(req)['hearing-type'] = 'schedule-england-wales'
+  getOrdersApplicationsAlternativeData(req)['hearing-date'] =
+    getSingleValue(req.body['hearing-date']) || ''
+  getOrdersApplicationsAlternativeData(req)['hearing-court'] =
+    getSingleValue(req.body['hearing-court']) || ''
   getOrdersApplicationsAlternativeData(req)['hearing-courtroom-number'] =
     getSingleValue(req.body['hearing-courtroom-number']) || ''
   getOrdersApplicationsAlternativeData(req)['hearing-start-time'] =
     getSingleValue(req.body['hearing-start-time']) || ''
+  getOrdersApplicationsAlternativeData(req)['hearing-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
+})
+
+router.get('/orders-applications-alternative/hearing-details-outside-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
+    !hasCompletedApplicationDetails(getOrdersApplicationsAlternativeData(req))
+  ) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  if (getOrdersApplicationsAlternativeData(req)['hearing-type'] !== 'non-scheduled') {
+    return res.redirect('/orders-applications-alternative/hearing-details')
+  }
+
+  return res.render('orders-applications-alternative/hearing-details-outside-england-wales')
+})
+
+router.post('/orders-applications-alternative/hearing-details-outside-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  getOrdersApplicationsAlternativeData(req)['hearing-type'] = 'non-scheduled'
+  getOrdersApplicationsAlternativeData(req)['hearing-date'] =
+    getSingleValue(req.body['hearing-date']) || ''
   getOrdersApplicationsAlternativeData(req)['hearing-non-scheduled-details'] =
     getSingleValue(req.body['hearing-non-scheduled-details']) || ''
   getOrdersApplicationsAlternativeData(req)['hearing-details-completed'] = 'yes'
@@ -7929,6 +8086,3 @@ router.get('/resulting/submitted', (req, res) => {
     accountContextLabel: getResultingAccountContextLabel(req.session.data)
   })
 })
-
-
-

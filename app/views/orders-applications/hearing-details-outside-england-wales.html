@@ -1,0 +1,57 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Hearing outside England or Wales - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <a href="/orders-applications/hearing-details" class="govuk-back-link">Back</a>
+
+      <span class="govuk-caption-l">Hearing details</span>
+      <h1 class="govuk-heading-l">Hearing outside England or Wales</h1>
+
+      <form method="post" action="/orders-applications/hearing-details-outside-england-wales">
+        {{ mojDatePicker({
+          id: "hearing-date",
+          name: "hearing-date",
+          label: {
+            text: "Date",
+            classes: "govuk-label--s"
+          },
+          value: data["hearing-date"]
+        }) }}
+
+        {{ govukCharacterCount({
+          name: "hearing-non-scheduled-details",
+          id: "hearing-non-scheduled-details",
+          maxlength: 150,
+          label: {
+            text: "Court details",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Provide the court's name and address"
+          },
+          rows: 5,
+          value: data["hearing-non-scheduled-details"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

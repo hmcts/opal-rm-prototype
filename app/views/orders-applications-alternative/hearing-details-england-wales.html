@@ -1,0 +1,78 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Hearing in England or Wales - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <a href="/orders-applications-alternative/hearing-details" class="govuk-back-link">Back</a>
+
+      <span class="govuk-caption-l">Hearing details</span>
+      <h1 class="govuk-heading-l">Hearing in England or Wales</h1>
+
+      <form method="post" action="/orders-applications-alternative/hearing-details-england-wales">
+        {{ mojDatePicker({
+          id: "hearing-date",
+          name: "hearing-date",
+          label: {
+            text: "Date",
+            classes: "govuk-label--s"
+          },
+          value: data["hearing-date"]
+        }) }}
+
+        {{ govukInput({
+          id: "hearing-court",
+          name: "hearing-court",
+          label: {
+            text: "Court",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["hearing-court"]
+        }) }}
+
+        {{ govukInput({
+          id: "hearing-courtroom-number",
+          name: "hearing-courtroom-number",
+          label: {
+            text: "Courtroom",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-input--width-4",
+          value: data["hearing-courtroom-number"]
+        }) }}
+
+        {{ govukInput({
+          id: "hearing-start-time",
+          name: "hearing-start-time",
+          label: {
+            text: "Start time",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example, 09:00AM"
+          },
+          classes: "govuk-input--width-5",
+          value: data["hearing-start-time"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="/orders-applications-alternative/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

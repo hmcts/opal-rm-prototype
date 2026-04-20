@@ -50,16 +50,6 @@
           errorMessage: selectionErrorMessage
         }) }}
 
-        <div
-          id="application-found-panel"
-          class="govuk-inset-text govuk-!-display-none"
-          data-application-found-panel
-          data-application-input-id="application-code"
-          data-application-input-text-id="application-code"
-          data-application-lookup='{{ applicationLookupJson | escape }}'>
-          <span class="govuk-!-font-weight-bold">Application found</span><br>
-          <span data-application-found-title></span>
-        </div>
 
         <div class="govuk-button-group">
           {{ govukButton({

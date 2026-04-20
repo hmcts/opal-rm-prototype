@@ -17,6 +17,9 @@
         href: "/orders-applications/"
       }) }}
 
+      {% if detailsPageCaption %}
+        <span class="govuk-caption-l">{{ detailsPageCaption }}</span>
+      {% endif %}
       <h1 class="govuk-heading-l">{{ detailsPageHeading or "Case details" }}</h1>
 
       {{ govukSummaryList({
