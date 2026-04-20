@@ -359,7 +359,7 @@
             value: data["applicant-foreign-authority-reference"]
           }) }}
         {% else %}
-        {{ govukSelect({
+        {{ govukInput({
           id: "applicant-title",
           name: "applicant-title",
           label: {
@@ -367,39 +367,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-quarter",
-          errorMessage: formErrors["applicant-title"],
-          items: [
-            {
-              text: "",
-              value: "",
-              selected: not data["applicant-title"]
-            },
-            {
-              text: "Mr",
-              value: "mr",
-              selected: data["applicant-title"] == "mr"
-            },
-            {
-              text: "Mrs",
-              value: "mrs",
-              selected: data["applicant-title"] == "mrs"
-            },
-            {
-              text: "Ms",
-              value: "ms",
-              selected: data["applicant-title"] == "ms"
-            },
-            {
-              text: "Miss",
-              value: "miss",
-              selected: data["applicant-title"] == "miss"
-            },
-            {
-              text: "Dr",
-              value: "dr",
-              selected: data["applicant-title"] == "dr"
-            }
-          ]
+          value: data["applicant-title"]
         }) }}
 
         {{ govukInput({
@@ -450,7 +418,8 @@
           label: {
             text: "Date of birth",
             classes: "govuk-label--s"
-          },
+          },
+
           value: data["applicant-date-of-birth"]
         }) }}
 
@@ -527,7 +496,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          value: data["applicant-address-line-1"]
+          value: data["applicant-address-line-1"],
+          errorMessage: formErrors["applicant-address-line-1"]
         }) }}
 
         {{ govukInput({
@@ -593,7 +563,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
-          items: getCountrySelectItems(data["applicant-country"])
+          items: getCountrySelectItems(data["applicant-country"]),
+          errorMessage: formErrors["applicant-country"]
         }) }}
 
         {% if not isOrganisationApplicant %}

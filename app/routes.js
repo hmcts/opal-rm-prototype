@@ -2760,6 +2760,14 @@ function validateApplicantDetails(body, applicantType) {
     errors['applicant-last-name'] = buildFieldError('Enter a last name')
   }
 
+  if (!hasValue(getSingleValue(body['applicant-address-line-1']))) {
+    errors['applicant-address-line-1'] = buildFieldError('Enter address line 1')
+  }
+
+  if (!hasValue(getSingleValue(body['applicant-country']))) {
+    errors['applicant-country'] = buildFieldError('Select a country')
+  }
+
   if (!hasValue(getSingleValue(body['applicant-bank-account-type']))) {
     errors['applicant-bank-account-type'] = buildFieldError('Select a bank account type')
   }
@@ -2797,6 +2805,14 @@ function validateRespondentDetails(body) {
 
   if (!hasValue(getSingleValue(body['respondent-last-name']))) {
     errors['respondent-last-name'] = buildFieldError('Enter a last name')
+  }
+
+  if (!hasValue(getSingleValue(body['respondent-address-line-1']))) {
+    errors['respondent-address-line-1'] = buildFieldError('Enter address line 1')
+  }
+
+  if (!hasValue(getSingleValue(body['respondent-country']))) {
+    errors['respondent-country'] = buildFieldError('Select a country')
   }
 
   if (isChecked(body['respondent-send-correspondence-to-third-party'])) {
