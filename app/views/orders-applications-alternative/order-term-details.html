@@ -22,10 +22,8 @@
         href: "/orders-applications-alternative/select-order-term"
       }) }}
 
-      <h1 class="govuk-heading-l">Create order terms</h1>
-
-      <p class="govuk-body govuk-!-margin-bottom-1 govuk-!-font-weight-bold">{{ resultCode }}</p>
-      <h2 class="govuk-heading-m">{{ resultTitle }}</h2>
+      <span class="govuk-caption-l">Order terms</span>
+      <h1 class="govuk-heading-l">{{ resultCode }} - {{ resultTitle }}</h1>
 
       <form method="post" action="/orders-applications-alternative/order-term-details">
         {% for field in responseItems %}
@@ -167,6 +165,8 @@
             }) }}
           {% endif %}
         {% endfor %}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <div class="govuk-button-group">
           {{ govukButton({

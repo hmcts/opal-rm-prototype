@@ -48,7 +48,7 @@ const rawResultDefinitions = {
         prompt: 'Terms frequency',
         type: 'menu-radio',
         mandatory: 'Yes',
-        options: 'week, fortnight, month, quarter, year'
+        options: 'weekly, fortnightly, monthly, quarterly, yearly'
       },
       {
         name: 'Expiry',
@@ -112,7 +112,7 @@ const rawResultDefinitions = {
         prompt: 'Terms frequency',
         type: 'menu-radio',
         mandatory: 'Yes',
-        options: 'week, fortnight, month, quarter, year'
+        options: 'weekly, fortnightly, monthly, quarterly, yearly'
       },
       {
         name: 'Expiry',
@@ -121,19 +121,19 @@ const rawResultDefinitions = {
         mandatory: 'Yes'
       },
       {
-        name: 'Arrears',
-        prompt: 'Arrears Amount',
-        type: 'decimal',
-        mandatory: 'Yes'
-      },
-      {
         name: 'Education',
         prompt: 'Expiry terms',
         type: 'menu-checkbox',
         mandatory: 'No',
         min: '0',
-        max: '1',
-        options: 'Order until completion of full-time eduction'
+        hint: 'Add details to case comment or notes',
+        options: 'Additional terms affect order expiry'
+      },
+      {
+        name: 'Arrears',
+        prompt: 'Arrears Amount',
+        type: 'decimal',
+        mandatory: 'Yes'
       },
       {
         name: 'Beneficiary',
