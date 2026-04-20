@@ -1123,10 +1123,14 @@ function hasCompletedInterestAndIndexation(sessionData) {
   return Boolean(sessionData['interest-and-indexation-completed'])
 }
 
+function hasValidManagingPaymentsSelection(sessionData) {
+  return ['payments-via-court', 'direct-payments'].includes(sessionData['order-managing-payments'])
+}
+
 function hasCompletedManagingPayments(sessionData) {
   return Boolean(
     sessionData['managing-payments-completed'] &&
-      ['payments-via-court', 'direct-payments'].includes(sessionData['order-managing-payments'])
+      hasValidManagingPaymentsSelection(sessionData)
   )
 }
 
@@ -6717,7 +6721,7 @@ router.get('/orders-applications-alternative/managing-payments', (req, res) => {
 router.post('/orders-applications-alternative/managing-payments', (req, res, next) => {
   const alternativeData = getOrdersApplicationsAlternativeData(req)
 
-  alternativeData['managing-payments-completed'] = hasCompletedManagingPayments(alternativeData)
+  alternativeData['managing-payments-completed'] = hasValidManagingPaymentsSelection(alternativeData)
     ? 'yes'
     : ''
 
