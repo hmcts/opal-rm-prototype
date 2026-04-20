@@ -4,35 +4,33 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageTitle %}
-  Remove minor creditor - {{ serviceName }} - GOV.UK Prototype Kit
+  Remove order terms - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-      <h1 class="govuk-heading-l">Are you sure you want to remove this minor creditor?</h1>
+      <h1 class="govuk-heading-l">Are you sure you want to remove these order terms?</h1>
 
       {{ govukSummaryList({
         card: {
           title: {
-            text: minorCreditorCard.title
+            text: orderTermCard.title
           }
         },
-        rows: minorCreditorCard.rows
+        rows: orderTermCard.rows
       }) }}
 
       <form method="post" action="{{ formAction }}">
         {{ govukButton({
-          text: "Yes - remove minor creditor",
+          text: "Yes - remove order terms",
           classes: "govuk-button--warning"
         }) }}
       </form>
 
       <p class="govuk-body">
-        <a class="govuk-link" href="{{ cancelHref or '/orders-applications-alternative/minor-creditors' }}">No - cancel</a>
+        <a class="govuk-link" href="/orders-applications-alternative/select-order-term">No - cancel</a>
       </p>
     </div>
   </div>
 {% endblock %}
-
-

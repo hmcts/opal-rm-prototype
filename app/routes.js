@@ -1069,6 +1069,10 @@ function hasCompletedInterestAndIndexation(sessionData) {
   return Boolean(sessionData['interest-and-indexation-completed'])
 }
 
+function hasCompletedManagingPayments(sessionData) {
+  return Boolean(sessionData['managing-payments-completed'])
+}
+
 function hasCaseCommentsAndNotes(sessionData) {
   return hasValue(sessionData['case-comment']) || hasValue(sessionData['case-notes'])
 }
@@ -1127,6 +1131,7 @@ function buildMinorCreditor(body) {
     addressLine4: body['minor-creditor-address-line-4'] || '',
     addressLine5: body['minor-creditor-address-line-5'] || '',
     postcode: body['minor-creditor-postcode'] || '',
+    country: body['minor-creditor-country'] || '',
     bankAccountType: body['minor-creditor-bank-account-type'] || '',
     ukNameOnAccount: body['minor-creditor-uk-name-on-account'] || '',
     ukSortCode: body['minor-creditor-uk-sort-code'] || '',
@@ -1173,7 +1178,8 @@ function getMinorCreditorAddressHtml(creditor) {
     creditor.addressLine3,
     creditor.addressLine4,
     creditor.addressLine5,
-    creditor.postcode
+    creditor.postcode,
+    creditor.country ? (countryLabels[creditor.country] || creditor.country) : null
   ]
     .filter(hasValue)
     .map((line) => escapeHtml(line))
@@ -1428,7 +1434,7 @@ function formatCurrency(value) {
     return value
   }
 
-  return `£${number.toFixed(2)}`
+  return `£${number.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function formatDateForReview(dateString) {
@@ -1518,20 +1524,16 @@ function getCountryLabel(country) {
 }
 
 function getCountrySelectItems(selectedCountry) {
-  return [
-    {
-      text: '',
-      value: '',
-      selected: !selectedCountry
-    },
-    ...countryNames.map((countryName) => {
-      const value = slugifyCountryName(countryName)
+  const ukValue = slugifyCountryName('United Kingdom')
+  const otherCountries = countryNames.filter((name) => name !== 'United Kingdom')
 
-      return {
-        text: countryName,
-        value,
-        selected: selectedCountry === value
-      }
+  return [
+    { text: '', value: '', selected: !selectedCountry },
+    { text: 'United Kingdom', value: ukValue, selected: selectedCountry === ukValue },
+    { text: '──────────────', value: '', disabled: true },
+    ...otherCountries.map((countryName) => {
+      const value = slugifyCountryName(countryName)
+      return { text: countryName, value, selected: selectedCountry === value }
     })
   ]
 }
@@ -3161,10 +3163,6 @@ function getOrderTermReviewRows(orderTerm) {
     buildSummaryRow('Order term title', orderTerm?.title || '')
   ]
 
-  if (hasValue(orderTerm?.creditorLabel)) {
-    rows.push(buildSummaryRow('Creditor', orderTerm.creditorLabel))
-  }
-
   if (orderTermDefinition) {
     orderTermDefinition.responses.forEach((field) => {
       const value = orderTerm?.responses?.[field.id]
@@ -3186,6 +3184,10 @@ function getOrderTermReviewRows(orderTerm) {
     })
   }
 
+  if (hasValue(orderTerm?.creditorLabel)) {
+    rows.push(buildSummaryRow('Creditor', orderTerm.creditorLabel))
+  }
+
   return rows
 }
 
@@ -3193,6 +3195,15 @@ function getCheckCaseOrderTermCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getOrderTermReviewRows(orderTerm),
+    changeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/change`,
+    removeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/delete`
+  }))
+}
+
+function getOrderTermHubCards(sessionData) {
+  return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
+    title: `${orderTerm.code} - ${orderTerm.title}`,
+    rows: getOrderTermReviewRows(orderTerm).slice(2).filter((row) => row.value.text !== '-'),
     changeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/change`,
     removeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/delete`
   }))
@@ -3613,6 +3624,95 @@ function getTermsCreditorItems(sessionData, selectedCreditor) {
   ]
 }
 
+const majorCreditorOptions = [
+  { value: 'ca-australia', text: 'Central Authority - Australia' },
+  { value: 'ca-austria', text: 'Central Authority - Austria' },
+  { value: 'ca-canada', text: 'Central Authority - Canada' },
+  { value: 'ca-czech-republic', text: 'Central Authority - Czech Republic' },
+  { value: 'ca-france', text: 'Central Authority - France' },
+  { value: 'ca-germany', text: 'Central Authority - Germany' },
+  { value: 'ca-ireland', text: 'Central Authority - Ireland' },
+  { value: 'ca-new-zealand', text: 'Central Authority - New Zealand' },
+  { value: 'ca-norway', text: 'Central Authority - Norway' },
+  { value: 'ca-poland', text: 'Central Authority - Poland' },
+  { value: 'ca-south-africa', text: 'Central Authority - South Africa' },
+  { value: 'ca-sweden', text: 'Central Authority - Sweden' },
+  { value: 'ca-usa', text: 'Central Authority - USA' }
+]
+
+function getMajorCreditorItems(selectedValue) {
+  return [
+    { value: '', text: 'Select a major creditor' },
+    ...majorCreditorOptions.map((c) => ({
+      value: c.value,
+      text: c.text,
+      selected: c.value === selectedValue
+    }))
+  ]
+}
+
+function getMajorCreditorLabel(value) {
+  const found = majorCreditorOptions.find((c) => c.value === value)
+  return found ? found.text : null
+}
+
+function getMinorCreditorsFromOrderTerms(sessionData, excludeIndex) {
+  const seen = new Set()
+  return getRecordedOrderTerms(sessionData)
+    .filter((term) => term.minorCreditorData && term.index !== excludeIndex)
+    .reduce((acc, term) => {
+      const name = term.creditorLabel || getMinorCreditorName(term.minorCreditorData, 0)
+      if (!seen.has(name)) {
+        seen.add(name)
+        acc.push({ value: `order-term-minor-creditor-${term.index}`, text: `${name} (Minor creditor)` })
+      }
+      return acc
+    }, [])
+}
+
+function getOrderTermCreditorItems(sessionData, selectedCreditor) {
+  const applicantLabel = getApplicantCreditorLabel(sessionData)
+  const minorCreditorItems = getMinorCreditorsFromOrderTerms(sessionData).map((mc) => ({
+    value: mc.value,
+    text: mc.text,
+    checked: selectedCreditor === mc.value
+  }))
+
+  return [
+    {
+      value: 'applicant',
+      text: `${applicantLabel} (Applicant)`,
+      checked: selectedCreditor === 'applicant'
+    },
+    ...minorCreditorItems,
+    {
+      value: 'major-creditor',
+      text: 'Major creditor',
+      checked: selectedCreditor === 'major-creditor'
+    },
+    { divider: 'or' },
+    {
+      value: 'add-new-minor-creditor',
+      text: 'Add new minor creditor',
+      checked: selectedCreditor === 'add-new-minor-creditor'
+    }
+  ]
+}
+
+function getOrderTermCreditorLabelByValue(value, sessionData) {
+  if (value === 'applicant') return getApplicantCreditorLabel(sessionData)
+  if (value === 'major-creditor') return 'Major creditor'
+  if (value.startsWith('major-creditor-')) {
+    return getMajorCreditorLabel(value.replace('major-creditor-', '')) || 'Major creditor'
+  }
+  if (value.startsWith('order-term-minor-creditor-')) {
+    const termIndex = Number(value.replace('order-term-minor-creditor-', ''))
+    const term = getRecordedOrderTerms(sessionData).find((t) => t.index === termIndex)
+    return term?.creditorLabel || 'Minor creditor'
+  }
+  return getCreditorLabel(value, sessionData)
+}
+
 function getCreditorLabel(creditorValue, sessionData) {
   if (creditorValue === 'applicant') {
     return getApplicantCreditorLabel(sessionData)
@@ -4003,7 +4103,7 @@ function getAlternativeOrderItems(sessionData) {
     },
     {
       title: {
-        text: 'Enter order'
+        text: 'Order terms'
       },
       href: '/orders-applications-alternative/select-order-term',
       status: getAlternativeOrderTermsStatus(sessionData)
@@ -4017,6 +4117,21 @@ function getAlternativeOrderItems(sessionData) {
         : undefined,
       status: hasCompletedOrderDetails(sessionData)
         ? hasCompletedInterestAndIndexation(sessionData)
+          ? getTaskStatusTag('provided')
+          : getTaskStatusTag('required')
+        : {
+            text: 'Cannot start yet'
+          }
+    },
+    {
+      title: {
+        text: 'Managing payments'
+      },
+      href: hasCompletedOrderDetails(sessionData)
+        ? '/orders-applications-alternative/managing-payments'
+        : undefined,
+      status: hasCompletedOrderDetails(sessionData)
+        ? hasCompletedManagingPayments(sessionData)
           ? getTaskStatusTag('provided')
           : getTaskStatusTag('required')
         : {
@@ -4154,7 +4269,8 @@ function canCheckAlternativeCase(sessionData) {
       sessionData['respondent-details-completed'] &&
       sessionData['order-details-completed'] &&
       hasSavableOrderTerm(sessionData) &&
-      hasCompletedInterestAndIndexation(sessionData)
+      hasCompletedInterestAndIndexation(sessionData) &&
+      hasCompletedManagingPayments(sessionData)
   )
 }
 
@@ -4294,6 +4410,7 @@ router.get('/orders-applications/case-details', (req, res) => {
 
   return res.render('orders-applications/case-details', {
     detailsPageHeading: isApplicationJourney(req.session.data) ? 'Case details' : 'Order details',
+    detailsPageCaption: isApplicationJourney(req.session.data) ? 'Create an application' : 'Create an order',
     caseTypeLabel: caseTypeLabels[caseType] || caseType,
     applicantTypeLabel:
       applicantTypeLabels[req.session.data['applicant-type']] || 'Not selected',
@@ -4570,16 +4687,30 @@ router.post('/orders-applications/order-details', (req, res, next) => {
     return res.redirect('/orders-applications/application-details')
   }
 
-  const paymentTerms = asArray(req.body['order-payment-terms'])
-
-  req.session.data['order-has-periodical-payments'] = paymentTerms.includes(
-    'periodical-payments'
+  const selectedApplicationCode = String(
+    getSingleValue(req.body['order-application-code']) || ''
   )
-    ? 'yes'
-    : ''
-  req.session.data['order-has-lump-sum'] = paymentTerms.includes('lump-sum')
-    ? 'yes'
-    : ''
+    .trim()
+    .toUpperCase()
+
+  req.session.data['order-application-code'] = selectedApplicationCode
+
+  const errors = validateAlternativeOrderDetails(req.body, req.session.data['case-type'])
+
+  if (Object.keys(errors).length > 0) {
+    delete req.session.data['order-details-completed']
+
+    return res.render('orders-applications/order-details', {
+      applicationItems: getApplicationOptionItems(
+        selectedApplicationCode,
+        req.session.data['case-type']
+      ),
+      applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
   req.session.data['order-details-completed'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
@@ -5126,6 +5257,7 @@ router.get('/orders-applications-alternative/case-details', (req, res) => {
   }
 
   return res.render('orders-applications-alternative/case-details', {
+    detailsPageCaption: isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ? 'Create an application' : 'Create an order',
     detailsPageHeading: isApplicationJourney(getOrdersApplicationsAlternativeData(req))
       ? 'Case details'
       : 'Order details',
@@ -5160,7 +5292,11 @@ router.get('/orders-applications-alternative/check-case-details', (req, res) => 
     isRemoOutCase: isRemoOutCase(getOrdersApplicationsAlternativeData(req)),
     applicantRows: getApplicantSummaryRows(getOrdersApplicationsAlternativeData(req)),
     respondentRows: getRespondentSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    centralAuthorityRows: getCentralAuthoritySummaryRows(getOrdersApplicationsAlternativeData(req)),
+    centralAuthorityRows: [
+      buildSummaryRow('REMO reference', getOrdersApplicationsAlternativeData(req)['central-authority-remo-reference']),
+      buildSummaryRow("Central authority's reference", getOrdersApplicationsAlternativeData(req)['central-authority-reference']),
+      buildSummaryRow('Central authority name', getOrdersApplicationsAlternativeData(req)['central-authority-manual-name'] || getOrdersApplicationsAlternativeData(req)['central-authority-name'])
+    ],
     applicationRows: getApplicationSummaryRows(getOrdersApplicationsAlternativeData(req)),
     hearingRows: getHearingSummaryRows(getOrdersApplicationsAlternativeData(req)),
     orderDetailsRows: getAlternativeOrderDetailsSummaryRows(getOrdersApplicationsAlternativeData(req)),
@@ -5171,6 +5307,12 @@ router.get('/orders-applications-alternative/check-case-details', (req, res) => 
         'Indexation',
         getIndexationTypeLabel(getOrdersApplicationsAlternativeData(req)['indexation-type'])
       )
+    ],
+    managingPaymentsRows: [
+      buildSummaryRow('How will payments be managed?', {
+        'payments-via-court': 'Payments via the court',
+        'direct-payments': 'Direct payments to creditors'
+      }[getOrdersApplicationsAlternativeData(req)['order-managing-payments']] || '-')
     ],
     caseCommentsRows: [
       buildSummaryRow('Comment', getOrdersApplicationsAlternativeData(req)['case-comment']),
@@ -5465,13 +5607,23 @@ router.get('/orders-applications-alternative/select-order-term', (req, res) => {
   }
 
   return res.render('orders-applications-alternative/select-order-term', {
-    recordedOrderTerms: getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req)),
-    recordedOrderTermRows: getRecordedOrderTermManagementRows(getOrdersApplicationsAlternativeData(req)),
-    resultItems: getResultOptionItems(
-      getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'],
-      'orders'
-    ),
-    selectionError: null
+    orderTermCards: getOrderTermHubCards(getOrdersApplicationsAlternativeData(req)),
+    recordedOrderTerms: getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
+  })
+})
+
+router.get('/orders-applications-alternative/add-order-term', (req, res) => {
+  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
+
+  return res.render('orders-applications-alternative/add-order-term', {
+    resultItems: getResultOptionItems('', 'orders')
   })
 })
 
@@ -5489,9 +5641,7 @@ router.post('/orders-applications-alternative/select-order-term', (req, res, nex
   if (!getResultDefinition(selectedOrderTermCode, 'orders')) {
     getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'] = ''
 
-    return res.render('orders-applications-alternative/select-order-term', {
-      recordedOrderTerms: getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req)),
-      recordedOrderTermRows: getRecordedOrderTermManagementRows(getOrdersApplicationsAlternativeData(req)),
+    return res.render('orders-applications-alternative/add-order-term', {
       resultItems: getResultOptionItems('', 'orders'),
       selectionError: 'Select an order term from the list.'
     })
@@ -5529,6 +5679,28 @@ router.get('/orders-applications-alternative/order-term/:index/change', (req, re
 })
 
 router.get('/orders-applications-alternative/order-term/:index/delete', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  const index = Number(req.params.index)
+  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
+  const selectedTerm = recordedTerms[index]
+
+  if (!selectedTerm) {
+    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
+  }
+
+  return res.render('orders-applications-alternative/remove-order-term', {
+    orderTermCard: {
+      title: `${selectedTerm.code} - ${selectedTerm.title}`,
+      rows: getOrderTermReviewRows(selectedTerm).slice(2).filter((row) => row.value.text !== '-')
+    },
+    formAction: `/orders-applications-alternative/order-term/${index}/delete`
+  })
+})
+
+router.post('/orders-applications-alternative/order-term/:index/delete', (req, res, next) => {
   if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
     return res.redirect('/orders-applications-alternative/case-details')
   }
@@ -5634,6 +5806,10 @@ router.post('/orders-applications-alternative/order-term-details', (req, res, ne
     savedOrderTerm.creditorLabel = existingRecordedTerm.creditorLabel || ''
   }
 
+  if (existingRecordedTerm?.minorCreditorData) {
+    savedOrderTerm.minorCreditorData = existingRecordedTerm.minorCreditorData
+  }
+
   if (orderTermDefinition.nextStep === 'create-creditor') {
     const pendingOrderTerm = {
       ...savedOrderTerm
@@ -5668,11 +5844,7 @@ router.post('/orders-applications-alternative/order-term-details', (req, res, ne
   getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
   delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
 
-  if (req.body.action === 'add-further-order-term') {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
 })
 
 router.get('/orders-applications-alternative/order-term-creditor', (req, res) => {
@@ -5682,13 +5854,95 @@ router.get('/orders-applications-alternative/order-term-creditor', (req, res) =>
     return res.redirect('/orders-applications-alternative/select-order-term')
   }
 
+  const sessionData = getOrdersApplicationsAlternativeData(req)
+  const pendingMinorCreditor =
+    sessionData['alternative-pending-minor-creditor'] ||
+    pendingOrderTerm.minorCreditorData ||
+    null
+  const rawCreditor = pendingOrderTerm.creditor || null
+  const selectedCreditor = rawCreditor && rawCreditor.startsWith('major-creditor-') ? 'major-creditor' : rawCreditor
+  const majorCreditorCode = rawCreditor && rawCreditor.startsWith('major-creditor-')
+    ? rawCreditor.replace('major-creditor-', '')
+    : (sessionData['alternative-selected-major-creditor'] || '')
+  const editingIndex = pendingOrderTerm.editIndex != null ? Number(pendingOrderTerm.editIndex) : undefined
+
   return res.render('orders-applications-alternative/order-term-creditor', {
-      creditorItems: getTermsCreditorItems(
-        getOrdersApplicationsAlternativeData(req),
-        pendingOrderTerm.creditor || 'applicant'
-      ),
-      selectionError: null
+    pendingMinorCreditor,
+    pendingMinorCreditorCard: pendingMinorCreditor
+      ? {
+          title: getMinorCreditorName(pendingMinorCreditor, 0),
+          rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+        }
+      : null,
+    applicantItem: {
+      value: 'applicant',
+      text: `${getApplicantCreditorLabel(sessionData)} (Applicant)`,
+      checked: selectedCreditor === 'applicant'
+    },
+    existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sessionData, editingIndex).map((mc) => ({
+      value: mc.value,
+      text: mc.text,
+      checked: selectedCreditor === mc.value
+    })),
+    selectedCreditor,
+    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
+    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
+    selectionError: null
   })
+})
+
+router.get('/orders-applications-alternative/order-term-creditor/add-minor-creditor', (req, res) => {
+  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/orders-applications-alternative/select-order-term')
+  }
+  const pendingMinorCreditor = getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] || {}
+  return res.render('orders-applications-alternative/minor-creditor-details', {
+    creditor: pendingMinorCreditor,
+    countryItems: getCountrySelectItems(pendingMinorCreditor.country || ''),
+    formAction: '/orders-applications-alternative/order-term-creditor/add-minor-creditor',
+    cancelHref: '/orders-applications-alternative/order-term-creditor'
+  })
+})
+
+router.post('/orders-applications-alternative/order-term-creditor/add-minor-creditor', (req, res, next) => {
+  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/orders-applications-alternative/select-order-term')
+  }
+  getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] = buildMinorCreditor(req.body)
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor')
+})
+
+router.get('/orders-applications-alternative/order-term-creditor/remove-minor-creditor', (req, res) => {
+  const sessionData = getOrdersApplicationsAlternativeData(req)
+  const pendingOrderTerm = sessionData['alternative-pending-order-term']
+  const pendingMinorCreditor =
+    sessionData['alternative-pending-minor-creditor'] ||
+    (pendingOrderTerm && pendingOrderTerm.minorCreditorData) ||
+    null
+  if (!pendingMinorCreditor) {
+    return res.redirect('/orders-applications-alternative/order-term-creditor')
+  }
+  return res.render('orders-applications-alternative/remove-minor-creditor', {
+    minorCreditorCard: {
+      title: getMinorCreditorName(pendingMinorCreditor, 0),
+      rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+    },
+    formAction: '/orders-applications-alternative/order-term-creditor/remove-minor-creditor',
+    cancelHref: '/orders-applications-alternative/order-term-creditor'
+  })
+})
+
+router.post('/orders-applications-alternative/order-term-creditor/remove-minor-creditor', (req, res, next) => {
+  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor']
+  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
+  if (pendingOrderTerm) {
+    delete pendingOrderTerm.minorCreditorData
+    delete pendingOrderTerm.creditor
+    delete pendingOrderTerm.creditorLabel
+  }
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor')
 })
 
 router.get('/orders-applications-alternative/order-term-creditor/cancel', (req, res, next) => {
@@ -5707,21 +5961,57 @@ router.post('/orders-applications-alternative/order-term-creditor', (req, res, n
   }
 
   const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
+  const pendingMinorCreditor = getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] || null
 
-  if (!selectedCreditor) {
+  if (selectedCreditor === 'add-new-minor-creditor') {
+    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor/add-minor-creditor')
+  }
+
+  const usingPendingMinorCreditor = selectedCreditor === 'new-minor-creditor' && pendingMinorCreditor
+
+  if (!selectedCreditor && !pendingMinorCreditor) {
+    const sd = getOrdersApplicationsAlternativeData(req)
     return res.render('orders-applications-alternative/order-term-creditor', {
-      creditorItems: getTermsCreditorItems(
-        getOrdersApplicationsAlternativeData(req),
-        pendingOrderTerm.creditor || ''
-      ),
+      pendingMinorCreditor: null,
+      pendingMinorCreditorCard: null,
+      applicantItem: {
+        value: 'applicant',
+        text: `${getApplicantCreditorLabel(sd)} (Applicant)`,
+        checked: false
+      },
+      existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sd).map((mc) => ({
+        value: mc.value,
+        text: mc.text,
+        checked: false
+      })),
+      selectedCreditor: '',
+      majorCreditorItems: getMajorCreditorItems(''),
       selectionError: 'Select a creditor.'
     })
   }
 
+  let finalCreditorValue = selectedCreditor
+  let creditorLabel = ''
+  let minorCreditorData = null
+
+  if (usingPendingMinorCreditor) {
+    finalCreditorValue = 'new-minor-creditor'
+    creditorLabel = getMinorCreditorName(pendingMinorCreditor, 0)
+    minorCreditorData = pendingMinorCreditor
+  } else if (selectedCreditor === 'major-creditor') {
+    const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
+    creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
+    finalCreditorValue = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
+    getOrdersApplicationsAlternativeData(req)['alternative-selected-major-creditor'] = selectedMajorCode
+  } else {
+    creditorLabel = getOrderTermCreditorLabelByValue(selectedCreditor, getOrdersApplicationsAlternativeData(req))
+  }
+
   const completedOrderTerm = {
     ...pendingOrderTerm,
-    creditor: selectedCreditor,
-    creditorLabel: getCreditorLabel(selectedCreditor, getOrdersApplicationsAlternativeData(req))
+    creditor: finalCreditorValue,
+    creditorLabel,
+    ...(minorCreditorData ? { minorCreditorData } : {})
   }
   const editIndex = hasValue(pendingOrderTerm.editIndex)
     ? Number(pendingOrderTerm.editIndex)
@@ -5744,7 +6034,9 @@ router.post('/orders-applications-alternative/order-term-creditor', (req, res, n
   )
   getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
   delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-review')
+  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor']
+  delete getOrdersApplicationsAlternativeData(req)['alternative-selected-major-creditor']
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
 })
 
 router.get('/orders-applications-alternative/order-term-review', (req, res) => {
@@ -6184,6 +6476,20 @@ router.post('/orders-applications-alternative/interest-and-indexation', (req, re
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
 })
 
+router.get('/orders-applications-alternative/managing-payments', (req, res) => {
+  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
+    return res.redirect('/orders-applications-alternative/case-details')
+  }
+
+  return res.render('orders-applications-alternative/managing-payments')
+})
+
+router.post('/orders-applications-alternative/managing-payments', (req, res, next) => {
+  getOrdersApplicationsAlternativeData(req)['managing-payments-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
+})
+
 router.get('/orders-applications-alternative/cancel', (req, res, next) => {
   delete getOrdersApplicationsAlternativeData(req)['case-type']
   delete getOrdersApplicationsAlternativeData(req)['applicant-type']
@@ -6245,6 +6551,7 @@ router.get('/orders-applications-alternative/cancel', (req, res, next) => {
   delete getOrdersApplicationsAlternativeData(req)['interest-and-indexation-completed']
   delete getOrdersApplicationsAlternativeData(req)['interest-applies']
   delete getOrdersApplicationsAlternativeData(req)['indexation-type']
+  delete getOrdersApplicationsAlternativeData(req)['managing-payments-completed']
   delete getOrdersApplicationsAlternativeData(req)['case-comment']
   delete getOrdersApplicationsAlternativeData(req)['case-notes']
   delete getOrdersApplicationsAlternativeData(req)['application-details-completed']
