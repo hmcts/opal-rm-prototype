@@ -1,0 +1,64 @@
+{% extends "layouts/main.html" %}
+
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block pageTitle %}
+  Add order terms - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/create-a-case/select-order-term"
+      }) }}
+
+      <h1 class="govuk-heading-l">Add order terms</h1>
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#alternative-order-term-code"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% set selectionErrorMessage = undefined %}
+      {% if selectionError %}
+        {% set selectionErrorMessage = {
+          text: selectionError
+        } %}
+      {% endif %}
+
+      <form method="post" action="/create-a-case/select-order-term">
+        {{ xGovukAutocomplete({
+          id: "alternative-order-term-code",
+          name: "alternative-order-term-code",
+          label: {
+            text: "Select the order term",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Start typing an order term code or title to see matching order terms."
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["alternative-order-term-code"],
+          items: resultItems,
+          errorMessage: selectionErrorMessage
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

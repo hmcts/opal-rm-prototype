@@ -1,0 +1,119 @@
+{% extends "layouts/main.html" %}
+
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Creditor - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/create-a-case/order-term-details"
+      }) }}
+
+      {% if selectionError %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: selectionError,
+              href: "#alternative-order-term-creditor"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Creditor</h1>
+
+      <form method="post" action="/create-a-case/order-term-creditor">
+
+        {% if pendingMinorCreditor %}
+
+          {{ govukSummaryList({
+            card: {
+              title: {
+                text: pendingMinorCreditorCard.title
+              },
+              actions: {
+                items: [
+                  {
+                    text: "Change",
+                    href: "/create-a-case/order-term-creditor/add-minor-creditor"
+                  },
+                  {
+                    text: "Remove",
+                    href: "/create-a-case/order-term-creditor/remove-minor-creditor"
+                  }
+                ]
+              }
+            },
+            rows: pendingMinorCreditorCard.rows
+          }) }}
+
+          <input type="hidden" name="alternative-order-term-creditor" value="new-minor-creditor">
+
+        {% else %}
+
+          {% set majorCreditorConditionalHtml %}
+            {{ xGovukAutocomplete({
+              id: "alternative-major-creditor-code",
+              name: "alternative-major-creditor-code",
+              label: {
+                text: "Select major creditor",
+                classes: "govuk-label--s"
+              },
+              value: majorCreditorValue,
+              items: majorCreditorItems
+            }) }}
+          {% endset %}
+
+          {% set selectionErrorMessage = undefined %}
+          {% if selectionError %}
+            {% set selectionErrorMessage = { text: selectionError } %}
+          {% endif %}
+
+          {% set trailingItems = [
+            {
+              value: "major-creditor",
+              text: "Major creditor",
+              checked: selectedCreditor === "major-creditor",
+              conditional: { html: majorCreditorConditionalHtml }
+            },
+            { divider: "or" },
+            {
+              value: "add-new-minor-creditor",
+              text: "Add new minor creditor",
+              checked: selectedCreditor === "add-new-minor-creditor"
+            }
+          ] %}
+
+          {% set allItems = [applicantItem].concat(existingMinorCreditorItems).concat(trailingItems) %}
+
+          {{ govukRadios({
+            idPrefix: "alternative-order-term-creditor",
+            name: "alternative-order-term-creditor",
+            items: allItems,
+            errorMessage: selectionErrorMessage
+          }) }}
+
+        {% endif %}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="/create-a-case/order-term-creditor/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

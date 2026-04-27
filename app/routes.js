@@ -2783,6 +2783,38 @@ function getResultValueForDisplay(field, value) {
   return value
 }
 
+function getResultValueForSummary(field, value) {
+  if (Array.isArray(value)) {
+    if (!value.length) {
+      return ''
+    }
+
+    const selectedItems = getResultFieldOptionItems(field, value).filter((item) => item.checked)
+    return selectedItems.length
+      ? selectedItems.map((item) => item.text).join(', ')
+      : value.join(', ')
+  }
+
+  if (!hasValue(value)) {
+    return ''
+  }
+
+  if (field.type === 'date') {
+    return formatDateLong(value)
+  }
+
+  if (field.type === 'currency') {
+    return formatCurrency(value)
+  }
+
+  if (field.type === 'radios' || field.type === 'autocomplete') {
+    const selectedItem = getResultFieldOptionItems(field, value).find((item) => item.value === value)
+    return selectedItem ? selectedItem.text : value
+  }
+
+  return value
+}
+
 function buildFieldError(text) {
   return { text }
 }
@@ -2791,10 +2823,20 @@ function isChecked(value) {
   return asArray(value).includes('yes')
 }
 
+function getErrorSummaryHref(field) {
+  const normalisedField = String(field || '').toLowerCase()
+
+  if (normalisedField.includes('date') || normalisedField.includes('dob')) {
+    return `#${field}-day`
+  }
+
+  return `#${field}`
+}
+
 function buildErrorSummary(errors) {
   return Object.entries(errors).map(([field, error]) => ({
-    text: error.text,
-    href: `#${field}`
+    text: typeof error === 'string' ? error : error.text,
+    href: getErrorSummaryHref(field)
   }))
 }
 
@@ -3249,19 +3291,7 @@ function getOrderTermReviewRows(orderTerm) {
   if (orderTermDefinition) {
     orderTermDefinition.responses.forEach((field) => {
       const value = orderTerm?.responses?.[field.id]
-      let displayValue = ''
-
-      if (Array.isArray(value)) {
-        displayValue = value.join(', ')
-      } else if (hasValue(value)) {
-        if (field.type === 'date') {
-          displayValue = formatDateLong(value)
-        } else if (field.type === 'currency') {
-          displayValue = formatCurrency(value)
-        } else {
-          displayValue = value
-        }
-      }
+      const displayValue = getResultValueForSummary(field, value)
 
       rows.push(buildSummaryRow(field.prompt, displayValue))
     })
@@ -3318,6 +3348,10 @@ function getAlternativeOrderTermResponseItems(sessionData) {
   return definition.responses.map((field) => ({
     ...field,
     value: values[field.id] || (field.type === 'checkboxes' ? [] : ''),
+    calculatedAge:
+      normaliseComparableText(field.name || field.prompt) === 'child dob'
+        ? getAgeFromDateString(values[field.id] || '')
+        : null,
     items:
       field.type === 'radios' || field.type === 'checkboxes' || field.type === 'autocomplete'
         ? getResultFieldOptionItems(field, values[field.id] || (field.type === 'checkboxes' ? [] : ''))
@@ -4180,7 +4214,7 @@ function getSingleTaskStatusTag(status) {
   }
 }
 
-function getAlternativeOrderItems(sessionData) {
+function getAlternativeOrderItems(sessionData, basePath = '/orders-applications-alternative') {
   const canStartOrder = hasCompletedPartyDetails(sessionData)
   const hasOrderDetails = hasCompletedOrderDetails(sessionData)
 
@@ -4189,7 +4223,7 @@ function getAlternativeOrderItems(sessionData) {
       title: {
         text: 'Order details'
       },
-      href: canStartOrder ? '/orders-applications-alternative/order-details' : undefined,
+      href: canStartOrder ? `${basePath}/order-details` : undefined,
       status: hasOrderDetails
         ? getSingleTaskStatusTag('provided')
         : canStartOrder
@@ -4202,7 +4236,7 @@ function getAlternativeOrderItems(sessionData) {
       title: {
         text: 'Order terms'
       },
-      href: hasOrderDetails ? '/orders-applications-alternative/select-order-term' : undefined,
+      href: hasOrderDetails ? `${basePath}/select-order-term` : undefined,
       status: getAlternativeOrderTermsStatus(sessionData)
     },
     {
@@ -4210,7 +4244,7 @@ function getAlternativeOrderItems(sessionData) {
         text: 'Interest and indexation'
       },
       href: hasOrderDetails
-        ? '/orders-applications-alternative/interest-and-indexation'
+        ? `${basePath}/interest-and-indexation`
         : undefined,
       status: hasOrderDetails
         ? hasCompletedInterestAndIndexation(sessionData)
@@ -4225,7 +4259,7 @@ function getAlternativeOrderItems(sessionData) {
         text: 'Managing payments'
       },
       href: hasOrderDetails
-        ? '/orders-applications-alternative/managing-payments'
+        ? `${basePath}/managing-payments`
         : undefined,
       status: hasOrderDetails
         ? hasCompletedManagingPayments(sessionData)
@@ -4252,13 +4286,13 @@ function getAdditionalInformationItems(sessionData) {
   ]
 }
 
-function getAlternativePartyDetailsItems(sessionData) {
+function getAlternativePartyDetailsItems(sessionData, basePath = '/orders-applications-alternative') {
   const items = [
     {
       title: {
         text: 'Respondent'
       },
-      href: '/orders-applications-alternative/respondent-details',
+      href: `${basePath}/respondent-details`,
       status: getTaskStatusTag(
         sessionData['respondent-details-completed'] ? 'provided' : 'required'
       )
@@ -4267,7 +4301,7 @@ function getAlternativePartyDetailsItems(sessionData) {
       title: {
         text: 'Applicant'
       },
-      href: '/orders-applications-alternative/applicant-details',
+      href: `${basePath}/applicant-details`,
       status: getTaskStatusTag(
         sessionData['applicant-details-completed'] ? 'provided' : 'required'
       )
@@ -4279,7 +4313,7 @@ function getAlternativePartyDetailsItems(sessionData) {
       title: {
         text: 'Central authority'
       },
-      href: '/orders-applications-alternative/central-authority-details',
+      href: `${basePath}/central-authority-details`,
       status: getTaskStatusTag(hasCentralAuthorityDetails(sessionData) ? 'provided' : 'optional')
     })
   }
@@ -4287,7 +4321,7 @@ function getAlternativePartyDetailsItems(sessionData) {
   return items
 }
 
-function getAlternativeApplicationItems(sessionData) {
+function getAlternativeApplicationItems(sessionData, basePath = '/orders-applications-alternative') {
   const canStartApplication = hasCompletedPartyDetails(sessionData)
   const hasApplicationDetails = hasCompletedApplicationDetails(sessionData)
   const hasHearingDetails = hasCompletedHearingDetails(sessionData)
@@ -4297,7 +4331,7 @@ function getAlternativeApplicationItems(sessionData) {
       title: {
         text: 'Application details'
       },
-      href: canStartApplication ? '/orders-applications-alternative/application-details' : undefined,
+      href: canStartApplication ? `${basePath}/application-details` : undefined,
       status: hasApplicationDetails
         ? getTaskStatusTag('provided')
         : canStartApplication
@@ -4310,7 +4344,7 @@ function getAlternativeApplicationItems(sessionData) {
       title: {
         text: 'Hearing details'
       },
-      href: hasApplicationDetails ? '/orders-applications-alternative/hearing-details' : undefined,
+      href: hasApplicationDetails ? `${basePath}/hearing-details` : undefined,
       status: hasApplicationDetails
         ? hasHearingDetails
           ? getTaskStatusTag('provided')
@@ -4322,13 +4356,13 @@ function getAlternativeApplicationItems(sessionData) {
   ]
 }
 
-function getAlternativeAdditionalInformationItems(sessionData) {
+function getAlternativeAdditionalInformationItems(sessionData, basePath = '/orders-applications-alternative') {
   return [
     {
       title: {
         text: 'Comments and notes'
       },
-      href: '/orders-applications-alternative/case-comments-and-notes',
+      href: `${basePath}/case-comments-and-notes`,
       status: hasCaseCommentsAndNotes(sessionData)
         ? getTaskStatusTag('provided')
         : getTaskStatusTag('optional')
@@ -5912,7 +5946,8 @@ router.get('/orders-applications-alternative/order-term-details', (req, res) => 
     resultCategory: getResultCategoryLabel(orderTermDefinition.category),
     requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
     resultWording: getAlternativeOrderTermWording(getOrdersApplicationsAlternativeData(req)),
-    responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req))
+    responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req)),
+    errorSummary: null
   })
 })
 
@@ -5944,7 +5979,8 @@ router.post('/orders-applications-alternative/order-term-details', (req, res, ne
       resultCategory: getResultCategoryLabel(orderTermDefinition.category),
       requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
       resultWording: getAlternativeOrderTermWording(getOrdersApplicationsAlternativeData(req)),
-      responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req))
+      responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req)),
+      errorSummary: buildErrorSummary(errors)
     })
   }
 
@@ -6821,6 +6857,1460 @@ router.post('/orders-applications-alternative/cancel-case-creation', (req, res, 
   }
 
   return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
+})
+
+
+function getCreateACaseData(req) {
+  if (!req.session.data['create-a-case']) {
+    req.session.data['create-a-case'] = {}
+  }
+
+  return req.session.data['create-a-case']
+}
+
+
+// Create a case flow
+router.use('/create-a-case', (req, res, next) => {
+  const alternativeData = getCreateACaseData(req)
+
+  if (req.method === 'POST' && req.body) {
+    Object.entries(req.body).forEach(([key, value]) => {
+      alternativeData[key] = value
+    })
+  }
+
+  res.locals.data = alternativeData
+  next()
+})
+
+router.get('/create-a-case', (req, res) => {
+  return res.render('create-a-case/index')
+})
+
+router.post('/create-a-case', (req, res, next) => {
+  getCreateACaseData(req)['applicant-type'] =
+    req.body['applicant-type-remo-in'] ||
+    req.body['applicant-type-remo-out'] ||
+    ''
+
+  delete getCreateACaseData(req)['applicant-type-remo-in']
+  delete getCreateACaseData(req)['applicant-type-remo-out']
+
+  getCreateACaseData(req)['has-order'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/case-details', (req, res) => {
+  const caseType = getCreateACaseData(req)['case-type']
+
+  if (!caseType) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/case-details', {
+    detailsPageCaption: 'Create a case',
+    detailsPageHeading: isApplicationJourney(getCreateACaseData(req))
+      ? 'Case details'
+      : 'Order details',
+    caseTypeLabel: caseTypeLabels[caseType] || caseType,
+    applicantTypeLabel:
+      applicantTypeLabels[getCreateACaseData(req)['applicant-type']] || 'Not selected',
+    partyDetailsItems: getAlternativePartyDetailsItems(getCreateACaseData(req), '/create-a-case'),
+    caseSectionHeading: isApplicationJourney(getCreateACaseData(req)) ? 'Application' : 'Order',
+    caseSectionIdPrefix: isApplicationJourney(getCreateACaseData(req)) ? 'application' : 'order',
+    caseSectionItems: isApplicationJourney(getCreateACaseData(req))
+      ? getAlternativeApplicationItems(getCreateACaseData(req), '/create-a-case')
+      : getAlternativeOrderItems(getCreateACaseData(req), '/create-a-case'),
+    additionalInformationItems: getAlternativeAdditionalInformationItems(getCreateACaseData(req), '/create-a-case'),
+    canCheckCase: canCheckAlternativeCase(getCreateACaseData(req))
+  })
+})
+
+router.get('/create-a-case/check-case-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (!canCheckAlternativeCase(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/check-case-details', {
+    caseTypeLabel: caseTypeLabels[getCreateACaseData(req)['case-type']] || getCreateACaseData(req)['case-type'],
+    applicantTypeLabel:
+      applicantTypeLabels[getCreateACaseData(req)['applicant-type']] || 'Not selected',
+    isApplicationJourney: isApplicationJourney(getCreateACaseData(req)),
+    isRemoOutCase: isRemoOutCase(getCreateACaseData(req)),
+    applicantRows: getApplicantSummaryRows(getCreateACaseData(req)),
+    respondentRows: getRespondentSummaryRows(getCreateACaseData(req)),
+    centralAuthorityRows: [
+      buildSummaryRow('REMO reference', getCreateACaseData(req)['central-authority-remo-reference']),
+      buildSummaryRow("Central authority's reference", getCreateACaseData(req)['central-authority-reference']),
+      buildSummaryRow('Central authority name', getCreateACaseData(req)['central-authority-manual-name'] || getCreateACaseData(req)['central-authority-name'])
+    ],
+    applicationRows: getApplicationSummaryRows(getCreateACaseData(req)),
+    hearingRows: getHearingSummaryRows(getCreateACaseData(req)),
+    orderDetailsRows: getAlternativeOrderDetailsSummaryRows(getCreateACaseData(req)),
+    orderTermCards: getCheckCaseOrderTermCards(getCreateACaseData(req)),
+    interestAndIndexationRows: [
+      buildSummaryRow('Interest', getInterestAppliesLabel(getCreateACaseData(req)['interest-applies'])),
+      buildSummaryRow(
+        'Indexation',
+        getIndexationTypeLabel(getCreateACaseData(req)['indexation-type'])
+      )
+    ],
+    managingPaymentsRows: [
+      buildSummaryRow('How will payments be managed?', {
+        'payments-via-court': 'Payments via the court',
+        'direct-payments': 'Direct payments to creditors'
+      }[getCreateACaseData(req)['order-managing-payments']] || '-')
+    ],
+    caseCommentsRows: [
+      buildSummaryRow('Comment', getCreateACaseData(req)['case-comment']),
+      buildSummaryRow('Case note', getCreateACaseData(req)['case-notes'])
+    ],
+    showApplicantRestrictionWarning: Boolean(
+      getCreateACaseData(req)['applicant-restrict-personal-information']
+    ),
+    showRespondentRestrictionWarning: Boolean(
+      getCreateACaseData(req)['respondent-restrict-personal-information']
+    )
+  })
+})
+
+router.get('/create-a-case/case-submitted', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/case-submitted')
+})
+
+router.get('/create-a-case/case-comments-and-notes', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/case-comments-and-notes')
+})
+
+router.post('/create-a-case/case-comments-and-notes', (req, res, next) => {
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/applicant-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/applicant-details', {
+    applicantAge: getAgeFromDateString(getCreateACaseData(req)['applicant-date-of-birth'])
+  })
+})
+
+router.post('/create-a-case/applicant-details', (req, res, next) => {
+  const errors = validateApplicantDetails(req.body, getCreateACaseData(req)['applicant-type'])
+
+  if (Object.keys(errors).length > 0) {
+    delete getCreateACaseData(req)['applicant-details-completed']
+
+    return res.render('create-a-case/applicant-details', {
+      data: buildApplicantDetailsViewData(getCreateACaseData(req), req.body),
+      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  getCreateACaseData(req)['applicant-add-aliases'] = isChecked(
+    req.body['applicant-add-aliases']
+  )
+    ? 'yes'
+    : ''
+  getCreateACaseData(req)['applicant-bank-account-type'] =
+    getSingleValue(req.body['applicant-bank-account-type']) || ''
+  getCreateACaseData(req)['applicant-send-correspondence-to-third-party'] =
+    isChecked(req.body['applicant-send-correspondence-to-third-party'])
+      ? 'yes'
+      : ''
+  getCreateACaseData(req)['applicant-restrict-personal-information'] =
+    isChecked(req.body['applicant-restrict-personal-information'])
+      ? 'yes'
+      : ''
+
+  getCreateACaseData(req)['applicant-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/respondent-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/respondent-details')
+})
+
+router.post('/create-a-case/respondent-details', (req, res, next) => {
+  const errors = validateRespondentDetails(req.body)
+
+  if (Object.keys(errors).length > 0) {
+    delete getCreateACaseData(req)['respondent-details-completed']
+
+    return res.render('create-a-case/respondent-details', {
+      data: buildRespondentDetailsViewData(getCreateACaseData(req), req.body),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  getCreateACaseData(req)['respondent-add-aliases'] = isChecked(
+    req.body['respondent-add-aliases']
+  )
+    ? 'yes'
+    : ''
+  getCreateACaseData(req)['respondent-add-employer-details'] = isChecked(
+    req.body['respondent-add-employer-details']
+  )
+    ? 'yes'
+    : ''
+  getCreateACaseData(req)['respondent-send-correspondence-to-third-party'] =
+    isChecked(req.body['respondent-send-correspondence-to-third-party'])
+      ? 'yes'
+      : ''
+  getCreateACaseData(req)['respondent-restrict-personal-information'] =
+    isChecked(req.body['respondent-restrict-personal-information'])
+      ? 'yes'
+      : ''
+
+  getCreateACaseData(req)['respondent-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/central-authority-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (isRemoOutCase(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/central-authority-details', {
+    hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(getCreateACaseData(req)),
+    centralAuthorityCardRows: getCentralAuthorityCardRows(getCreateACaseData(req))
+  })
+})
+
+router.post('/create-a-case/central-authority-details', (req, res, next) => {
+  getCreateACaseData(req)['central-authority-details-completed'] = hasCentralAuthorityDetails(
+    getCreateACaseData(req)
+  )
+    ? 'yes'
+    : ''
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/central-authority-details/manual', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/central-authority-details-manual')
+})
+
+router.post('/create-a-case/central-authority-details/manual', (req, res, next) => {
+  getCreateACaseData(req)['central-authority-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/central-authority-details')
+})
+
+router.get('/create-a-case/central-authority-details/remove', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (!hasCentralAuthorityManualDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/central-authority-details')
+  }
+
+  return res.render('create-a-case/remove-central-authority-details', {
+    centralAuthorityCardRows: getCentralAuthorityCardRows(getCreateACaseData(req))
+  })
+})
+
+router.post('/create-a-case/central-authority-details/remove', (req, res, next) => {
+  delete getCreateACaseData(req)['central-authority-manual-name']
+  delete getCreateACaseData(req)['central-authority-main-email-address']
+  delete getCreateACaseData(req)['central-authority-other-email-address']
+  delete getCreateACaseData(req)['central-authority-main-telephone-number']
+  delete getCreateACaseData(req)['central-authority-other-telephone-number']
+  delete getCreateACaseData(req)['central-authority-address-line-1']
+  delete getCreateACaseData(req)['central-authority-address-line-2']
+  delete getCreateACaseData(req)['central-authority-address-line-3']
+  delete getCreateACaseData(req)['central-authority-address-line-4']
+  delete getCreateACaseData(req)['central-authority-address-line-5']
+  delete getCreateACaseData(req)['central-authority-postal-or-zip-code']
+  delete getCreateACaseData(req)['central-authority-country']
+  delete getCreateACaseData(req)['central-authority-bank-account-type']
+  delete getCreateACaseData(req)['central-authority-bank-name-on-account']
+  delete getCreateACaseData(req)['central-authority-bank-sort-code']
+  delete getCreateACaseData(req)['central-authority-bank-account-number']
+  delete getCreateACaseData(req)['central-authority-bank-payment-reference']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-name-on-account']
+  delete getCreateACaseData(req)['central-authority-bank-bic-or-swift-code']
+  delete getCreateACaseData(req)['central-authority-bank-iban']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-payment-reference']
+  delete getCreateACaseData(req)['central-authority-bank-name']
+  delete getCreateACaseData(req)['central-authority-bank-branch-office-or-sort-code']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-account-number']
+
+  getCreateACaseData(req)['central-authority-details-completed'] = hasCentralAuthorityDetails(
+    getCreateACaseData(req)
+  )
+    ? 'yes'
+    : ''
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/central-authority-details')
+})
+
+router.get('/create-a-case/order-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/application-details')
+  }
+
+  if (!hasCompletedPartyDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const orderApplicationDefinition = getApplicationDefinition(
+    getCreateACaseData(req)['order-application-code']
+  )
+
+  return res.render('create-a-case/order-details', {
+    applicationItems: getApplicationOptionItems(
+      getCreateACaseData(req)['order-application-code'],
+      getCreateACaseData(req)['case-type']
+    ),
+    applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
+    errors: {},
+    errorSummary: null,
+    orderApplicationTitle:
+      orderApplicationDefinition?.title ||
+      'Application from EU Country for registration or recognition of an order in the family court'
+  })
+})
+
+router.post('/create-a-case/order-details', (req, res, next) => {
+  if (isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/application-details')
+  }
+
+  const selectedApplicationCode = String(
+    getSingleValue(req.body['order-application-code']) || ''
+  )
+    .trim()
+    .toUpperCase()
+
+  getCreateACaseData(req)['order-application-code'] = selectedApplicationCode
+  const errors = validateAlternativeOrderDetails(
+    req.body,
+    getCreateACaseData(req)['case-type']
+  )
+  const orderApplicationDefinition = getApplicationDefinition(selectedApplicationCode)
+
+  if (Object.keys(errors).length > 0) {
+    delete getCreateACaseData(req)['order-details-completed']
+
+    return res.render('create-a-case/order-details', {
+      applicationItems: getApplicationOptionItems(
+        selectedApplicationCode,
+        getCreateACaseData(req)['case-type']
+      ),
+      applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
+      errors,
+      errorSummary: buildErrorSummary(errors),
+      orderApplicationTitle:
+        orderApplicationDefinition?.title ||
+        'Application from EU Country for registration or recognition of an order in the family court'
+    })
+  }
+
+  delete getCreateACaseData(req)['order-payment-terms']
+  delete getCreateACaseData(req)['order-payment-frequency']
+  delete getCreateACaseData(req)['order-managing-payments']
+  getCreateACaseData(req)['order-has-periodical-payments'] = ''
+  getCreateACaseData(req)['order-has-lump-sum'] = ''
+  getCreateACaseData(req)['order-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/select-order-term', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/select-order-term', {
+    orderTermCards: getOrderTermHubCards(getCreateACaseData(req)),
+    recordedOrderTerms: getRecordedOrderTerms(getCreateACaseData(req))
+  })
+})
+
+router.get('/create-a-case/add-order-term', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  delete getCreateACaseData(req)['alternative-order-term-code']
+  delete getCreateACaseData(req)['alternative-edit-order-term-index']
+  delete getCreateACaseData(req)['alternative-current-order-term-responses']
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+
+  return res.render('create-a-case/add-order-term', {
+    resultItems: getResultOptionItems('', 'orders')
+  })
+})
+
+router.post('/create-a-case/select-order-term', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const selectedOrderTermCode = String(
+    getSingleValue(req.body['alternative-order-term-code']) || ''
+  )
+    .trim()
+    .toUpperCase()
+
+  if (!getResultDefinition(selectedOrderTermCode, 'orders')) {
+    getCreateACaseData(req)['alternative-order-term-code'] = ''
+
+    return res.render('create-a-case/add-order-term', {
+      resultItems: getResultOptionItems('', 'orders'),
+      selectionError: 'Select an order term from the list.'
+    })
+  }
+
+  getCreateACaseData(req)['alternative-order-term-code'] = selectedOrderTermCode
+  delete getCreateACaseData(req)['alternative-order-term-errors']
+  delete getCreateACaseData(req)['alternative-current-order-term-responses']
+  delete getCreateACaseData(req)['alternative-edit-order-term-index']
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-details')
+})
+
+router.get('/create-a-case/order-term/:index/change', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = Number(req.params.index)
+  const recordedTerms = getRecordedOrderTerms(getCreateACaseData(req))
+  const selectedTerm = recordedTerms[index]
+
+  if (!selectedTerm) {
+    return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+  }
+
+  getCreateACaseData(req)['alternative-edit-order-term-index'] = String(index)
+  getCreateACaseData(req)['alternative-order-term-code'] = selectedTerm.code
+  getCreateACaseData(req)['alternative-current-order-term-responses'] =
+    selectedTerm.responses || {}
+  delete getCreateACaseData(req)['alternative-order-term-errors']
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-details')
+})
+
+router.get('/create-a-case/order-term/:index/delete', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = Number(req.params.index)
+  const recordedTerms = getRecordedOrderTerms(getCreateACaseData(req))
+  const selectedTerm = recordedTerms[index]
+
+  if (!selectedTerm) {
+    return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+  }
+
+  return res.render('create-a-case/remove-order-term', {
+    orderTermCard: {
+      title: `${selectedTerm.code} - ${selectedTerm.title}`,
+      rows: getOrderTermReviewRows(selectedTerm).slice(2).filter((row) => row.value.text !== '-')
+    },
+    formAction: `/create-a-case/order-term/${index}/delete`
+  })
+})
+
+router.post('/create-a-case/order-term/:index/delete', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = Number(req.params.index)
+  const recordedTerms = getRecordedOrderTerms(getCreateACaseData(req))
+
+  if (!recordedTerms[index]) {
+    return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+  }
+
+  recordedTerms.splice(index, 1)
+  getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
+    ({ index: _index, ...term }) => term
+  )
+
+  if (String(getCreateACaseData(req)['alternative-edit-order-term-index']) === String(index)) {
+    delete getCreateACaseData(req)['alternative-edit-order-term-index']
+    delete getCreateACaseData(req)['alternative-order-term-code']
+    delete getCreateACaseData(req)['alternative-current-order-term-responses']
+    delete getCreateACaseData(req)['alternative-order-term-errors']
+  }
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+})
+
+router.get('/create-a-case/order-term-details', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const orderTermDefinition = getResultDefinition(
+    getCreateACaseData(req)['alternative-order-term-code'],
+    'orders'
+  )
+
+  if (!orderTermDefinition) {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+
+  return res.render('create-a-case/order-term-details', {
+    isEditingOrderTerm: isEditingAlternativeOrderTerm(getCreateACaseData(req)),
+    resultCode: orderTermDefinition.code,
+    resultTitle: orderTermDefinition.title,
+    resultCategory: getResultCategoryLabel(orderTermDefinition.category),
+    requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
+    resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
+    responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
+    errorSummary: null
+  })
+})
+
+router.post('/create-a-case/order-term-details', (req, res, next) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const orderTermDefinition = getResultDefinition(
+    getCreateACaseData(req)['alternative-order-term-code'],
+    'orders'
+  )
+
+  if (!orderTermDefinition) {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+
+  const { errors, values } = validateResultResponses(orderTermDefinition, req.body)
+
+  getCreateACaseData(req)['alternative-current-order-term-responses'] = values
+
+  if (Object.keys(errors).length) {
+    getCreateACaseData(req)['alternative-order-term-errors'] = errors
+
+    return res.render('create-a-case/order-term-details', {
+      isEditingOrderTerm: isEditingAlternativeOrderTerm(getCreateACaseData(req)),
+      resultCode: orderTermDefinition.code,
+      resultTitle: orderTermDefinition.title,
+      resultCategory: getResultCategoryLabel(orderTermDefinition.category),
+      requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
+      resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
+      responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  delete getCreateACaseData(req)['alternative-order-term-errors']
+
+  const recordedTerms = getRecordedOrderTerms(getCreateACaseData(req))
+  const savedOrderTerm = {
+    code: orderTermDefinition.code,
+    title: orderTermDefinition.title,
+    category: orderTermDefinition.category,
+    categoryLabel: getResultCategoryLabel(orderTermDefinition.category),
+    wording: getAlternativeOrderTermWording(getCreateACaseData(req)),
+    responses: values,
+    nextStep: orderTermDefinition.nextStep
+  }
+  const editIndex = Number(getCreateACaseData(req)['alternative-edit-order-term-index'])
+  const existingRecordedTerm = Number.isInteger(editIndex) && recordedTerms[editIndex]
+    ? recordedTerms[editIndex]
+    : null
+
+  if (existingRecordedTerm?.creditor) {
+    savedOrderTerm.creditor = existingRecordedTerm.creditor
+    savedOrderTerm.creditorLabel = existingRecordedTerm.creditorLabel || ''
+  }
+
+  if (existingRecordedTerm?.minorCreditorData) {
+    savedOrderTerm.minorCreditorData = existingRecordedTerm.minorCreditorData
+  }
+
+  if (orderTermDefinition.nextStep === 'create-creditor') {
+    const pendingOrderTerm = {
+      ...savedOrderTerm
+    }
+
+    if (Number.isInteger(editIndex) && existingRecordedTerm) {
+      pendingOrderTerm.editIndex = String(editIndex)
+    }
+
+    getCreateACaseData(req)['alternative-pending-order-term'] = pendingOrderTerm
+    delete getCreateACaseData(req)['alternative-creditor-order-term-index']
+    return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
+  }
+
+  if (Number.isInteger(editIndex) && existingRecordedTerm) {
+    recordedTerms[editIndex] = savedOrderTerm
+  } else {
+    recordedTerms.push(savedOrderTerm)
+  }
+
+  delete getCreateACaseData(req)['alternative-order-term-code']
+  delete getCreateACaseData(req)['alternative-current-order-term-responses']
+  delete getCreateACaseData(req)['alternative-edit-order-term-index']
+
+  const savedOrderTermIndex = Number.isInteger(editIndex) && existingRecordedTerm
+    ? editIndex
+    : recordedTerms.length - 1
+
+  getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
+    ({ index, ...term }) => term
+  )
+  getCreateACaseData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+})
+
+router.get('/create-a-case/order-term-creditor', (req, res) => {
+  const pendingOrderTerm = getCreateACaseData(req)['alternative-pending-order-term']
+
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+
+  const sessionData = getCreateACaseData(req)
+  const pendingMinorCreditor =
+    sessionData['alternative-pending-minor-creditor'] ||
+    pendingOrderTerm.minorCreditorData ||
+    null
+  const rawCreditor = pendingOrderTerm.creditor || null
+  const selectedCreditor = rawCreditor && rawCreditor.startsWith('major-creditor-') ? 'major-creditor' : rawCreditor
+  const majorCreditorCode = rawCreditor && rawCreditor.startsWith('major-creditor-')
+    ? rawCreditor.replace('major-creditor-', '')
+    : (sessionData['alternative-selected-major-creditor'] || '')
+  const editingIndex = pendingOrderTerm.editIndex != null ? Number(pendingOrderTerm.editIndex) : undefined
+
+  return res.render('create-a-case/order-term-creditor', {
+    pendingMinorCreditor,
+    pendingMinorCreditorCard: pendingMinorCreditor
+      ? {
+          title: getMinorCreditorName(pendingMinorCreditor, 0),
+          rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+        }
+      : null,
+    applicantItem: {
+      value: 'applicant',
+      text: `${getApplicantCreditorLabel(sessionData)} (Applicant)`,
+      checked: selectedCreditor === 'applicant'
+    },
+    existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sessionData, editingIndex).map((mc) => ({
+      value: mc.value,
+      text: mc.text,
+      checked: selectedCreditor === mc.value
+    })),
+    selectedCreditor,
+    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
+    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
+    selectionError: null
+  })
+})
+
+router.get('/create-a-case/order-term-creditor/add-minor-creditor', (req, res) => {
+  const pendingOrderTerm = getCreateACaseData(req)['alternative-pending-order-term']
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+  const pendingMinorCreditor = getCreateACaseData(req)['alternative-pending-minor-creditor'] || {}
+  return res.render('create-a-case/minor-creditor-details', {
+    creditor: pendingMinorCreditor,
+    countryItems: getCountrySelectItems(pendingMinorCreditor.country || ''),
+    formAction: '/create-a-case/order-term-creditor/add-minor-creditor',
+    cancelHref: '/create-a-case/order-term-creditor'
+  })
+})
+
+router.post('/create-a-case/order-term-creditor/add-minor-creditor', (req, res, next) => {
+  const pendingOrderTerm = getCreateACaseData(req)['alternative-pending-order-term']
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+  getCreateACaseData(req)['alternative-pending-minor-creditor'] = buildMinorCreditor(req.body)
+  return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
+})
+
+router.get('/create-a-case/order-term-creditor/remove-minor-creditor', (req, res) => {
+  const sessionData = getCreateACaseData(req)
+  const pendingOrderTerm = sessionData['alternative-pending-order-term']
+  const pendingMinorCreditor =
+    sessionData['alternative-pending-minor-creditor'] ||
+    (pendingOrderTerm && pendingOrderTerm.minorCreditorData) ||
+    null
+  if (!pendingMinorCreditor) {
+    return res.redirect('/create-a-case/order-term-creditor')
+  }
+  return res.render('create-a-case/remove-minor-creditor', {
+    minorCreditorCard: {
+      title: getMinorCreditorName(pendingMinorCreditor, 0),
+      rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+    },
+    formAction: '/create-a-case/order-term-creditor/remove-minor-creditor',
+    cancelHref: '/create-a-case/order-term-creditor'
+  })
+})
+
+router.post('/create-a-case/order-term-creditor/remove-minor-creditor', (req, res, next) => {
+  delete getCreateACaseData(req)['alternative-pending-minor-creditor']
+  const pendingOrderTerm = getCreateACaseData(req)['alternative-pending-order-term']
+  if (pendingOrderTerm) {
+    delete pendingOrderTerm.minorCreditorData
+    delete pendingOrderTerm.creditor
+    delete pendingOrderTerm.creditorLabel
+  }
+  return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
+})
+
+router.get('/create-a-case/order-term-creditor/cancel', (req, res, next) => {
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+  delete getCreateACaseData(req)['alternative-creditor-order-term-index']
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+})
+
+router.post('/create-a-case/order-term-creditor', (req, res, next) => {
+  const pendingOrderTerm = getCreateACaseData(req)['alternative-pending-order-term']
+  const recordedTerms = getRecordedOrderTerms(getCreateACaseData(req))
+
+  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+
+  const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
+  const pendingMinorCreditor = getCreateACaseData(req)['alternative-pending-minor-creditor'] || null
+
+  if (selectedCreditor === 'add-new-minor-creditor') {
+    return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor/add-minor-creditor')
+  }
+
+  const usingPendingMinorCreditor = selectedCreditor === 'new-minor-creditor' && pendingMinorCreditor
+
+  if (!selectedCreditor && !pendingMinorCreditor) {
+    const sd = getCreateACaseData(req)
+    return res.render('create-a-case/order-term-creditor', {
+      pendingMinorCreditor: null,
+      pendingMinorCreditorCard: null,
+      applicantItem: {
+        value: 'applicant',
+        text: `${getApplicantCreditorLabel(sd)} (Applicant)`,
+        checked: false
+      },
+      existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sd).map((mc) => ({
+        value: mc.value,
+        text: mc.text,
+        checked: false
+      })),
+      selectedCreditor: '',
+      majorCreditorItems: getMajorCreditorItems(''),
+      selectionError: 'Select a creditor.'
+    })
+  }
+
+  let finalCreditorValue = selectedCreditor
+  let creditorLabel = ''
+  let minorCreditorData = null
+
+  if (usingPendingMinorCreditor) {
+    finalCreditorValue = 'new-minor-creditor'
+    creditorLabel = getMinorCreditorName(pendingMinorCreditor, 0)
+    minorCreditorData = pendingMinorCreditor
+  } else if (selectedCreditor === 'major-creditor') {
+    const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
+    creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
+    finalCreditorValue = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
+    getCreateACaseData(req)['alternative-selected-major-creditor'] = selectedMajorCode
+  } else {
+    creditorLabel = getOrderTermCreditorLabelByValue(selectedCreditor, getCreateACaseData(req))
+  }
+
+  const completedOrderTerm = {
+    ...pendingOrderTerm,
+    creditor: finalCreditorValue,
+    creditorLabel,
+    ...(minorCreditorData ? { minorCreditorData } : {})
+  }
+  const editIndex = hasValue(pendingOrderTerm.editIndex)
+    ? Number(pendingOrderTerm.editIndex)
+    : Number.NaN
+
+  delete completedOrderTerm.editIndex
+
+  if (Number.isInteger(editIndex) && recordedTerms[editIndex]) {
+    recordedTerms[editIndex] = completedOrderTerm
+  } else {
+    recordedTerms.push(completedOrderTerm)
+  }
+
+  const savedOrderTermIndex = Number.isInteger(editIndex) && recordedTerms[editIndex]
+    ? editIndex
+    : recordedTerms.length - 1
+
+  getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
+    ({ index, ...term }) => term
+  )
+  getCreateACaseData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+  delete getCreateACaseData(req)['alternative-pending-minor-creditor']
+  delete getCreateACaseData(req)['alternative-selected-major-creditor']
+  return redirectWithSessionSave(req, res, next, '/create-a-case/select-order-term')
+})
+
+router.get('/create-a-case/order-term-review', (req, res) => {
+  const orderTermIndex = Number(
+    getCreateACaseData(req)['alternative-creditor-order-term-index']
+  )
+  const orderTerm = getRecordedOrderTerms(getCreateACaseData(req))[orderTermIndex]
+
+  if (!orderTerm) {
+    return res.redirect('/create-a-case/select-order-term')
+  }
+
+  return res.render('create-a-case/order-term-review', {
+    orderTerm,
+    orderTermRows: getOrderTermReviewRows(orderTerm)
+  })
+})
+
+router.get('/create-a-case/application-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasCompletedPartyDetails(getCreateACaseData(req))
+  ) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/application-details', {
+    applicationItems: getApplicationOptionItems(
+      getCreateACaseData(req)['application-code'],
+      getCreateACaseData(req)['case-type']
+    ),
+    applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
+    selectionError: null
+  })
+})
+
+router.post('/create-a-case/application-details', (req, res, next) => {
+  if (!isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const selectedApplicationCode = String(getSingleValue(req.body['application-code']) || '')
+    .trim()
+    .toUpperCase()
+
+  getCreateACaseData(req)['application-code'] = selectedApplicationCode
+
+  if (
+    !isApplicationDefinitionAvailableForCaseType(
+      selectedApplicationCode,
+      getCreateACaseData(req)['case-type']
+    )
+  ) {
+    return res.render('create-a-case/application-details', {
+      applicationItems: getApplicationOptionItems(
+        selectedApplicationCode,
+        getCreateACaseData(req)['case-type']
+      ),
+      applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
+      selectionError: 'Select an application code from the list.'
+    })
+  }
+
+  delete getCreateACaseData(req)['application-details-completed']
+  delete getCreateACaseData(req)['application-response-values']
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/application-details/content')
+})
+
+router.get('/create-a-case/application-details/content', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasCompletedPartyDetails(getCreateACaseData(req)) ||
+    !hasValue(getCreateACaseData(req)['application-code'])
+  ) {
+    return res.redirect('/create-a-case/application-details')
+  }
+
+  return res.render('create-a-case/application-details-content', {
+    applicationCode: getCreateACaseData(req)['application-code'],
+    applicationTitle: getApplicationTitle(getCreateACaseData(req)),
+    applicationWording: getAlternativeApplicationWording(getCreateACaseData(req)),
+    responseItems: getAlternativeApplicationResponseFields(getCreateACaseData(req)),
+    formAction: '/create-a-case/application-details/content',
+    cancelHref: '/create-a-case/cancel'
+  })
+})
+
+router.post('/create-a-case/application-details/content', (req, res, next) => {
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasValue(getCreateACaseData(req)['application-code'])
+  ) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const applicationResponseValues = Object.fromEntries(
+    getAlternativeApplicationResponseFields(getCreateACaseData(req)).map((field) => [
+      field.id,
+      getSingleValue(req.body[field.id]) || ''
+    ])
+  )
+
+  getCreateACaseData(req)['application-response-values'] = applicationResponseValues
+  getCreateACaseData(req)['application-foreign-court'] =
+    applicationResponseValues[getApplicationResponseFieldId('court')] ||
+    applicationResponseValues[getApplicationResponseFieldId('foreign court')] ||
+    ''
+  getCreateACaseData(req)['application-order-date'] =
+    applicationResponseValues[getApplicationResponseFieldId('order date')] ||
+    applicationResponseValues[getApplicationResponseFieldId('date order made')] ||
+    ''
+  getCreateACaseData(req)['application-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/hearing-details', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasCompletedApplicationDetails(getCreateACaseData(req))
+  ) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/hearing-details')
+})
+
+router.post('/create-a-case/hearing-details', (req, res, next) => {
+  if (!isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const hearingLocation = getSingleValue(req.body['hearing-location']) || ''
+
+  getCreateACaseData(req)['hearing-type'] =
+    hearingLocation === 'yes'
+      ? 'schedule-england-wales'
+      : hearingLocation === 'no'
+        ? 'non-scheduled'
+        : ''
+  delete getCreateACaseData(req)['hearing-details-completed']
+
+  const nextPage =
+    getCreateACaseData(req)['hearing-type'] === 'schedule-england-wales'
+      ? '/create-a-case/hearing-details-england-wales'
+      : getCreateACaseData(req)['hearing-type'] === 'non-scheduled'
+        ? '/create-a-case/hearing-details-outside-england-wales'
+        : '/create-a-case/hearing-details'
+
+  return redirectWithSessionSave(req, res, next, nextPage)
+})
+
+router.get('/create-a-case/hearing-details-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasCompletedApplicationDetails(getCreateACaseData(req))
+  ) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  if (getCreateACaseData(req)['hearing-type'] !== 'schedule-england-wales') {
+    return res.redirect('/create-a-case/hearing-details')
+  }
+
+  return res.render('create-a-case/hearing-details-england-wales')
+})
+
+router.post('/create-a-case/hearing-details-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  getCreateACaseData(req)['hearing-type'] = 'schedule-england-wales'
+  getCreateACaseData(req)['hearing-date'] =
+    getSingleValue(req.body['hearing-date']) || ''
+  getCreateACaseData(req)['hearing-court'] =
+    getSingleValue(req.body['hearing-court']) || ''
+  getCreateACaseData(req)['hearing-courtroom-number'] =
+    getSingleValue(req.body['hearing-courtroom-number']) || ''
+  getCreateACaseData(req)['hearing-start-time'] =
+    getSingleValue(req.body['hearing-start-time']) || ''
+  getCreateACaseData(req)['hearing-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/hearing-details-outside-england-wales', (req, res) => {
+  if (
+    !isApplicationJourney(getCreateACaseData(req)) ||
+    !hasCompletedApplicationDetails(getCreateACaseData(req))
+  ) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  if (getCreateACaseData(req)['hearing-type'] !== 'non-scheduled') {
+    return res.redirect('/create-a-case/hearing-details')
+  }
+
+  return res.render('create-a-case/hearing-details-outside-england-wales')
+})
+
+router.post('/create-a-case/hearing-details-outside-england-wales', (req, res, next) => {
+  if (!isApplicationJourney(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  getCreateACaseData(req)['hearing-type'] = 'non-scheduled'
+  getCreateACaseData(req)['hearing-date'] =
+    getSingleValue(req.body['hearing-date']) || ''
+  getCreateACaseData(req)['hearing-non-scheduled-details'] =
+    getSingleValue(req.body['hearing-non-scheduled-details']) || ''
+  getCreateACaseData(req)['hearing-details-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/minor-creditors', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  if (!hasMinorCreditors(getCreateACaseData(req))) {
+    return res.render('create-a-case/minor-creditor-details', {
+      creditor: {},
+      formAction: '/create-a-case/minor-creditors',
+      cancelHref: '/create-a-case/case-details'
+    })
+  }
+
+  return res.render('create-a-case/minor-creditors', {
+    minorCreditorCards: getMinorCreditorCards(getCreateACaseData(req)),
+    primaryActionText: getCreateACaseData(req)['alternative-pending-order-term']
+      ? 'Add to order term'
+      : 'Return to case details',
+    primaryActionHref: getCreateACaseData(req)['alternative-pending-order-term']
+      ? '/create-a-case/order-term-creditor'
+      : '/create-a-case/case-details'
+  })
+})
+
+router.post('/create-a-case/minor-creditors', (req, res, next) => {
+  const creditors = getMinorCreditors(getCreateACaseData(req))
+  creditors.push(buildMinorCreditor(req.body))
+  getCreateACaseData(req)['minor-creditors'] = creditors
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/minor-creditors')
+})
+
+router.get('/create-a-case/minor-creditors/new', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/minor-creditor-details', {
+    creditor: {},
+    formAction: '/create-a-case/minor-creditors/new',
+    cancelHref: '/create-a-case/minor-creditors'
+  })
+})
+
+router.post('/create-a-case/minor-creditors/new', (req, res, next) => {
+  const creditors = getMinorCreditors(getCreateACaseData(req))
+  creditors.push(buildMinorCreditor(req.body))
+  getCreateACaseData(req)['minor-creditors'] = creditors
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/minor-creditors')
+})
+
+router.get('/create-a-case/minor-creditors/:index/edit', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = getMinorCreditorIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/minor-creditors')
+  }
+
+  return res.render('create-a-case/minor-creditor-details', {
+    creditor: getMinorCreditors(getCreateACaseData(req))[index],
+    formAction: `/minor-creditors/${index}/edit`,
+    cancelHref: '/create-a-case/minor-creditors'
+  })
+})
+
+router.post('/create-a-case/minor-creditors/:index/edit', (req, res, next) => {
+  const index = getMinorCreditorIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/minor-creditors')
+  }
+
+  const creditors = getMinorCreditors(getCreateACaseData(req))
+  creditors[index] = buildMinorCreditor(req.body)
+  getCreateACaseData(req)['minor-creditors'] = creditors
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/minor-creditors')
+})
+
+router.get('/create-a-case/minor-creditors/:index/remove', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = getMinorCreditorIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/minor-creditors')
+  }
+
+  const creditor = getMinorCreditors(getCreateACaseData(req))[index]
+
+  return res.render('create-a-case/remove-minor-creditor', {
+    minorCreditorCard: {
+      title: getMinorCreditorName(creditor, index),
+      rows: getMinorCreditorSummaryRows(creditor)
+    },
+    formAction: `/minor-creditors/${index}/remove`
+  })
+})
+
+router.post('/create-a-case/minor-creditors/:index/remove', (req, res, next) => {
+  const index = getMinorCreditorIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/minor-creditors')
+  }
+
+  const creditors = getMinorCreditors(getCreateACaseData(req))
+  creditors.splice(index, 1)
+  getCreateACaseData(req)['minor-creditors'] = creditors
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    creditors.length ? '/create-a-case/minor-creditors' : '/create-a-case/case-details'
+  )
+})
+
+router.get('/create-a-case/terms-per-beneficiary', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  if (!hasTermsPerBeneficiary(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/terms-per-beneficiary/beneficiary')
+  }
+
+  return res.render('create-a-case/terms-review', {
+    beneficiaryGroups: getTermsReviewGroups(getCreateACaseData(req))
+  })
+})
+
+router.get('/create-a-case/terms-per-beneficiary/beneficiary', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const draft = getTermsBeneficiaryDraft(getCreateACaseData(req)) || {}
+
+  return res.render('create-a-case/terms-beneficiary', {
+    applicantBeneficiaryLabel: `${getApplicantFullName(getCreateACaseData(req))} (Applicant)`,
+    childAge: getAgeFromDateString(draft.dateOfBirth),
+    cancelHref: hasTermsPerBeneficiary(getCreateACaseData(req))
+      ? '/create-a-case/terms-per-beneficiary'
+      : '/create-a-case/case-details'
+  })
+})
+
+router.post('/create-a-case/terms-per-beneficiary/beneficiary', (req, res, next) => {
+  getCreateACaseData(req)['terms-beneficiary-draft'] = buildTermsBeneficiaryDraft(
+    req.body,
+    getCreateACaseData(req)
+  )
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/terms-per-beneficiary/order-terms')
+})
+
+router.get('/create-a-case/terms-per-beneficiary/order-terms', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const beneficiary = getTermsBeneficiaryDraft(getCreateACaseData(req))
+
+  if (!beneficiary) {
+    return res.redirect('/create-a-case/terms-per-beneficiary/beneficiary')
+  }
+
+  return res.render('create-a-case/terms-order-terms', {
+    beneficiary,
+    frequencyLabel: getFrequencyLabel(getCreateACaseData(req)['order-payment-frequency']),
+    creditorItems: getTermsCreditorItems(
+      getCreateACaseData(req),
+      getCreateACaseData(req)['terms-creditor'] || 'applicant'
+    )
+  })
+})
+
+router.post('/create-a-case/terms-per-beneficiary/order-terms', (req, res, next) => {
+  const entry = buildTermsEntry(req.body, getCreateACaseData(req))
+
+  if (!entry) {
+    return res.redirect('/create-a-case/terms-per-beneficiary/beneficiary')
+  }
+
+  const terms = getTermsPerBeneficiary(getCreateACaseData(req))
+  terms.push(entry)
+  getCreateACaseData(req)['terms-per-beneficiary'] = terms
+  delete getCreateACaseData(req)['terms-beneficiary-draft']
+
+  if (req.body.action === 'add-more-terms') {
+    return redirectWithSessionSave(req, res, next, '/create-a-case/terms-per-beneficiary/beneficiary')
+  }
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/terms-per-beneficiary')
+})
+
+router.get('/create-a-case/terms-per-beneficiary/:index/remove', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  const index = getTermsIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/terms-per-beneficiary')
+  }
+
+  const term = getTermsPerBeneficiary(getCreateACaseData(req))[index]
+
+  return res.render('create-a-case/remove-terms-per-beneficiary', {
+    beneficiaryGroup: {
+      name: term.beneficiaryName,
+      role: term.beneficiaryRole,
+      tag: term.beneficiaryTag,
+      rows: [getTermsReviewRow(term)]
+    },
+    formAction: `/terms-per-beneficiary/${index}/remove`
+  })
+})
+
+router.post('/create-a-case/terms-per-beneficiary/:index/remove', (req, res, next) => {
+  const index = getTermsIndex(req.params.index, getCreateACaseData(req))
+
+  if (index === null) {
+    return res.redirect('/create-a-case/terms-per-beneficiary')
+  }
+
+  const terms = getTermsPerBeneficiary(getCreateACaseData(req))
+  terms.splice(index, 1)
+  getCreateACaseData(req)['terms-per-beneficiary'] = terms
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    terms.length ? '/create-a-case/terms-per-beneficiary' : '/create-a-case/case-details'
+  )
+})
+
+router.get('/create-a-case/lump-sum-payment', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/lump-sum-payment', {
+    creditorItems: getTermsCreditorItems(
+      getCreateACaseData(req),
+      getCreateACaseData(req)['lump-sum-creditor'] || 'applicant'
+    )
+  })
+})
+
+router.post('/create-a-case/lump-sum-payment', (req, res, next) => {
+  getCreateACaseData(req)['lump-sum-payment-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/interest-and-indexation', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/interest-and-indexation')
+})
+
+router.post('/create-a-case/interest-and-indexation', (req, res, next) => {
+  getCreateACaseData(req)['interest-and-indexation-completed'] = 'yes'
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/managing-payments', (req, res) => {
+  if (!hasCompletedOrderDetails(getCreateACaseData(req))) {
+    return res.redirect('/create-a-case/case-details')
+  }
+
+  return res.render('create-a-case/managing-payments')
+})
+
+router.post('/create-a-case/managing-payments', (req, res, next) => {
+  const alternativeData = getCreateACaseData(req)
+
+  alternativeData['managing-payments-completed'] = hasValidManagingPaymentsSelection(alternativeData)
+    ? 'yes'
+    : ''
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
+})
+
+router.get('/create-a-case/cancel', (req, res, next) => {
+  delete getCreateACaseData(req)['case-type']
+  delete getCreateACaseData(req)['applicant-type']
+  delete getCreateACaseData(req)['has-order']
+  delete getCreateACaseData(req)['applicant-details-completed']
+  delete getCreateACaseData(req)['respondent-details-completed']
+  delete getCreateACaseData(req)['central-authority-details-completed']
+  delete getCreateACaseData(req)['central-authority-remo-reference']
+  delete getCreateACaseData(req)['central-authority-reference']
+  delete getCreateACaseData(req)['central-authority-name']
+  delete getCreateACaseData(req)['central-authority-manual-name']
+  delete getCreateACaseData(req)['central-authority-main-email-address']
+  delete getCreateACaseData(req)['central-authority-other-email-address']
+  delete getCreateACaseData(req)['central-authority-main-telephone-number']
+  delete getCreateACaseData(req)['central-authority-other-telephone-number']
+  delete getCreateACaseData(req)['central-authority-address-line-1']
+  delete getCreateACaseData(req)['central-authority-address-line-2']
+  delete getCreateACaseData(req)['central-authority-address-line-3']
+  delete getCreateACaseData(req)['central-authority-address-line-4']
+  delete getCreateACaseData(req)['central-authority-address-line-5']
+  delete getCreateACaseData(req)['central-authority-postal-or-zip-code']
+  delete getCreateACaseData(req)['central-authority-country']
+  delete getCreateACaseData(req)['central-authority-bank-account-type']
+  delete getCreateACaseData(req)['central-authority-bank-name-on-account']
+  delete getCreateACaseData(req)['central-authority-bank-sort-code']
+  delete getCreateACaseData(req)['central-authority-bank-account-number']
+  delete getCreateACaseData(req)['central-authority-bank-payment-reference']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-name-on-account']
+  delete getCreateACaseData(req)['central-authority-bank-bic-or-swift-code']
+  delete getCreateACaseData(req)['central-authority-bank-iban']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-payment-reference']
+  delete getCreateACaseData(req)['central-authority-bank-name']
+  delete getCreateACaseData(req)['central-authority-bank-branch-office-or-sort-code']
+  delete getCreateACaseData(req)['central-authority-bank-non-uk-account-number']
+  delete getCreateACaseData(req)['order-details-completed']
+  delete getCreateACaseData(req)['order-has-periodical-payments']
+  delete getCreateACaseData(req)['order-has-lump-sum']
+  delete getCreateACaseData(req)['order-payment-frequency']
+  delete getCreateACaseData(req)['order-application-code']
+  delete getCreateACaseData(req)['order-court-that-made-the-order']
+  delete getCreateACaseData(req)['order-date-order-made']
+  delete getCreateACaseData(req)['order-date-arrears-last-updated']
+  delete getCreateACaseData(req)['order-managing-payments']
+  delete getCreateACaseData(req)['entered-order-terms']
+  delete getCreateACaseData(req)['alternative-order-term-code']
+  delete getCreateACaseData(req)['alternative-current-order-term-responses']
+  delete getCreateACaseData(req)['alternative-edit-order-term-index']
+  delete getCreateACaseData(req)['alternative-order-term-errors']
+  delete getCreateACaseData(req)['alternative-creditor-order-term-index']
+  delete getCreateACaseData(req)['alternative-pending-order-term']
+  delete getCreateACaseData(req)['minor-creditors']
+  delete getCreateACaseData(req)['terms-per-beneficiary']
+  delete getCreateACaseData(req)['terms-beneficiary-draft']
+  delete getCreateACaseData(req)['lump-sum-payment-completed']
+  delete getCreateACaseData(req)['lump-sum-amount']
+  delete getCreateACaseData(req)['lump-sum-enter-pay-by-date']
+  delete getCreateACaseData(req)['lump-sum-reason-for-payment']
+  delete getCreateACaseData(req)['lump-sum-creditor']
+  delete getCreateACaseData(req)['interest-and-indexation-completed']
+  delete getCreateACaseData(req)['interest-applies']
+  delete getCreateACaseData(req)['indexation-type']
+  delete getCreateACaseData(req)['managing-payments-completed']
+  delete getCreateACaseData(req)['case-comment']
+  delete getCreateACaseData(req)['case-notes']
+  delete getCreateACaseData(req)['application-details-completed']
+  delete getCreateACaseData(req)['application-code']
+  delete getCreateACaseData(req)['application-foreign-court']
+  delete getCreateACaseData(req)['application-order-date']
+  delete getCreateACaseData(req)['hearing-details-completed']
+  delete getCreateACaseData(req)['hearing-type']
+  delete getCreateACaseData(req)['hearing-court']
+  delete getCreateACaseData(req)['hearing-date']
+  delete getCreateACaseData(req)['hearing-courtroom-number']
+  delete getCreateACaseData(req)['hearing-start-time']
+  delete getCreateACaseData(req)['hearing-non-scheduled-details']
+
+  return redirectWithSessionSave(req, res, next, '/')
+})
+
+router.get('/create-a-case/cancel-case-creation', (req, res) => {
+  if (!getCreateACaseData(req)['case-type']) {
+    return res.redirect('/create-a-case')
+  }
+
+  return res.render('create-a-case/cancel-case-creation')
+})
+
+router.post('/create-a-case/cancel-case-creation', (req, res, next) => {
+  if (req.body['cancel-case-creation'] === 'yes') {
+    return res.redirect('/create-a-case/cancel')
+  }
+
+  return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
 })
 
 
@@ -7997,7 +9487,8 @@ router.get('/resulting/result-details', (req, res) => {
     resultTitle: resultDefinition.title,
     resultCategory: getResultCategoryLabel(resultDefinition.category),
     resultWording: getResultWording(req.session.data),
-    responseItems: getResultingResponseItems(req.session.data)
+    responseItems: getResultingResponseItems(req.session.data),
+    errorSummary: null
   })
 })
 
@@ -8022,7 +9513,8 @@ router.post('/resulting/result-details', (req, res, next) => {
       resultTitle: resultDefinition.title,
       resultCategory: getResultCategoryLabel(resultDefinition.category),
       resultWording: getResultWording(req.session.data),
-      responseItems: getResultingResponseItems(req.session.data)
+      responseItems: getResultingResponseItems(req.session.data),
+      errorSummary: buildErrorSummary(errors)
     })
   }
 

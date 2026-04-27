@@ -1,0 +1,29 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}
+  Cancel case creation - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-l">Cancel case creation</h1>
+
+      <p class="govuk-body">If you continue, all of the details added for this case will be lost.</p>
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Continue and delete all details",
+          classes: "govuk-button--warning",
+          href: "/"
+        }) }}
+
+        <a class="govuk-link" href="/create-a-case/case-details">Go back</a>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}

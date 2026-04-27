@@ -1,0 +1,36 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Remove order terms - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">Are you sure you want to remove these order terms?</h1>
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: orderTermCard.title
+          }
+        },
+        rows: orderTermCard.rows
+      }) }}
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukButton({
+          text: "Yes - remove order terms",
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/create-a-case/select-order-term">No - cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
