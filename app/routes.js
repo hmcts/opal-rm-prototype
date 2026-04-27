@@ -710,6 +710,125 @@ function buildCreateDataScenarios() {
         }
       }
     },
+    'create-a-case-order': {
+      label: 'Create a case: order journey',
+      description: 'Seeds the create a case journey with a REMO Out individual applicant, three order terms, and completed order metadata.',
+      redirectTo: '/create-a-case/case-details',
+      sessionData: {
+        ...buildBaseSessionData(),
+        'create-a-case': {
+          'case-type': 'remo-out',
+          'applicant-type': 'individual',
+          'has-order': 'yes',
+          'applicant-title': 'mrs',
+          'applicant-first-names': 'Anna',
+          'applicant-last-name': 'Nowak',
+          'applicant-date-of-birth': '08/06/1985',
+          'applicant-main-email-address': 'anna.nowak@example.test',
+          'applicant-main-telephone-number': '+447700900221',
+          'applicant-address-line-1': '14 Birch Close',
+          'applicant-address-line-2': 'Leeds',
+          'applicant-address-line-4': 'West Yorkshire',
+          'applicant-postal-or-zip-code': 'LS14 2AB',
+          'applicant-country': 'united-kingdom',
+          'applicant-bank-account-type': 'uk-bank-account',
+          'applicant-bank-name-on-account': 'Anna Nowak',
+          'applicant-bank-sort-code': '20-45-67',
+          'applicant-bank-account-number': '12345678',
+          'applicant-bank-payment-reference': 'NOWAK-FAMILY',
+          'respondent-title': 'mr',
+          'respondent-first-names': 'Piotr',
+          'respondent-last-name': 'Nowak',
+          'respondent-date-of-birth': '19/11/1982',
+          'respondent-main-email-address': 'piotr.nowak@example.test',
+          'respondent-main-telephone-number': '+48500111222',
+          'respondent-address-line-1': 'ul. Marszalkowska 24',
+          'respondent-address-line-2': 'Warszawa',
+          'respondent-postal-or-zip-code': '00-576',
+          'respondent-country': 'poland',
+          'order-application-code': 'HC07003',
+          'order-court-that-made-the-order': 'Leeds Family Court',
+          'order-date-order-made': '14/02/2026',
+          'order-date-arrears-last-updated': '01/04/2026',
+          'entered-order-terms': [
+            {
+              code: 'MAT',
+              title: 'Matrimonial Order for Adult',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 325.00 to be paid every month from 14 February 2026 until 14 February 2027.',
+              responses: {
+                'result-mat-amount': '325',
+                'result-mat-frequency': 'monthly',
+                'result-mat-expiry': '14/02/2027',
+                'result-mat-arrears': '150',
+                'result-mat-creditor': 'Anna Nowak',
+                'result-mat-respondent': 'Piotr Nowak',
+                'result-mat-payment': 'payable through the Court',
+                'result-mat-commencement': '14/02/2026',
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Anna Nowak'
+            },
+            {
+              code: 'MCHILD',
+              title: 'Maintenace Order for child(ren)',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 15 March 2034.',
+              responses: {
+                'result-mchild-amount': '220',
+                'result-mchild-frequency': 'monthly',
+                'result-mchild-expiry': '15/03/2034',
+                'result-mchild-arrears': '80',
+                'result-mchild-education': ['Order until completion of full-time eduction'],
+                'result-mchild-beneficiary': 'Sofia Nowak',
+                'result-mchild-child-dob': '15/03/2016',
+                'result-mchild-respondent': 'Piotr Nowak',
+                'result-mchild-payment': 'payable through the Court',
+                'result-mchild-commencement': '14/02/2026'
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Anna Nowak'
+            },
+            {
+              code: 'MCHILD',
+              title: 'Maintenace Order for child(ren)',
+              category: 'FINAL',
+              categoryLabel: 'Final',
+              wording:
+                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
+              responses: {
+                'result-mchild-amount': '220',
+                'result-mchild-frequency': 'monthly',
+                'result-mchild-expiry': '22/09/2036',
+                'result-mchild-arrears': '80',
+                'result-mchild-education': ['Order until completion of full-time eduction'],
+                'result-mchild-beneficiary': 'Michal Nowak',
+                'result-mchild-child-dob': '22/09/2018',
+                'result-mchild-respondent': 'Piotr Nowak',
+                'result-mchild-payment': 'payable through the Court',
+                'result-mchild-commencement': '14/02/2026'
+              },
+              creditor: 'applicant',
+              creditorLabel: 'Anna Nowak'
+            }
+          ],
+          'interest-and-indexation-completed': 'yes',
+          'interest-applies': 'no',
+          'indexation-type': 'no-indexation',
+          'managing-payments-completed': 'yes',
+          'order-managing-payments': 'payments-via-court',
+          'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
+          'case-notes': 'Applicant lives in the UK and respondent lives in Poland. MAT plus 2 MCHILD terms recorded.',
+          'applicant-details-completed': 'yes',
+          'respondent-details-completed': 'yes',
+          'order-details-completed': 'yes'
+        }
+      }
+    },
     resulting: {
       label: 'Resulting: record selected',
       description: 'Seeds the resulting journey with a selected record, party details, and one result already entered.',
