@@ -1,0 +1,141 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}
+  Central authority details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set formAction = formAction or "/create-a-case/central-authority-details" %}
+  {% set manualHref = manualHref or "/create-a-case/central-authority-details/manual" %}
+  {% set removeHref = removeHref or "/create-a-case/central-authority-details/remove" %}
+  {% set cancelHref = cancelHref or "/create-a-case/cancel" %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({
+        text: "Back",
+        href: "/create-a-case/case-details"
+      }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Central authority details</h1>
+
+      <form method="post" action="{{ formAction }}">
+        <h2 class="govuk-heading-s">Authority references</h2>
+
+        {{ govukInput({
+          id: "central-authority-remo-reference",
+          name: "central-authority-remo-reference",
+          label: {
+            text: "REMO reference (optional)",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["central-authority-remo-reference"]
+        }) }}
+
+        {{ govukInput({
+          id: "central-authority-reference",
+          name: "central-authority-reference",
+          label: {
+            text: "Central authority reference (optional)",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["central-authority-reference"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-s">Central authority</h2>
+
+        {% if hasCentralAuthorityManualDetails %}
+          {{ govukSummaryList({
+            card: {
+              title: {
+                text: "Central authority details"
+              },
+              actions: {
+                items: [
+                  {
+                    text: "Change",
+                href: manualHref
+                  },
+                  {
+                    text: "Remove",
+                href: removeHref
+                  }
+                ]
+              }
+            },
+            rows: centralAuthorityCardRows
+          }) }}
+        {% else %}
+          {{ xGovukAutocomplete({
+            id: "central-authority-name",
+            name: "central-authority-name",
+            label: {
+              text: "Enter a central authority name",
+              classes: "govuk-label--s"
+            },
+            classes: "govuk-!-width-two-thirds",
+            value: data["central-authority-name"],
+            items: [
+              {
+                text: "c/o Services Australia"
+              },
+              {
+                text: "Centre of International Legal Protection of Children and Youth"
+              },
+              {
+                text: "Forsakringskassan"
+              },
+              {
+                text: "Inland Revenue Child Support Hague Convention"
+              },
+              {
+                text: "Kansanelakelaitos"
+              },
+              {
+                text: "Landelijk Bureau Inning Onderhoudsbijdragen"
+              },
+              {
+                text: "The Collection Agency for Child Support and Overpaid Benefits"
+              },
+              {
+                text: "Urad pro mezinarodnepravni ochranu deti"
+              },
+              {
+                text: "Uzturzeklu garantiju fonda administracija"
+              },
+              {
+                text: "Vasario 16-Osios G"
+              }
+            ]
+          }) }}
+
+        {% endif %}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Return to case details"
+          }) }}
+
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

@@ -1,0 +1,29 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageTitle %}
+  Case submitted - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukPanel({
+        titleText: "You've submitted this case for review"
+      }) }}
+
+      <h2 class="govuk-heading-m">Next steps</h2>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/create-a-case/">Create a new case</a>
+      </p>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="#">See all cases in review</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
+
+

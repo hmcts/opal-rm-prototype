@@ -1,0 +1,38 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}
+  Remove minor creditor - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">Are you sure you want to remove this minor creditor?</h1>
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: minorCreditorCard.title
+          }
+        },
+        rows: minorCreditorCard.rows
+      }) }}
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukButton({
+          text: "Yes - remove minor creditor",
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ cancelHref or '/create-a-case/minor-creditors' }}">No - cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
+
+

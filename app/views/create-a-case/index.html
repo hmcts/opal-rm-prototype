@@ -1,0 +1,107 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% block pageTitle %}
+  Create a case – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Create a case</h1>
+
+      {% set applicantTypeOptions = [
+        {
+          text: "Select",
+          value: "",
+          selected: not data["applicant-type"]
+        },
+        {
+          text: "Individual",
+          value: "individual",
+          selected: data["applicant-type"] == "individual"
+        },
+        {
+          text: "Organisation",
+          value: "organisation",
+          selected: data["applicant-type"] == "organisation"
+        }
+      ] %}
+
+      {% set applicantTypeHtmlRemoIn %}
+        {{ govukSelect({
+          id: "applicant-type-remo-in",
+          name: "applicant-type-remo-in",
+          label: {
+            text: "Select applicant type",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-third",
+          items: applicantTypeOptions
+        }) }}
+      {% endset %}
+
+      {% set applicantTypeHtmlRemoOut %}
+        {{ govukSelect({
+          id: "applicant-type-remo-out",
+          name: "applicant-type-remo-out",
+          label: {
+            text: "Select applicant type",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-one-third",
+          items: applicantTypeOptions
+        }) }}
+      {% endset %}
+
+      <form method="post" action="/create-a-case">
+        {{ govukRadios({
+          idPrefix: "case-type",
+          name: "case-type",
+          fieldset: {
+            legend: {
+              text: "Select a case type",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "remo-in",
+              text: "REMO In",
+              checked: data["case-type"] == "remo-in",
+              conditional: {
+                html: applicantTypeHtmlRemoIn
+              }
+            },
+            {
+              value: "remo-out",
+              text: "REMO Out",
+              checked: data["case-type"] == "remo-out",
+              conditional: {
+                html: applicantTypeHtmlRemoOut
+              }
+            },
+            {
+              value: "remo-out-cms",
+              text: "REMO Out (CMS)",
+              checked: data["case-type"] == "remo-out-cms"
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
+
+          <a class="govuk-link" href="/create-a-case/cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+
