@@ -4,6 +4,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
@@ -24,6 +25,13 @@
 
       <span class="govuk-caption-l">Order terms</span>
       <h1 class="govuk-heading-l">{{ resultCode }} - {{ resultTitle }}</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
 
       <form method="post" action="/orders-applications-alternative/order-term-details">
         {% for field in responseItems %}
@@ -61,6 +69,12 @@
               value: field.value,
               errorMessage: field.errorMessage
             }) }}
+
+            {% if field.calculatedAge !== null %}
+              <div class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7">
+                <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: {{ field.calculatedAge }}</strong></p>
+              </div>
+            {% endif %}
           {% elif field.type == "currency" %}
             {{ govukInput({
               id: field.id,

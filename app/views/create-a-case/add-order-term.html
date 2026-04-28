@@ -17,7 +17,8 @@
         href: "/create-a-case/select-order-term"
       }) }}
 
-      <h1 class="govuk-heading-l">Add order terms</h1>
+      <span class="govuk-caption-l">Order terms</span>
+      <h1 class="govuk-heading-l">What type of order are you adding?</h1>
 
       {% if selectionError %}
         {{ govukErrorSummary({
@@ -43,11 +44,8 @@
           id: "alternative-order-term-code",
           name: "alternative-order-term-code",
           label: {
-            text: "Select the order term",
+            text: "Select an order",
             classes: "govuk-label--s"
-          },
-          hint: {
-            text: "Start typing an order term code or title to see matching order terms."
           },
           classes: "govuk-!-width-two-thirds",
           value: data["alternative-order-term-code"],
@@ -58,6 +56,8 @@
         {{ govukButton({
           text: "Continue"
         }) }}
+
+        <a class="govuk-link" href="/create-a-case/cancel">Cancel</a>
       </form>
     </div>
   </div>

@@ -39,13 +39,13 @@ const rawResultDefinitions = {
     responses: [
       {
         name: 'Amount',
-        prompt: 'Amount of order',
+        prompt: 'Amount',
         type: 'decimal',
         mandatory: 'Yes'
       },
       {
         name: 'Frequency',
-        prompt: 'Terms frequency',
+        prompt: 'Payment frequency',
         type: 'menu-radio',
         mandatory: 'Yes',
         options: 'weekly, fortnightly, monthly, quarterly, yearly'
@@ -58,7 +58,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Arrears',
-        prompt: 'Arrears Amount',
+        prompt: 'Arrears',
         type: 'decimal',
         mandatory: 'Yes'
       },
@@ -103,13 +103,13 @@ const rawResultDefinitions = {
     responses: [
       {
         name: 'Amount',
-        prompt: 'Amount of order',
+        prompt: 'Amount',
         type: 'decimal',
         mandatory: 'Yes'
       },
       {
         name: 'Frequency',
-        prompt: 'Terms frequency',
+        prompt: 'Payment frequency',
         type: 'menu-radio',
         mandatory: 'Yes',
         options: 'weekly, fortnightly, monthly, quarterly, yearly'
@@ -131,7 +131,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Arrears',
-        prompt: 'Arrears Amount',
+        prompt: 'Arrears',
         type: 'decimal',
         mandatory: 'Yes'
       },
@@ -143,7 +143,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Child DOB',
-        prompt: 'Date of birth',
+        prompt: "Child's date of birth",
         type: 'date',
         mandatory: 'No'
       },

@@ -4,6 +4,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}
   Central authority details - {{ serviceName }} - GOV.UK Prototype Kit
@@ -199,7 +200,7 @@
           value: data["central-authority-postal-or-zip-code"]
         }) }}
 
-        {{ govukSelect({
+        {{ xGovukAutocomplete({
           id: "central-authority-country",
           name: "central-authority-country",
           label: {
@@ -207,6 +208,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          value: data["central-authority-country"],
           items: getCountrySelectItems(data["central-authority-country"])
         }) }}
 

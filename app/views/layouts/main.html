@@ -5,6 +5,39 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 
 {% extends "govuk-prototype-kit/layouts/govuk-branded.njk" %}
 
+{% block pageScripts %}
+<script src="/public/javascripts/accessible-autocomplete.min.js"></script>
+<script>
+(function () {
+  var _orig = window.GOVUKPrototypeKit.documentReady
+  window.GOVUKPrototypeKit.documentReady = function (fn) {
+    _orig(function () {
+      var autocompleteEls = []
+      if (window.accessibleAutocomplete) {
+        document.querySelectorAll('[data-module="autocomplete"]').forEach(function (el) {
+          autocompleteEls.push(el)
+          el.removeAttribute('data-module')
+        })
+      }
+      fn()
+      autocompleteEls.forEach(function (el) {
+        var params = el.dataset
+        window.accessibleAutocomplete.enhanceSelectElement({
+          selectElement: el,
+          defaultValue: el.value,
+          autoselect: params.autoselect === 'true',
+          displayMenu: params.displayMenu,
+          minLength: params.minLength ? parseInt(params.minLength) : 0,
+          showAllValues: true,
+          showNoOptionsFound: params.showNoOptionsFound === 'true'
+        })
+      })
+    })
+  }
+})()
+</script>
+{% endblock %}
+
 {% from "moj/components/header/macro.njk" import mojHeader %}
 {% from "moj/components/primary-navigation/macro.njk" import mojPrimaryNavigation %}
 

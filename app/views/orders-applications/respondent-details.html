@@ -7,6 +7,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
@@ -174,7 +175,7 @@
           value: data["respondent-third-party-postal-or-zip-code"]
         }) }}
 
-        {{ govukSelect({
+        {{ xGovukAutocomplete({
           id: "respondent-third-party-country",
           name: "respondent-third-party-country",
           label: {
@@ -183,6 +184,7 @@
           },
           classes: "govuk-!-width-two-thirds",
           errorMessage: formErrors["respondent-third-party-country"],
+          value: data["respondent-third-party-country"],
           items: getCountrySelectItems(data["respondent-third-party-country"])
         }) }}
       {% endset %}
@@ -556,7 +558,7 @@
           value: data["respondent-postal-or-zip-code"]
         }) }}
 
-        {{ govukSelect({
+        {{ xGovukAutocomplete({
           id: "respondent-country",
           name: "respondent-country",
           label: {
@@ -564,6 +566,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          value: data["respondent-country"],
           items: getCountrySelectItems(data["respondent-country"])
         }) }}
 
