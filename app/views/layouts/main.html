@@ -38,18 +38,40 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 </script>
 {% endblock %}
 
+{% from "govuk/components/footer/macro.njk" import govukFooter %}
 {% from "moj/components/header/macro.njk" import mojHeader %}
 {% from "moj/components/primary-navigation/macro.njk" import mojPrimaryNavigation %}
+
+{% block govukFooter %}
+  {% if GOVUKPrototypeKit.isDevelopment %}
+    {% set footerItems = [
+      { href: "/manage-prototype", text: "Manage your prototype" },
+      { href: "/create-data", text: "Create data" },
+      { href: "/manage-prototype/clear-data", text: "Clear data" }
+    ] %}
+  {% else %}
+    {% set footerItems = [
+      { href: "/create-data", text: "Create data" },
+      { href: "/manage-prototype/clear-data", text: "Clear data" }
+    ] %}
+  {% endif %}
+  {{ govukFooter({
+    meta: {
+      items: footerItems,
+      visuallyHiddenTitle: "Footer links"
+    }
+  }) }}
+{% endblock %}
 
 {% block header %}
   {{ mojHeader({
     organisationLabel: {
       text: "HMCTS Opal",
-      href: "/"
+      href: "/cases"
     },
     serviceLabel: {
       text: serviceName,
-      href: "/"
+      href: "/cases"
     },
     navigation: {
       label: "Account navigation",
@@ -73,7 +95,7 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
       },
       {
         text: "Cases",
-        href: "#",
+        href: "/cases",
         active: activeNav == "cases"
       },
       {

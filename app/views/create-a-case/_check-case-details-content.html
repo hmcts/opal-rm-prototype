@@ -1,0 +1,316 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+
+{% set showChangeLinks = showChangeLinks | default(true) %}
+{% set caseDetailsBasePath = caseDetailsBasePath | default("/create-a-case") %}
+
+{{ govukSummaryList({
+  rows: [
+    {
+      key: {
+        text: "Case type"
+      },
+      value: {
+        text: caseTypeLabel
+      }
+    },
+    {
+      key: {
+        text: "Applicant type"
+      },
+      value: {
+        text: applicantTypeLabel
+      }
+    }
+  ]
+}) }}
+
+{% set applicantWarningHtml %}
+  {{ mojAlert({
+    variant: "warning",
+    text: "Applicant's personal information should not be shared."
+  }) }}
+{% endset %}
+
+{% set respondentWarningHtml %}
+  {{ mojAlert({
+    variant: "warning",
+    text: "Respondent's personal information should not be shared."
+  }) }}
+{% endset %}
+
+<div class="govuk-summary-card govuk-!-margin-bottom-6">
+  <div class="govuk-summary-card__title-wrapper">
+    <h2 class="govuk-summary-card__title">Applicant details</h2>
+    {% if showChangeLinks %}
+      <ul class="govuk-summary-card__actions">
+        <li class="govuk-summary-card__action">
+          <a class="govuk-link" href="{{ caseDetailsBasePath }}/applicant-details">Change</a>
+        </li>
+      </ul>
+    {% endif %}
+  </div>
+  <div class="govuk-summary-card__content">
+    {% if showApplicantRestrictionWarning %}
+      {{ applicantWarningHtml | safe }}
+    {% endif %}
+
+    {{ govukSummaryList({
+      rows: applicantRows
+    }) }}
+  </div>
+</div>
+
+<div class="govuk-summary-card govuk-!-margin-bottom-6">
+  <div class="govuk-summary-card__title-wrapper">
+    <h2 class="govuk-summary-card__title">Respondent details</h2>
+    {% if showChangeLinks %}
+      <ul class="govuk-summary-card__actions">
+        <li class="govuk-summary-card__action">
+          <a class="govuk-link" href="{{ caseDetailsBasePath }}/respondent-details">Change</a>
+        </li>
+      </ul>
+    {% endif %}
+  </div>
+  <div class="govuk-summary-card__content">
+    {% if showRespondentRestrictionWarning %}
+      {{ respondentWarningHtml | safe }}
+    {% endif %}
+
+    {{ govukSummaryList({
+      rows: respondentRows
+    }) }}
+  </div>
+</div>
+
+{% if not isRemoOutCase %}
+  {% if showChangeLinks %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Central authority details"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/central-authority-details"
+            }
+          ]
+        }
+      },
+      rows: centralAuthorityRows
+    }) }}
+  {% else %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Central authority details"
+        }
+      },
+      rows: centralAuthorityRows
+    }) }}
+  {% endif %}
+{% endif %}
+
+{% if isApplicationJourney %}
+  {% if showChangeLinks %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Application details"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/application-details"
+            }
+          ]
+        }
+      },
+      rows: applicationRows
+    }) }}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Hearing details"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/hearing-details"
+            }
+          ]
+        }
+      },
+      rows: hearingRows
+    }) }}
+  {% else %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Application details"
+        }
+      },
+      rows: applicationRows
+    }) }}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Hearing details"
+        }
+      },
+      rows: hearingRows
+    }) }}
+  {% endif %}
+{% else %}
+  {% if showChangeLinks %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Order details"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/order-details"
+            }
+          ]
+        }
+      },
+      rows: orderDetailsRows
+    }) }}
+  {% else %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Order details"
+        }
+      },
+      rows: orderDetailsRows
+    }) }}
+  {% endif %}
+
+  <h2 class="govuk-heading-m">Order terms</h2>
+
+  {% for orderTermCard in orderTermCards %}
+    {% if showChangeLinks %}
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: orderTermCard.title
+          },
+          actions: {
+            items: [
+              {
+                text: "Change",
+                href: orderTermCard.changeHref
+              },
+              {
+                text: "Remove",
+                href: orderTermCard.removeHref
+              }
+            ]
+          }
+        },
+        rows: orderTermCard.rows
+      }) }}
+    {% else %}
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: orderTermCard.title
+          }
+        },
+        rows: orderTermCard.rows
+      }) }}
+    {% endif %}
+  {% endfor %}
+
+  {% if showChangeLinks %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Interest and indexation"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/interest-and-indexation"
+            }
+          ]
+        }
+      },
+      rows: interestAndIndexationRows
+    }) }}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Managing payments"
+        },
+        actions: {
+          items: [
+            {
+              text: "Change",
+              href: caseDetailsBasePath + "/managing-payments"
+            }
+          ]
+        }
+      },
+      rows: managingPaymentsRows
+    }) }}
+  {% else %}
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Interest and indexation"
+        }
+      },
+      rows: interestAndIndexationRows
+    }) }}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Managing payments"
+        }
+      },
+      rows: managingPaymentsRows
+    }) }}
+  {% endif %}
+{% endif %}
+
+{% if showChangeLinks %}
+  {{ govukSummaryList({
+    card: {
+      title: {
+        text: "Case comment and notes"
+      },
+      actions: {
+        items: [
+          {
+            text: "Change",
+            href: caseDetailsBasePath + "/case-comments-and-notes"
+          }
+        ]
+      }
+    },
+    rows: caseCommentsRows
+  }) }}
+{% else %}
+  {{ govukSummaryList({
+    card: {
+      title: {
+        text: "Case comment and notes"
+      }
+    },
+    rows: caseCommentsRows
+  }) }}
+{% endif %}

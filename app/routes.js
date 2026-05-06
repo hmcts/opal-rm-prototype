@@ -543,93 +543,45 @@ function buildBaseSessionData() {
 
 function buildCreateDataScenarios() {
   return {
-    'main-application': {
-      label: 'Orders and applications: application journey',
-      description: 'Seeds the main journey with applicant, respondent, central authority, application and hearing details.',
-      redirectTo: '/orders-applications/case-details',
+    'create-a-case-remo-in': {
+      label: 'Create a case: REMO In order journey',
+      description: 'Seeds the create a case journey with a REMO In individual applicant (outside UK), UK respondent, two order terms, and completed order metadata.',
+      redirectTo: '/create-a-case/case-details',
       sessionData: {
         ...buildBaseSessionData(),
-        'case-type': 'remo-in',
-        'applicant-type': 'individual',
-        'has-order': 'no',
-        'applicant-title': 'ms',
-        'applicant-first-names': 'Anna Maria',
-        'applicant-last-name': 'Korhonen',
-        'applicant-date-of-birth': '14/02/1986',
-        'applicant-main-email-address': 'anna.korhonen@example.test',
-        'applicant-main-telephone-number': '+35840111222',
-        'applicant-address-line-1': '12 Market Square',
-        'applicant-address-line-2': 'Helsinki',
-        'applicant-postal-or-zip-code': '00100',
-        'applicant-country': 'finland',
-        'applicant-bank-account-type': 'non-uk-bank-account',
-        'applicant-bank-non-uk-name-on-account': 'Anna Korhonen',
-        'applicant-bank-bic-or-swift-code': 'NDEAFIHH',
-        'applicant-bank-iban': 'FI2112345600000785',
-        'respondent-title': 'mr',
-        'respondent-first-names': 'David',
-        'respondent-last-name': 'Smith',
-        'respondent-date-of-birth': '09/07/1983',
-        'respondent-main-email-address': 'david.smith@example.test',
-        'respondent-main-telephone-number': '+447700900123',
-        'respondent-address-line-1': '99 High Street',
-        'respondent-address-line-2': 'Reading',
-        'respondent-postal-or-zip-code': 'RG1 9RT',
-        'respondent-country': 'united-kingdom',
-        'central-authority-name': 'Finnish Central Authority',
-        'central-authority-reference': 'FI-CA-20485',
-        'application-code': 'CA89001',
-        'application-foreign-court': 'District Court of Helsinki',
-        'application-order-date': '12/03/2025',
-        'hearing-type': 'non-scheduled',
-        'hearing-date': '18/03/2025',
-        'hearing-non-scheduled-details': 'Remote hearing listed by the central authority',
-        'applicant-details-completed': 'yes',
-        'respondent-details-completed': 'yes',
-        'central-authority-details-completed': 'yes',
-        'application-details-completed': 'yes',
-        'hearing-details-completed': 'yes'
-      }
-    },
-    'alternative-order': {
-      label: 'Orders and applications (alternative): order journey',
-      description: 'Seeds the alternative journey with a REMO Out individual applicant, three order terms, and completed order metadata.',
-      redirectTo: '/orders-applications-alternative/case-details',
-      sessionData: {
-        ...buildBaseSessionData(),
-        'orders-applications-alternative': {
-          'case-type': 'remo-out',
+        'create-a-case': {
+          'case-type': 'remo-in',
           'applicant-type': 'individual',
           'has-order': 'yes',
           'applicant-title': 'mrs',
-          'applicant-first-names': 'Anna',
-          'applicant-last-name': 'Nowak',
-          'applicant-date-of-birth': '08/06/1985',
-          'applicant-main-email-address': 'anna.nowak@example.test',
-          'applicant-main-telephone-number': '+447700900221',
-          'applicant-address-line-1': '14 Birch Close',
-          'applicant-address-line-2': 'Leeds',
-          'applicant-address-line-4': 'West Yorkshire',
-          'applicant-postal-or-zip-code': 'LS14 2AB',
-          'applicant-country': 'united-kingdom',
-          'applicant-bank-account-type': 'uk-bank-account',
-          'applicant-bank-name-on-account': 'Anna Nowak',
-          'applicant-bank-sort-code': '20-45-67',
-          'applicant-bank-account-number': '12345678',
-          'applicant-bank-payment-reference': 'NOWAK-FAMILY',
+          'applicant-first-names': 'Marta',
+          'applicant-last-name': 'Kowalski',
+          'applicant-date-of-birth': '14/03/1983',
+          'applicant-main-email-address': 'marta.kowalski@example.test',
+          'applicant-main-telephone-number': '+48601234567',
+          'applicant-address-line-1': 'ul. Nowy Swiat 45',
+          'applicant-address-line-2': 'Warszawa',
+          'applicant-postal-or-zip-code': '00-042',
+          'applicant-country': 'poland',
+          'applicant-bank-account-type': 'non-uk-bank-account',
+          'applicant-bank-non-uk-name-on-account': 'Marta Kowalski',
+          'applicant-bank-bic-or-swift-code': 'NBPLPLPW',
+          'applicant-bank-iban': 'PL61109010140000071219812874',
+          'applicant-restrict-personal-information': 'yes',
+          'applicant-restriction-reason': 'There is a domestic violence case between the applicant and respondent.',
           'respondent-title': 'mr',
-          'respondent-first-names': 'Piotr',
-          'respondent-last-name': 'Nowak',
-          'respondent-date-of-birth': '19/11/1982',
-          'respondent-main-email-address': 'piotr.nowak@example.test',
-          'respondent-main-telephone-number': '+48500111222',
-          'respondent-address-line-1': 'ul. Marszalkowska 24',
-          'respondent-address-line-2': 'Warszawa',
-          'respondent-postal-or-zip-code': '00-576',
-          'respondent-country': 'poland',
-          'order-application-code': 'HC07003',
-          'order-court-that-made-the-order': 'Leeds Family Court',
-          'order-date-order-made': '14/02/2026',
+          'respondent-first-names': 'James',
+          'respondent-last-name': 'Taylor',
+          'respondent-date-of-birth': '07/09/1980',
+          'respondent-main-email-address': 'james.taylor@example.test',
+          'respondent-main-telephone-number': '+447700900456',
+          'respondent-address-line-1': '32 Deansgate',
+          'respondent-address-line-2': 'Manchester',
+          'respondent-postal-or-zip-code': 'M3 4LY',
+          'respondent-country': 'united-kingdom',
+          'order-application-code': 'PL-REM-2026-088',
+          'order-court-that-made-the-order': 'District Court of Warsaw',
+          'order-date-order-made': '10/01/2026',
           'order-date-arrears-last-updated': '01/04/2026',
           'entered-order-terms': [
             {
@@ -638,19 +590,19 @@ function buildCreateDataScenarios() {
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
-                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 325.00 to be paid every month from 14 February 2026 until 14 February 2027.',
+                'Order for payment by James Taylor to Marta Kowalski payable through the Court for the benefit of the Complainant.\nThe sum of £ 400.00 to be paid every month from 10 January 2026 until 10 January 2028.',
               responses: {
-                'result-mat-amount': '325',
+                'result-mat-amount': '400',
                 'result-mat-frequency': 'monthly',
-                'result-mat-expiry': '14/02/2027',
-                'result-mat-arrears': '150',
-                'result-mat-creditor': 'Anna Nowak',
-                'result-mat-respondent': 'Piotr Nowak',
+                'result-mat-expiry': '10/01/2028',
+                'result-mat-arrears': '200',
+                'result-mat-creditor': 'Marta Kowalski',
+                'result-mat-respondent': 'James Taylor',
                 'result-mat-payment': 'payable through the Court',
-                'result-mat-commencement': '14/02/2026',
+                'result-mat-commencement': '10/01/2026',
               },
               creditor: 'applicant',
-              creditorLabel: 'Anna Nowak'
+              creditorLabel: 'Marta Kowalski'
             },
             {
               code: 'MCHILD',
@@ -658,43 +610,21 @@ function buildCreateDataScenarios() {
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
-                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 15 March 2034.',
+                'Order for payment by James Taylor to Marta Kowalski payable through the Court for the benefit of the Complainant.\nThe sum of £ 250.00 to be paid every month from 10 January 2026 until 22 August 2035.',
               responses: {
-                'result-mchild-amount': '220',
+                'result-mchild-amount': '250',
                 'result-mchild-frequency': 'monthly',
-                'result-mchild-expiry': '15/03/2034',
-                'result-mchild-arrears': '80',
+                'result-mchild-expiry': '22/08/2035',
+                'result-mchild-arrears': '100',
                 'result-mchild-education': ['Order until completion of full-time eduction'],
-                'result-mchild-beneficiary': 'Sofia Nowak',
-                'result-mchild-child-dob': '15/03/2016',
-                'result-mchild-respondent': 'Piotr Nowak',
+                'result-mchild-beneficiary': 'Zofia Taylor',
+                'result-mchild-child-dob': '22/08/2017',
+                'result-mchild-respondent': 'James Taylor',
                 'result-mchild-payment': 'payable through the Court',
-                'result-mchild-commencement': '14/02/2026'
+                'result-mchild-commencement': '10/01/2026'
               },
               creditor: 'applicant',
-              creditorLabel: 'Anna Nowak'
-            },
-            {
-              code: 'MCHILD',
-              title: 'Maintenace Order for child(ren)',
-              category: 'FINAL',
-              categoryLabel: 'Final',
-              wording:
-                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
-              responses: {
-                'result-mchild-amount': '220',
-                'result-mchild-frequency': 'monthly',
-                'result-mchild-expiry': '22/09/2036',
-                'result-mchild-arrears': '80',
-                'result-mchild-education': ['Order until completion of full-time eduction'],
-                'result-mchild-beneficiary': 'Michal Nowak',
-                'result-mchild-child-dob': '22/09/2018',
-                'result-mchild-respondent': 'Piotr Nowak',
-                'result-mchild-payment': 'payable through the Court',
-                'result-mchild-commencement': '14/02/2026'
-              },
-              creditor: 'applicant',
-              creditorLabel: 'Anna Nowak'
+              creditorLabel: 'Marta Kowalski'
             }
           ],
           'interest-and-indexation-completed': 'yes',
@@ -702,8 +632,8 @@ function buildCreateDataScenarios() {
           'indexation-type': 'no-indexation',
           'managing-payments-completed': 'yes',
           'order-managing-payments': 'payments-via-court',
-          'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
-          'case-notes': 'Applicant lives in the UK and respondent lives in Poland. MAT plus 2 MCHILD terms recorded.',
+          'case-comment': 'Seeded REMO In order journey for Marta Kowalski.',
+          'case-notes': 'Applicant lives in Poland (outside UK) and respondent lives in Manchester (UK). MAT plus MCHILD terms recorded.',
           'applicant-details-completed': 'yes',
           'respondent-details-completed': 'yes',
           'order-details-completed': 'yes'
@@ -711,8 +641,8 @@ function buildCreateDataScenarios() {
       }
     },
     'create-a-case-order': {
-      label: 'Create a case: order journey',
-      description: 'Seeds the create a case journey with a REMO Out individual applicant, three order terms, and completed order metadata.',
+      label: 'Create a case: REMO Out order journey',
+      description: 'Seeds the create a case journey with a REMO Out individual applicant (UK), Polish respondent, three order terms, and completed order metadata.',
       redirectTo: '/create-a-case/case-details',
       sessionData: {
         ...buildBaseSessionData(),
@@ -736,6 +666,8 @@ function buildCreateDataScenarios() {
           'applicant-bank-sort-code': '20-45-67',
           'applicant-bank-account-number': '12345678',
           'applicant-bank-payment-reference': 'NOWAK-FAMILY',
+          'applicant-restrict-personal-information': 'yes',
+          'applicant-restriction-reason': 'There is a domestic violence case between the applicant and respondent.',
           'respondent-title': 'mr',
           'respondent-first-names': 'Piotr',
           'respondent-last-name': 'Nowak',
@@ -822,7 +754,7 @@ function buildCreateDataScenarios() {
           'managing-payments-completed': 'yes',
           'order-managing-payments': 'payments-via-court',
           'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
-          'case-notes': 'Applicant lives in the UK and respondent lives in Poland. MAT plus 2 MCHILD terms recorded.',
+          'case-notes': 'Applicant lives in the UK (Leeds) and respondent lives in Poland (Warsaw). MAT plus 2 MCHILD terms recorded.',
           'applicant-details-completed': 'yes',
           'respondent-details-completed': 'yes',
           'order-details-completed': 'yes'
@@ -3377,28 +3309,6 @@ function getAlternativeOrderTermsStatus(sessionData) {
   }
 }
 
-function getRecordedOrderTermManagementRows(sessionData) {
-  return getRecordedOrderTerms(sessionData).map((term) => ({
-    key: {
-      text: `${term.code} - ${term.title}`
-    },
-    value: {
-      text: hasValue(term.creditorLabel) ? `Creditor: ${term.creditorLabel}` : 'Entered'
-    },
-    actions: {
-      items: [
-        {
-          text: 'Change',
-          href: `/orders-applications-alternative/order-term/${term.index}/change`
-        },
-        {
-          text: 'Delete',
-          href: `/orders-applications-alternative/order-term/${term.index}/delete`
-        }
-      ]
-    }
-  }))
-}
 
 function getOrderTermReviewRows(orderTerm) {
   const orderTermDefinition = getResultDefinition(orderTerm?.code, 'orders')
@@ -3427,8 +3337,8 @@ function getCheckCaseOrderTermCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getOrderTermReviewRows(orderTerm),
-    changeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/change`,
-    removeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/delete`
+    changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
+    removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
   }))
 }
 
@@ -3436,8 +3346,8 @@ function getOrderTermHubCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getOrderTermReviewRows(orderTerm).slice(2).filter((row) => row.value.text !== '-'),
-    changeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/change`,
-    removeHref: `/orders-applications-alternative/order-term/${orderTerm.index}/delete`
+    changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
+    removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
   }))
 }
 
@@ -3578,6 +3488,15 @@ function getApplicantSummaryRows(sessionData) {
     )
   )
 
+  if (sessionData['applicant-restrict-personal-information'] && sessionData['applicant-restriction-reason']) {
+    rows.push(
+      buildSummaryHtmlRow(
+        'Reason for restriction',
+        formatLinesHtml(sessionData['applicant-restriction-reason'].split('\n'))
+      )
+    )
+  }
+
   return rows
 }
 
@@ -3681,6 +3600,15 @@ function getRespondentSummaryRows(sessionData) {
       sessionData['respondent-restrict-personal-information'] ? 'Yes' : 'No'
     )
   )
+
+  if (sessionData['respondent-restrict-personal-information'] && sessionData['respondent-restriction-reason']) {
+    rows.push(
+      buildSummaryHtmlRow(
+        'Reason for restriction',
+        formatLinesHtml(sessionData['respondent-restriction-reason'].split('\n'))
+      )
+    )
+  }
 
   return rows
 }
@@ -4159,152 +4087,6 @@ function getTaskStatusTag(status) {
   }
 }
 
-function getPartyDetailsItems(sessionData) {
-  const items = [
-    {
-      title: {
-        text: 'Respondent'
-      },
-      href: '/orders-applications/respondent-details',
-      status: getTaskStatusTag(
-        sessionData['respondent-details-completed'] ? 'provided' : 'required'
-      )
-    },
-    {
-      title: {
-        text: 'Applicant'
-      },
-      href: '/orders-applications/applicant-details',
-      status: getTaskStatusTag(
-        sessionData['applicant-details-completed'] ? 'provided' : 'required'
-      )
-    }
-  ]
-
-  if (!isRemoOutCase(sessionData)) {
-    items.push({
-      title: {
-        text: 'Central authority'
-      },
-      href: '/orders-applications/central-authority-details',
-      status: getTaskStatusTag(hasCentralAuthorityDetails(sessionData) ? 'provided' : 'optional')
-    })
-  }
-
-  return items
-}
-
-function getApplicationItems(sessionData) {
-  const canStartApplication = hasCompletedPartyDetails(sessionData)
-  const hasApplicationDetails = hasCompletedApplicationDetails(sessionData)
-  const hasHearingDetails = hasCompletedHearingDetails(sessionData)
-
-  return [
-    {
-      title: {
-        text: 'Application details'
-      },
-      href: canStartApplication ? '/orders-applications/application-details' : undefined,
-      status: hasApplicationDetails
-        ? getTaskStatusTag('provided')
-        : canStartApplication
-          ? getTaskStatusTag('required')
-          : {
-              text: 'Cannot start yet'
-            }
-    },
-    {
-      title: {
-        text: 'Hearing details'
-      },
-      href: hasApplicationDetails ? '/orders-applications/hearing-details' : undefined,
-      status: hasApplicationDetails
-        ? hasHearingDetails
-          ? getTaskStatusTag('provided')
-          : getTaskStatusTag('required')
-        : {
-            text: 'Cannot start yet'
-          }
-    }
-  ]
-}
-
-function getOrderItems(sessionData) {
-  const canStartOrder = hasCompletedPartyDetails(sessionData)
-  const hasOrderDetails = hasCompletedOrderDetails(sessionData)
-  const hasMinorCreditorDetails = hasMinorCreditors(sessionData)
-  const hasTermsDetails = hasTermsPerBeneficiary(sessionData)
-  const hasLumpSumPayment = hasCompletedLumpSumPayment(sessionData)
-  const hasInterestAndIndexation = hasCompletedInterestAndIndexation(sessionData)
-
-  return [
-    {
-      title: {
-        text: 'Order details'
-      },
-      href: canStartOrder ? '/orders-applications/order-details' : undefined,
-      status: hasOrderDetails
-        ? getTaskStatusTag('provided')
-        : canStartOrder
-          ? getTaskStatusTag('required')
-          : {
-              text: 'Cannot start yet'
-            }
-    },
-    {
-      title: {
-        text: 'Minor creditor details'
-      },
-      href: hasOrderDetails ? '/orders-applications/minor-creditors' : undefined,
-      status: hasOrderDetails
-        ? hasMinorCreditorDetails
-          ? getTaskStatusTag('provided')
-          : getTaskStatusTag('optional')
-        : {
-            text: 'Cannot start yet'
-          }
-    },
-    {
-      title: {
-        text: 'Terms per beneficiary'
-      },
-      href: hasOrderDetails ? '/orders-applications/terms-per-beneficiary' : undefined,
-      status: hasOrderDetails
-        ? hasTermsDetails
-          ? getTaskStatusTag('provided')
-          : getTaskStatusTag('required')
-        : {
-            text: 'Cannot start yet'
-          }
-    },
-    {
-      title: {
-        text: 'Lump sum payment'
-      },
-      href: hasOrderDetails ? '/orders-applications/lump-sum-payment' : undefined,
-      status: hasOrderDetails
-        ? hasLumpSumPayment
-          ? getTaskStatusTag('provided')
-          : getTaskStatusTag('required')
-        : {
-            text: 'Cannot start yet'
-          }
-    },
-    {
-      title: {
-        text: 'Interest and indexation'
-      },
-      href: hasOrderDetails ? '/orders-applications/interest-and-indexation' : undefined,
-      status: hasOrderDetails
-        ? hasInterestAndIndexation
-          ? getTaskStatusTag('provided')
-          : getTaskStatusTag('required')
-        : {
-            text: 'Cannot start yet'
-          }
-    }
-  ]
-}
 
 function getSingleTaskStatusTag(status) {
   if (status === 'provided') {
@@ -4391,19 +4173,6 @@ function getAlternativeOrderItems(sessionData, basePath = '/orders-applications-
   ]
 }
 
-function getAdditionalInformationItems(sessionData) {
-  return [
-    {
-      title: {
-        text: 'Comments and notes'
-      },
-      href: '/orders-applications/case-comments-and-notes',
-      status: hasCaseCommentsAndNotes(sessionData)
-        ? getTaskStatusTag('provided')
-        : getTaskStatusTag('optional')
-    }
-  ]
-}
 
 function getAlternativePartyDetailsItems(sessionData, basePath = '/orders-applications-alternative') {
   const items = [
@@ -4524,6 +4293,109 @@ function canCheckAlternativeCase(sessionData) {
   )
 }
 
+function getCheckCaseDetailsViewData(sessionData) {
+  return {
+    caseTypeLabel: sessionData['case-type-label'] || caseTypeLabels[sessionData['case-type']] || sessionData['case-type'],
+    applicantTypeLabel: applicantTypeLabels[sessionData['applicant-type']] || 'Not selected',
+    isApplicationJourney: isApplicationJourney(sessionData),
+    isRemoOutCase: isRemoOutCase(sessionData),
+    applicantRows: getApplicantSummaryRows(sessionData),
+    respondentRows: getRespondentSummaryRows(sessionData),
+    centralAuthorityRows: [
+      buildSummaryRow('REMO reference', sessionData['central-authority-remo-reference']),
+      buildSummaryRow("Central authority's reference", sessionData['central-authority-reference']),
+      buildSummaryRow('Central authority name', sessionData['central-authority-manual-name'] || sessionData['central-authority-name'])
+    ],
+    applicationRows: getApplicationSummaryRows(sessionData),
+    hearingRows: getHearingSummaryRows(sessionData),
+    orderDetailsRows: getAlternativeOrderDetailsSummaryRows(sessionData),
+    orderTermCards: getCheckCaseOrderTermCards(sessionData),
+    interestAndIndexationRows: [
+      buildSummaryRow('Interest', getInterestAppliesLabel(sessionData['interest-applies'])),
+      buildSummaryRow(
+        'Indexation',
+        getIndexationTypeLabel(sessionData['indexation-type'])
+      )
+    ],
+    managingPaymentsRows: [
+      buildSummaryRow('How will payments be managed?', {
+        'payments-via-court': 'Payments via the court',
+        'direct-payments': 'Direct payments to creditors'
+      }[sessionData['order-managing-payments']] || '-')
+    ],
+    caseCommentsRows: [
+      buildSummaryRow('Comment', sessionData['case-comment']),
+      buildSummaryRow('Case note', sessionData['case-notes'])
+    ],
+    showApplicantRestrictionWarning: Boolean(
+      sessionData['applicant-restrict-personal-information']
+    ),
+    showRespondentRestrictionWarning: Boolean(
+      sessionData['respondent-restrict-personal-information']
+    )
+  }
+}
+
+function getReviewHistoryTimelineItems(reviewHistory) {
+  return reviewHistory.map((event) => ({
+    label: {
+      text: event.action
+    },
+    text: event.note || '',
+    datetime: {
+      timestamp: getReviewHistoryTimestamp(event.at),
+      type: 'datetime'
+    },
+    byline: {
+      text: event.by
+    }
+  }))
+}
+
+function getReviewHistoryTimestamp(dateTimeText) {
+  const match = String(dateTimeText || '').match(
+    /^(\d{1,2}) ([A-Za-z]+) (\d{4}) at (\d{1,2}):(\d{2})(am|pm)$/i
+  )
+
+  if (!match) {
+    return dateTimeText
+  }
+
+  const monthIndex = {
+    january: 1,
+    february: 2,
+    march: 3,
+    april: 4,
+    may: 5,
+    june: 6,
+    july: 7,
+    august: 8,
+    september: 9,
+    october: 10,
+    november: 11,
+    december: 12
+  }[match[2].toLowerCase()]
+
+  if (!monthIndex) {
+    return dateTimeText
+  }
+
+  const period = match[6].toLowerCase()
+  let hour = Number(match[4])
+
+  if (period === 'pm' && hour < 12) {
+    hour += 12
+  }
+
+  if (period === 'am' && hour === 12) {
+    hour = 0
+  }
+
+  const pad = (value) => String(value).padStart(2, '0')
+
+  return `${match[3]}-${pad(monthIndex)}-${pad(match[1])}T${pad(hour)}:${match[5]}:00`
+}
+
 router.get('/create-data', (req, res) => {
   const scenarios = buildCreateDataScenarios()
 
@@ -4632,2350 +4504,11 @@ router.use((req, res, next) => {
 
 // Add your routes here
 router.get('/', (req, res) => {
+  return res.redirect('/cases')
+})
+
+router.get('/cases', (req, res) => {
   return res.render('index')
-})
-
-router.get('/orders-applications', (req, res) => {
-  return res.render('orders-applications/index')
-})
-
-router.post('/orders-applications', (req, res, next) => {
-  req.session.data['applicant-type'] =
-    req.body['applicant-type-remo-in'] ||
-    req.body['applicant-type-remo-out'] ||
-    ''
-
-  delete req.session.data['applicant-type-remo-in']
-  delete req.session.data['applicant-type-remo-out']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/case-details', (req, res) => {
-  const caseType = req.session.data['case-type']
-
-  if (!caseType) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/case-details', {
-    detailsPageHeading: isApplicationJourney(req.session.data) ? 'Case details' : 'Order details',
-    detailsPageCaption: isApplicationJourney(req.session.data) ? 'Create an application' : 'Create an order',
-    caseTypeLabel: caseTypeLabels[caseType] || caseType,
-    applicantTypeLabel:
-      applicantTypeLabels[req.session.data['applicant-type']] || 'Not selected',
-    partyDetailsItems: getPartyDetailsItems(req.session.data),
-    caseSectionHeading: isApplicationJourney(req.session.data) ? 'Application' : 'Order',
-    caseSectionIdPrefix: isApplicationJourney(req.session.data) ? 'application' : 'order',
-    caseSectionItems: isApplicationJourney(req.session.data)
-      ? getApplicationItems(req.session.data)
-      : getOrderItems(req.session.data),
-    additionalInformationItems: getAdditionalInformationItems(req.session.data),
-    canCheckCase: canCheckCase(req.session.data)
-  })
-})
-
-router.get('/orders-applications/check-case-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (!canCheckCase(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/check-case-details', {
-    caseTypeLabel: caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'],
-    applicantTypeLabel:
-      applicantTypeLabels[req.session.data['applicant-type']] || 'Not selected',
-    isApplicationJourney: isApplicationJourney(req.session.data),
-    isRemoOutCase: isRemoOutCase(req.session.data),
-    applicantRows: getApplicantSummaryRows(req.session.data),
-    respondentRows: getRespondentSummaryRows(req.session.data),
-    centralAuthorityRows: getCentralAuthoritySummaryRows(req.session.data),
-    applicationRows: getApplicationSummaryRows(req.session.data),
-    hearingRows: getHearingSummaryRows(req.session.data),
-    beneficiaryGroups: getCheckCaseBeneficiaryGroups(req.session.data),
-    interestAndIndexationRows: [
-      buildSummaryRow('Interest', getInterestAppliesLabel(req.session.data['interest-applies'])),
-      buildSummaryRow(
-        'Indexation',
-        getIndexationTypeLabel(req.session.data['indexation-type'])
-      )
-    ],
-    caseCommentsRows: [
-      buildSummaryRow('Comment', req.session.data['case-comment']),
-      buildSummaryRow('Case note', req.session.data['case-notes'])
-    ],
-    showApplicantRestrictionWarning: Boolean(
-      req.session.data['applicant-restrict-personal-information']
-    ),
-    showRespondentRestrictionWarning: Boolean(
-      req.session.data['respondent-restrict-personal-information']
-    )
-  })
-})
-
-router.get('/orders-applications/case-submitted', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/case-submitted')
-})
-
-router.get('/orders-applications/case-comments-and-notes', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/case-comments-and-notes')
-})
-
-router.post('/orders-applications/case-comments-and-notes', (req, res, next) => {
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/applicant-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/applicant-details', {
-    applicantAge: getAgeFromDateString(req.session.data['applicant-date-of-birth'])
-  })
-})
-
-router.post('/orders-applications/applicant-details', (req, res, next) => {
-  const errors = validateApplicantDetails(req.body, req.session.data['applicant-type'])
-
-  if (Object.keys(errors).length > 0) {
-    delete req.session.data['applicant-details-completed']
-
-    return res.render('orders-applications/applicant-details', {
-      data: buildApplicantDetailsViewData(req.session.data, req.body),
-      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
-      errors,
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  req.session.data['applicant-add-aliases'] = isChecked(req.body['applicant-add-aliases'])
-    ? 'yes'
-    : ''
-  req.session.data['applicant-bank-account-type'] =
-    getSingleValue(req.body['applicant-bank-account-type']) || ''
-  req.session.data['applicant-send-correspondence-to-third-party'] = isChecked(
-    req.body['applicant-send-correspondence-to-third-party']
-  )
-    ? 'yes'
-    : ''
-  req.session.data['applicant-restrict-personal-information'] = isChecked(
-    req.body['applicant-restrict-personal-information']
-  )
-    ? 'yes'
-    : ''
-
-  req.session.data['applicant-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/respondent-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/respondent-details')
-})
-
-router.post('/orders-applications/respondent-details', (req, res, next) => {
-  const errors = validateRespondentDetails(req.body)
-
-  if (Object.keys(errors).length > 0) {
-    delete req.session.data['respondent-details-completed']
-
-    return res.render('orders-applications/respondent-details', {
-      data: buildRespondentDetailsViewData(req.session.data, req.body),
-      errors,
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
-    ? 'yes'
-    : ''
-  req.session.data['respondent-add-employer-details'] = isChecked(
-    req.body['respondent-add-employer-details']
-  )
-    ? 'yes'
-    : ''
-  req.session.data['respondent-send-correspondence-to-third-party'] = isChecked(
-    req.body['respondent-send-correspondence-to-third-party']
-  )
-    ? 'yes'
-    : ''
-  req.session.data['respondent-restrict-personal-information'] = isChecked(
-    req.body['respondent-restrict-personal-information']
-  )
-    ? 'yes'
-    : ''
-
-  req.session.data['respondent-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/central-authority-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (isRemoOutCase(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/central-authority-details', {
-    hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(req.session.data),
-    centralAuthorityCardRows: getCentralAuthorityCardRows(req.session.data)
-  })
-})
-
-router.post('/orders-applications/central-authority-details', (req, res, next) => {
-  req.session.data['central-authority-details-completed'] = hasCentralAuthorityDetails(
-    req.session.data
-  )
-    ? 'yes'
-    : ''
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/central-authority-details/manual', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/central-authority-details-manual')
-})
-
-router.post('/orders-applications/central-authority-details/manual', (req, res, next) => {
-  req.session.data['central-authority-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/central-authority-details')
-})
-
-router.get('/orders-applications/central-authority-details/remove', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (!hasCentralAuthorityManualDetails(req.session.data)) {
-    return res.redirect('/orders-applications/central-authority-details')
-  }
-
-  return res.render('orders-applications/remove-central-authority-details', {
-    centralAuthorityCardRows: getCentralAuthorityCardRows(req.session.data)
-  })
-})
-
-router.post('/orders-applications/central-authority-details/remove', (req, res, next) => {
-  delete req.session.data['central-authority-manual-name']
-  delete req.session.data['central-authority-main-email-address']
-  delete req.session.data['central-authority-other-email-address']
-  delete req.session.data['central-authority-main-telephone-number']
-  delete req.session.data['central-authority-other-telephone-number']
-  delete req.session.data['central-authority-address-line-1']
-  delete req.session.data['central-authority-address-line-2']
-  delete req.session.data['central-authority-address-line-3']
-  delete req.session.data['central-authority-address-line-4']
-  delete req.session.data['central-authority-address-line-5']
-  delete req.session.data['central-authority-postal-or-zip-code']
-  delete req.session.data['central-authority-country']
-  delete req.session.data['central-authority-bank-account-type']
-  delete req.session.data['central-authority-bank-name-on-account']
-  delete req.session.data['central-authority-bank-sort-code']
-  delete req.session.data['central-authority-bank-account-number']
-  delete req.session.data['central-authority-bank-payment-reference']
-  delete req.session.data['central-authority-bank-non-uk-name-on-account']
-  delete req.session.data['central-authority-bank-bic-or-swift-code']
-  delete req.session.data['central-authority-bank-iban']
-  delete req.session.data['central-authority-bank-non-uk-payment-reference']
-  delete req.session.data['central-authority-bank-name']
-  delete req.session.data['central-authority-bank-branch-office-or-sort-code']
-  delete req.session.data['central-authority-bank-non-uk-account-number']
-
-  req.session.data['central-authority-details-completed'] = hasCentralAuthorityDetails(
-    req.session.data
-  )
-    ? 'yes'
-    : ''
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/central-authority-details')
-})
-
-router.get('/orders-applications/order-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/application-details')
-  }
-
-  return res.render('orders-applications/order-details', {
-    applicationItems: getApplicationOptionItems(
-      req.session.data['order-application-code'],
-      req.session.data['case-type']
-    ),
-    applicationLookupJson: getApplicationLookupJson(req.session.data['case-type'])
-  })
-})
-
-router.post('/orders-applications/order-details', (req, res, next) => {
-  if (isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/application-details')
-  }
-
-  const selectedApplicationCode = String(
-    getSingleValue(req.body['order-application-code']) || ''
-  )
-    .trim()
-    .toUpperCase()
-
-  req.session.data['order-application-code'] = selectedApplicationCode
-
-  const errors = validateAlternativeOrderDetails(req.body, req.session.data['case-type'])
-
-  if (Object.keys(errors).length > 0) {
-    delete req.session.data['order-details-completed']
-
-    return res.render('orders-applications/order-details', {
-      applicationItems: getApplicationOptionItems(
-        selectedApplicationCode,
-        req.session.data['case-type']
-      ),
-      applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
-      errors,
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  req.session.data['order-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/application-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasCompletedPartyDetails(req.session.data)
-  ) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/application-details', {
-    applicationItems: getApplicationOptionItems(
-      req.session.data['application-code'],
-      req.session.data['case-type']
-    ),
-    applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
-    selectionError: null
-  })
-})
-
-router.post('/orders-applications/application-details', (req, res, next) => {
-  if (!isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const selectedApplicationCode = String(getSingleValue(req.body['application-code']) || '')
-    .trim()
-    .toUpperCase()
-
-  req.session.data['application-code'] = selectedApplicationCode
-
-  if (!isApplicationDefinitionAvailableForCaseType(selectedApplicationCode, req.session.data['case-type'])) {
-    return res.render('orders-applications/application-details', {
-      applicationItems: getApplicationOptionItems(selectedApplicationCode, req.session.data['case-type']),
-      applicationLookupJson: getApplicationLookupJson(req.session.data['case-type']),
-      selectionError: 'Select an application code from the list.'
-    })
-  }
-
-  delete req.session.data['application-details-completed']
-  delete req.session.data['application-response-values']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/application-details/content')
-})
-
-router.get('/orders-applications/application-details/content', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasCompletedPartyDetails(req.session.data) ||
-    !hasValue(req.session.data['application-code'])
-  ) {
-    return res.redirect('/orders-applications/application-details')
-  }
-
-  return res.render('orders-applications/application-details-content', {
-    applicationCode: req.session.data['application-code'],
-    applicationTitle: getApplicationTitle(req.session.data),
-    applicationWording: getApplicationWording(req.session.data),
-    responseItems: getApplicationResponseFields(req.session.data),
-    formAction: '/orders-applications/application-details/content',
-    cancelHref: '/orders-applications/cancel'
-  })
-})
-
-router.post('/orders-applications/application-details/content', (req, res, next) => {
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasValue(req.session.data['application-code'])
-  ) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const applicationResponseValues = Object.fromEntries(
-    getApplicationResponseFields(req.session.data).map((field) => [
-      field.id,
-      getSingleValue(req.body[field.id]) || ''
-    ])
-  )
-
-  req.session.data['application-response-values'] = applicationResponseValues
-  req.session.data['application-foreign-court'] =
-    applicationResponseValues[getApplicationResponseFieldId('court')] ||
-    applicationResponseValues[getApplicationResponseFieldId('foreign court')] ||
-    ''
-  req.session.data['application-order-date'] =
-    applicationResponseValues[getApplicationResponseFieldId('order date')] ||
-    applicationResponseValues[getApplicationResponseFieldId('date order made')] ||
-    ''
-  req.session.data['application-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/hearing-details', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasCompletedApplicationDetails(req.session.data)
-  ) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/hearing-details')
-})
-
-router.post('/orders-applications/hearing-details', (req, res, next) => {
-  if (!isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const hearingLocation = getSingleValue(req.body['hearing-location']) || ''
-
-  req.session.data['hearing-type'] =
-    hearingLocation === 'yes'
-      ? 'schedule-england-wales'
-      : hearingLocation === 'no'
-        ? 'non-scheduled'
-        : ''
-  delete req.session.data['hearing-details-completed']
-
-  const nextPage =
-    req.session.data['hearing-type'] === 'schedule-england-wales'
-      ? '/orders-applications/hearing-details-england-wales'
-      : req.session.data['hearing-type'] === 'non-scheduled'
-        ? '/orders-applications/hearing-details-outside-england-wales'
-        : '/orders-applications/hearing-details'
-
-  return redirectWithSessionSave(req, res, next, nextPage)
-})
-
-router.get('/orders-applications/hearing-details-england-wales', (req, res) => {
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasCompletedApplicationDetails(req.session.data)
-  ) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  if (req.session.data['hearing-type'] !== 'schedule-england-wales') {
-    return res.redirect('/orders-applications/hearing-details')
-  }
-
-  return res.render('orders-applications/hearing-details-england-wales')
-})
-
-router.post('/orders-applications/hearing-details-england-wales', (req, res, next) => {
-  if (!isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  req.session.data['hearing-type'] = 'schedule-england-wales'
-  req.session.data['hearing-date'] = getSingleValue(req.body['hearing-date']) || ''
-  req.session.data['hearing-court'] = getSingleValue(req.body['hearing-court']) || ''
-  req.session.data['hearing-courtroom-number'] =
-    getSingleValue(req.body['hearing-courtroom-number']) || ''
-  req.session.data['hearing-start-time'] =
-    getSingleValue(req.body['hearing-start-time']) || ''
-  req.session.data['hearing-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/hearing-details-outside-england-wales', (req, res) => {
-  if (
-    !isApplicationJourney(req.session.data) ||
-    !hasCompletedApplicationDetails(req.session.data)
-  ) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  if (req.session.data['hearing-type'] !== 'non-scheduled') {
-    return res.redirect('/orders-applications/hearing-details')
-  }
-
-  return res.render('orders-applications/hearing-details-outside-england-wales')
-})
-
-router.post('/orders-applications/hearing-details-outside-england-wales', (req, res, next) => {
-  if (!isApplicationJourney(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  req.session.data['hearing-type'] = 'non-scheduled'
-  req.session.data['hearing-date'] = getSingleValue(req.body['hearing-date']) || ''
-  req.session.data['hearing-non-scheduled-details'] =
-    getSingleValue(req.body['hearing-non-scheduled-details']) || ''
-  req.session.data['hearing-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/minor-creditors', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  if (!hasMinorCreditors(req.session.data)) {
-    return res.render('orders-applications/minor-creditor-details', {
-      creditor: {},
-      formAction: '/orders-applications/minor-creditors',
-      cancelHref: '/orders-applications/case-details'
-    })
-  }
-
-  return res.render('orders-applications/minor-creditors', {
-    minorCreditorCards: getMinorCreditorCards(req.session.data)
-  })
-})
-
-router.post('/orders-applications/minor-creditors', (req, res, next) => {
-  const creditors = getMinorCreditors(req.session.data)
-  creditors.push(buildMinorCreditor(req.body))
-  req.session.data['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/minor-creditors')
-})
-
-router.get('/orders-applications/minor-creditors/new', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/minor-creditor-details', {
-    creditor: {},
-    formAction: '/orders-applications/minor-creditors/new',
-    cancelHref: '/orders-applications/minor-creditors'
-  })
-})
-
-router.post('/orders-applications/minor-creditors/new', (req, res, next) => {
-  const creditors = getMinorCreditors(req.session.data)
-  creditors.push(buildMinorCreditor(req.body))
-  req.session.data['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/minor-creditors')
-})
-
-router.get('/orders-applications/minor-creditors/:index/edit', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const index = getMinorCreditorIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/minor-creditors')
-  }
-
-  return res.render('orders-applications/minor-creditor-details', {
-    creditor: getMinorCreditors(req.session.data)[index],
-    formAction: `/minor-creditors/${index}/edit`,
-    cancelHref: '/orders-applications/minor-creditors'
-  })
-})
-
-router.post('/orders-applications/minor-creditors/:index/edit', (req, res, next) => {
-  const index = getMinorCreditorIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/minor-creditors')
-  }
-
-  const creditors = getMinorCreditors(req.session.data)
-  creditors[index] = buildMinorCreditor(req.body)
-  req.session.data['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/minor-creditors')
-})
-
-router.get('/orders-applications/minor-creditors/:index/remove', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const index = getMinorCreditorIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/minor-creditors')
-  }
-
-  const creditor = getMinorCreditors(req.session.data)[index]
-
-  return res.render('orders-applications/remove-minor-creditor', {
-    minorCreditorCard: {
-      title: getMinorCreditorName(creditor, index),
-      rows: getMinorCreditorSummaryRows(creditor)
-    },
-    formAction: `/minor-creditors/${index}/remove`
-  })
-})
-
-router.post('/orders-applications/minor-creditors/:index/remove', (req, res, next) => {
-  const index = getMinorCreditorIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/minor-creditors')
-  }
-
-  const creditors = getMinorCreditors(req.session.data)
-  creditors.splice(index, 1)
-  req.session.data['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(
-    req,
-    res,
-    next,
-    creditors.length ? '/orders-applications/minor-creditors' : '/orders-applications/case-details'
-  )
-})
-
-router.get('/orders-applications/terms-per-beneficiary', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  if (!hasTermsPerBeneficiary(req.session.data)) {
-    return res.redirect('/orders-applications/terms-per-beneficiary/beneficiary')
-  }
-
-  return res.render('orders-applications/terms-review', {
-    beneficiaryGroups: getTermsReviewGroups(req.session.data)
-  })
-})
-
-router.get('/orders-applications/terms-per-beneficiary/beneficiary', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const draft = getTermsBeneficiaryDraft(req.session.data) || {}
-
-  return res.render('orders-applications/terms-beneficiary', {
-    applicantBeneficiaryLabel: `${getApplicantFullName(req.session.data)} (Applicant)`,
-    childAge: getAgeFromDateString(draft.dateOfBirth),
-    cancelHref: hasTermsPerBeneficiary(req.session.data)
-      ? '/orders-applications/terms-per-beneficiary'
-      : '/orders-applications/case-details'
-  })
-})
-
-router.post('/orders-applications/terms-per-beneficiary/beneficiary', (req, res, next) => {
-  req.session.data['terms-beneficiary-draft'] = buildTermsBeneficiaryDraft(
-    req.body,
-    req.session.data
-  )
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/terms-per-beneficiary/order-terms')
-})
-
-router.get('/orders-applications/terms-per-beneficiary/order-terms', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const beneficiary = getTermsBeneficiaryDraft(req.session.data)
-
-  if (!beneficiary) {
-    return res.redirect('/orders-applications/terms-per-beneficiary/beneficiary')
-  }
-
-  return res.render('orders-applications/terms-order-terms', {
-    beneficiary,
-    frequencyLabel: getFrequencyLabel(req.session.data['order-payment-frequency']),
-    creditorItems: getTermsCreditorItems(
-      req.session.data,
-      req.session.data['terms-creditor'] || 'applicant'
-    )
-  })
-})
-
-router.post('/orders-applications/terms-per-beneficiary/order-terms', (req, res, next) => {
-  const entry = buildTermsEntry(req.body, req.session.data)
-
-  if (!entry) {
-    return res.redirect('/orders-applications/terms-per-beneficiary/beneficiary')
-  }
-
-  const terms = getTermsPerBeneficiary(req.session.data)
-  terms.push(entry)
-  req.session.data['terms-per-beneficiary'] = terms
-  delete req.session.data['terms-beneficiary-draft']
-
-  if (req.body.action === 'add-more-terms') {
-    return redirectWithSessionSave(req, res, next, '/orders-applications/terms-per-beneficiary/beneficiary')
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/terms-per-beneficiary')
-})
-
-router.get('/orders-applications/terms-per-beneficiary/:index/remove', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  const index = getTermsIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/terms-per-beneficiary')
-  }
-
-  const term = getTermsPerBeneficiary(req.session.data)[index]
-
-  return res.render('orders-applications/remove-terms-per-beneficiary', {
-    beneficiaryGroup: {
-      name: term.beneficiaryName,
-      role: term.beneficiaryRole,
-      tag: term.beneficiaryTag,
-      rows: [getTermsReviewRow(term)]
-    },
-    formAction: `/terms-per-beneficiary/${index}/remove`
-  })
-})
-
-router.post('/orders-applications/terms-per-beneficiary/:index/remove', (req, res, next) => {
-  const index = getTermsIndex(req.params.index, req.session.data)
-
-  if (index === null) {
-    return res.redirect('/orders-applications/terms-per-beneficiary')
-  }
-
-  const terms = getTermsPerBeneficiary(req.session.data)
-  terms.splice(index, 1)
-  req.session.data['terms-per-beneficiary'] = terms
-
-  return redirectWithSessionSave(
-    req,
-    res,
-    next,
-    terms.length ? '/orders-applications/terms-per-beneficiary' : '/orders-applications/case-details'
-  )
-})
-
-router.get('/orders-applications/lump-sum-payment', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/lump-sum-payment', {
-    creditorItems: getTermsCreditorItems(
-      req.session.data,
-      req.session.data['lump-sum-creditor'] || 'applicant'
-    )
-  })
-})
-
-router.post('/orders-applications/lump-sum-payment', (req, res, next) => {
-  req.session.data['lump-sum-payment-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/interest-and-indexation', (req, res) => {
-  if (!hasCompletedOrderDetails(req.session.data)) {
-    return res.redirect('/orders-applications/case-details')
-  }
-
-  return res.render('orders-applications/interest-and-indexation')
-})
-
-router.post('/orders-applications/interest-and-indexation', (req, res, next) => {
-  req.session.data['interest-and-indexation-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-router.get('/orders-applications/cancel', (req, res, next) => {
-  delete req.session.data['case-type']
-  delete req.session.data['applicant-type']
-  delete req.session.data['has-order']
-  delete req.session.data['applicant-details-completed']
-  delete req.session.data['respondent-details-completed']
-  delete req.session.data['central-authority-details-completed']
-  delete req.session.data['central-authority-remo-reference']
-  delete req.session.data['central-authority-reference']
-  delete req.session.data['central-authority-name']
-  delete req.session.data['central-authority-manual-name']
-  delete req.session.data['central-authority-main-email-address']
-  delete req.session.data['central-authority-other-email-address']
-  delete req.session.data['central-authority-main-telephone-number']
-  delete req.session.data['central-authority-other-telephone-number']
-  delete req.session.data['central-authority-address-line-1']
-  delete req.session.data['central-authority-address-line-2']
-  delete req.session.data['central-authority-address-line-3']
-  delete req.session.data['central-authority-address-line-4']
-  delete req.session.data['central-authority-address-line-5']
-  delete req.session.data['central-authority-postal-or-zip-code']
-  delete req.session.data['central-authority-country']
-  delete req.session.data['central-authority-bank-account-type']
-  delete req.session.data['central-authority-bank-name-on-account']
-  delete req.session.data['central-authority-bank-sort-code']
-  delete req.session.data['central-authority-bank-account-number']
-  delete req.session.data['central-authority-bank-payment-reference']
-  delete req.session.data['central-authority-bank-non-uk-name-on-account']
-  delete req.session.data['central-authority-bank-bic-or-swift-code']
-  delete req.session.data['central-authority-bank-iban']
-  delete req.session.data['central-authority-bank-non-uk-payment-reference']
-  delete req.session.data['central-authority-bank-name']
-  delete req.session.data['central-authority-bank-branch-office-or-sort-code']
-  delete req.session.data['central-authority-bank-non-uk-account-number']
-  delete req.session.data['order-details-completed']
-  delete req.session.data['order-has-periodical-payments']
-  delete req.session.data['order-has-lump-sum']
-  delete req.session.data['order-payment-frequency']
-  delete req.session.data['order-application-code']
-  delete req.session.data['order-court-that-made-the-order']
-  delete req.session.data['order-date-order-made']
-  delete req.session.data['order-date-arrears-last-updated']
-  delete req.session.data['order-managing-payments']
-  delete req.session.data['minor-creditors']
-  delete req.session.data['terms-per-beneficiary']
-  delete req.session.data['terms-beneficiary-draft']
-  delete req.session.data['lump-sum-payment-completed']
-  delete req.session.data['lump-sum-amount']
-  delete req.session.data['lump-sum-enter-pay-by-date']
-  delete req.session.data['lump-sum-reason-for-payment']
-  delete req.session.data['lump-sum-creditor']
-  delete req.session.data['interest-and-indexation-completed']
-  delete req.session.data['interest-applies']
-  delete req.session.data['indexation-type']
-  delete req.session.data['case-comment']
-  delete req.session.data['case-notes']
-  delete req.session.data['application-details-completed']
-  delete req.session.data['application-code']
-  delete req.session.data['application-foreign-court']
-  delete req.session.data['application-order-date']
-  delete req.session.data['hearing-details-completed']
-  delete req.session.data['hearing-type']
-  delete req.session.data['hearing-court']
-  delete req.session.data['hearing-date']
-  delete req.session.data['hearing-courtroom-number']
-  delete req.session.data['hearing-start-time']
-  delete req.session.data['hearing-non-scheduled-details']
-
-  return redirectWithSessionSave(req, res, next, '/')
-})
-
-router.get('/orders-applications/cancel-case-creation', (req, res) => {
-  if (!req.session.data['case-type']) {
-    return res.redirect('/orders-applications')
-  }
-
-  return res.render('orders-applications/cancel-case-creation')
-})
-
-router.post('/orders-applications/cancel-case-creation', (req, res, next) => {
-  if (req.body['cancel-case-creation'] === 'yes') {
-    return res.redirect('/orders-applications/cancel')
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications/case-details')
-})
-
-function getOrdersApplicationsAlternativeData(req) {
-  if (!req.session.data['orders-applications-alternative']) {
-    req.session.data['orders-applications-alternative'] = {}
-  }
-
-  return req.session.data['orders-applications-alternative']
-}
-
-
-// Alternative Orders and Applications flow
-router.use('/orders-applications-alternative', (req, res, next) => {
-  const alternativeData = getOrdersApplicationsAlternativeData(req)
-
-  if (req.method === 'POST' && req.body) {
-    Object.entries(req.body).forEach(([key, value]) => {
-      alternativeData[key] = value
-    })
-  }
-
-  res.locals.data = alternativeData
-  next()
-})
-
-router.get('/orders-applications-alternative', (req, res) => {
-  return res.render('orders-applications-alternative/index')
-})
-
-router.post('/orders-applications-alternative', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['applicant-type'] =
-    req.body['applicant-type-remo-in'] ||
-    req.body['applicant-type-remo-out'] ||
-    ''
-
-  delete getOrdersApplicationsAlternativeData(req)['applicant-type-remo-in']
-  delete getOrdersApplicationsAlternativeData(req)['applicant-type-remo-out']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/case-details', (req, res) => {
-  const caseType = getOrdersApplicationsAlternativeData(req)['case-type']
-
-  if (!caseType) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/case-details', {
-    detailsPageCaption: isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ? 'Create an application' : 'Create an order',
-    detailsPageHeading: isApplicationJourney(getOrdersApplicationsAlternativeData(req))
-      ? 'Case details'
-      : 'Order details',
-    caseTypeLabel: caseTypeLabels[caseType] || caseType,
-    applicantTypeLabel:
-      applicantTypeLabels[getOrdersApplicationsAlternativeData(req)['applicant-type']] || 'Not selected',
-    partyDetailsItems: getAlternativePartyDetailsItems(getOrdersApplicationsAlternativeData(req)),
-    caseSectionHeading: isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ? 'Application' : 'Order',
-    caseSectionIdPrefix: isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ? 'application' : 'order',
-    caseSectionItems: isApplicationJourney(getOrdersApplicationsAlternativeData(req))
-      ? getAlternativeApplicationItems(getOrdersApplicationsAlternativeData(req))
-      : getAlternativeOrderItems(getOrdersApplicationsAlternativeData(req)),
-    additionalInformationItems: getAlternativeAdditionalInformationItems(getOrdersApplicationsAlternativeData(req)),
-    canCheckCase: canCheckAlternativeCase(getOrdersApplicationsAlternativeData(req))
-  })
-})
-
-router.get('/orders-applications-alternative/check-case-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (!canCheckAlternativeCase(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/check-case-details', {
-    caseTypeLabel: caseTypeLabels[getOrdersApplicationsAlternativeData(req)['case-type']] || getOrdersApplicationsAlternativeData(req)['case-type'],
-    applicantTypeLabel:
-      applicantTypeLabels[getOrdersApplicationsAlternativeData(req)['applicant-type']] || 'Not selected',
-    isApplicationJourney: isApplicationJourney(getOrdersApplicationsAlternativeData(req)),
-    isRemoOutCase: isRemoOutCase(getOrdersApplicationsAlternativeData(req)),
-    applicantRows: getApplicantSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    respondentRows: getRespondentSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    centralAuthorityRows: [
-      buildSummaryRow('REMO reference', getOrdersApplicationsAlternativeData(req)['central-authority-remo-reference']),
-      buildSummaryRow("Central authority's reference", getOrdersApplicationsAlternativeData(req)['central-authority-reference']),
-      buildSummaryRow('Central authority name', getOrdersApplicationsAlternativeData(req)['central-authority-manual-name'] || getOrdersApplicationsAlternativeData(req)['central-authority-name'])
-    ],
-    applicationRows: getApplicationSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    hearingRows: getHearingSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    orderDetailsRows: getAlternativeOrderDetailsSummaryRows(getOrdersApplicationsAlternativeData(req)),
-    orderTermCards: getCheckCaseOrderTermCards(getOrdersApplicationsAlternativeData(req)),
-    interestAndIndexationRows: [
-      buildSummaryRow('Interest', getInterestAppliesLabel(getOrdersApplicationsAlternativeData(req)['interest-applies'])),
-      buildSummaryRow(
-        'Indexation',
-        getIndexationTypeLabel(getOrdersApplicationsAlternativeData(req)['indexation-type'])
-      )
-    ],
-    managingPaymentsRows: [
-      buildSummaryRow('How will payments be managed?', {
-        'payments-via-court': 'Payments via the court',
-        'direct-payments': 'Direct payments to creditors'
-      }[getOrdersApplicationsAlternativeData(req)['order-managing-payments']] || '-')
-    ],
-    caseCommentsRows: [
-      buildSummaryRow('Comment', getOrdersApplicationsAlternativeData(req)['case-comment']),
-      buildSummaryRow('Case note', getOrdersApplicationsAlternativeData(req)['case-notes'])
-    ],
-    showApplicantRestrictionWarning: Boolean(
-      getOrdersApplicationsAlternativeData(req)['applicant-restrict-personal-information']
-    ),
-    showRespondentRestrictionWarning: Boolean(
-      getOrdersApplicationsAlternativeData(req)['respondent-restrict-personal-information']
-    )
-  })
-})
-
-router.get('/orders-applications-alternative/case-submitted', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/case-submitted')
-})
-
-router.get('/orders-applications-alternative/case-comments-and-notes', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/case-comments-and-notes')
-})
-
-router.post('/orders-applications-alternative/case-comments-and-notes', (req, res, next) => {
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/applicant-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/applicant-details', {
-    applicantAge: getAgeFromDateString(getOrdersApplicationsAlternativeData(req)['applicant-date-of-birth'])
-  })
-})
-
-router.post('/orders-applications-alternative/applicant-details', (req, res, next) => {
-  const errors = validateApplicantDetails(req.body, getOrdersApplicationsAlternativeData(req)['applicant-type'])
-
-  if (Object.keys(errors).length > 0) {
-    delete getOrdersApplicationsAlternativeData(req)['applicant-details-completed']
-
-    return res.render('orders-applications-alternative/applicant-details', {
-      data: buildApplicantDetailsViewData(getOrdersApplicationsAlternativeData(req), req.body),
-      applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
-      errors,
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  getOrdersApplicationsAlternativeData(req)['applicant-add-aliases'] = isChecked(
-    req.body['applicant-add-aliases']
-  )
-    ? 'yes'
-    : ''
-  getOrdersApplicationsAlternativeData(req)['applicant-bank-account-type'] =
-    getSingleValue(req.body['applicant-bank-account-type']) || ''
-  getOrdersApplicationsAlternativeData(req)['applicant-send-correspondence-to-third-party'] =
-    isChecked(req.body['applicant-send-correspondence-to-third-party'])
-      ? 'yes'
-      : ''
-  getOrdersApplicationsAlternativeData(req)['applicant-restrict-personal-information'] =
-    isChecked(req.body['applicant-restrict-personal-information'])
-      ? 'yes'
-      : ''
-
-  getOrdersApplicationsAlternativeData(req)['applicant-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/respondent-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/respondent-details')
-})
-
-router.post('/orders-applications-alternative/respondent-details', (req, res, next) => {
-  const errors = validateRespondentDetails(req.body)
-
-  if (Object.keys(errors).length > 0) {
-    delete getOrdersApplicationsAlternativeData(req)['respondent-details-completed']
-
-    return res.render('orders-applications-alternative/respondent-details', {
-      data: buildRespondentDetailsViewData(getOrdersApplicationsAlternativeData(req), req.body),
-      errors,
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  getOrdersApplicationsAlternativeData(req)['respondent-add-aliases'] = isChecked(
-    req.body['respondent-add-aliases']
-  )
-    ? 'yes'
-    : ''
-  getOrdersApplicationsAlternativeData(req)['respondent-add-employer-details'] = isChecked(
-    req.body['respondent-add-employer-details']
-  )
-    ? 'yes'
-    : ''
-  getOrdersApplicationsAlternativeData(req)['respondent-send-correspondence-to-third-party'] =
-    isChecked(req.body['respondent-send-correspondence-to-third-party'])
-      ? 'yes'
-      : ''
-  getOrdersApplicationsAlternativeData(req)['respondent-restrict-personal-information'] =
-    isChecked(req.body['respondent-restrict-personal-information'])
-      ? 'yes'
-      : ''
-
-  getOrdersApplicationsAlternativeData(req)['respondent-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/central-authority-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (isRemoOutCase(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/central-authority-details', {
-    hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(getOrdersApplicationsAlternativeData(req)),
-    centralAuthorityCardRows: getCentralAuthorityCardRows(getOrdersApplicationsAlternativeData(req))
-  })
-})
-
-router.post('/orders-applications-alternative/central-authority-details', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['central-authority-details-completed'] = hasCentralAuthorityDetails(
-    getOrdersApplicationsAlternativeData(req)
-  )
-    ? 'yes'
-    : ''
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/central-authority-details/manual', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/central-authority-details-manual')
-})
-
-router.post('/orders-applications-alternative/central-authority-details/manual', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['central-authority-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/central-authority-details')
-})
-
-router.get('/orders-applications-alternative/central-authority-details/remove', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (!hasCentralAuthorityManualDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/central-authority-details')
-  }
-
-  return res.render('orders-applications-alternative/remove-central-authority-details', {
-    centralAuthorityCardRows: getCentralAuthorityCardRows(getOrdersApplicationsAlternativeData(req))
-  })
-})
-
-router.post('/orders-applications-alternative/central-authority-details/remove', (req, res, next) => {
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-manual-name']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-main-email-address']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-other-email-address']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-main-telephone-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-other-telephone-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-1']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-2']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-3']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-4']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-5']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-postal-or-zip-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-country']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-account-type']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-name-on-account']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-sort-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-account-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-payment-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-name-on-account']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-bic-or-swift-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-iban']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-payment-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-name']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-branch-office-or-sort-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-account-number']
-
-  getOrdersApplicationsAlternativeData(req)['central-authority-details-completed'] = hasCentralAuthorityDetails(
-    getOrdersApplicationsAlternativeData(req)
-  )
-    ? 'yes'
-    : ''
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/central-authority-details')
-})
-
-router.get('/orders-applications-alternative/order-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/application-details')
-  }
-
-  if (!hasCompletedPartyDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const orderApplicationDefinition = getApplicationDefinition(
-    getOrdersApplicationsAlternativeData(req)['order-application-code']
-  )
-
-  return res.render('orders-applications-alternative/order-details', {
-    applicationItems: getApplicationOptionItems(
-      getOrdersApplicationsAlternativeData(req)['order-application-code'],
-      getOrdersApplicationsAlternativeData(req)['case-type']
-    ),
-    applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
-    errors: {},
-    errorSummary: null,
-    orderApplicationTitle:
-      orderApplicationDefinition?.title ||
-      'Application from EU Country for registration or recognition of an order in the family court'
-  })
-})
-
-router.post('/orders-applications-alternative/order-details', (req, res, next) => {
-  if (isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/application-details')
-  }
-
-  const selectedApplicationCode = String(
-    getSingleValue(req.body['order-application-code']) || ''
-  )
-    .trim()
-    .toUpperCase()
-
-  getOrdersApplicationsAlternativeData(req)['order-application-code'] = selectedApplicationCode
-  const errors = validateAlternativeOrderDetails(
-    req.body,
-    getOrdersApplicationsAlternativeData(req)['case-type']
-  )
-  const orderApplicationDefinition = getApplicationDefinition(selectedApplicationCode)
-
-  if (Object.keys(errors).length > 0) {
-    delete getOrdersApplicationsAlternativeData(req)['order-details-completed']
-
-    return res.render('orders-applications-alternative/order-details', {
-      applicationItems: getApplicationOptionItems(
-        selectedApplicationCode,
-        getOrdersApplicationsAlternativeData(req)['case-type']
-      ),
-      applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
-      errors,
-      errorSummary: buildErrorSummary(errors),
-      orderApplicationTitle:
-        orderApplicationDefinition?.title ||
-        'Application from EU Country for registration or recognition of an order in the family court'
-    })
-  }
-
-  delete getOrdersApplicationsAlternativeData(req)['order-payment-terms']
-  delete getOrdersApplicationsAlternativeData(req)['order-payment-frequency']
-  delete getOrdersApplicationsAlternativeData(req)['order-managing-payments']
-  getOrdersApplicationsAlternativeData(req)['order-has-periodical-payments'] = ''
-  getOrdersApplicationsAlternativeData(req)['order-has-lump-sum'] = ''
-  getOrdersApplicationsAlternativeData(req)['order-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/select-order-term', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/select-order-term', {
-    orderTermCards: getOrderTermHubCards(getOrdersApplicationsAlternativeData(req)),
-    recordedOrderTerms: getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-  })
-})
-
-router.get('/orders-applications-alternative/add-order-term', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-
-  return res.render('orders-applications-alternative/add-order-term', {
-    resultItems: getResultOptionItems('', 'orders')
-  })
-})
-
-router.post('/orders-applications-alternative/select-order-term', (req, res, next) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const selectedOrderTermCode = String(
-    getSingleValue(req.body['alternative-order-term-code']) || ''
-  )
-    .trim()
-    .toUpperCase()
-
-  if (!getResultDefinition(selectedOrderTermCode, 'orders')) {
-    getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'] = ''
-
-    return res.render('orders-applications-alternative/add-order-term', {
-      resultItems: getResultOptionItems('', 'orders'),
-      selectionError: 'Select an order term from the list.'
-    })
-  }
-
-  getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'] = selectedOrderTermCode
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-details')
-})
-
-router.get('/orders-applications-alternative/order-term/:index/change', (req, res, next) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = Number(req.params.index)
-  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-  const selectedTerm = recordedTerms[index]
-
-  if (!selectedTerm) {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-  }
-
-  getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index'] = String(index)
-  getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'] = selectedTerm.code
-  getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses'] =
-    selectedTerm.responses || {}
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-details')
-})
-
-router.get('/orders-applications-alternative/order-term/:index/delete', (req, res, next) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = Number(req.params.index)
-  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-  const selectedTerm = recordedTerms[index]
-
-  if (!selectedTerm) {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-  }
-
-  return res.render('orders-applications-alternative/remove-order-term', {
-    orderTermCard: {
-      title: `${selectedTerm.code} - ${selectedTerm.title}`,
-      rows: getOrderTermReviewRows(selectedTerm).slice(2).filter((row) => row.value.text !== '-')
-    },
-    formAction: `/orders-applications-alternative/order-term/${index}/delete`
-  })
-})
-
-router.post('/orders-applications-alternative/order-term/:index/delete', (req, res, next) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = Number(req.params.index)
-  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-
-  if (!recordedTerms[index]) {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-  }
-
-  recordedTerms.splice(index, 1)
-  getOrdersApplicationsAlternativeData(req)['entered-order-terms'] = recordedTerms.map(
-    ({ index: _index, ...term }) => term
-  )
-
-  if (String(getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']) === String(index)) {
-    delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-    delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
-    delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-    delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors']
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-})
-
-router.get('/orders-applications-alternative/order-term-details', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const orderTermDefinition = getResultDefinition(
-    getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'],
-    'orders'
-  )
-
-  if (!orderTermDefinition) {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-
-  return res.render('orders-applications-alternative/order-term-details', {
-    isEditingOrderTerm: isEditingAlternativeOrderTerm(getOrdersApplicationsAlternativeData(req)),
-    resultCode: orderTermDefinition.code,
-    resultTitle: orderTermDefinition.title,
-    resultCategory: getResultCategoryLabel(orderTermDefinition.category),
-    requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
-    resultWording: getAlternativeOrderTermWording(getOrdersApplicationsAlternativeData(req)),
-    responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req)),
-    errorSummary: null
-  })
-})
-
-router.post('/orders-applications-alternative/order-term-details', (req, res, next) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const orderTermDefinition = getResultDefinition(
-    getOrdersApplicationsAlternativeData(req)['alternative-order-term-code'],
-    'orders'
-  )
-
-  if (!orderTermDefinition) {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-
-  const { errors, values } = validateResultResponses(orderTermDefinition, req.body)
-
-  getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses'] = values
-
-  if (Object.keys(errors).length) {
-    getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors'] = errors
-
-    return res.render('orders-applications-alternative/order-term-details', {
-      isEditingOrderTerm: isEditingAlternativeOrderTerm(getOrdersApplicationsAlternativeData(req)),
-      resultCode: orderTermDefinition.code,
-      resultTitle: orderTermDefinition.title,
-      resultCategory: getResultCategoryLabel(orderTermDefinition.category),
-      requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
-      resultWording: getAlternativeOrderTermWording(getOrdersApplicationsAlternativeData(req)),
-      responseItems: getAlternativeOrderTermResponseItems(getOrdersApplicationsAlternativeData(req)),
-      errorSummary: buildErrorSummary(errors)
-    })
-  }
-
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors']
-
-  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-  const savedOrderTerm = {
-    code: orderTermDefinition.code,
-    title: orderTermDefinition.title,
-    category: orderTermDefinition.category,
-    categoryLabel: getResultCategoryLabel(orderTermDefinition.category),
-    wording: getAlternativeOrderTermWording(getOrdersApplicationsAlternativeData(req)),
-    responses: values,
-    nextStep: orderTermDefinition.nextStep
-  }
-  const editIndex = Number(getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index'])
-  const existingRecordedTerm = Number.isInteger(editIndex) && recordedTerms[editIndex]
-    ? recordedTerms[editIndex]
-    : null
-
-  if (existingRecordedTerm?.creditor) {
-    savedOrderTerm.creditor = existingRecordedTerm.creditor
-    savedOrderTerm.creditorLabel = existingRecordedTerm.creditorLabel || ''
-  }
-
-  if (existingRecordedTerm?.minorCreditorData) {
-    savedOrderTerm.minorCreditorData = existingRecordedTerm.minorCreditorData
-  }
-
-  if (orderTermDefinition.nextStep === 'create-creditor') {
-    const pendingOrderTerm = {
-      ...savedOrderTerm
-    }
-
-    if (Number.isInteger(editIndex) && existingRecordedTerm) {
-      pendingOrderTerm.editIndex = String(editIndex)
-    }
-
-    getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term'] = pendingOrderTerm
-    delete getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index']
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor')
-  }
-
-  if (Number.isInteger(editIndex) && existingRecordedTerm) {
-    recordedTerms[editIndex] = savedOrderTerm
-  } else {
-    recordedTerms.push(savedOrderTerm)
-  }
-
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-
-  const savedOrderTermIndex = Number.isInteger(editIndex) && existingRecordedTerm
-    ? editIndex
-    : recordedTerms.length - 1
-
-  getOrdersApplicationsAlternativeData(req)['entered-order-terms'] = recordedTerms.map(
-    ({ index, ...term }) => term
-  )
-  getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-})
-
-router.get('/orders-applications-alternative/order-term-creditor', (req, res) => {
-  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-
-  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-
-  const sessionData = getOrdersApplicationsAlternativeData(req)
-  const pendingMinorCreditor =
-    sessionData['alternative-pending-minor-creditor'] ||
-    pendingOrderTerm.minorCreditorData ||
-    null
-  const rawCreditor = pendingOrderTerm.creditor || null
-  const selectedCreditor = rawCreditor && rawCreditor.startsWith('major-creditor-') ? 'major-creditor' : rawCreditor
-  const majorCreditorCode = rawCreditor && rawCreditor.startsWith('major-creditor-')
-    ? rawCreditor.replace('major-creditor-', '')
-    : (sessionData['alternative-selected-major-creditor'] || '')
-  const editingIndex = pendingOrderTerm.editIndex != null ? Number(pendingOrderTerm.editIndex) : undefined
-
-  return res.render('orders-applications-alternative/order-term-creditor', {
-    pendingMinorCreditor,
-    pendingMinorCreditorCard: pendingMinorCreditor
-      ? {
-          title: getMinorCreditorName(pendingMinorCreditor, 0),
-          rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
-        }
-      : null,
-    applicantItem: {
-      value: 'applicant',
-      text: `${getApplicantCreditorLabel(sessionData)} (Applicant)`,
-      checked: selectedCreditor === 'applicant'
-    },
-    existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sessionData, editingIndex).map((mc) => ({
-      value: mc.value,
-      text: mc.text,
-      checked: selectedCreditor === mc.value
-    })),
-    selectedCreditor,
-    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
-    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
-    selectionError: null
-  })
-})
-
-router.get('/orders-applications-alternative/order-term-creditor/add-minor-creditor', (req, res) => {
-  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-  const pendingMinorCreditor = getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] || {}
-  return res.render('orders-applications-alternative/minor-creditor-details', {
-    creditor: pendingMinorCreditor,
-    countryItems: getCountrySelectItems(pendingMinorCreditor.country || ''),
-    formAction: '/orders-applications-alternative/order-term-creditor/add-minor-creditor',
-    cancelHref: '/orders-applications-alternative/order-term-creditor'
-  })
-})
-
-router.post('/orders-applications-alternative/order-term-creditor/add-minor-creditor', (req, res, next) => {
-  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-  getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] = buildMinorCreditor(req.body)
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor')
-})
-
-router.get('/orders-applications-alternative/order-term-creditor/remove-minor-creditor', (req, res) => {
-  const sessionData = getOrdersApplicationsAlternativeData(req)
-  const pendingOrderTerm = sessionData['alternative-pending-order-term']
-  const pendingMinorCreditor =
-    sessionData['alternative-pending-minor-creditor'] ||
-    (pendingOrderTerm && pendingOrderTerm.minorCreditorData) ||
-    null
-  if (!pendingMinorCreditor) {
-    return res.redirect('/orders-applications-alternative/order-term-creditor')
-  }
-  return res.render('orders-applications-alternative/remove-minor-creditor', {
-    minorCreditorCard: {
-      title: getMinorCreditorName(pendingMinorCreditor, 0),
-      rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
-    },
-    formAction: '/orders-applications-alternative/order-term-creditor/remove-minor-creditor',
-    cancelHref: '/orders-applications-alternative/order-term-creditor'
-  })
-})
-
-router.post('/orders-applications-alternative/order-term-creditor/remove-minor-creditor', (req, res, next) => {
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor']
-  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  if (pendingOrderTerm) {
-    delete pendingOrderTerm.minorCreditorData
-    delete pendingOrderTerm.creditor
-    delete pendingOrderTerm.creditorLabel
-  }
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor')
-})
-
-router.get('/orders-applications-alternative/order-term-creditor/cancel', (req, res, next) => {
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-})
-
-router.post('/orders-applications-alternative/order-term-creditor', (req, res, next) => {
-  const pendingOrderTerm = getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  const recordedTerms = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))
-
-  if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-
-  const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
-  const pendingMinorCreditor = getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor'] || null
-
-  if (selectedCreditor === 'add-new-minor-creditor') {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/order-term-creditor/add-minor-creditor')
-  }
-
-  const usingPendingMinorCreditor = selectedCreditor === 'new-minor-creditor' && pendingMinorCreditor
-
-  if (!selectedCreditor && !pendingMinorCreditor) {
-    const sd = getOrdersApplicationsAlternativeData(req)
-    return res.render('orders-applications-alternative/order-term-creditor', {
-      pendingMinorCreditor: null,
-      pendingMinorCreditorCard: null,
-      applicantItem: {
-        value: 'applicant',
-        text: `${getApplicantCreditorLabel(sd)} (Applicant)`,
-        checked: false
-      },
-      existingMinorCreditorItems: getMinorCreditorsFromOrderTerms(sd).map((mc) => ({
-        value: mc.value,
-        text: mc.text,
-        checked: false
-      })),
-      selectedCreditor: '',
-      majorCreditorItems: getMajorCreditorItems(''),
-      selectionError: 'Select a creditor.'
-    })
-  }
-
-  let finalCreditorValue = selectedCreditor
-  let creditorLabel = ''
-  let minorCreditorData = null
-
-  if (usingPendingMinorCreditor) {
-    finalCreditorValue = 'new-minor-creditor'
-    creditorLabel = getMinorCreditorName(pendingMinorCreditor, 0)
-    minorCreditorData = pendingMinorCreditor
-  } else if (selectedCreditor === 'major-creditor') {
-    const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
-    creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
-    finalCreditorValue = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
-    getOrdersApplicationsAlternativeData(req)['alternative-selected-major-creditor'] = selectedMajorCode
-  } else {
-    creditorLabel = getOrderTermCreditorLabelByValue(selectedCreditor, getOrdersApplicationsAlternativeData(req))
-  }
-
-  const completedOrderTerm = {
-    ...pendingOrderTerm,
-    creditor: finalCreditorValue,
-    creditorLabel,
-    ...(minorCreditorData ? { minorCreditorData } : {})
-  }
-  const editIndex = hasValue(pendingOrderTerm.editIndex)
-    ? Number(pendingOrderTerm.editIndex)
-    : Number.NaN
-
-  delete completedOrderTerm.editIndex
-
-  if (Number.isInteger(editIndex) && recordedTerms[editIndex]) {
-    recordedTerms[editIndex] = completedOrderTerm
-  } else {
-    recordedTerms.push(completedOrderTerm)
-  }
-
-  const savedOrderTermIndex = Number.isInteger(editIndex) && recordedTerms[editIndex]
-    ? editIndex
-    : recordedTerms.length - 1
-
-  getOrdersApplicationsAlternativeData(req)['entered-order-terms'] = recordedTerms.map(
-    ({ index, ...term }) => term
-  )
-  getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index'] = String(savedOrderTermIndex)
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-minor-creditor']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-selected-major-creditor']
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/select-order-term')
-})
-
-router.get('/orders-applications-alternative/order-term-review', (req, res) => {
-  const orderTermIndex = Number(
-    getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index']
-  )
-  const orderTerm = getRecordedOrderTerms(getOrdersApplicationsAlternativeData(req))[orderTermIndex]
-
-  if (!orderTerm) {
-    return res.redirect('/orders-applications-alternative/select-order-term')
-  }
-
-  return res.render('orders-applications-alternative/order-term-review', {
-    orderTerm,
-    orderTermRows: getOrderTermReviewRows(orderTerm)
-  })
-})
-
-router.get('/orders-applications-alternative/application-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasCompletedPartyDetails(getOrdersApplicationsAlternativeData(req))
-  ) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/application-details', {
-    applicationItems: getApplicationOptionItems(
-      getOrdersApplicationsAlternativeData(req)['application-code'],
-      getOrdersApplicationsAlternativeData(req)['case-type']
-    ),
-    applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
-    selectionError: null
-  })
-})
-
-router.post('/orders-applications-alternative/application-details', (req, res, next) => {
-  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const selectedApplicationCode = String(getSingleValue(req.body['application-code']) || '')
-    .trim()
-    .toUpperCase()
-
-  getOrdersApplicationsAlternativeData(req)['application-code'] = selectedApplicationCode
-
-  if (
-    !isApplicationDefinitionAvailableForCaseType(
-      selectedApplicationCode,
-      getOrdersApplicationsAlternativeData(req)['case-type']
-    )
-  ) {
-    return res.render('orders-applications-alternative/application-details', {
-      applicationItems: getApplicationOptionItems(
-        selectedApplicationCode,
-        getOrdersApplicationsAlternativeData(req)['case-type']
-      ),
-      applicationLookupJson: getApplicationLookupJson(getOrdersApplicationsAlternativeData(req)['case-type']),
-      selectionError: 'Select an application code from the list.'
-    })
-  }
-
-  delete getOrdersApplicationsAlternativeData(req)['application-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['application-response-values']
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/application-details/content')
-})
-
-router.get('/orders-applications-alternative/application-details/content', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasCompletedPartyDetails(getOrdersApplicationsAlternativeData(req)) ||
-    !hasValue(getOrdersApplicationsAlternativeData(req)['application-code'])
-  ) {
-    return res.redirect('/orders-applications-alternative/application-details')
-  }
-
-  return res.render('orders-applications-alternative/application-details-content', {
-    applicationCode: getOrdersApplicationsAlternativeData(req)['application-code'],
-    applicationTitle: getApplicationTitle(getOrdersApplicationsAlternativeData(req)),
-    applicationWording: getAlternativeApplicationWording(getOrdersApplicationsAlternativeData(req)),
-    responseItems: getAlternativeApplicationResponseFields(getOrdersApplicationsAlternativeData(req)),
-    formAction: '/orders-applications-alternative/application-details/content',
-    cancelHref: '/orders-applications-alternative/cancel'
-  })
-})
-
-router.post('/orders-applications-alternative/application-details/content', (req, res, next) => {
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasValue(getOrdersApplicationsAlternativeData(req)['application-code'])
-  ) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const applicationResponseValues = Object.fromEntries(
-    getAlternativeApplicationResponseFields(getOrdersApplicationsAlternativeData(req)).map((field) => [
-      field.id,
-      getSingleValue(req.body[field.id]) || ''
-    ])
-  )
-
-  getOrdersApplicationsAlternativeData(req)['application-response-values'] = applicationResponseValues
-  getOrdersApplicationsAlternativeData(req)['application-foreign-court'] =
-    applicationResponseValues[getApplicationResponseFieldId('court')] ||
-    applicationResponseValues[getApplicationResponseFieldId('foreign court')] ||
-    ''
-  getOrdersApplicationsAlternativeData(req)['application-order-date'] =
-    applicationResponseValues[getApplicationResponseFieldId('order date')] ||
-    applicationResponseValues[getApplicationResponseFieldId('date order made')] ||
-    ''
-  getOrdersApplicationsAlternativeData(req)['application-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/hearing-details', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasCompletedApplicationDetails(getOrdersApplicationsAlternativeData(req))
-  ) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/hearing-details')
-})
-
-router.post('/orders-applications-alternative/hearing-details', (req, res, next) => {
-  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const hearingLocation = getSingleValue(req.body['hearing-location']) || ''
-
-  getOrdersApplicationsAlternativeData(req)['hearing-type'] =
-    hearingLocation === 'yes'
-      ? 'schedule-england-wales'
-      : hearingLocation === 'no'
-        ? 'non-scheduled'
-        : ''
-  delete getOrdersApplicationsAlternativeData(req)['hearing-details-completed']
-
-  const nextPage =
-    getOrdersApplicationsAlternativeData(req)['hearing-type'] === 'schedule-england-wales'
-      ? '/orders-applications-alternative/hearing-details-england-wales'
-      : getOrdersApplicationsAlternativeData(req)['hearing-type'] === 'non-scheduled'
-        ? '/orders-applications-alternative/hearing-details-outside-england-wales'
-        : '/orders-applications-alternative/hearing-details'
-
-  return redirectWithSessionSave(req, res, next, nextPage)
-})
-
-router.get('/orders-applications-alternative/hearing-details-england-wales', (req, res) => {
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasCompletedApplicationDetails(getOrdersApplicationsAlternativeData(req))
-  ) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  if (getOrdersApplicationsAlternativeData(req)['hearing-type'] !== 'schedule-england-wales') {
-    return res.redirect('/orders-applications-alternative/hearing-details')
-  }
-
-  return res.render('orders-applications-alternative/hearing-details-england-wales')
-})
-
-router.post('/orders-applications-alternative/hearing-details-england-wales', (req, res, next) => {
-  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  getOrdersApplicationsAlternativeData(req)['hearing-type'] = 'schedule-england-wales'
-  getOrdersApplicationsAlternativeData(req)['hearing-date'] =
-    getSingleValue(req.body['hearing-date']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-court'] =
-    getSingleValue(req.body['hearing-court']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-courtroom-number'] =
-    getSingleValue(req.body['hearing-courtroom-number']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-start-time'] =
-    getSingleValue(req.body['hearing-start-time']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/hearing-details-outside-england-wales', (req, res) => {
-  if (
-    !isApplicationJourney(getOrdersApplicationsAlternativeData(req)) ||
-    !hasCompletedApplicationDetails(getOrdersApplicationsAlternativeData(req))
-  ) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  if (getOrdersApplicationsAlternativeData(req)['hearing-type'] !== 'non-scheduled') {
-    return res.redirect('/orders-applications-alternative/hearing-details')
-  }
-
-  return res.render('orders-applications-alternative/hearing-details-outside-england-wales')
-})
-
-router.post('/orders-applications-alternative/hearing-details-outside-england-wales', (req, res, next) => {
-  if (!isApplicationJourney(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  getOrdersApplicationsAlternativeData(req)['hearing-type'] = 'non-scheduled'
-  getOrdersApplicationsAlternativeData(req)['hearing-date'] =
-    getSingleValue(req.body['hearing-date']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-non-scheduled-details'] =
-    getSingleValue(req.body['hearing-non-scheduled-details']) || ''
-  getOrdersApplicationsAlternativeData(req)['hearing-details-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/minor-creditors', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  if (!hasMinorCreditors(getOrdersApplicationsAlternativeData(req))) {
-    return res.render('orders-applications-alternative/minor-creditor-details', {
-      creditor: {},
-      formAction: '/orders-applications-alternative/minor-creditors',
-      cancelHref: '/orders-applications-alternative/case-details'
-    })
-  }
-
-  return res.render('orders-applications-alternative/minor-creditors', {
-    minorCreditorCards: getMinorCreditorCards(getOrdersApplicationsAlternativeData(req)),
-    primaryActionText: getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-      ? 'Add to order term'
-      : 'Return to case details',
-    primaryActionHref: getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-      ? '/orders-applications-alternative/order-term-creditor'
-      : '/orders-applications-alternative/case-details'
-  })
-})
-
-router.post('/orders-applications-alternative/minor-creditors', (req, res, next) => {
-  const creditors = getMinorCreditors(getOrdersApplicationsAlternativeData(req))
-  creditors.push(buildMinorCreditor(req.body))
-  getOrdersApplicationsAlternativeData(req)['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/minor-creditors')
-})
-
-router.get('/orders-applications-alternative/minor-creditors/new', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/minor-creditor-details', {
-    creditor: {},
-    formAction: '/orders-applications-alternative/minor-creditors/new',
-    cancelHref: '/orders-applications-alternative/minor-creditors'
-  })
-})
-
-router.post('/orders-applications-alternative/minor-creditors/new', (req, res, next) => {
-  const creditors = getMinorCreditors(getOrdersApplicationsAlternativeData(req))
-  creditors.push(buildMinorCreditor(req.body))
-  getOrdersApplicationsAlternativeData(req)['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/minor-creditors')
-})
-
-router.get('/orders-applications-alternative/minor-creditors/:index/edit', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = getMinorCreditorIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/minor-creditors')
-  }
-
-  return res.render('orders-applications-alternative/minor-creditor-details', {
-    creditor: getMinorCreditors(getOrdersApplicationsAlternativeData(req))[index],
-    formAction: `/minor-creditors/${index}/edit`,
-    cancelHref: '/orders-applications-alternative/minor-creditors'
-  })
-})
-
-router.post('/orders-applications-alternative/minor-creditors/:index/edit', (req, res, next) => {
-  const index = getMinorCreditorIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/minor-creditors')
-  }
-
-  const creditors = getMinorCreditors(getOrdersApplicationsAlternativeData(req))
-  creditors[index] = buildMinorCreditor(req.body)
-  getOrdersApplicationsAlternativeData(req)['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/minor-creditors')
-})
-
-router.get('/orders-applications-alternative/minor-creditors/:index/remove', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = getMinorCreditorIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/minor-creditors')
-  }
-
-  const creditor = getMinorCreditors(getOrdersApplicationsAlternativeData(req))[index]
-
-  return res.render('orders-applications-alternative/remove-minor-creditor', {
-    minorCreditorCard: {
-      title: getMinorCreditorName(creditor, index),
-      rows: getMinorCreditorSummaryRows(creditor)
-    },
-    formAction: `/minor-creditors/${index}/remove`
-  })
-})
-
-router.post('/orders-applications-alternative/minor-creditors/:index/remove', (req, res, next) => {
-  const index = getMinorCreditorIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/minor-creditors')
-  }
-
-  const creditors = getMinorCreditors(getOrdersApplicationsAlternativeData(req))
-  creditors.splice(index, 1)
-  getOrdersApplicationsAlternativeData(req)['minor-creditors'] = creditors
-
-  return redirectWithSessionSave(
-    req,
-    res,
-    next,
-    creditors.length ? '/orders-applications-alternative/minor-creditors' : '/orders-applications-alternative/case-details'
-  )
-})
-
-router.get('/orders-applications-alternative/terms-per-beneficiary', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  if (!hasTermsPerBeneficiary(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/terms-per-beneficiary/beneficiary')
-  }
-
-  return res.render('orders-applications-alternative/terms-review', {
-    beneficiaryGroups: getTermsReviewGroups(getOrdersApplicationsAlternativeData(req))
-  })
-})
-
-router.get('/orders-applications-alternative/terms-per-beneficiary/beneficiary', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const draft = getTermsBeneficiaryDraft(getOrdersApplicationsAlternativeData(req)) || {}
-
-  return res.render('orders-applications-alternative/terms-beneficiary', {
-    applicantBeneficiaryLabel: `${getApplicantFullName(getOrdersApplicationsAlternativeData(req))} (Applicant)`,
-    childAge: getAgeFromDateString(draft.dateOfBirth),
-    cancelHref: hasTermsPerBeneficiary(getOrdersApplicationsAlternativeData(req))
-      ? '/orders-applications-alternative/terms-per-beneficiary'
-      : '/orders-applications-alternative/case-details'
-  })
-})
-
-router.post('/orders-applications-alternative/terms-per-beneficiary/beneficiary', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['terms-beneficiary-draft'] = buildTermsBeneficiaryDraft(
-    req.body,
-    getOrdersApplicationsAlternativeData(req)
-  )
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/terms-per-beneficiary/order-terms')
-})
-
-router.get('/orders-applications-alternative/terms-per-beneficiary/order-terms', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const beneficiary = getTermsBeneficiaryDraft(getOrdersApplicationsAlternativeData(req))
-
-  if (!beneficiary) {
-    return res.redirect('/orders-applications-alternative/terms-per-beneficiary/beneficiary')
-  }
-
-  return res.render('orders-applications-alternative/terms-order-terms', {
-    beneficiary,
-    frequencyLabel: getFrequencyLabel(getOrdersApplicationsAlternativeData(req)['order-payment-frequency']),
-    creditorItems: getTermsCreditorItems(
-      getOrdersApplicationsAlternativeData(req),
-      getOrdersApplicationsAlternativeData(req)['terms-creditor'] || 'applicant'
-    )
-  })
-})
-
-router.post('/orders-applications-alternative/terms-per-beneficiary/order-terms', (req, res, next) => {
-  const entry = buildTermsEntry(req.body, getOrdersApplicationsAlternativeData(req))
-
-  if (!entry) {
-    return res.redirect('/orders-applications-alternative/terms-per-beneficiary/beneficiary')
-  }
-
-  const terms = getTermsPerBeneficiary(getOrdersApplicationsAlternativeData(req))
-  terms.push(entry)
-  getOrdersApplicationsAlternativeData(req)['terms-per-beneficiary'] = terms
-  delete getOrdersApplicationsAlternativeData(req)['terms-beneficiary-draft']
-
-  if (req.body.action === 'add-more-terms') {
-    return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/terms-per-beneficiary/beneficiary')
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/terms-per-beneficiary')
-})
-
-router.get('/orders-applications-alternative/terms-per-beneficiary/:index/remove', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  const index = getTermsIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/terms-per-beneficiary')
-  }
-
-  const term = getTermsPerBeneficiary(getOrdersApplicationsAlternativeData(req))[index]
-
-  return res.render('orders-applications-alternative/remove-terms-per-beneficiary', {
-    beneficiaryGroup: {
-      name: term.beneficiaryName,
-      role: term.beneficiaryRole,
-      tag: term.beneficiaryTag,
-      rows: [getTermsReviewRow(term)]
-    },
-    formAction: `/terms-per-beneficiary/${index}/remove`
-  })
-})
-
-router.post('/orders-applications-alternative/terms-per-beneficiary/:index/remove', (req, res, next) => {
-  const index = getTermsIndex(req.params.index, getOrdersApplicationsAlternativeData(req))
-
-  if (index === null) {
-    return res.redirect('/orders-applications-alternative/terms-per-beneficiary')
-  }
-
-  const terms = getTermsPerBeneficiary(getOrdersApplicationsAlternativeData(req))
-  terms.splice(index, 1)
-  getOrdersApplicationsAlternativeData(req)['terms-per-beneficiary'] = terms
-
-  return redirectWithSessionSave(
-    req,
-    res,
-    next,
-    terms.length ? '/orders-applications-alternative/terms-per-beneficiary' : '/orders-applications-alternative/case-details'
-  )
-})
-
-router.get('/orders-applications-alternative/lump-sum-payment', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/lump-sum-payment', {
-    creditorItems: getTermsCreditorItems(
-      getOrdersApplicationsAlternativeData(req),
-      getOrdersApplicationsAlternativeData(req)['lump-sum-creditor'] || 'applicant'
-    )
-  })
-})
-
-router.post('/orders-applications-alternative/lump-sum-payment', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['lump-sum-payment-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/interest-and-indexation', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/interest-and-indexation')
-})
-
-router.post('/orders-applications-alternative/interest-and-indexation', (req, res, next) => {
-  getOrdersApplicationsAlternativeData(req)['interest-and-indexation-completed'] = 'yes'
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/managing-payments', (req, res) => {
-  if (!hasCompletedOrderDetails(getOrdersApplicationsAlternativeData(req))) {
-    return res.redirect('/orders-applications-alternative/case-details')
-  }
-
-  return res.render('orders-applications-alternative/managing-payments')
-})
-
-router.post('/orders-applications-alternative/managing-payments', (req, res, next) => {
-  const alternativeData = getOrdersApplicationsAlternativeData(req)
-
-  alternativeData['managing-payments-completed'] = hasValidManagingPaymentsSelection(alternativeData)
-    ? 'yes'
-    : ''
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
-})
-
-router.get('/orders-applications-alternative/cancel', (req, res, next) => {
-  delete getOrdersApplicationsAlternativeData(req)['case-type']
-  delete getOrdersApplicationsAlternativeData(req)['applicant-type']
-  delete getOrdersApplicationsAlternativeData(req)['has-order']
-  delete getOrdersApplicationsAlternativeData(req)['applicant-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['respondent-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-remo-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-name']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-manual-name']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-main-email-address']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-other-email-address']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-main-telephone-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-other-telephone-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-1']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-2']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-3']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-4']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-address-line-5']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-postal-or-zip-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-country']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-account-type']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-name-on-account']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-sort-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-account-number']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-payment-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-name-on-account']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-bic-or-swift-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-iban']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-payment-reference']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-name']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-branch-office-or-sort-code']
-  delete getOrdersApplicationsAlternativeData(req)['central-authority-bank-non-uk-account-number']
-  delete getOrdersApplicationsAlternativeData(req)['order-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['order-has-periodical-payments']
-  delete getOrdersApplicationsAlternativeData(req)['order-has-lump-sum']
-  delete getOrdersApplicationsAlternativeData(req)['order-payment-frequency']
-  delete getOrdersApplicationsAlternativeData(req)['order-application-code']
-  delete getOrdersApplicationsAlternativeData(req)['order-court-that-made-the-order']
-  delete getOrdersApplicationsAlternativeData(req)['order-date-order-made']
-  delete getOrdersApplicationsAlternativeData(req)['order-date-arrears-last-updated']
-  delete getOrdersApplicationsAlternativeData(req)['order-managing-payments']
-  delete getOrdersApplicationsAlternativeData(req)['entered-order-terms']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-code']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-current-order-term-responses']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-edit-order-term-index']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-order-term-errors']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-creditor-order-term-index']
-  delete getOrdersApplicationsAlternativeData(req)['alternative-pending-order-term']
-  delete getOrdersApplicationsAlternativeData(req)['minor-creditors']
-  delete getOrdersApplicationsAlternativeData(req)['terms-per-beneficiary']
-  delete getOrdersApplicationsAlternativeData(req)['terms-beneficiary-draft']
-  delete getOrdersApplicationsAlternativeData(req)['lump-sum-payment-completed']
-  delete getOrdersApplicationsAlternativeData(req)['lump-sum-amount']
-  delete getOrdersApplicationsAlternativeData(req)['lump-sum-enter-pay-by-date']
-  delete getOrdersApplicationsAlternativeData(req)['lump-sum-reason-for-payment']
-  delete getOrdersApplicationsAlternativeData(req)['lump-sum-creditor']
-  delete getOrdersApplicationsAlternativeData(req)['interest-and-indexation-completed']
-  delete getOrdersApplicationsAlternativeData(req)['interest-applies']
-  delete getOrdersApplicationsAlternativeData(req)['indexation-type']
-  delete getOrdersApplicationsAlternativeData(req)['managing-payments-completed']
-  delete getOrdersApplicationsAlternativeData(req)['case-comment']
-  delete getOrdersApplicationsAlternativeData(req)['case-notes']
-  delete getOrdersApplicationsAlternativeData(req)['application-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['application-code']
-  delete getOrdersApplicationsAlternativeData(req)['application-foreign-court']
-  delete getOrdersApplicationsAlternativeData(req)['application-order-date']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-details-completed']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-type']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-court']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-date']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-courtroom-number']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-start-time']
-  delete getOrdersApplicationsAlternativeData(req)['hearing-non-scheduled-details']
-
-  return redirectWithSessionSave(req, res, next, '/')
-})
-
-router.get('/orders-applications-alternative/cancel-case-creation', (req, res) => {
-  if (!getOrdersApplicationsAlternativeData(req)['case-type']) {
-    return res.redirect('/orders-applications-alternative')
-  }
-
-  return res.render('orders-applications-alternative/cancel-case-creation')
-})
-
-router.post('/orders-applications-alternative/cancel-case-creation', (req, res, next) => {
-  if (req.body['cancel-case-creation'] === 'yes') {
-    return res.redirect('/orders-applications-alternative/cancel')
-  }
-
-  return redirectWithSessionSave(req, res, next, '/orders-applications-alternative/case-details')
 })
 
 
@@ -7055,47 +4588,10 @@ router.get('/create-a-case/check-case-details', (req, res) => {
     return res.redirect('/create-a-case/case-details')
   }
 
-  return res.render('create-a-case/check-case-details', {
-    caseTypeLabel: caseTypeLabels[getCreateACaseData(req)['case-type']] || getCreateACaseData(req)['case-type'],
-    applicantTypeLabel:
-      applicantTypeLabels[getCreateACaseData(req)['applicant-type']] || 'Not selected',
-    isApplicationJourney: isApplicationJourney(getCreateACaseData(req)),
-    isRemoOutCase: isRemoOutCase(getCreateACaseData(req)),
-    applicantRows: getApplicantSummaryRows(getCreateACaseData(req)),
-    respondentRows: getRespondentSummaryRows(getCreateACaseData(req)),
-    centralAuthorityRows: [
-      buildSummaryRow('REMO reference', getCreateACaseData(req)['central-authority-remo-reference']),
-      buildSummaryRow("Central authority's reference", getCreateACaseData(req)['central-authority-reference']),
-      buildSummaryRow('Central authority name', getCreateACaseData(req)['central-authority-manual-name'] || getCreateACaseData(req)['central-authority-name'])
-    ],
-    applicationRows: getApplicationSummaryRows(getCreateACaseData(req)),
-    hearingRows: getHearingSummaryRows(getCreateACaseData(req)),
-    orderDetailsRows: getAlternativeOrderDetailsSummaryRows(getCreateACaseData(req)),
-    orderTermCards: getCheckCaseOrderTermCards(getCreateACaseData(req)),
-    interestAndIndexationRows: [
-      buildSummaryRow('Interest', getInterestAppliesLabel(getCreateACaseData(req)['interest-applies'])),
-      buildSummaryRow(
-        'Indexation',
-        getIndexationTypeLabel(getCreateACaseData(req)['indexation-type'])
-      )
-    ],
-    managingPaymentsRows: [
-      buildSummaryRow('How will payments be managed?', {
-        'payments-via-court': 'Payments via the court',
-        'direct-payments': 'Direct payments to creditors'
-      }[getCreateACaseData(req)['order-managing-payments']] || '-')
-    ],
-    caseCommentsRows: [
-      buildSummaryRow('Comment', getCreateACaseData(req)['case-comment']),
-      buildSummaryRow('Case note', getCreateACaseData(req)['case-notes'])
-    ],
-    showApplicantRestrictionWarning: Boolean(
-      getCreateACaseData(req)['applicant-restrict-personal-information']
-    ),
-    showRespondentRestrictionWarning: Boolean(
-      getCreateACaseData(req)['respondent-restrict-personal-information']
-    )
-  })
+  return res.render(
+    'create-a-case/check-case-details',
+    getCheckCaseDetailsViewData(getCreateACaseData(req))
+  )
 })
 
 router.get('/create-a-case/case-submitted', (req, res) => {
@@ -7157,6 +4653,10 @@ router.post('/create-a-case/applicant-details', (req, res, next) => {
     isChecked(req.body['applicant-restrict-personal-information'])
       ? 'yes'
       : ''
+  getCreateACaseData(req)['applicant-restriction-reason'] =
+    isChecked(req.body['applicant-restrict-personal-information'])
+      ? req.body['applicant-restriction-reason'] || ''
+      : ''
 
   getCreateACaseData(req)['applicant-details-completed'] = 'yes'
 
@@ -7201,6 +4701,10 @@ router.post('/create-a-case/respondent-details', (req, res, next) => {
   getCreateACaseData(req)['respondent-restrict-personal-information'] =
     isChecked(req.body['respondent-restrict-personal-information'])
       ? 'yes'
+      : ''
+  getCreateACaseData(req)['respondent-restriction-reason'] =
+    isChecked(req.body['respondent-restrict-personal-information'])
+      ? req.body['respondent-restriction-reason'] || ''
       : ''
 
   getCreateACaseData(req)['respondent-details-completed'] = 'yes'
@@ -8740,10 +6244,10 @@ router.get('/check-results', (req, res) => {
   return res.render('check-results/index', {
     toReviewTableRows: toReviewRows.map((row) => [
       {
-        text: row.applicant
+        html: `<a class="govuk-link" href="/check-results/${row.id}">${escapeHtml(row.respondent)}</a>`
       },
       {
-        html: `<a class="govuk-link" href="/check-results/${row.id}">${escapeHtml(row.respondent)}</a>`
+        text: row.applicant
       },
       {
         text: row.hearingDate
@@ -8932,56 +6436,78 @@ router.get('/check-results/:index', (req, res) => {
   return res.render('check-results/detail', checkEntry)
 })
 
-router.get('/create-and-validate-draft-orders', (req, res) => {
-  const toReviewRows = [
-    {
-      id: 0,
-      applicant: 'NOWAK, Anna',
-      respondent: 'NOWAK, Piotr',
-      hearingDate: '16 March 2026',
-      created: 'Today',
-      submittedBy: 'david.watts'
-    },
-    {
-      id: 1,
-      applicant: 'ARKET, Patricia',
-      respondent: 'FISHER, Edward',
-      hearingDate: '21 March 2026',
-      created: 'Today',
-      submittedBy: 'joe.bloggs'
-    },
-    {
-      id: 2,
-      applicant: 'AYRE, Jane',
-      respondent: 'FISHER, Evan',
-      hearingDate: '22 March 2026',
-      created: '1 day ago',
-      submittedBy: 'emily.davis'
-    }
+router.get('/create-cases', (req, res) => {
+  const tab = req.query.tab || 'in-review'
+
+  const inReviewRows = [
+    { id: 2, applicant: 'AYRE, Jane', respondent: 'FISHER, Evan', caseType: 'REMO Out (CMS)', created: '1 day ago', createdSort: -1 },
+    { id: 0, applicant: 'NOWAK, Anna', respondent: 'NOWAK, Piotr', caseType: 'REMO In', created: 'Today', createdSort: 0 },
+    { id: 1, applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', created: 'Today', createdSort: 0 }
   ]
 
+  const rejectedRows = [
+    { id: 4, applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', created: '3 days ago', createdSort: -3 },
+    { id: 3, applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', created: '2 days ago', createdSort: -2 }
+  ]
+
+  const approvedRows = [
+    { id: 6, applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1 },
+    { id: 5, applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2 }
+  ]
+
+  const deletedRows = [
+    { id: 7, applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
+  ]
+
+  const mapDeletedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.deleted, sortValue: row.deletedSort }
+  ])
+
+  const mapApprovedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.approved, sortValue: row.approvedSort }
+  ])
+
+  const mapInReviewRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.created, sortValue: row.createdSort }
+  ])
+
+  const mapRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>` },
+    { text: row.applicant },
+    { text: row.hearingDate },
+    { text: row.created },
+    { text: row.submittedBy }
+  ])
+
+  const tabs = {
+    'in-review': { label: 'In review', rows: mapInReviewRows(inReviewRows) },
+    'rejected': { label: 'Rejected', rows: mapInReviewRows(rejectedRows) },
+    'approved': { label: 'Approved', rows: mapApprovedRows(approvedRows.filter(row => row.approvedSort >= -7)) },
+    'deleted': { label: 'Deleted', rows: mapDeletedRows(deletedRows.filter(row => row.deletedSort >= -7)) }
+  }
+
+  const activeTabData = tabs[tab] || tabs['in-review']
+
   return res.render('create-and-validate-draft-orders/index', {
-    toReviewTableRows: toReviewRows.map((row) => [
-      {
-        text: row.applicant
-      },
-      {
-        html: `<a class="govuk-link" href="/create-and-validate-draft-orders/${row.id}">${escapeHtml(row.respondent)}</a>`
-      },
-      {
-        text: row.hearingDate
-      },
-      {
-        text: row.created
-      },
-      {
-        text: row.submittedBy
-      }
-    ])
+    activeTab: tab,
+    tabLabel: activeTabData.label,
+    rejectedCount: rejectedRows.length,
+    tableRows: activeTabData.rows
   })
 })
 
-router.get('/create-and-validate-draft-orders/:index', (req, res) => {
+router.get('/create-cases/:index', (req, res) => {
   const index = Number(req.params.index)
   const draftOrderEntries = [
     {
@@ -8989,6 +6515,86 @@ router.get('/create-and-validate-draft-orders/:index', (req, res) => {
       caseTypeLabel: 'REMO In',
       applicantTypeLabel: 'Individual',
       submittedBy: 'david.watts',
+      caseData: {
+        'case-type': 'remo-in',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'mrs',
+        'applicant-first-names': 'Anna',
+        'applicant-last-name': 'Nowak',
+        'applicant-date-of-birth': '08/06/1982',
+        'applicant-main-email-address': 'anna.nowak@example.test',
+        'applicant-main-telephone-number': '+48221234567',
+        'applicant-address-line-1': 'Zlota 59',
+        'applicant-address-line-2': '00-120',
+        'applicant-address-line-3': 'Warszawa',
+        'applicant-country': 'poland',
+        'respondent-title': 'mr',
+        'respondent-first-names': 'Piotr',
+        'respondent-last-name': 'Nowak',
+        'respondent-date-of-birth': '19/11/1982',
+        'respondent-national-insurance-number': 'QA123456E',
+        'respondent-main-email-address': 'piotr.nowak@example.test',
+        'respondent-main-telephone-number': '+447700900221',
+        'respondent-address-line-1': 'Flat 1B',
+        'respondent-address-line-2': '24 High Street',
+        'respondent-address-line-3': 'Twyford',
+        'respondent-address-line-4': 'Berkshire',
+        'respondent-postal-or-zip-code': 'RG10 9JB',
+        'respondent-country': 'united-kingdom',
+        'central-authority-remo-reference': 'PL-REM-2026-117',
+        'central-authority-reference': 'GCA-2026-117',
+        'central-authority-name': 'Polish Central Authority',
+        'order-application-code': 'PL-REM-2026-117',
+        'order-court-that-made-the-order': 'Warsaw Regional Court',
+        'order-date-order-made': '12/01/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '400',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '12/01/2027',
+              'result-mat-arrears': '400',
+              'result-mat-creditor': 'Anna Nowak',
+              'result-mat-respondent': 'Piotr Nowak',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '12/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Anna Nowak'
+          },
+          {
+            code: 'MCHILD',
+            title: 'Maintenace Order for child(ren)',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mchild-amount': '250',
+              'result-mchild-frequency': 'monthly',
+              'result-mchild-expiry': '30/04/2026',
+              'result-mchild-arrears': '0',
+              'result-mchild-education': ['Additional terms affect order expiry'],
+              'result-mchild-beneficiary': 'Agnieszka Kowalska',
+              'result-mchild-child-dob': '30/04/2010',
+              'result-mchild-respondent': 'Piotr Nowak',
+              'result-mchild-payment': 'payable between the parties',
+              'result-mchild-commencement': '12/01/2026'
+            },
+            creditor: 'minor-creditor',
+            creditorLabel: 'Agnieszka Kowalska'
+          }
+        ],
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Draft order ready for validation',
+        'case-notes': 'Creditor details checked against application'
+      },
       reviewHistory: [
         {
           action: 'Submitted',
@@ -9083,6 +6689,57 @@ router.get('/create-and-validate-draft-orders/:index', (req, res) => {
       caseTypeLabel: 'REMO Out',
       applicantTypeLabel: 'Individual',
       submittedBy: 'joe.bloggs',
+      caseData: {
+        'case-type': 'remo-out',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'ms',
+        'applicant-first-names': 'Patricia',
+        'applicant-last-name': 'Arket',
+        'applicant-main-email-address': 'patricia.arket@example.test',
+        'applicant-main-telephone-number': '+48500555999',
+        'applicant-address-line-1': '84 Reda',
+        'applicant-address-line-2': 'Gdanska',
+        'applicant-country': 'poland',
+        'respondent-title': 'mr',
+        'respondent-first-names': 'Edward',
+        'respondent-last-name': 'Fisher',
+        'respondent-main-email-address': 'edward.fisher@example.test',
+        'respondent-main-telephone-number': '+447700900332',
+        'respondent-address-line-1': '99 High Street',
+        'respondent-address-line-2': 'Reading',
+        'respondent-postal-or-zip-code': 'RG10 9RT',
+        'respondent-country': 'united-kingdom',
+        'order-application-code': 'HC07003',
+        'order-court-that-made-the-order': 'Gdansk Regional Court',
+        'order-date-order-made': '07/01/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '120',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '',
+              'result-mat-arrears': '120',
+              'result-mat-creditor': 'Patricia Arket',
+              'result-mat-respondent': 'Edward Fisher',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '07/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Patricia Arket'
+          }
+        ],
+        'interest-applies': 'yes',
+        'indexation-type': 'rpi',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Final draft order awaiting validation',
+        'case-notes': '-'
+      },
       reviewHistory: [
         {
           action: 'Submitted',
@@ -9138,16 +6795,161 @@ router.get('/create-and-validate-draft-orders/:index', (req, res) => {
         buildSummaryRow('Case comment', 'Final draft order awaiting validation'),
         buildSummaryRow('Case note', '-')
       ]
+    },
+    {
+      respondentName: 'Mr Evan FISHER',
+      submittedBy: 'emily.davis',
+      caseData: {
+        'case-type': 'remo-out',
+        'case-type-label': 'REMO Out (CMS)',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'ms',
+        'applicant-first-names': 'Jane',
+        'applicant-last-name': 'Ayre',
+        'applicant-date-of-birth': '05/05/1984',
+        'applicant-main-email-address': 'jane.ayre@example.test',
+        'applicant-main-telephone-number': '+447700900778',
+        'applicant-address-line-1': '101 King Street',
+        'applicant-address-line-2': 'Reading',
+        'applicant-address-line-3': 'Berkshire',
+        'applicant-postal-or-zip-code': 'RG1 2AB',
+        'applicant-country': 'united-kingdom',
+        'respondent-title': 'mr',
+        'respondent-first-names': 'Evan',
+        'respondent-last-name': 'Fisher',
+        'respondent-date-of-birth': '22/09/1995',
+        'respondent-main-email-address': 'evan.fisher@example.test',
+        'respondent-main-telephone-number': '+447700900887',
+        'respondent-address-line-1': '12 Market Street',
+        'respondent-address-line-2': 'Cardiff',
+        'respondent-postal-or-zip-code': 'CF10 1AA',
+        'respondent-country': 'united-kingdom',
+        'order-application-code': 'HC07003',
+        'order-court-that-made-the-order': 'Reading Family Court',
+        'order-date-order-made': '22/03/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '180',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '',
+              'result-mat-arrears': '180',
+              'result-mat-creditor': 'Jane Ayre',
+              'result-mat-respondent': 'Evan Fisher',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '22/03/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Jane Ayre'
+          }
+        ],
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Awaiting updated financial statement.',
+        'case-notes': '-'
+      },
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'emily.davis',
+          at: '22 March 2026 at 9:05am'
+        }
+      ]
     }
   ]
 
   const draftOrderEntry = draftOrderEntries[index]
 
   if (!draftOrderEntry) {
-    return res.redirect('/create-and-validate-draft-orders')
+    return res.redirect('/create-cases')
   }
 
-  return res.render('create-and-validate-draft-orders/detail', draftOrderEntry)
+  return res.render('create-and-validate-draft-orders/detail', {
+    ...draftOrderEntry,
+    reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
+    ...getCheckCaseDetailsViewData(draftOrderEntry.caseData)
+  })
+})
+
+router.get('/review-cases', (req, res) => {
+  const tab = req.query.tab || 'to-review'
+
+  const toReviewRows = [
+    { id: 2, respondent: 'FISHER, Evan', applicant: 'AYRE, Jane', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
+    { id: 0, respondent: 'NOWAK, Piotr', applicant: 'NOWAK, Anna', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
+    { id: 1, respondent: 'FISHER, Edward', applicant: 'ARKET, Patricia', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 }
+  ]
+
+  const rejectedRows = [
+    { id: 4, respondent: 'TAYLOR, Lisa', applicant: 'BROWN, Michael', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
+    { id: 3, respondent: 'JONES, Sarah', applicant: 'SMITH, John', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 }
+  ]
+
+  const deletedRows = [
+    { id: 7, respondent: 'CLARK, Helen', applicant: 'HARRIS, Robert', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
+  ]
+
+  const failedRows = [
+    { id: 8, respondent: 'MARTIN, James', applicant: 'WILSON, Kate', caseType: 'REMO Out', submittedBy: 'david.watts', created: '2 days ago', createdSort: -2, failed: 'Today', failedSort: 0 }
+  ]
+
+  const mapToReviewRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.submittedBy },
+    { text: row.created, sortValue: row.createdSort }
+  ])
+
+  const mapRejectedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.submittedBy },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.rejected, sortValue: row.rejectedSort }
+  ])
+
+  const mapDeletedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.submittedBy },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.deleted, sortValue: row.deletedSort }
+  ])
+
+  const mapFailedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.submittedBy },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.failed, sortValue: row.failedSort }
+  ])
+
+  const tabs = {
+    'to-review': { label: 'To review', rows: mapToReviewRows(toReviewRows) },
+    'rejected': { label: 'Rejected', rows: mapRejectedRows(rejectedRows) },
+    'deleted': { label: 'Deleted', rows: mapDeletedRows(deletedRows.filter(row => row.deletedSort >= -7)) },
+    'failed': { label: 'Failed', rows: mapFailedRows(failedRows) }
+  }
+
+  const activeTabData = tabs[tab] || tabs['to-review']
+
+  return res.render('review-cases/index', {
+    activeTab: tab,
+    tabLabel: activeTabData.label,
+    failedCount: failedRows.length,
+    tableRows: activeTabData.rows
+  })
 })
 
 router.post('/resulting', (req, res, next) => {
@@ -9321,7 +7123,7 @@ router.post('/resulting/case-details', (req, res, next) => {
 })
 
 router.get('/resulting/applicant-details', (req, res) => {
-  return res.render('orders-applications/applicant-details', {
+  return res.render('create-a-case/applicant-details', {
     applicantAge: getAgeFromDateString(req.session.data['applicant-date-of-birth']),
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     backHref: '/resulting/case-details',
@@ -9336,7 +7138,7 @@ router.post('/resulting/applicant-details', (req, res, next) => {
   if (Object.keys(errors).length > 0) {
     delete req.session.data['applicant-details-completed']
 
-    return res.render('orders-applications/applicant-details', {
+    return res.render('create-a-case/applicant-details', {
       data: buildApplicantDetailsViewData(req.session.data, req.body),
       applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
       accountContextLabel: getResultingAccountContextLabel(req.session.data),
@@ -9370,7 +7172,7 @@ router.post('/resulting/applicant-details', (req, res, next) => {
 })
 
 router.get('/resulting/respondent-details', (req, res) => {
-  return res.render('orders-applications/respondent-details', {
+  return res.render('create-a-case/respondent-details', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     backHref: '/resulting/case-details',
     formAction: '/resulting/respondent-details',
@@ -9384,7 +7186,7 @@ router.post('/resulting/respondent-details', (req, res, next) => {
   if (Object.keys(errors).length > 0) {
     delete req.session.data['respondent-details-completed']
 
-    return res.render('orders-applications/respondent-details', {
+    return res.render('create-a-case/respondent-details', {
       data: buildRespondentDetailsViewData(req.session.data, req.body),
       accountContextLabel: getResultingAccountContextLabel(req.session.data),
       backHref: '/resulting/case-details',
@@ -9424,7 +7226,7 @@ router.get('/resulting/central-authority-details', (req, res) => {
     return res.redirect('/resulting/case-details')
   }
 
-  return res.render('orders-applications/central-authority-details', {
+  return res.render('create-a-case/central-authority-details', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(req.session.data),
     centralAuthorityCardRows: getCentralAuthorityCardRows(req.session.data),
@@ -9446,7 +7248,7 @@ router.post('/resulting/central-authority-details', (req, res, next) => {
 })
 
 router.get('/resulting/central-authority-details/manual', (req, res) => {
-  return res.render('orders-applications/central-authority-details-manual', {
+  return res.render('create-a-case/central-authority-details-manual', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     formAction: '/resulting/central-authority-details/manual',
     cancelHref: '/resulting/central-authority-details'
@@ -9464,7 +7266,7 @@ router.get('/resulting/central-authority-details/remove', (req, res) => {
     return res.redirect('/resulting/central-authority-details')
   }
 
-  return res.render('orders-applications/remove-central-authority-details', {
+  return res.render('create-a-case/remove-central-authority-details', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     centralAuthorityCardRows: getCentralAuthorityCardRows(req.session.data),
     formAction: '/resulting/central-authority-details/remove',
@@ -9508,7 +7310,7 @@ router.post('/resulting/central-authority-details/remove', (req, res, next) => {
 })
 
 router.get('/resulting/case-comments-and-notes', (req, res) => {
-  return res.render('orders-applications/case-comments-and-notes', {
+  return res.render('create-a-case/case-comments-and-notes', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     formAction: '/resulting/case-comments-and-notes',
     cancelHref: '/resulting/case-details'
