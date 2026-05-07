@@ -4712,10 +4712,6 @@ router.get('/create-a-case/central-authority-details', (req, res) => {
     return res.redirect('/create-a-case')
   }
 
-  if (isRemoOutCase(getCreateACaseData(req))) {
-    return res.redirect('/create-a-case/case-details')
-  }
-
   return res.render('create-a-case/central-authority-details', {
     hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(getCreateACaseData(req)),
     centralAuthorityCardRows: getCentralAuthorityCardRows(getCreateACaseData(req))
