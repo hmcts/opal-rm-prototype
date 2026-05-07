@@ -52,7 +52,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Expiry',
-        prompt: 'Expiry Date',
+        prompt: 'Expiry date',
         type: 'date',
         mandatory: 'No'
       },
@@ -116,7 +116,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Expiry',
-        prompt: 'Expiry Date',
+        prompt: 'Expiry date',
         type: 'date',
         mandatory: 'Yes'
       },
