@@ -26,24 +26,6 @@
         }) }}
       {% endif %}
 
-      {% set applicantTypeOptions = [
-        {
-          text: "Select",
-          value: "",
-          selected: not data["applicant-type"]
-        },
-        {
-          text: "Individual",
-          value: "individual",
-          selected: data["applicant-type"] == "individual"
-        },
-        {
-          text: "Organisation",
-          value: "organisation",
-          selected: data["applicant-type"] == "organisation"
-        }
-      ] %}
-
       {% set applicantTypeHtmlRemoIn %}
         {{ govukSelect({
           id: "applicant-type-remo-in",
@@ -53,7 +35,11 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-third",
-          items: applicantTypeOptions,
+          items: [
+            { text: "Select", value: "", selected: not data["applicant-type-remo-in"] },
+            { text: "Individual", value: "individual", selected: data["applicant-type-remo-in"] == "individual" },
+            { text: "Organisation", value: "organisation", selected: data["applicant-type-remo-in"] == "organisation" }
+          ],
           errorMessage: applicantTypeErrorField == "remo-in" and applicantTypeError and { text: applicantTypeError }
         }) }}
       {% endset %}
@@ -67,7 +53,11 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-third",
-          items: applicantTypeOptions,
+          items: [
+            { text: "Select", value: "", selected: not data["applicant-type-remo-out"] },
+            { text: "Individual", value: "individual", selected: data["applicant-type-remo-out"] == "individual" },
+            { text: "Organisation", value: "organisation", selected: data["applicant-type-remo-out"] == "organisation" }
+          ],
           errorMessage: applicantTypeErrorField == "remo-out" and applicantTypeError and { text: applicantTypeError }
         }) }}
       {% endset %}
