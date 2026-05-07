@@ -4535,6 +4535,22 @@ router.get('/create-a-case', (req, res) => {
 })
 
 router.post('/create-a-case', (req, res, next) => {
+  const caseType = req.body['case-type']
+
+  if (caseType === 'remo-in' && !req.body['applicant-type-remo-in']) {
+    return res.render('create-a-case/index', {
+      applicantTypeError: 'Select an applicant type',
+      applicantTypeErrorField: 'remo-in'
+    })
+  }
+
+  if (caseType === 'remo-out' && !req.body['applicant-type-remo-out']) {
+    return res.render('create-a-case/index', {
+      applicantTypeError: 'Select an applicant type',
+      applicantTypeErrorField: 'remo-out'
+    })
+  }
+
   getCreateACaseData(req)['applicant-type'] =
     req.body['applicant-type-remo-in'] ||
     req.body['applicant-type-remo-out'] ||
