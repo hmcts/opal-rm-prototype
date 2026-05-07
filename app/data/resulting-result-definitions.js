@@ -96,7 +96,7 @@ const rawResultDefinitions = {
   MCHILD: {
     supportsOrders: true,
     requiresCreditor: true,
-    title: 'Maintenace Order for child(ren)',
+    title: 'Maintenance Order for child(ren)',
     category: 'FINAL',
     wordingTemplate:
       'Order for payment by {Respondent} to {Creditor} {Payment} for the benefit of the Complainant.\nThe sum of £ {Amount} to be paid every {Frequency} from {Commencement} until {Expiry}.',
