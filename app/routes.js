@@ -1325,7 +1325,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Name on account'
         },
         value: {
-          text: creditor.ukNameOnAccount
+          text: formatTextValue(creditor.ukNameOnAccount)
         }
       },
       {
@@ -1333,7 +1333,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Sort code'
         },
         value: {
-          text: creditor.ukSortCode
+          text: formatTextValue(creditor.ukSortCode)
         }
       },
       {
@@ -1341,7 +1341,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Account number'
         },
         value: {
-          text: creditor.ukAccountNumber
+          text: formatTextValue(creditor.ukAccountNumber)
         }
       },
       {
@@ -1349,7 +1349,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Payment reference'
         },
         value: {
-          text: creditor.ukPaymentReference
+          text: formatTextValue(creditor.ukPaymentReference)
         }
       }
     )
@@ -1368,7 +1368,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Name on account'
         },
         value: {
-          text: creditor.nonUkNameOnAccount
+          text: formatTextValue(creditor.nonUkNameOnAccount)
         }
       },
       {
@@ -1376,7 +1376,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'BIC or SWIFT code'
         },
         value: {
-          text: creditor.nonUkBicOrSwiftCode
+          text: formatTextValue(creditor.nonUkBicOrSwiftCode)
         }
       },
       {
@@ -1384,7 +1384,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Account number'
         },
         value: {
-          text: creditor.nonUkIban
+          text: formatTextValue(creditor.nonUkIban)
         }
       },
       {
@@ -1392,7 +1392,7 @@ function getMinorCreditorSummaryRows(creditor) {
           text: 'Payment reference'
         },
         value: {
-          text: creditor.nonUkPaymentReference
+          text: formatTextValue(creditor.nonUkPaymentReference)
         }
       }
     )
@@ -1618,14 +1618,14 @@ function formatDateLong(dateString) {
 }
 
 function formatTextValue(value) {
-  return hasValue(value) ? value : '-'
+  return hasValue(value) ? value : '–'
 }
 
 function formatLinesHtml(lines) {
   const filteredLines = lines.filter(hasValue)
 
   if (!filteredLines.length) {
-    return '-'
+    return '–'
   }
 
   return filteredLines.map((line) => escapeHtml(line)).join('<br>')
@@ -5173,7 +5173,7 @@ router.get('/create-a-case/order-term-creditor/add-minor-creditor', (req, res) =
   if (!pendingOrderTerm || pendingOrderTerm.nextStep !== 'create-creditor') {
     return res.redirect('/create-a-case/select-order-term')
   }
-  const pendingMinorCreditor = getCreateACaseData(req)['alternative-pending-minor-creditor'] || {}
+  const pendingMinorCreditor = getCreateACaseData(req)['alternative-pending-minor-creditor'] || pendingOrderTerm.minorCreditorData || {}
   return res.render('create-a-case/minor-creditor-details', {
     creditor: pendingMinorCreditor,
     countryItems: getCountrySelectItems(pendingMinorCreditor.country || ''),

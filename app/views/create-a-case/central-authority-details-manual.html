@@ -38,6 +38,9 @@
             text: "Sort code",
             classes: "govuk-label--s"
           },
+          hint: {
+            text: "Must be 6 digits long"
+          },
           classes: "govuk-input--width-10",
           value: data["central-authority-bank-sort-code"]
         }) }}
@@ -48,6 +51,9 @@
           label: {
             text: "Account number",
             classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Must be between 6 and 8 digits long"
           },
           classes: "govuk-input--width-10",
           value: data["central-authority-bank-account-number"]
@@ -83,6 +89,9 @@
           label: {
             text: "BIC or SWIFT code",
             classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Must be between 8 and 11 characters long"
           },
           classes: "govuk-input--width-10",
           value: data["central-authority-bank-bic-or-swift-code"]
