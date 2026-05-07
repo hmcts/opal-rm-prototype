@@ -4535,6 +4535,8 @@ router.use('/create-a-case', (req, res, next) => {
 })
 
 router.get('/create-a-case', (req, res) => {
+  delete getCreateACaseData(req)['case-type']
+  delete getCreateACaseData(req)['applicant-type-remo-in']
   return res.render('create-a-case/index')
 })
 
