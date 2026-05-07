@@ -53,11 +53,13 @@
           errorMessage: selectionErrorMessage
         }) }}
 
-        {{ govukButton({
-          text: "Continue"
-        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Continue"
+          }) }}
 
-        <a class="govuk-link" href="/create-a-case/cancel">Cancel</a>
+          <a class="govuk-link" href="/create-a-case/cancel">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
