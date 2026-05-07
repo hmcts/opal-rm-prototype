@@ -95,3 +95,26 @@
   top: 4px;
   width: 12px;
 }
+
+.rm-case-summary-bar {
+  align-items: stretch;
+  border-bottom: 1px solid #b1b4b6;
+  display: flex;
+  gap: 20px;
+  padding-bottom: 15px;
+}
+
+.rm-case-summary-tile {
+  padding: 5px 0;
+}
+
+.rm-case-summary-tile--dark {
+  background: #1d70b8;
+  color: #ffffff;
+  padding: 5px 12px;
+}
+
+.moj-badge--orange {
+  border-color: #e8561a;
+  color: #e8561a;
+}
