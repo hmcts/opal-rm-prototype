@@ -606,7 +606,7 @@ function buildCreateDataScenarios() {
             },
             {
               code: 'MCHILD',
-              title: 'Maintenace Order for child(ren)',
+              title: 'Maintenance Order for child(ren)',
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
@@ -705,7 +705,7 @@ function buildCreateDataScenarios() {
             },
             {
               code: 'MCHILD',
-              title: 'Maintenace Order for child(ren)',
+              title: 'Maintenance Order for child(ren)',
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
@@ -727,7 +727,7 @@ function buildCreateDataScenarios() {
             },
             {
               code: 'MCHILD',
-              title: 'Maintenace Order for child(ren)',
+              title: 'Maintenance Order for child(ren)',
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
@@ -3957,7 +3957,7 @@ function getTermsReviewGroups(sessionData) {
         text:
           term.expiryType === 'expires-on-date'
             ? formatDateForReview(term.expiryDate)
-            : '-'
+            : '–'
       },
       {
         text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes' : 'No'
@@ -6565,7 +6565,7 @@ router.get('/create-cases/:index', (req, res) => {
           },
           {
             code: 'MCHILD',
-            title: 'Maintenace Order for child(ren)',
+            title: 'Maintenance Order for child(ren)',
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
