@@ -4548,17 +4548,10 @@ router.post('/create-a-case', (req, res, next) => {
     })
   }
 
-  if (caseType === 'remo-out' && !req.body['applicant-type-remo-out']) {
-    return res.render('create-a-case/index', {
-      applicantTypeError: 'Select an applicant type',
-      applicantTypeErrorField: 'remo-out'
-    })
-  }
-
   getCreateACaseData(req)['applicant-type'] =
-    req.body['applicant-type-remo-in'] ||
-    req.body['applicant-type-remo-out'] ||
-    ''
+    caseType === 'remo-out'
+      ? 'individual'
+      : req.body['applicant-type-remo-in'] || ''
 
   delete getCreateACaseData(req)['applicant-type-remo-in']
   delete getCreateACaseData(req)['applicant-type-remo-out']
@@ -6885,7 +6878,8 @@ router.get('/create-cases/:index', (req, res) => {
   return res.render('create-and-validate-draft-orders/detail', {
     ...draftOrderEntry,
     reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
-    ...getCheckCaseDetailsViewData(draftOrderEntry.caseData)
+    ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+    isChecker: req.query.checker === 'true'
   })
 })
 
@@ -6912,7 +6906,7 @@ router.get('/review-cases', (req, res) => {
   ]
 
   const mapToReviewRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },

@@ -37,46 +37,48 @@
       {% set showChangeLinks = false %}
       {% include "create-a-case/_check-case-details-content.html" %}
 
-      <form method="post" action="#">
-        {{ govukRadios({
-          idPrefix: "draft-order-review-decision",
-          name: "draft-order-review-decision",
-          fieldset: {
-            legend: {
-              text: "Select review decision",
-              classes: "govuk-fieldset__legend--m"
-            }
-          },
-          items: [
-            {
-              value: "approve",
-              text: "Approve draft order"
-            },
-            {
-              value: "reject",
-              text: "Reject draft order",
-              conditional: {
-                html: govukCharacterCount({
-                  name: "rejection-reason",
-                  id: "rejection-reason",
-                  maxlength: 255,
-                  label: {
-                    text: "Enter reason for rejection"
-                  }
-                })
+      {% if isChecker %}
+        <form method="post" action="#">
+          {{ govukRadios({
+            idPrefix: "draft-order-review-decision",
+            name: "draft-order-review-decision",
+            fieldset: {
+              legend: {
+                text: "Select review decision",
+                classes: "govuk-fieldset__legend--m"
               }
-            }
-          ]
-        }) }}
-
-        <div class="govuk-button-group">
-          {{ govukButton({
-            text: "Continue"
+            },
+            items: [
+              {
+                value: "approve",
+                text: "Approve draft order"
+              },
+              {
+                value: "reject",
+                text: "Reject draft order",
+                conditional: {
+                  html: govukCharacterCount({
+                    name: "rejection-reason",
+                    id: "rejection-reason",
+                    maxlength: 255,
+                    label: {
+                      text: "Enter reason for rejection"
+                    }
+                  })
+                }
+              }
+            ]
           }) }}
 
-          <a class="govuk-link" href="#">Delete draft order</a>
-        </div>
-      </form>
+          <div class="govuk-button-group">
+            {{ govukButton({
+              text: "Continue"
+            }) }}
+
+            <a class="govuk-link" href="#">Delete draft order</a>
+          </div>
+        </form>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

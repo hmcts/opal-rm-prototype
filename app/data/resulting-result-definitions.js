@@ -26,7 +26,7 @@ const adjournedHearingFields = [
   }
 ]
 
-const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY', 'MTEMP']
+const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY']
 
 const rawResultDefinitions = {
   MAT: {
