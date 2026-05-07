@@ -70,11 +70,9 @@
               errorMessage: field.errorMessage
             }) }}
 
-            {% if field.calculatedAge !== null %}
-              <div class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7">
-                <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: {{ field.calculatedAge }}</strong></p>
-              </div>
-            {% endif %}
+            <div id="{{ field.id }}-age-box" class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7" data-age-box data-date-input="{{ field.id }}"{% if field.calculatedAge === null %} hidden{% endif %}>
+              <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: <span id="{{ field.id }}-age-value">{{ field.calculatedAge }}</span></strong></p>
+            </div>
           {% elif field.type == "currency" %}
             {{ govukInput({
               id: field.id,
@@ -192,4 +190,44 @@
       </form>
     </div>
   </div>
+{% endblock %}
+
+{% block pageScripts %}
+  <script>
+    function calculateAge(dateString) {
+      if (!dateString) return null
+      var parts = dateString.split('/')
+      if (parts.length !== 3) return null
+      var day = Number(parts[0])
+      var month = Number(parts[1])
+      var year = Number(parts[2])
+      if (!day || !month || !year) return null
+      var today = new Date()
+      var age = today.getFullYear() - year
+      var birthdayHasPassed = today.getMonth() + 1 > month ||
+        (today.getMonth() + 1 === month && today.getDate() >= day)
+      if (!birthdayHasPassed) age--
+      return age
+    }
+
+    document.querySelectorAll('[data-age-box]').forEach(function (ageBox) {
+      var inputId = ageBox.getAttribute('data-date-input')
+      var input = document.getElementById(inputId)
+      if (!input) return
+      var ageValue = document.getElementById(inputId + '-age-value')
+
+      function update() {
+        var age = calculateAge(input.value)
+        if (age !== null && age >= 0) {
+          ageValue.textContent = age
+          ageBox.removeAttribute('hidden')
+        } else {
+          ageBox.setAttribute('hidden', '')
+        }
+      }
+
+      input.addEventListener('change', update)
+      input.addEventListener('input', update)
+    })
+  </script>
 {% endblock %}

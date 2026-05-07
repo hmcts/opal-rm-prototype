@@ -26,7 +26,7 @@ const adjournedHearingFields = [
   }
 ]
 
-const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY', 'MTEMP']
+const orderAndResultJourneyCodes = ['MAT', 'MCHILD', 'MLUMP', 'MNSTD', 'MPAY']
 
 const rawResultDefinitions = {
   MAT: {
@@ -52,7 +52,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Expiry',
-        prompt: 'Expiry Date',
+        prompt: 'Expiry date',
         type: 'date',
         mandatory: 'No'
       },
@@ -116,7 +116,7 @@ const rawResultDefinitions = {
       },
       {
         name: 'Expiry',
-        prompt: 'Expiry Date',
+        prompt: 'Expiry date',
         type: 'date',
         mandatory: 'Yes'
       },

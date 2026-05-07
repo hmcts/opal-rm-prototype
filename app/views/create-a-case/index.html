@@ -44,24 +44,6 @@
         }) }}
       {% endset %}
 
-      {% set applicantTypeHtmlRemoOut %}
-        {{ govukSelect({
-          id: "applicant-type-remo-out",
-          name: "applicant-type-remo-out",
-          label: {
-            text: "Select applicant type",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-one-third",
-          items: [
-            { text: "Select", value: "", selected: not data["applicant-type-remo-out"] },
-            { text: "Individual", value: "individual", selected: data["applicant-type-remo-out"] == "individual" },
-            { text: "Organisation", value: "organisation", selected: data["applicant-type-remo-out"] == "organisation" }
-          ],
-          errorMessage: applicantTypeErrorField == "remo-out" and applicantTypeError and { text: applicantTypeError }
-        }) }}
-      {% endset %}
-
       <form method="post" action="/create-a-case">
         {{ govukRadios({
           idPrefix: "case-type",
@@ -84,10 +66,7 @@
             {
               value: "remo-out",
               text: "REMO Out",
-              checked: data["case-type"] == "remo-out",
-              conditional: {
-                html: applicantTypeHtmlRemoOut
-              }
+              checked: data["case-type"] == "remo-out"
             },
             {
               value: "remo-out-cms",

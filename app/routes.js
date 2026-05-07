@@ -4535,6 +4535,8 @@ router.use('/create-a-case', (req, res, next) => {
 })
 
 router.get('/create-a-case', (req, res) => {
+  delete getCreateACaseData(req)['case-type']
+  delete getCreateACaseData(req)['applicant-type-remo-in']
   return res.render('create-a-case/index')
 })
 
@@ -4548,17 +4550,10 @@ router.post('/create-a-case', (req, res, next) => {
     })
   }
 
-  if (caseType === 'remo-out' && !req.body['applicant-type-remo-out']) {
-    return res.render('create-a-case/index', {
-      applicantTypeError: 'Select an applicant type',
-      applicantTypeErrorField: 'remo-out'
-    })
-  }
-
   getCreateACaseData(req)['applicant-type'] =
-    req.body['applicant-type-remo-in'] ||
-    req.body['applicant-type-remo-out'] ||
-    ''
+    caseType === 'remo-out'
+      ? 'individual'
+      : req.body['applicant-type-remo-in'] || ''
 
   delete getCreateACaseData(req)['applicant-type-remo-in']
   delete getCreateACaseData(req)['applicant-type-remo-out']
@@ -6479,7 +6474,7 @@ router.get('/create-cases', (req, res) => {
   ])
 
   const mapApprovedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="/active-case/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.created, sortValue: row.createdSort },
@@ -6885,8 +6880,76 @@ router.get('/create-cases/:index', (req, res) => {
   return res.render('create-and-validate-draft-orders/detail', {
     ...draftOrderEntry,
     reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
-    ...getCheckCaseDetailsViewData(draftOrderEntry.caseData)
+    ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+    isChecker: req.query.checker === 'true'
   })
+})
+
+router.get('/active-case/:id', (req, res) => {
+  const id = Number(req.params.id)
+
+  const activeCases = {
+    5: {
+      caseReference: '05000215T',
+      respondentName: 'Mr Peter THOMAS',
+      applicantName: 'Mrs Emma WILSON',
+      caseType: 'REMO In',
+      remoReference: '2008/REMO/56789012',
+      businessUnit: 'Reading',
+      dateOfLastMovement: '2 May 2026',
+      arrears: '£180.00',
+      respondent: {
+        name: 'Mr Peter THOMAS',
+        dateOfBirth: '15 March 1975',
+        address: ['45 Park Road', 'Newbury', 'Berkshire', 'RG14 1BB', 'United Kingdom'],
+        nationalInsuranceNumber: 'AB 98 76 54 C'
+      },
+      applicant: {
+        name: 'Mrs Emma WILSON',
+        dateOfBirth: '22 April 1979 (Age 47)',
+        restricted: true
+      },
+      beneficiaries: {
+        adults: ['Mrs Emma WILSON'],
+        children: ['Lily THOMAS (Age 12)', 'Oliver THOMAS (Age 8)']
+      },
+      comment: 'Standard maintenance case. Payments maintained on time. No recent enforcement action.'
+    },
+    6: {
+      caseReference: '06000387W',
+      respondentName: 'Mr James WHITE',
+      applicantName: 'Mrs Claire JOHNSON',
+      caseType: 'REMO Out',
+      remoReference: '2010/REMO/34567890',
+      businessUnit: 'Bury St. Edmunds',
+      dateOfLastMovement: '30 April 2026',
+      arrears: '£0.00',
+      respondent: {
+        name: 'Mr James WHITE',
+        dateOfBirth: '8 June 1970',
+        address: ['22 Victoria Street', 'Brighton', 'East Sussex', 'BN1 3HQ', 'United Kingdom'],
+        nationalInsuranceNumber: 'CD 11 22 33 B'
+      },
+      applicant: {
+        name: 'Mrs Claire JOHNSON',
+        dateOfBirth: '14 August 1972 (Age 53)',
+        restricted: true
+      },
+      beneficiaries: {
+        adults: ['Mrs Claire JOHNSON'],
+        children: ['Sophie WHITE (Age 15)']
+      },
+      comment: 'No recent issues. Case active. Next review due September 2026.'
+    }
+  }
+
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/index', { activeCase })
 })
 
 router.get('/review-cases', (req, res) => {
@@ -6912,7 +6975,7 @@ router.get('/review-cases', (req, res) => {
   ]
 
   const mapToReviewRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
