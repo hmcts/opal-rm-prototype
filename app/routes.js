@@ -753,10 +753,14 @@ function buildCreateDataScenarios() {
           'indexation-type': 'no-indexation',
           'managing-payments-completed': 'yes',
           'order-managing-payments': 'payments-via-court',
+          'central-authority-remo-reference': 'UK-REMO-2026-049',
+          'central-authority-reference': 'PL-MJ-2026-203',
+          'central-authority-name': 'Polish Central Authority',
           'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
           'case-notes': 'Applicant lives in the UK (Leeds) and respondent lives in Poland (Warsaw). MAT plus 2 MCHILD terms recorded.',
           'applicant-details-completed': 'yes',
           'respondent-details-completed': 'yes',
+          'central-authority-details-completed': 'yes',
           'order-details-completed': 'yes'
         }
       }
