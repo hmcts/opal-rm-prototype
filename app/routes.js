@@ -753,10 +753,14 @@ function buildCreateDataScenarios() {
           'indexation-type': 'no-indexation',
           'managing-payments-completed': 'yes',
           'order-managing-payments': 'payments-via-court',
+          'central-authority-remo-reference': 'UK-REMO-2026-049',
+          'central-authority-reference': 'PL-MJ-2026-203',
+          'central-authority-name': 'Polish Central Authority',
           'case-comment': 'Seeded REMO Out order journey for Anna Nowak and her two children.',
           'case-notes': 'Applicant lives in the UK (Leeds) and respondent lives in Poland (Warsaw). MAT plus 2 MCHILD terms recorded.',
           'applicant-details-completed': 'yes',
           'respondent-details-completed': 'yes',
+          'central-authority-details-completed': 'yes',
           'order-details-completed': 'yes'
         }
       }
@@ -4535,6 +4539,22 @@ router.get('/create-a-case', (req, res) => {
 })
 
 router.post('/create-a-case', (req, res, next) => {
+  const caseType = req.body['case-type']
+
+  if (caseType === 'remo-in' && !req.body['applicant-type-remo-in']) {
+    return res.render('create-a-case/index', {
+      applicantTypeError: 'Select an applicant type',
+      applicantTypeErrorField: 'remo-in'
+    })
+  }
+
+  if (caseType === 'remo-out' && !req.body['applicant-type-remo-out']) {
+    return res.render('create-a-case/index', {
+      applicantTypeError: 'Select an applicant type',
+      applicantTypeErrorField: 'remo-out'
+    })
+  }
+
   getCreateACaseData(req)['applicant-type'] =
     req.body['applicant-type-remo-in'] ||
     req.body['applicant-type-remo-out'] ||
