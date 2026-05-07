@@ -41,28 +41,6 @@
 
 <div class="govuk-summary-card govuk-!-margin-bottom-6">
   <div class="govuk-summary-card__title-wrapper">
-    <h2 class="govuk-summary-card__title">Applicant details</h2>
-    {% if showChangeLinks %}
-      <ul class="govuk-summary-card__actions">
-        <li class="govuk-summary-card__action">
-          <a class="govuk-link" href="{{ caseDetailsBasePath }}/applicant-details">Change</a>
-        </li>
-      </ul>
-    {% endif %}
-  </div>
-  <div class="govuk-summary-card__content">
-    {% if showApplicantRestrictionWarning %}
-      {{ applicantWarningHtml | safe }}
-    {% endif %}
-
-    {{ govukSummaryList({
-      rows: applicantRows
-    }) }}
-  </div>
-</div>
-
-<div class="govuk-summary-card govuk-!-margin-bottom-6">
-  <div class="govuk-summary-card__title-wrapper">
     <h2 class="govuk-summary-card__title">Respondent details</h2>
     {% if showChangeLinks %}
       <ul class="govuk-summary-card__actions">
@@ -83,34 +61,54 @@
   </div>
 </div>
 
-{% if not isRemoOutCase %}
-  {% if showChangeLinks %}
+<div class="govuk-summary-card govuk-!-margin-bottom-6">
+  <div class="govuk-summary-card__title-wrapper">
+    <h2 class="govuk-summary-card__title">Applicant details</h2>
+    {% if showChangeLinks %}
+      <ul class="govuk-summary-card__actions">
+        <li class="govuk-summary-card__action">
+          <a class="govuk-link" href="{{ caseDetailsBasePath }}/applicant-details">Change</a>
+        </li>
+      </ul>
+    {% endif %}
+  </div>
+  <div class="govuk-summary-card__content">
+    {% if showApplicantRestrictionWarning %}
+      {{ applicantWarningHtml | safe }}
+    {% endif %}
+
     {{ govukSummaryList({
-      card: {
-        title: {
-          text: "Central authority details"
-        },
-        actions: {
-          items: [
-            {
-              text: "Change",
-              href: caseDetailsBasePath + "/central-authority-details"
-            }
-          ]
-        }
-      },
-      rows: centralAuthorityRows
+      rows: applicantRows
     }) }}
-  {% else %}
-    {{ govukSummaryList({
-      card: {
-        title: {
-          text: "Central authority details"
-        }
+  </div>
+</div>
+
+{% if showChangeLinks %}
+  {{ govukSummaryList({
+    card: {
+      title: {
+        text: "Central authority details"
       },
-      rows: centralAuthorityRows
-    }) }}
-  {% endif %}
+      actions: {
+        items: [
+          {
+            text: "Change",
+            href: caseDetailsBasePath + "/central-authority-details"
+          }
+        ]
+      }
+    },
+    rows: centralAuthorityRows
+  }) }}
+{% else %}
+  {{ govukSummaryList({
+    card: {
+      title: {
+        text: "Central authority details"
+      }
+    },
+    rows: centralAuthorityRows
+  }) }}
 {% endif %}
 
 {% if isApplicationJourney %}

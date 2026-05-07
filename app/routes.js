@@ -1284,7 +1284,7 @@ function getMinorCreditorName(creditor, index) {
 }
 
 function getMinorCreditorAddressHtml(creditor) {
-  return [
+  return formatLinesHtml([
     creditor.addressLine1,
     creditor.addressLine2,
     creditor.addressLine3,
@@ -1292,10 +1292,7 @@ function getMinorCreditorAddressHtml(creditor) {
     creditor.addressLine5,
     creditor.postcode,
     creditor.country ? (countryLabels[creditor.country] || creditor.country) : null
-  ]
-    .filter(hasValue)
-    .map((line) => escapeHtml(line))
-    .join('<br>')
+  ])
 }
 
 function getMinorCreditorSummaryRows(creditor) {
@@ -4196,15 +4193,13 @@ function getAlternativePartyDetailsItems(sessionData, basePath = '/orders-applic
     }
   ]
 
-  if (!isRemoOutCase(sessionData)) {
-    items.push({
-      title: {
-        text: 'Central authority'
-      },
-      href: `${basePath}/central-authority-details`,
-      status: getTaskStatusTag(hasCentralAuthorityDetails(sessionData) ? 'provided' : 'optional')
-    })
-  }
+  items.push({
+    title: {
+      text: 'Central authority'
+    },
+    href: `${basePath}/central-authority-details`,
+    status: getTaskStatusTag(hasCentralAuthorityDetails(sessionData) ? 'provided' : 'optional')
+  })
 
   return items
 }
@@ -5917,7 +5912,7 @@ router.get('/create-a-case/cancel', (req, res, next) => {
   delete getCreateACaseData(req)['hearing-start-time']
   delete getCreateACaseData(req)['hearing-non-scheduled-details']
 
-  return redirectWithSessionSave(req, res, next, '/')
+  return redirectWithSessionSave(req, res, next, '/create-cases')
 })
 
 router.get('/create-a-case/cancel-case-creation', (req, res) => {

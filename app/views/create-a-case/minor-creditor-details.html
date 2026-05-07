@@ -21,7 +21,7 @@
       <h1 class="govuk-heading-l">Minor creditor details</h1>
 
       {% set individualHtml %}
-        {{ govukSelect({
+        {{ govukInput({
           id: "minor-creditor-title",
           name: "minor-creditor-title",
           label: {
@@ -29,38 +29,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-one-quarter",
-          items: [
-            {
-              text: "Select",
-              value: "",
-              selected: not creditor.title
-            },
-            {
-              text: "Mr",
-              value: "Mr",
-              selected: creditor.title == "Mr"
-            },
-            {
-              text: "Mrs",
-              value: "Mrs",
-              selected: creditor.title == "Mrs"
-            },
-            {
-              text: "Ms",
-              value: "Ms",
-              selected: creditor.title == "Ms"
-            },
-            {
-              text: "Miss",
-              value: "Miss",
-              selected: creditor.title == "Miss"
-            },
-            {
-              text: "Dr",
-              value: "Dr",
-              selected: creditor.title == "Dr"
-            }
-          ]
+          value: creditor.title
         }) }}
 
         {{ govukInput({
