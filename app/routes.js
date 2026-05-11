@@ -4445,7 +4445,7 @@ function getReviewStatusTag(status, isChecker) {
   const classes = {
     'in-review': 'govuk-tag--light-blue',
     approved: 'govuk-tag--green',
-    rejected: 'govuk-tag--yellow',
+    rejected: 'govuk-tag--orange',
     deleted: 'govuk-tag--grey'
   }
 
@@ -4496,6 +4496,22 @@ function createSessionReviewCase(req) {
     : null
 
   if (existingCase) {
+    existingCase.caseData = cloneData(sessionData)
+
+    if (existingCase.status === 'rejected') {
+      existingCase.status = 'in-review'
+      existingCase.statusLabel = 'Today'
+      existingCase.statusSort = 0
+      existingCase.reviewHistory = [
+        ...(existingCase.reviewHistory || []),
+        {
+          action: 'Resubmitted',
+          by: 'you',
+          at: getReviewWorkflowTimestamp()
+        }
+      ]
+    }
+
     return existingCase
   }
 
@@ -4574,6 +4590,7 @@ function applyReviewDecisions(rows, decisions) {
 function updateReviewCaseStatus(req, id, status, note) {
   const at = getReviewWorkflowTimestamp()
   const action = {
+    'in-review': 'Resubmitted',
     approved: 'Approved',
     rejected: 'Rejected',
     deleted: 'Deleted'
@@ -4619,6 +4636,24 @@ function getSessionDraftOrderEntry(caseEntry) {
     caseData: caseEntry.caseData,
     reviewHistory: caseEntry.reviewHistory || [],
     status: caseEntry.status || 'in-review'
+  }
+}
+
+function getRejectedInputterViewData(sessionData, caseId) {
+  return {
+    caseTypeLabel: sessionData['case-type-label'] || caseTypeLabels[sessionData['case-type']] || sessionData['case-type'],
+    applicantTypeLabel: applicantTypeLabels[sessionData['applicant-type']] || 'Not selected',
+    caseSectionHeading: isApplicationJourney(sessionData) ? 'Application' : 'Order',
+    caseSectionIdPrefix: isApplicationJourney(sessionData) ? 'application' : 'order',
+    partyDetailsItems: getAlternativePartyDetailsItems(sessionData, `/create-cases/${caseId}/edit`),
+    caseSectionItems: isApplicationJourney(sessionData)
+      ? getAlternativeApplicationItems(sessionData, `/create-cases/${caseId}/edit`)
+      : getAlternativeOrderItems(sessionData, `/create-cases/${caseId}/edit`),
+    additionalInformationItems: getAlternativeAdditionalInformationItems(
+      sessionData,
+      `/create-cases/${caseId}/edit`
+    ),
+    canCheckCase: canCheckAlternativeCase(sessionData)
   }
 }
 
@@ -6752,11 +6787,13 @@ router.get('/create-cases/:index', (req, res) => {
     return res.render('create-and-validate-draft-orders/detail', {
       ...draftOrderEntry,
       ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+      ...getRejectedInputterViewData(draftOrderEntry.caseData, requestedId),
       caseId: requestedId,
       statusTag: getReviewStatusTag(draftOrderEntry.status, isChecker),
       reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
       isChecker,
-      showReviewDecisionForm: isChecker && draftOrderEntry.status === 'in-review'
+      showReviewDecisionForm: isChecker && draftOrderEntry.status === 'in-review',
+      showRejectedInputterTaskList: !isChecker && draftOrderEntry.status === 'rejected'
     })
   }
 
@@ -7137,9 +7174,31 @@ router.get('/create-cases/:index', (req, res) => {
     statusTag: getReviewStatusTag(status, isChecker),
     reviewTimelineItems: getReviewHistoryTimelineItems(reviewHistory),
     ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+    ...getRejectedInputterViewData(draftOrderEntry.caseData, requestedId),
     isChecker,
-    showReviewDecisionForm: isChecker && status === 'in-review'
+    showReviewDecisionForm: isChecker && status === 'in-review',
+    showRejectedInputterTaskList: !isChecker && status === 'rejected'
   })
+})
+
+router.get('/create-cases/:index/edit/:section', (req, res, next) => {
+  const sessionCase = getSessionReviewCaseById(req, req.params.index)
+
+  if (!sessionCase) {
+    return res.redirect(`/create-cases/${req.params.index}`)
+  }
+
+  req.session.data['create-a-case'] = {
+    ...cloneData(sessionCase.caseData),
+    'submitted-case-id': sessionCase.id
+  }
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    `/create-a-case/${req.params.section}`
+  )
 })
 
 router.post('/create-cases/:index/review', (req, res, next) => {
@@ -7157,6 +7216,12 @@ router.post('/create-cases/:index/review', (req, res, next) => {
   }
 
   return redirectWithSessionSave(req, res, next, `/create-cases/${req.params.index}?checker=true`)
+})
+
+router.post('/create-cases/:index/resubmit', (req, res, next) => {
+  updateReviewCaseStatus(req, req.params.index, 'in-review')
+
+  return redirectWithSessionSave(req, res, next, '/create-cases')
 })
 
 router.get('/create-cases/:index/delete', (req, res) => {
