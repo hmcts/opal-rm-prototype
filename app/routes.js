@@ -27,6 +27,9 @@ const titleLabels = {
   dr: 'Dr'
 }
 
+const sessionReviewCasesKey = 'session-review-cases'
+const caseReviewDecisionsKey = 'case-review-decisions'
+
 const applicationDefinitionList = [
   {
     group: 'APPEAL',
@@ -553,7 +556,7 @@ function buildCreateDataScenarios() {
           'case-type': 'remo-in',
           'applicant-type': 'individual',
           'has-order': 'yes',
-          'applicant-title': 'mrs',
+          'applicant-title': 'Mrs',
           'applicant-first-names': 'Marta',
           'applicant-last-name': 'Kowalski',
           'applicant-date-of-birth': '14/03/1983',
@@ -569,7 +572,7 @@ function buildCreateDataScenarios() {
           'applicant-bank-iban': 'PL61109010140000071219812874',
           'applicant-restrict-personal-information': 'yes',
           'applicant-restriction-reason': 'There is a domestic violence case between the applicant and respondent.',
-          'respondent-title': 'mr',
+          'respondent-title': 'Mr',
           'respondent-first-names': 'James',
           'respondent-last-name': 'Taylor',
           'respondent-date-of-birth': '07/09/1980',
@@ -650,7 +653,7 @@ function buildCreateDataScenarios() {
           'case-type': 'remo-out',
           'applicant-type': 'individual',
           'has-order': 'yes',
-          'applicant-title': 'mrs',
+          'applicant-title': 'Mrs',
           'applicant-first-names': 'Anna',
           'applicant-last-name': 'Nowak',
           'applicant-date-of-birth': '08/06/1985',
@@ -668,7 +671,7 @@ function buildCreateDataScenarios() {
           'applicant-bank-payment-reference': 'NOWAK-FAMILY',
           'applicant-restrict-personal-information': 'yes',
           'applicant-restriction-reason': 'There is a domestic violence case between the applicant and respondent.',
-          'respondent-title': 'mr',
+          'respondent-title': 'Mr',
           'respondent-first-names': 'Piotr',
           'respondent-last-name': 'Nowak',
           'respondent-date-of-birth': '19/11/1982',
@@ -775,7 +778,7 @@ function buildCreateDataScenarios() {
         'resulting-selected-record-id': '18392016A',
         'case-type': 'remo-in',
         'applicant-type': 'individual',
-        'applicant-title': 'ms',
+        'applicant-title': 'Ms',
         'applicant-first-names': 'Patricia',
         'applicant-last-name': 'Arket',
         'applicant-main-email-address': 'patricia.arket@example.test',
@@ -785,7 +788,7 @@ function buildCreateDataScenarios() {
         'applicant-postal-or-zip-code': 'LS1 4AB',
         'applicant-country': 'united-kingdom',
         'applicant-bank-account-type': 'uk-bank-account',
-        'respondent-title': 'mr',
+        'respondent-title': 'Mr',
         'respondent-first-names': 'Edward',
         'respondent-last-name': 'Fisher',
         'respondent-date-of-birth': '23/06/2002',
@@ -1278,7 +1281,9 @@ function getMinorCreditorName(creditor, index) {
     return creditor.organisationName
   }
 
-  const fullName = [creditor.firstNames, creditor.lastName].filter(hasValue).join(' ')
+  const fullName = [getTitleLabel(creditor.title), creditor.firstNames, creditor.lastName]
+    .filter(hasValue)
+    .join(' ')
 
   if (hasValue(fullName)) {
     return fullName
@@ -1498,10 +1503,7 @@ function getApplicantFullName(sessionData) {
   }
 
   return [
-    sessionData['applicant-title']
-      ? sessionData['applicant-title'].charAt(0).toUpperCase() +
-          sessionData['applicant-title'].slice(1)
-      : '',
+    getTitleLabel(sessionData['applicant-title']),
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
   ]
@@ -1652,7 +1654,7 @@ function getCountrySelectItems(selectedCountry) {
 }
 
 function getTitleLabel(title) {
-  return titleLabels[title] || formatTextValue(title)
+  return titleLabels[String(title || '').toLowerCase()] || formatTextValue(title)
 }
 
 function buildSummaryRow(keyText, valueText) {
@@ -4395,6 +4397,231 @@ function getReviewHistoryTimestamp(dateTimeText) {
   return `${match[3]}-${pad(monthIndex)}-${pad(match[1])}T${pad(hour)}:${match[5]}:00`
 }
 
+function getSessionReviewCases(req) {
+  if (!Array.isArray(req.session.data[sessionReviewCasesKey])) {
+    req.session.data[sessionReviewCasesKey] = []
+  }
+
+  return req.session.data[sessionReviewCasesKey]
+}
+
+function getCaseReviewDecisions(req) {
+  if (
+    !req.session.data[caseReviewDecisionsKey] ||
+    Array.isArray(req.session.data[caseReviewDecisionsKey])
+  ) {
+    req.session.data[caseReviewDecisionsKey] = {}
+  }
+
+  return req.session.data[caseReviewDecisionsKey]
+}
+
+function getReviewWorkflowTimestamp() {
+  const now = new Date()
+  const date = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(now)
+  const time = new Intl.DateTimeFormat('en-GB', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  })
+    .format(now)
+    .replace(/\s/g, '')
+    .toLowerCase()
+
+  return `${date} at ${time}`
+}
+
+function getReviewStatusTag(status, isChecker) {
+  const labels = {
+    'in-review': isChecker ? 'To review' : 'In review',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    deleted: 'Deleted'
+  }
+  const classes = {
+    'in-review': 'govuk-tag--light-blue',
+    approved: 'govuk-tag--green',
+    rejected: 'govuk-tag--yellow',
+    deleted: 'govuk-tag--grey'
+  }
+
+  return {
+    text: labels[status] || labels['in-review'],
+    classes: `${classes[status] || classes['in-review']} govuk-!-margin-bottom-6`
+  }
+}
+
+function getReviewStatusDateField(status) {
+  return {
+    approved: 'approved',
+    rejected: 'rejected',
+    deleted: 'deleted'
+  }[status]
+}
+
+function getCasePartyName(sessionData, party, format = 'list') {
+  const firstNames = sessionData[`${party}-first-names`] || ''
+  const lastName = sessionData[`${party}-last-name`] || ''
+  const title = getTitleLabel(sessionData[`${party}-title`])
+
+  if (party === 'applicant' && sessionData['applicant-type'] === 'organisation') {
+    return sessionData['applicant-organisation-name'] || 'Organisation'
+  }
+
+  if (format === 'heading') {
+    return [title, firstNames, hasValue(lastName) ? String(lastName).toUpperCase() : '']
+      .filter(hasValue)
+      .join(' ')
+  }
+
+  if (hasValue(lastName) && hasValue(firstNames)) {
+    return `${String(lastName).toUpperCase()}, ${firstNames}`
+  }
+
+  return [firstNames, lastName].filter(hasValue).join(' ') || formatTextValue('')
+}
+
+function getSessionReviewCaseById(req, id) {
+  return getSessionReviewCases(req).find((caseEntry) => String(caseEntry.id) === String(id))
+}
+
+function createSessionReviewCase(req) {
+  const sessionData = getCreateACaseData(req)
+  const existingCase = sessionData['submitted-case-id']
+    ? getSessionReviewCaseById(req, sessionData['submitted-case-id'])
+    : null
+
+  if (existingCase) {
+    return existingCase
+  }
+
+  const reviewCase = {
+    id: `session-${Date.now()}`,
+    status: 'in-review',
+    created: 'Today',
+    createdSort: 0,
+    submittedBy: 'you',
+    statusLabel: 'Today',
+    statusSort: 0,
+    caseData: cloneData(sessionData),
+    reviewHistory: [
+      {
+        action: 'Submitted',
+        by: 'you',
+        at: getReviewWorkflowTimestamp()
+      }
+    ]
+  }
+
+  getSessionReviewCases(req).unshift(reviewCase)
+  sessionData['submitted-case-id'] = reviewCase.id
+
+  return reviewCase
+}
+
+function getSessionReviewCaseRow(caseEntry) {
+  const statusDateField = getReviewStatusDateField(caseEntry.status)
+  const row = {
+    id: caseEntry.id,
+    href: `/create-cases/${caseEntry.id}`,
+    status: caseEntry.status,
+    respondent: getCasePartyName(caseEntry.caseData, 'respondent'),
+    applicant: getCasePartyName(caseEntry.caseData, 'applicant'),
+    caseType: caseEntry.caseData['case-type-label'] ||
+      caseTypeLabels[caseEntry.caseData['case-type']] ||
+      caseEntry.caseData['case-type'],
+    submittedBy: caseEntry.submittedBy || 'you',
+    created: caseEntry.created || 'Today',
+    createdSort: caseEntry.createdSort || 0
+  }
+
+  if (statusDateField) {
+    row[statusDateField] = caseEntry.statusLabel || 'Today'
+    row[`${statusDateField}Sort`] = caseEntry.statusSort || 0
+  }
+
+  return row
+}
+
+function applyReviewDecisions(rows, decisions) {
+  return rows.map((row) => {
+    const decision = decisions[String(row.id)]
+
+    if (!decision) {
+      return row
+    }
+
+    const statusDateField = getReviewStatusDateField(decision.status)
+    const updatedRow = {
+      ...row,
+      href: `/create-cases/${row.id}`,
+      status: decision.status
+    }
+
+    if (statusDateField) {
+      updatedRow[statusDateField] = decision.statusLabel || 'Today'
+      updatedRow[`${statusDateField}Sort`] = decision.statusSort || 0
+    }
+
+    return updatedRow
+  })
+}
+
+function updateReviewCaseStatus(req, id, status, note) {
+  const at = getReviewWorkflowTimestamp()
+  const action = {
+    approved: 'Approved',
+    rejected: 'Rejected',
+    deleted: 'Deleted'
+  }[status]
+  const event = {
+    action,
+    by: 'you',
+    at,
+    ...(hasValue(note) ? { note } : {})
+  }
+  const sessionCase = getSessionReviewCaseById(req, id)
+
+  if (sessionCase) {
+    sessionCase.status = status
+    sessionCase.statusLabel = 'Today'
+    sessionCase.statusSort = 0
+    sessionCase.reviewHistory = [...(sessionCase.reviewHistory || []), event]
+    return sessionCase
+  }
+
+  const decisions = getCaseReviewDecisions(req)
+  const existingDecision = decisions[String(id)] || { events: [] }
+  decisions[String(id)] = {
+    ...existingDecision,
+    status,
+    statusLabel: 'Today',
+    statusSort: 0,
+    events: [...(existingDecision.events || []), event]
+  }
+
+  return decisions[String(id)]
+}
+
+function getSessionDraftOrderEntry(caseEntry) {
+  return {
+    caseId: caseEntry.id,
+    respondentName: getCasePartyName(caseEntry.caseData, 'respondent', 'heading') || 'Respondent',
+    caseTypeLabel: caseEntry.caseData['case-type-label'] ||
+      caseTypeLabels[caseEntry.caseData['case-type']] ||
+      caseEntry.caseData['case-type'],
+    applicantTypeLabel: applicantTypeLabels[caseEntry.caseData['applicant-type']] || 'Not selected',
+    submittedBy: caseEntry.submittedBy || 'you',
+    caseData: caseEntry.caseData,
+    reviewHistory: caseEntry.reviewHistory || [],
+    status: caseEntry.status || 'in-review'
+  }
+}
+
 router.get('/create-data', (req, res) => {
   const scenarios = buildCreateDataScenarios()
 
@@ -4537,6 +4764,7 @@ router.use('/create-a-case', (req, res, next) => {
 router.get('/create-a-case', (req, res) => {
   delete getCreateACaseData(req)['case-type']
   delete getCreateACaseData(req)['applicant-type-remo-in']
+  delete getCreateACaseData(req)['submitted-case-id']
   return res.render('create-a-case/index')
 })
 
@@ -4608,6 +4836,8 @@ router.get('/create-a-case/case-submitted', (req, res) => {
   if (!getCreateACaseData(req)['case-type']) {
     return res.redirect('/create-a-case')
   }
+
+  createSessionReviewCase(req)
 
   return res.render('create-a-case/case-submitted')
 })
@@ -6444,29 +6674,27 @@ router.get('/check-results/:index', (req, res) => {
 
 router.get('/create-cases', (req, res) => {
   const tab = req.query.tab || 'in-review'
-
-  const inReviewRows = [
-    { id: 2, applicant: 'AYRE, Jane', respondent: 'FISHER, Evan', caseType: 'REMO Out (CMS)', created: '1 day ago', createdSort: -1 },
-    { id: 0, applicant: 'NOWAK, Anna', respondent: 'NOWAK, Piotr', caseType: 'REMO In', created: 'Today', createdSort: 0 },
-    { id: 1, applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', created: 'Today', createdSort: 0 }
+  const baseRows = [
+    { id: 2, status: 'in-review', applicant: 'AYRE, Jane', respondent: 'FISHER, Evan', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
+    { id: 0, status: 'in-review', applicant: 'NOWAK, Anna', respondent: 'NOWAK, Piotr', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
+    { id: 1, status: 'in-review', applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
+    { id: 4, status: 'rejected', applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
+    { id: 3, status: 'rejected', applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
+    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, activeHref: '/active-case/6' },
+    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, activeHref: '/active-case/5' },
+    { id: 7, status: 'deleted', applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
-
-  const rejectedRows = [
-    { id: 4, applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', created: '3 days ago', createdSort: -3 },
-    { id: 3, applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', created: '2 days ago', createdSort: -2 }
+  const allRows = [
+    ...getSessionReviewCases(req).map(getSessionReviewCaseRow),
+    ...applyReviewDecisions(baseRows, getCaseReviewDecisions(req))
   ]
-
-  const approvedRows = [
-    { id: 6, applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1 },
-    { id: 5, applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2 }
-  ]
-
-  const deletedRows = [
-    { id: 7, applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
-  ]
+  const inReviewRows = allRows.filter((row) => row.status === 'in-review')
+  const rejectedRows = allRows.filter((row) => row.status === 'rejected')
+  const approvedRows = allRows.filter((row) => row.status === 'approved')
+  const deletedRows = allRows.filter((row) => row.status === 'deleted')
 
   const mapDeletedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.created, sortValue: row.createdSort },
@@ -6474,7 +6702,7 @@ router.get('/create-cases', (req, res) => {
   ])
 
   const mapApprovedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/active-case/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.activeHref || row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.created, sortValue: row.createdSort },
@@ -6482,7 +6710,7 @@ router.get('/create-cases', (req, res) => {
   ])
 
   const mapInReviewRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.created, sortValue: row.createdSort }
@@ -6514,7 +6742,25 @@ router.get('/create-cases', (req, res) => {
 })
 
 router.get('/create-cases/:index', (req, res) => {
-  const index = Number(req.params.index)
+  const requestedId = req.params.index
+  const sessionCase = getSessionReviewCaseById(req, requestedId)
+
+  if (sessionCase) {
+    const draftOrderEntry = getSessionDraftOrderEntry(sessionCase)
+    const isChecker = req.query.checker === 'true'
+
+    return res.render('create-and-validate-draft-orders/detail', {
+      ...draftOrderEntry,
+      ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+      caseId: requestedId,
+      statusTag: getReviewStatusTag(draftOrderEntry.status, isChecker),
+      reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
+      isChecker,
+      showReviewDecisionForm: isChecker && draftOrderEntry.status === 'in-review'
+    })
+  }
+
+  const index = Number(requestedId)
   const draftOrderEntries = [
     {
       respondentName: 'Mr Piotr NOWAK',
@@ -6525,7 +6771,7 @@ router.get('/create-cases/:index', (req, res) => {
         'case-type': 'remo-in',
         'applicant-type': 'individual',
         'has-order': 'yes',
-        'applicant-title': 'mrs',
+        'applicant-title': 'Mrs',
         'applicant-first-names': 'Anna',
         'applicant-last-name': 'Nowak',
         'applicant-date-of-birth': '08/06/1982',
@@ -6535,7 +6781,7 @@ router.get('/create-cases/:index', (req, res) => {
         'applicant-address-line-2': '00-120',
         'applicant-address-line-3': 'Warszawa',
         'applicant-country': 'poland',
-        'respondent-title': 'mr',
+        'respondent-title': 'Mr',
         'respondent-first-names': 'Piotr',
         'respondent-last-name': 'Nowak',
         'respondent-date-of-birth': '19/11/1982',
@@ -6699,7 +6945,7 @@ router.get('/create-cases/:index', (req, res) => {
         'case-type': 'remo-out',
         'applicant-type': 'individual',
         'has-order': 'yes',
-        'applicant-title': 'ms',
+        'applicant-title': 'Ms',
         'applicant-first-names': 'Patricia',
         'applicant-last-name': 'Arket',
         'applicant-main-email-address': 'patricia.arket@example.test',
@@ -6707,7 +6953,7 @@ router.get('/create-cases/:index', (req, res) => {
         'applicant-address-line-1': '84 Reda',
         'applicant-address-line-2': 'Gdanska',
         'applicant-country': 'poland',
-        'respondent-title': 'mr',
+        'respondent-title': 'Mr',
         'respondent-first-names': 'Edward',
         'respondent-last-name': 'Fisher',
         'respondent-main-email-address': 'edward.fisher@example.test',
@@ -6810,7 +7056,7 @@ router.get('/create-cases/:index', (req, res) => {
         'case-type-label': 'REMO Out (CMS)',
         'applicant-type': 'individual',
         'has-order': 'yes',
-        'applicant-title': 'ms',
+        'applicant-title': 'Ms',
         'applicant-first-names': 'Jane',
         'applicant-last-name': 'Ayre',
         'applicant-date-of-birth': '05/05/1984',
@@ -6821,7 +7067,7 @@ router.get('/create-cases/:index', (req, res) => {
         'applicant-address-line-3': 'Berkshire',
         'applicant-postal-or-zip-code': 'RG1 2AB',
         'applicant-country': 'united-kingdom',
-        'respondent-title': 'mr',
+        'respondent-title': 'Mr',
         'respondent-first-names': 'Evan',
         'respondent-last-name': 'Fisher',
         'respondent-date-of-birth': '22/09/1995',
@@ -6876,13 +7122,59 @@ router.get('/create-cases/:index', (req, res) => {
   if (!draftOrderEntry) {
     return res.redirect('/create-cases')
   }
+  const decision = getCaseReviewDecisions(req)[String(index)]
+  const status = decision?.status || 'in-review'
+  const reviewHistory = [
+    ...draftOrderEntry.reviewHistory,
+    ...((decision && decision.events) || [])
+  ]
+  const isChecker = req.query.checker === 'true'
 
   return res.render('create-and-validate-draft-orders/detail', {
     ...draftOrderEntry,
-    reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
+    caseId: requestedId,
+    status,
+    statusTag: getReviewStatusTag(status, isChecker),
+    reviewTimelineItems: getReviewHistoryTimelineItems(reviewHistory),
     ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
-    isChecker: req.query.checker === 'true'
+    isChecker,
+    showReviewDecisionForm: isChecker && status === 'in-review'
   })
+})
+
+router.post('/create-cases/:index/review', (req, res, next) => {
+  const decision = getSingleValue(req.body['draft-order-review-decision']) || ''
+  const rejectionReason = getSingleValue(req.body['rejection-reason']) || ''
+
+  if (decision === 'approve') {
+    updateReviewCaseStatus(req, req.params.index, 'approved')
+    return redirectWithSessionSave(req, res, next, '/create-cases?tab=approved')
+  }
+
+  if (decision === 'reject') {
+    updateReviewCaseStatus(req, req.params.index, 'rejected', rejectionReason)
+    return redirectWithSessionSave(req, res, next, '/review-cases?tab=rejected')
+  }
+
+  return redirectWithSessionSave(req, res, next, `/create-cases/${req.params.index}?checker=true`)
+})
+
+router.get('/create-cases/:index/delete', (req, res) => {
+  return res.render('create-and-validate-draft-orders/delete-case', {
+    caseId: req.params.index,
+    cancelHref: `/create-cases/${req.params.index}?checker=true`
+  })
+})
+
+router.post('/create-cases/:index/delete', (req, res, next) => {
+  updateReviewCaseStatus(
+    req,
+    req.params.index,
+    'deleted',
+    getSingleValue(req.body['delete-reason']) || ''
+  )
+
+  return redirectWithSessionSave(req, res, next, '/create-cases?tab=deleted')
 })
 
 router.get('/active-case/:id', (req, res) => {
@@ -6954,28 +7246,27 @@ router.get('/active-case/:id', (req, res) => {
 
 router.get('/review-cases', (req, res) => {
   const tab = req.query.tab || 'to-review'
-
-  const toReviewRows = [
-    { id: 2, respondent: 'FISHER, Evan', applicant: 'AYRE, Jane', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
-    { id: 0, respondent: 'NOWAK, Piotr', applicant: 'NOWAK, Anna', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
-    { id: 1, respondent: 'FISHER, Edward', applicant: 'ARKET, Patricia', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 }
+  const baseRows = [
+    { id: 2, status: 'in-review', respondent: 'FISHER, Evan', applicant: 'AYRE, Jane', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
+    { id: 0, status: 'in-review', respondent: 'NOWAK, Piotr', applicant: 'NOWAK, Anna', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
+    { id: 1, status: 'in-review', respondent: 'FISHER, Edward', applicant: 'ARKET, Patricia', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
+    { id: 4, status: 'rejected', respondent: 'TAYLOR, Lisa', applicant: 'BROWN, Michael', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
+    { id: 3, status: 'rejected', respondent: 'JONES, Sarah', applicant: 'SMITH, John', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
+    { id: 7, status: 'deleted', respondent: 'CLARK, Helen', applicant: 'HARRIS, Robert', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
-
-  const rejectedRows = [
-    { id: 4, respondent: 'TAYLOR, Lisa', applicant: 'BROWN, Michael', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
-    { id: 3, respondent: 'JONES, Sarah', applicant: 'SMITH, John', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 }
+  const allRows = [
+    ...getSessionReviewCases(req).map(getSessionReviewCaseRow),
+    ...applyReviewDecisions(baseRows, getCaseReviewDecisions(req))
   ]
-
-  const deletedRows = [
-    { id: 7, respondent: 'CLARK, Helen', applicant: 'HARRIS, Robert', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
-  ]
-
+  const toReviewRows = allRows.filter((row) => row.status === 'in-review')
+  const rejectedRows = allRows.filter((row) => row.status === 'rejected')
+  const deletedRows = allRows.filter((row) => row.status === 'deleted')
   const failedRows = [
     { id: 8, respondent: 'MARTIN, James', applicant: 'WILSON, Kate', caseType: 'REMO Out', submittedBy: 'david.watts', created: '2 days ago', createdSort: -2, failed: 'Today', failedSort: 0 }
   ]
 
   const mapToReviewRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
@@ -6983,7 +7274,7 @@ router.get('/review-cases', (req, res) => {
   ])
 
   const mapRejectedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
@@ -6992,7 +7283,7 @@ router.get('/review-cases', (req, res) => {
   ])
 
   const mapDeletedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
