@@ -4,7 +4,9 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
 {% from "moj/components/timeline/macro.njk" import mojTimeline %}
 
 {% block pageTitle %}
@@ -31,8 +33,64 @@
         items: reviewTimelineItems
       }) }}
 
-      {% set showChangeLinks = false %}
-      {% include "create-a-case/_check-case-details-content.html" %}
+      {% if showRejectedInputterTaskList %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Case type"
+              },
+              value: {
+                text: caseTypeLabel
+              }
+            },
+            {
+              key: {
+                text: "Applicant type"
+              },
+              value: {
+                text: applicantTypeLabel
+              }
+            }
+          ]
+        }) }}
+
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Party details</h2>
+
+        {{ govukTaskList({
+          idPrefix: "party-details",
+          items: partyDetailsItems
+        }) }}
+
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">{{ caseSectionHeading }}</h2>
+
+        {{ govukTaskList({
+          idPrefix: caseSectionIdPrefix,
+          items: caseSectionItems
+        }) }}
+
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2 govuk-!-margin-top-8">Additional information</h2>
+
+        {{ govukTaskList({
+          idPrefix: "additional-information",
+          items: additionalInformationItems
+        }) }}
+
+        <h2 class="govuk-heading-m govuk-!-margin-top-8">Check and submit</h2>
+
+        {% if canCheckCase %}
+          <form method="post" action="/create-cases/{{ caseId }}/resubmit">
+            {{ govukButton({
+              text: "Check case"
+            }) }}
+          </form>
+        {% else %}
+          <p class="govuk-body">You cannot proceed until all required sections have been completed.</p>
+        {% endif %}
+      {% else %}
+        {% set showChangeLinks = false %}
+        {% include "create-a-case/_check-case-details-content.html" %}
+      {% endif %}
 
       {% if showReviewDecisionForm %}
         <form method="post" action="/create-cases/{{ caseId }}/review">
