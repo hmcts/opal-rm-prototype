@@ -11,11 +11,15 @@
   max-width: 1280px;
 }
 
+.app-datepicker-with-age {
+  width: fit-content;
+}
+
 .app-age-box {
+  display: inline-block;
   background-color: #f3f2f1;
   border-left: 4px solid #1d70b8;
   padding: 10px 15px;
-  max-width: 260px;
 }
 
 .rm-dashboard {
@@ -27,7 +31,7 @@
 }
 
 .rm-enquiry-header {
-  align-items: flex-start;
+  align-items: flex-end;
   display: flex;
   gap: 20px;
   justify-content: space-between;
@@ -105,6 +109,7 @@
 }
 
 .rm-case-summary-tile {
+  min-width: 187px;
   padding: 5px 0;
 }
 
@@ -114,7 +119,29 @@
   padding: 5px 12px;
 }
 
+.rm-case-summary-tile--dark p {
+  color: #ffffff;
+}
+
+.rm-summary-list__section-heading {
+  border-bottom: 2px solid #0b0c0c;
+}
+
+.rm-summary-list__section-start .govuk-summary-list__key,
+.rm-summary-list__section-start .govuk-summary-list__value,
+.rm-summary-list__section-start .govuk-summary-list__actions {
+  padding-top: 30px;
+}
+
 .moj-badge--orange {
   border-color: #e8561a;
   color: #e8561a;
+}
+
+.rm-account-type-row {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 4px;
 }

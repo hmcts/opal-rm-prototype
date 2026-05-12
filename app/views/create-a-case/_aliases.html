@@ -1,0 +1,60 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% set aliasCount = data[aliasPrefix ~ "-alias-count"] | default("1") | int %}
+{% if aliasCount < 1 %}
+  {% set aliasCount = 1 %}
+{% endif %}
+
+<div class="rm-aliases" data-module="rm-aliases" data-alias-prefix="{{ aliasPrefix }}">
+  <input type="hidden" name="{{ aliasPrefix }}-alias-count" value="{{ aliasCount }}" data-alias-count>
+
+  <div data-alias-list>
+    {% for aliasNumber in range(1, aliasCount + 1) %}
+      <fieldset class="govuk-fieldset rm-alias" data-alias-item>
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s govuk-!-margin-bottom-2" data-alias-heading>
+          Alias {{ aliasNumber }}
+        </legend>
+
+        {{ govukInput({
+          id: aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-first-names",
+          name: aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-first-names",
+          label: {
+            text: "First names"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data[aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-first-names"],
+          attributes: {
+            "data-alias-field": "first-names"
+          }
+        }) }}
+
+        {{ govukInput({
+          id: aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-last-name",
+          name: aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-last-name",
+          label: {
+            text: "Last name"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data[aliasPrefix ~ "-alias-" ~ aliasNumber ~ "-last-name"],
+          attributes: {
+            "data-alias-field": "last-name"
+          }
+        }) }}
+
+        <p class="govuk-body govuk-!-margin-top-4 govuk-!-margin-bottom-4" data-alias-remove-wrapper{% if aliasCount == 1 %} hidden{% endif %}>
+          <a class="govuk-link govuk-link--no-visited-state" href="#" data-alias-remove>Remove alias</a>
+        </p>
+      </fieldset>
+    {% endfor %}
+  </div>
+
+  {{ govukButton({
+    text: "Add another alias",
+    classes: "govuk-button--secondary govuk-!-margin-top-4",
+    type: "button",
+    attributes: {
+      "data-alias-add": "true"
+    }
+  }) }}
+</div>

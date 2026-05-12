@@ -24,21 +24,23 @@
           value: data["terms-beneficiary-draft"]["beneficiaryName"] if data["terms-beneficiary-draft"]
         }) }}
 
-        {{ mojDatePicker({
-          id: "terms-beneficiary-child-date-of-birth",
-          name: "terms-beneficiary-child-date-of-birth",
-          label: {
-            text: "Date of birth (optional)",
-            classes: "govuk-label--s"
-          },
-          value: data["terms-beneficiary-draft"]["dateOfBirth"] if data["terms-beneficiary-draft"]
-        }) }}
+        <div class="app-datepicker-with-age">
+          {{ mojDatePicker({
+            id: "terms-beneficiary-child-date-of-birth",
+            name: "terms-beneficiary-child-date-of-birth",
+            label: {
+              text: "Date of birth (optional)",
+              classes: "govuk-label--s"
+            },
+            value: data["terms-beneficiary-draft"]["dateOfBirth"] if data["terms-beneficiary-draft"]
+          }) }}
 
-        {% if childAge !== null %}
-          <div class="app-age-box govuk-!-margin-top-4">
-            <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: {{ childAge }}</strong></p>
-          </div>
-        {% endif %}
+          {% if childAge !== null %}
+            <div class="app-age-box govuk-!-margin-top-3">
+              <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: {{ childAge }}</strong></p>
+            </div>
+          {% endif %}
+        </div>
       {% endset %}
 
       {% set newAdultHtml %}

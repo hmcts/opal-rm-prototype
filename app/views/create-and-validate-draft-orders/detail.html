@@ -106,11 +106,11 @@
             items: [
               {
                 value: "approve",
-                text: "Approve draft order"
+                text: "Approve case"
               },
               {
                 value: "reject",
-                text: "Reject draft order",
+                text: "Reject case",
                 conditional: {
                   html: govukCharacterCount({
                     name: "rejection-reason",
@@ -130,7 +130,7 @@
               text: "Continue"
             }) }}
 
-            <a class="govuk-link" href="/create-cases/{{ caseId }}/delete">Delete case</a>
+            <a class="govuk-link" href="/create-cases/{{ caseId }}/delete?checker=true">Delete case</a>
           </div>
         </form>
       {% endif %}

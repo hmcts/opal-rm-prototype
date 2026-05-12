@@ -60,7 +60,7 @@ const rawResultDefinitions = {
         name: 'Arrears',
         prompt: 'Arrears',
         type: 'decimal',
-        mandatory: 'Yes'
+        mandatory: 'No'
       },
       {
         name: 'Creditor',
@@ -133,7 +133,7 @@ const rawResultDefinitions = {
         name: 'Arrears',
         prompt: 'Arrears',
         type: 'decimal',
-        mandatory: 'Yes'
+        mandatory: 'No'
       },
       {
         name: 'Beneficiary',

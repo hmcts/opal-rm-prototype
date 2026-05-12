@@ -41,33 +41,8 @@
       {% endif %}
 
       {% set aliasHtml %}
-        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
-
-        {{ govukInput({
-          id: "respondent-alias-1-first-names",
-          name: "respondent-alias-1-first-names",
-          label: {
-            text: "First names",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["respondent-alias-1-first-names"]
-        }) }}
-
-        {{ govukInput({
-          id: "respondent-alias-1-last-name",
-          name: "respondent-alias-1-last-name",
-          label: {
-            text: "Last name",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["respondent-alias-1-last-name"]
-        }) }}
-
-        <p class="govuk-body">
-          <a class="govuk-link govuk-link--no-visited-state" href="#">Add another alias</a>
-        </p>
+        {% set aliasPrefix = "respondent" %}
+        {% include "create-a-case/_aliases.html" %}
       {% endset %}
 
       {% set thirdPartyHtml %}
@@ -226,9 +201,6 @@
             text: "Employee reference",
             classes: "govuk-label--s"
           },
-          hint: {
-            text: "If employee reference not known, add National Insurance number"
-          },
           classes: "govuk-input--width-20",
           value: data["respondent-employee-reference"]
         }) }}
@@ -323,6 +295,18 @@
           },
           classes: "govuk-input--width-10",
           value: data["respondent-employer-postcode"]
+        }) }}
+
+        {{ xGovukAutocomplete({
+          id: "respondent-employer-country",
+          name: "respondent-employer-country",
+          label: {
+            text: "Country",
+            classes: "govuk-label--s"
+          },
+          classes: "govuk-!-width-two-thirds",
+          value: data["respondent-employer-country"],
+          items: getCountrySelectItems(data["respondent-employer-country"])
         }) }}
       {% endset %}
 
@@ -591,7 +575,7 @@
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <h2 class="govuk-heading-m">Restrict personal information</h2>
-        <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the respondent's details with third parties</p>
+        <p class="govuk-hint">A flag will be added to the account to remind HMCTS staff not to share the respondent's details with third parties</p>
 
         {{ govukCheckboxes({
           idPrefix: "respondent-restrict-personal-information",
@@ -613,7 +597,7 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Return to case details"
+            text: submitButtonText or "Return to case details"
           }) }}
 
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
@@ -622,5 +606,3 @@
     </div>
   </div>
 {% endblock %}
-
-

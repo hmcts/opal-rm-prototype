@@ -1,0 +1,259 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+{% from "moj/components/badge/macro.njk" import mojBadge %}
+{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
+{% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set showNav = true %}
+
+{% set isApplicant = account.type === 'applicant' or account.type === 'applicant-creditor' %}
+{% set isCreditor = account.type === 'creditor' or account.type === 'applicant-creditor' %}
+
+{% block pageTitle %}
+  {{ account.name }} - Case details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      <div class="rm-account-type-row govuk-!-margin-bottom-1">
+        {% if isApplicant %}
+          {{ govukTag({ text: "Applicant", classes: "govuk-tag--grey" }) }}
+        {% else %}
+          {{ govukTag({ text: "Minor creditor", classes: "govuk-tag--grey" }) }}
+        {% endif %}
+        <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ account.caseReference }}</p>
+      </div>
+
+      <div class="moj-page-header-actions">
+        <div class="moj-page-header-actions__title">
+          <h1 class="govuk-heading-xl">{{ account.name }}</h1>
+        </div>
+        <div class="moj-page-header-actions__actions">
+          <div class="moj-button-group moj-button-group--inline">
+            {{ govukButton({
+              text: "Add account note",
+              classes: "govuk-button--secondary"
+            }) }}
+            {{ mojButtonMenu({
+              button: { text: "More actions", classes: "govuk-button--secondary" },
+              alignMenu: "right",
+              items: [
+                { text: "Print", href: "#" },
+                { text: "Export", href: "#" }
+              ]
+            }) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
+        <div class="rm-case-summary-tile rm-case-summary-tile--dark">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Awaiting payout</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ account.awaitingPayout }}</p>
+        </div>
+        <div class="rm-case-summary-tile">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Business unit</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ account.businessUnit }}</p>
+        </div>
+      </div>
+
+      {% if isApplicant %}
+        {{ mojSubNavigation({
+          label: "Case navigation",
+          items: [
+            { text: "At a glance", href: "/active-case/creditor/" + accountId, active: tab === 'at-a-glance' },
+            { text: "Applicant", href: "/active-case/creditor/" + accountId + "?tab=applicant", active: tab === 'applicant' },
+            { text: "History and notes", href: "#" }
+          ]
+        }) }}
+      {% else %}
+        {{ mojSubNavigation({
+          label: "Case navigation",
+          items: [
+            { text: "At a glance", href: "/active-case/creditor/" + accountId, active: tab === 'at-a-glance' },
+            { text: "Creditor", href: "/active-case/creditor/" + accountId + "?tab=creditor", active: tab === 'creditor' },
+            { text: "History and notes", href: "#" }
+          ]
+        }) }}
+      {% endif %}
+
+      {# ── At a glance ── #}
+      {% if tab === 'at-a-glance' %}
+
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+
+          <div class="govuk-grid-column-one-third">
+
+            {% if isApplicant %}
+              <h2 class="govuk-heading-m rm-enquiry-section-heading">Applicant</h2>
+
+              {% if account.restricted %}
+                {{ mojBadge({ text: "Restricted", classes: "moj-badge--orange" }) }}
+              {% endif %}
+
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Name</p>
+              <p class="govuk-body">{{ account.name }}</p>
+
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
+              <p class="govuk-body">{{ account.dateOfBirth }}</p>
+
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Address</p>
+              <p class="govuk-body">
+                {% for line in account.address %}
+                  {{ line }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              </p>
+            {% else %}
+              <h2 class="govuk-heading-m rm-enquiry-section-heading">Minor creditor</h2>
+
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Name</p>
+              <p class="govuk-body">{{ account.name }}</p>
+
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Address</p>
+              <p class="govuk-body">
+                {% for line in account.address %}
+                  {{ line }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              </p>
+            {% endif %}
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Respondent</h2>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Respondent account</p>
+            <p class="govuk-body"><a href="{{ account.respondentAccountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ account.caseReference }}</a></p>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Respondent name</p>
+            <p class="govuk-body">{{ account.respondentName }}</p>
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">BACS details</p>
+            {% if account.bacsStatus %}
+              {{ mojBadge({ text: account.bacsStatus }) }}
+            {% else %}
+              <p class="govuk-body">Not provided</p>
+            {% endif %}
+            <p class="govuk-body govuk-!-margin-top-3"><a href="#" class="govuk-link">Add payment hold</a></p>
+
+          </div>
+
+        </div>
+
+      {# ── Applicant tab ── #}
+      {% elif tab === 'applicant' and isApplicant %}
+
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Applicant details</h2>
+          </div>
+        </div>
+
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            {% if account.restricted %}
+              {{ mojAlert({
+                variant: "warning",
+                text: "Applicant's personal information should not be shared."
+              }) }}
+            {% endif %}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Applicant details" },
+                actions: {
+                  items: [{ href: "#", text: "Change", visuallyHiddenText: "applicant details" }]
+                }
+              },
+              rows: [
+                ({ key: { text: "Title" }, value: { text: account.title or "–" } } if account.title),
+                { key: { text: "First names" }, value: { text: account.firstNames } },
+                { key: { text: "Last name" }, value: { text: account.lastName } },
+                { key: { text: "Date of birth" }, value: { text: account.dateOfBirth } },
+                { key: { text: "Main email address" }, value: { text: account.mainEmail or "–" } },
+                { key: { text: "Other email address" }, value: { text: account.otherEmail or "–" } },
+                { key: { text: "Main telephone number" }, value: { text: account.mainTelephone or "–" } },
+                { key: { text: "Other telephone number" }, value: { text: account.otherTelephone or "–" } },
+                { key: { text: "Applicant's address" }, value: { html: account.address | join("<br>") } },
+                { key: { text: "Restrict personal information" }, value: { text: "Yes" if account.restricted else "No" } },
+                ({ key: { text: "Restriction reason" }, value: { text: account.restrictionReason } } if account.restricted and account.restrictionReason)
+              ] | reject("undefined") | list
+            }) }}
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+            <aside class="govuk-prototype-kit-common-templates-related-items" role="complementary">
+              <h2 class="govuk-heading-m">Actions</h2>
+              <nav>
+                <ul class="govuk-list">
+                  <li><a href="#" class="govuk-link">Manage payment references</a></li>
+                </ul>
+              </nav>
+            </aside>
+          </div>
+        </div>
+
+      {# ── Creditor tab (standalone creditors only) ── #}
+      {% elif tab === 'creditor' and isCreditor %}
+
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Creditor details</h2>
+          </div>
+        </div>
+
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Minor creditor details" },
+                actions: {
+                  items: [{ href: "#", text: "Change", visuallyHiddenText: "minor creditor details" }]
+                }
+              },
+              rows: [
+                { key: { text: "Name" }, value: { text: account.name } },
+                { key: { text: "Address" }, value: { html: account.address | join("<br>") } },
+                { key: { text: "Payment method" }, value: { text: account.paymentMethod or "–" } },
+                { key: { text: "Name on account" }, value: { text: account.nameOnAccount or "–" } },
+                { key: { text: "Sort code" }, value: { text: account.sortCode or "–" } },
+                { key: { text: "Account number" }, value: { text: account.accountNumber or "–" } },
+                { key: { text: "Payment reference" }, value: { text: account.paymentReference or "–" } }
+              ]
+            }) }}
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+            <aside class="govuk-prototype-kit-common-templates-related-items" role="complementary">
+              <h2 class="govuk-heading-m">Actions</h2>
+              <nav>
+                <ul class="govuk-list">
+                  <li><a href="#" class="govuk-link">Add payment hold</a></li>
+                </ul>
+              </nav>
+            </aside>
+          </div>
+        </div>
+
+      {% endif %}
+
+    </div>
+  </div>
+{% endblock %}

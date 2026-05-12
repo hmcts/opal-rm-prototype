@@ -43,33 +43,8 @@
       {% set isOrganisationApplicant = data["applicant-type"] == "organisation" %}
 
       {% set aliasHtml %}
-        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
-
-        {{ govukInput({
-          id: "applicant-alias-1-first-names",
-          name: "applicant-alias-1-first-names",
-          label: {
-            text: "First names",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["applicant-alias-1-first-names"]
-        }) }}
-
-        {{ govukInput({
-          id: "applicant-alias-1-last-name",
-          name: "applicant-alias-1-last-name",
-          label: {
-            text: "Last name",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["applicant-alias-1-last-name"]
-        }) }}
-
-        <p class="govuk-body">
-          <a class="govuk-link govuk-link--no-visited-state" href="#">Add another alias</a>
-        </p>
+        {% set aliasPrefix = "applicant" %}
+        {% include "create-a-case/_aliases.html" %}
       {% endset %}
 
       {% set thirdPartyHtml %}
@@ -200,6 +175,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          autocomplete: "name",
+          spellcheck: false,
           value: data["applicant-bank-name-on-account"]
         }) }}
 
@@ -213,8 +190,9 @@
           hint: {
             text: "Must be 6 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-5 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
+          spellcheck: false,
           value: data["applicant-bank-sort-code"]
         }) }}
 
@@ -228,8 +206,9 @@
           hint: {
             text: "Must be between 6 and 8 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
+          spellcheck: false,
           value: data["applicant-bank-account-number"]
         }) }}
 
@@ -267,7 +246,8 @@
           hint: {
             text: "Must be between 8 and 11 characters long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: data["applicant-bank-bic-or-swift-code"]
         }) }}
 
@@ -278,7 +258,8 @@
             text: "IBAN",
             classes: "govuk-label--s"
           },
-          classes: "govuk-!-width-two-thirds",
+          classes: "govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: data["applicant-bank-iban"]
         }) }}
 
@@ -643,7 +624,7 @@
 
         {% if not isOrganisationApplicant %}
           <h2 class="govuk-heading-m">Restrict personal information</h2>
-          <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
+          <p class="govuk-hint">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
 
           {{ govukCheckboxes({
             idPrefix: "applicant-restrict-personal-information",
@@ -675,5 +656,3 @@
     </div>
   </div>
 {% endblock %}
-
-

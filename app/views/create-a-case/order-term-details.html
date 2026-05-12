@@ -70,9 +70,11 @@
               errorMessage: field.errorMessage
             }) }}
 
-            <div id="{{ field.id }}-age-box" class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7" data-age-box data-date-input="{{ field.id }}"{% if field.calculatedAge === null %} hidden{% endif %}>
-              <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: <span id="{{ field.id }}-age-value">{{ field.calculatedAge }}</span></strong></p>
-            </div>
+            {% if field.isChildDobField %}
+              <div id="{{ field.id }}-age-box" class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7" data-age-box data-date-input="{{ field.id }}"{% if field.calculatedAge === null %} hidden{% endif %}>
+                <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: <span id="{{ field.id }}-age-value">{{ field.calculatedAge }}</span></strong></p>
+              </div>
+            {% endif %}
           {% elif field.type == "currency" %}
             {{ govukInput({
               id: field.id,
