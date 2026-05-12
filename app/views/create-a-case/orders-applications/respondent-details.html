@@ -31,33 +31,8 @@
       <h1 class="govuk-heading-l">Respondent details</h1>
 
       {% set aliasHtml %}
-        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-3">Alias 1</p>
-
-        {{ govukInput({
-          id: "respondent-alias-1-first-names",
-          name: "respondent-alias-1-first-names",
-          label: {
-            text: "First names",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["respondent-alias-1-first-names"]
-        }) }}
-
-        {{ govukInput({
-          id: "respondent-alias-1-last-name",
-          name: "respondent-alias-1-last-name",
-          label: {
-            text: "Last name",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-two-thirds",
-          value: data["respondent-alias-1-last-name"]
-        }) }}
-
-        <p class="govuk-body">
-          <a class="govuk-link govuk-link--no-visited-state" href="#">Add another alias</a>
-        </p>
+        {% set aliasPrefix = "respondent" %}
+        {% include "create-a-case/_aliases.html" %}
       {% endset %}
 
       {% set thirdPartyHtml %}
@@ -485,5 +460,3 @@
     </div>
   </div>
 {% endblock %}
-
-

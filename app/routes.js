@@ -3124,6 +3124,35 @@ function buildRespondentDetailsViewData(baseData, body) {
   }
 }
 
+function syncAliasFields(sessionData, body, prefix) {
+  const addAliases = isChecked(body[`${prefix}-add-aliases`])
+  const aliasFieldPattern = new RegExp(`^${prefix}-alias-\\d+-(first-names|last-name)$`)
+
+  Object.keys(sessionData).forEach((key) => {
+    if (aliasFieldPattern.test(key)) {
+      delete sessionData[key]
+    }
+  })
+
+  if (!addAliases) {
+    sessionData[`${prefix}-alias-count`] = '1'
+    return
+  }
+
+  const submittedCount = Number.parseInt(getSingleValue(body[`${prefix}-alias-count`]), 10)
+  const aliasCount = Number.isNaN(submittedCount) || submittedCount < 1 ? 1 : submittedCount
+
+  sessionData[`${prefix}-alias-count`] = String(aliasCount)
+
+  for (let aliasNumber = 1; aliasNumber <= aliasCount; aliasNumber += 1) {
+    const firstNamesKey = `${prefix}-alias-${aliasNumber}-first-names`
+    const lastNameKey = `${prefix}-alias-${aliasNumber}-last-name`
+
+    sessionData[firstNamesKey] = getSingleValue(body[firstNamesKey]) || ''
+    sessionData[lastNameKey] = getSingleValue(body[lastNameKey]) || ''
+  }
+}
+
 function getDefinitionWording(definition, responses) {
   if (!definition) {
     return ''
@@ -4918,6 +4947,7 @@ router.post('/create-a-case/applicant-details', (req, res, next) => {
   )
     ? 'yes'
     : ''
+  syncAliasFields(getCreateACaseData(req), req.body, 'applicant')
   getCreateACaseData(req)['applicant-bank-account-type'] =
     getSingleValue(req.body['applicant-bank-account-type']) || ''
   getCreateACaseData(req)['applicant-send-correspondence-to-third-party'] =
@@ -4964,6 +4994,7 @@ router.post('/create-a-case/respondent-details', (req, res, next) => {
   )
     ? 'yes'
     : ''
+  syncAliasFields(getCreateACaseData(req), req.body, 'respondent')
   getCreateACaseData(req)['respondent-add-employer-details'] = isChecked(
     req.body['respondent-add-employer-details']
   )
@@ -7583,6 +7614,7 @@ router.post('/resulting/applicant-details', (req, res, next) => {
   req.session.data['applicant-add-aliases'] = isChecked(req.body['applicant-add-aliases'])
     ? 'yes'
     : ''
+  syncAliasFields(req.session.data, req.body, 'applicant')
   req.session.data['applicant-bank-account-type'] =
     getSingleValue(req.body['applicant-bank-account-type']) || ''
   req.session.data['applicant-send-correspondence-to-third-party'] = isChecked(
@@ -7630,6 +7662,7 @@ router.post('/resulting/respondent-details', (req, res, next) => {
   req.session.data['respondent-add-aliases'] = isChecked(req.body['respondent-add-aliases'])
     ? 'yes'
     : ''
+  syncAliasFields(req.session.data, req.body, 'respondent')
   req.session.data['respondent-add-employer-details'] = isChecked(
     req.body['respondent-add-employer-details']
   )
