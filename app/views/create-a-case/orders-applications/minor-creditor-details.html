@@ -74,6 +74,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          autocomplete: "name",
+          spellcheck: false,
           value: creditor.ukNameOnAccount
         }) }}
 
@@ -87,7 +89,9 @@
           hint: {
             text: "Must be 6 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-5 govuk-input--extra-letter-spacing",
+          inputmode: "numeric",
+          spellcheck: false,
           value: creditor.ukSortCode
         }) }}
 
@@ -101,7 +105,9 @@
           hint: {
             text: "Must be between 6 and 8 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
+          inputmode: "numeric",
+          spellcheck: false,
           value: creditor.ukAccountNumber
         }) }}
 
@@ -139,7 +145,8 @@
           hint: {
             text: "Must be between 8 and 11 characters long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: creditor.nonUkBicOrSwiftCode
         }) }}
 
@@ -150,7 +157,8 @@
             text: "IBAN",
             classes: "govuk-label--s"
           },
-          classes: "govuk-!-width-two-thirds",
+          classes: "govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: creditor.nonUkIban
         }) }}
 

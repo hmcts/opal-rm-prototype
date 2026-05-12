@@ -170,6 +170,8 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          autocomplete: "name",
+          spellcheck: false,
           value: data["applicant-bank-name-on-account"]
         }) }}
 
@@ -183,8 +185,9 @@
           hint: {
             text: "Must be 6 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-5 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
+          spellcheck: false,
           value: data["applicant-bank-sort-code"]
         }) }}
 
@@ -198,8 +201,9 @@
           hint: {
             text: "Must be between 6 and 8 digits long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
+          spellcheck: false,
           value: data["applicant-bank-account-number"]
         }) }}
 
@@ -237,7 +241,8 @@
           hint: {
             text: "Must be between 8 and 11 characters long"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: data["applicant-bank-bic-or-swift-code"]
         }) }}
 
@@ -248,7 +253,8 @@
             text: "IBAN",
             classes: "govuk-label--s"
           },
-          classes: "govuk-!-width-two-thirds",
+          classes: "govuk-input--extra-letter-spacing",
+          spellcheck: false,
           value: data["applicant-bank-iban"]
         }) }}
 
@@ -588,7 +594,7 @@
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <h2 class="govuk-heading-m">Restrict personal information</h2>
-        <p class="govuk-body">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
+        <p class="govuk-hint">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
 
         {{ govukCheckboxes({
           idPrefix: "applicant-restrict-personal-information",

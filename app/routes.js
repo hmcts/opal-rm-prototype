@@ -635,7 +635,7 @@ function buildCreateDataScenarios() {
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '22/08/2035',
                 'result-mchild-arrears': '100',
-                'result-mchild-education': ['Order until completion of full-time education'],
+                'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Zofia Taylor',
                 'result-mchild-child-dob': '22/08/2017',
                 'result-mchild-respondent': 'James Taylor',
@@ -751,7 +751,7 @@ function buildCreateDataScenarios() {
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '15/03/2034',
                 'result-mchild-arrears': '80',
-                'result-mchild-education': ['Order until completion of full-time education'],
+                'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Sofia Nowak',
                 'result-mchild-child-dob': '15/03/2016',
                 'result-mchild-respondent': 'Piotr Nowak',
@@ -773,7 +773,7 @@ function buildCreateDataScenarios() {
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '22/09/2036',
                 'result-mchild-arrears': '80',
-                'result-mchild-education': ['Order until completion of full-time education'],
+                'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Michal Nowak',
                 'result-mchild-child-dob': '22/09/2018',
                 'result-mchild-respondent': 'Piotr Nowak',
@@ -2946,7 +2946,16 @@ function getResultValueForDisplay(field, value) {
   return value
 }
 
+function isFieldValueChecked(value) {
+  if (Array.isArray(value)) return value.length > 0
+  return hasValue(value) && value !== '_unchecked'
+}
+
 function getResultValueForSummary(field, value) {
+  if (normaliseComparableText(field.name || field.prompt) === 'expiry terms') {
+    return isFieldValueChecked(value) ? 'Yes - see case comment or notes' : 'None'
+  }
+
   if (Array.isArray(value)) {
     if (!value.length) {
       return ''
@@ -3525,6 +3534,7 @@ function getAlternativeOrderTermResponseItems(sessionData) {
   return definition.responses.map((field) => ({
     ...field,
     value: values[field.id] || (field.type === 'checkboxes' ? [] : ''),
+    isChildDobField: normaliseComparableText(field.name || field.prompt) === 'child dob',
     calculatedAge:
       normaliseComparableText(field.name || field.prompt) === 'child dob'
         ? getAgeFromDateString(values[field.id] || '')
@@ -4124,7 +4134,7 @@ function getTermsReviewRow(term) {
           : '-'
     },
     {
-      text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes' : 'No'
+      text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see case comment or notes' : 'None'
     },
     {
       text: 'Active'
@@ -6845,8 +6855,8 @@ router.get('/create-cases', (req, res) => {
     { id: 1, status: 'in-review', applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, activeHref: '/active-case/6' },
-    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, activeHref: '/active-case/5' },
+    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, businessUnit: 'Bury St. Edmunds', respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', creditorAccounts: [{ href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, { href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }, { href: '/active-case/major-creditor/62', label: '06000387W – Australian Child Support Agency' }] },
+    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, businessUnit: 'Reading', respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', creditorAccounts: [{ href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, { href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
     { id: 7, status: 'deleted', applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
   const allRows = [
@@ -6866,13 +6876,18 @@ router.get('/create-cases', (req, res) => {
     { text: row.deleted, sortValue: row.deletedSort }
   ])
 
-  const mapApprovedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="${row.activeHref || row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
-    { text: row.applicant },
-    { text: row.caseType },
-    { text: row.created, sortValue: row.createdSort },
-    { text: row.approved, sortValue: row.approvedSort }
-  ])
+  const mapApprovedRows = (rows) => rows.map((row) => {
+    const creditorHtml = (row.creditorAccounts || [])
+      .map(ca => `<a class="govuk-link" href="${ca.href}" target="_blank" rel="noreferrer">${escapeHtml(ca.label)}</a>`)
+      .join('<br>')
+    return [
+      { html: `<a class="govuk-link" href="${row.respondentAccountHref || row.activeHref || row.href || `/create-cases/${row.id}`}" target="_blank" rel="noreferrer">${escapeHtml(row.respondentAccountLabel || row.respondent)}</a>`, text: row.respondentAccountLabel || row.respondent },
+      { html: creditorHtml || '–' },
+      { text: row.approved, sortValue: row.approvedSort },
+      { text: row.caseType },
+      { text: row.businessUnit || '' }
+    ]
+  })
 
   const mapInReviewRows = (rows) => rows.map((row) => [
     { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
@@ -7492,12 +7507,14 @@ const activeCases = {
       otherTelephone: null,
       address: ['45 Park Road', 'Newbury', 'Berkshire', 'RG14 1BB', 'United Kingdom'],
       restricted: false,
+      restrictionReason: null,
       thirdParty: null
     },
     applicant: {
       name: 'Mrs Emma WILSON',
       dateOfBirth: '22 April 1979 (Age 47)',
-      restricted: true
+      restricted: true,
+      accountHref: '/active-case/creditor/51'
     },
     beneficiaries: {
       adults: ['Mrs Emma WILSON'],
@@ -7528,6 +7545,7 @@ const activeCases = {
       otherTelephone: null,
       address: ['22 Victoria Street', 'Brighton', 'East Sussex', 'BN1 3HQ', 'United Kingdom'],
       restricted: true,
+      restrictionReason: 'There is a domestic violence case between the respondent and the applicant.',
       thirdParty: {
         name: 'White & Partners Solicitors',
         relationship: 'Solicitor',
@@ -7538,7 +7556,8 @@ const activeCases = {
     applicant: {
       name: 'Mrs Claire JOHNSON',
       dateOfBirth: '14 August 1972 (Age 53)',
-      restricted: true
+      restricted: true,
+      accountHref: '/active-case/creditor/61'
     },
     beneficiaries: {
       adults: ['Mrs Claire JOHNSON'],
@@ -7546,6 +7565,141 @@ const activeCases = {
     },
     comment: 'No recent issues. Case active. Next review due September 2026.'
   }
+}
+
+const minorCreditorAccounts = {
+  51: {
+    type: 'applicant',
+    caseReference: '05000215T',
+    name: 'Mrs Emma WILSON',
+    title: 'Mrs',
+    firstNames: 'Emma',
+    lastName: 'WILSON',
+    awaitingPayout: '£0.00',
+    businessUnit: 'Reading',
+    dateOfBirth: '22 April 1979 (Age 47)',
+    address: ['14 Elm Close', 'Newbury', 'Berkshire', 'RG14 2PQ', 'United Kingdom'],
+    mainEmail: 'emma.wilson@example.com',
+    otherEmail: null,
+    mainTelephone: '07700 900123',
+    otherTelephone: null,
+    respondentAccountHref: '/active-case/5',
+    respondentName: 'Mr Peter THOMAS',
+    restricted: false
+  },
+  52: {
+    type: 'applicant',
+    caseReference: '05000215T',
+    name: 'Lily THOMAS',
+    title: null,
+    firstNames: 'Lily',
+    lastName: 'THOMAS',
+    awaitingPayout: '£0.00',
+    businessUnit: 'Reading',
+    dateOfBirth: '10 March 2013 (Age 13)',
+    address: ['45 Park Road', 'Newbury', 'Berkshire', 'RG14 1BB', 'United Kingdom'],
+    mainEmail: null,
+    otherEmail: null,
+    mainTelephone: null,
+    otherTelephone: null,
+    respondentAccountHref: '/active-case/5',
+    respondentName: 'Mr Peter THOMAS',
+    restricted: false
+  },
+  61: {
+    type: 'applicant-creditor',
+    caseReference: '06000387W',
+    name: 'Mrs Claire JOHNSON',
+    title: 'Mrs',
+    firstNames: 'Claire',
+    lastName: 'JOHNSON',
+    awaitingPayout: '£180.00',
+    businessUnit: 'Bury St. Edmunds',
+    dateOfBirth: '14 August 1972 (Age 53)',
+    address: ['8 Meadow Lane', 'Brighton', 'East Sussex', 'BN1 7RR', 'United Kingdom'],
+    mainEmail: 'claire.johnson@example.com',
+    otherEmail: null,
+    mainTelephone: '07700 900456',
+    otherTelephone: null,
+    respondentAccountHref: '/active-case/6',
+    respondentName: 'Mr James WHITE',
+    bacsStatus: 'PROVIDED',
+    restricted: true,
+    restrictionReason: 'There is a domestic violence case between the respondent and the applicant.',
+    paymentMethod: 'BACS',
+    nameOnAccount: 'Mrs Claire JOHNSON',
+    sortCode: '20-00-00',
+    accountNumber: '73538301',
+    paymentReference: 'REF-06387-CJ'
+  },
+  63: {
+    type: 'creditor',
+    caseReference: '06000387W',
+    name: 'Ms Sophie TAYLOR',
+    awaitingPayout: '£95.00',
+    businessUnit: 'Bury St. Edmunds',
+    address: ['22 River Walk', 'Norwich', 'Norfolk', 'NR1 1HD', 'United Kingdom'],
+    respondentAccountHref: '/active-case/6',
+    respondentName: 'Mr James WHITE',
+    restricted: false,
+    paymentMethod: 'BACS',
+    nameOnAccount: 'S Taylor',
+    sortCode: '60-16-13',
+    accountNumber: '31926819',
+    paymentReference: 'REF-06387-ST'
+  }
+}
+
+const majorCreditorAccounts = {
+  62: {
+    caseReference: '06000387W',
+    name: 'Australian Child Support Agency',
+    awaitingPayout: '£180.00',
+    dateOfLastMovement: '30 April 2026',
+    address: ['Level 3', 'Centrepoint Tower', 'Sydney', 'NSW 2000', 'Australia'],
+    bacsStatus: 'PROVIDED'
+  }
+}
+
+function getActiveCaseRespondentRows(respondent) {
+  const rows = [
+    buildSummaryRow('Title', respondent.title),
+    buildSummaryRow('First names', respondent.firstNames),
+    buildSummaryRow('Last name', respondent.lastName),
+    buildSummaryRow('Date of birth', respondent.dateOfBirth),
+    buildSummaryRow('UK National Insurance number', respondent.nationalInsuranceNumber),
+    buildSummaryHtmlRow(
+      'Other personal information',
+      formatLinesHtml(
+        respondent.otherPersonalInformation
+          ? respondent.otherPersonalInformation.split('\n')
+          : []
+      )
+    ),
+    buildSummaryRow('Main email address', respondent.mainEmail),
+    buildSummaryRow('Other email address', respondent.otherEmail),
+    buildSummaryRow('Main telephone number', respondent.mainTelephone),
+    buildSummaryRow('Other telephone number', respondent.otherTelephone),
+    buildSummaryHtmlRow("Respondent's address", formatLinesHtml(respondent.address || []))
+  ]
+
+  if (respondent.thirdParty) {
+    const tp = respondent.thirdParty
+    rows.push(
+      buildSummarySectionHeadingRow('Third party details'),
+      buildSummaryRow('Third party name', tp.name),
+      buildSummaryRow('Relationship to respondent', tp.relationship),
+      buildSummaryRow('Reference', tp.reference),
+      buildSummaryHtmlRow('Address', formatLinesHtml(tp.address || []))
+    )
+  }
+
+  rows.push(
+    buildSummaryRow('Restrict personal information', respondent.restricted ? 'Yes' : 'No'),
+    buildSummaryRow('Reason for restriction', respondent.restrictionReason)
+  )
+
+  return rows
 }
 
 router.get('/active-case/:id', (req, res) => {
@@ -7557,7 +7711,12 @@ router.get('/active-case/:id', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
-  return res.render('active-case/index', { activeCase, caseId: id, tab })
+  return res.render('active-case/index', {
+    activeCase,
+    caseId: id,
+    tab,
+    respondentRows: getActiveCaseRespondentRows(activeCase.respondent)
+  })
 })
 
 router.get('/active-case/:id/respondent/edit', (req, res) => {
@@ -7614,7 +7773,8 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
     accountContextLabel: activeCase.caseReference + ' — ' + activeCase.respondentName,
     backHref: '/active-case/' + id + '?tab=respondent',
     formAction: '/active-case/' + id + '/respondent/edit',
-    cancelHref: '/active-case/' + id + '?tab=respondent'
+    cancelHref: '/active-case/' + id + '?tab=respondent',
+    submitButtonText: 'Save changes'
   })
 })
 
@@ -8309,4 +8469,27 @@ router.get('/resulting/submitted', (req, res) => {
   return res.render('resulting/submitted', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data)
   })
+})
+
+router.get('/active-case/creditor/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const tab = req.query.tab || 'at-a-glance'
+  return res.render('active-case/creditor', { account, accountId: id, tab })
+})
+
+router.get('/active-case/major-creditor/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const account = majorCreditorAccounts[id]
+
+  if (!account) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/major-creditor', { account })
 })

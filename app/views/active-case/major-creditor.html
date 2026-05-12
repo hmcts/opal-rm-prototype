@@ -1,0 +1,95 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "moj/components/badge/macro.njk" import mojBadge %}
+{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
+{% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
+
+{% set showNav = true %}
+
+{% block pageTitle %}
+  {{ account.name }} - Case details - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      <div class="rm-account-type-row govuk-!-margin-bottom-1">
+        {{ govukTag({ text: "Major creditor", classes: "govuk-tag--grey" }) }}
+        <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ account.caseReference }}</p>
+      </div>
+
+      <div class="moj-page-header-actions">
+        <div class="moj-page-header-actions__title">
+          <h1 class="govuk-heading-xl">{{ account.name }}</h1>
+        </div>
+        <div class="moj-page-header-actions__actions">
+          <div class="moj-button-group moj-button-group--inline">
+            {{ mojButtonMenu({
+              button: { text: "More actions", classes: "govuk-button--secondary" },
+              alignMenu: "right",
+              items: [
+                { text: "Print", href: "#" },
+                { text: "Export", href: "#" }
+              ]
+            }) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
+        <div class="rm-case-summary-tile rm-case-summary-tile--dark">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Awaiting payout</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ account.awaitingPayout }}</p>
+        </div>
+        <div class="rm-case-summary-tile">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of last movement</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ account.dateOfLastMovement }}</p>
+        </div>
+      </div>
+
+      {{ mojSubNavigation({
+        label: "Case navigation",
+        items: [
+          { text: "At a glance", href: "#", active: true },
+          { text: "History and notes", href: "#" }
+        ]
+      }) }}
+
+      <div class="govuk-grid-row govuk-!-margin-top-6">
+
+        <div class="govuk-grid-column-one-third">
+
+          <h2 class="govuk-heading-m rm-enquiry-section-heading">Major creditor</h2>
+
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Name</p>
+          <p class="govuk-body">{{ account.name }}</p>
+
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Address</p>
+          <p class="govuk-body">
+            {% for line in account.address %}
+              {{ line }}{% if not loop.last %}<br>{% endif %}
+            {% endfor %}
+          </p>
+
+        </div>
+
+        <div class="govuk-grid-column-one-third">
+
+          <h2 class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
+
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">BACS details</p>
+          {% if account.bacsStatus %}
+            {{ mojBadge({ text: account.bacsStatus }) }}
+          {% else %}
+            <p class="govuk-body">Not provided</p>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
