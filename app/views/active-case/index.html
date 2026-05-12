@@ -2,6 +2,8 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
 
@@ -68,8 +70,8 @@
       {{ mojSubNavigation({
         label: "Case navigation",
         items: [
-          { text: "At a glance", href: "#", active: true },
-          { text: "Respondent", href: "#" },
+          { text: "At a glance", href: "/active-case/" + caseId, active: tab === 'at-a-glance' },
+          { text: "Respondent", href: "/active-case/" + caseId + "?tab=respondent", active: tab === 'respondent' },
           { text: "Applicant", href: "#" },
           { text: "Authority", href: "#" },
           { text: "Applications", href: "#" },
@@ -79,69 +81,200 @@
         ]
       }) }}
 
-      <div class="govuk-grid-row govuk-!-margin-top-6">
+      {% if tab === 'respondent' %}
 
-        <div class="govuk-grid-column-one-third">
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+          <div class="govuk-grid-column-two-thirds">
 
-          <h2 class="govuk-heading-m rm-enquiry-section-heading">Respondent</h2>
+            {% if activeCase.respondent.restricted %}
+              {{ govukWarningText({
+                text: "Respondent's personal information should not be shared.",
+                iconFallbackText: "Warning"
+              }) }}
+            {% endif %}
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Name</p>
-          <p class="govuk-body">{{ activeCase.respondent.name }}</p>
+            {% set addressHtml %}
+              {% for line in activeCase.respondent.address %}
+                {{ line }}{% if not loop.last %}<br>{% endif %}
+              {% endfor %}
+            {% endset %}
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
-          <p class="govuk-body">{{ activeCase.respondent.dateOfBirth }}</p>
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Respondent details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/respondent/edit",
+                      text: "Change",
+                      visuallyHiddenText: "respondent details"
+                    }
+                  ]
+                }
+              },
+              rows: [
+                {
+                  key: { text: "Name" },
+                  value: { text: activeCase.respondent.name }
+                },
+                {
+                  key: { text: "Aliases" },
+                  value: { text: "–" }
+                },
+                {
+                  key: { text: "Date of birth" },
+                  value: { text: activeCase.respondent.dateOfBirth }
+                },
+                {
+                  key: { text: "UK National Insurance number" },
+                  value: { text: activeCase.respondent.nationalInsuranceNumber }
+                },
+                {
+                  key: { text: "Other personal information" },
+                  value: { text: activeCase.respondent.otherPersonalInformation if activeCase.respondent.otherPersonalInformation else "–" }
+                },
+                {
+                  key: { text: "Main email address" },
+                  value: { html: "<a href='mailto:" + activeCase.respondent.mainEmail + "' class='govuk-link'>" + activeCase.respondent.mainEmail + "</a>" if activeCase.respondent.mainEmail else "–" }
+                },
+                {
+                  key: { text: "Other email address" },
+                  value: { text: activeCase.respondent.otherEmail if activeCase.respondent.otherEmail else "–" }
+                },
+                {
+                  key: { text: "Main telephone number" },
+                  value: { text: activeCase.respondent.mainTelephone if activeCase.respondent.mainTelephone else "–" }
+                },
+                {
+                  key: { text: "Other telephone number" },
+                  value: { text: activeCase.respondent.otherTelephone if activeCase.respondent.otherTelephone else "–" }
+                },
+                {
+                  key: { text: "Address" },
+                  value: { html: addressHtml }
+                }
+              ]
+            }) }}
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Address</p>
-          <p class="govuk-body">
-            {% for line in activeCase.respondent.address %}
-              {{ line }}{% if not loop.last %}<br>{% endif %}
+            {% if activeCase.respondent.thirdParty %}
+              {% set thirdPartyAddressHtml %}
+                {% for line in activeCase.respondent.thirdParty.address %}
+                  {{ line }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              {% endset %}
+
+              {{ govukSummaryList({
+                card: {
+                  title: { text: "Third party details" },
+                  actions: {
+                    items: [
+                      {
+                        href: "/active-case/" + caseId + "/respondent/edit",
+                        text: "Change",
+                        visuallyHiddenText: "third party details"
+                      }
+                    ]
+                  }
+                },
+                rows: [
+                  {
+                    key: { text: "Third party name" },
+                    value: { text: activeCase.respondent.thirdParty.name }
+                  },
+                  {
+                    key: { text: "Relationship to respondent" },
+                    value: { text: activeCase.respondent.thirdParty.relationship }
+                  },
+                  {
+                    key: { text: "Reference" },
+                    value: { text: activeCase.respondent.thirdParty.reference if activeCase.respondent.thirdParty.reference else "–" }
+                  },
+                  {
+                    key: { text: "Address" },
+                    value: { html: thirdPartyAddressHtml }
+                  }
+                ]
+              }) }}
+            {% endif %}
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+            <h2 class="govuk-heading-m">Actions</h2>
+            <ul class="govuk-list">
+              <li><a href="#" class="govuk-link">Add account note</a></li>
+              <li><a href="#" class="govuk-link">Restrict personal information</a></li>
+            </ul>
+          </div>
+        </div>
+
+      {% else %}
+
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+
+          <div class="govuk-grid-column-one-third">
+
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Respondent</h2>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Name</p>
+            <p class="govuk-body">{{ activeCase.respondent.name }}</p>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
+            <p class="govuk-body">{{ activeCase.respondent.dateOfBirth }}</p>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Address</p>
+            <p class="govuk-body">
+              {% for line in activeCase.respondent.address %}
+                {{ line }}{% if not loop.last %}<br>{% endif %}
+              {% endfor %}
+            </p>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">UK National Insurance number</p>
+            <p class="govuk-body">{{ activeCase.respondent.nationalInsuranceNumber }}</p>
+
+            <h2 class="govuk-heading-m rm-enquiry-section-heading govuk-!-margin-top-4">Applicant</h2>
+
+            {% if activeCase.applicant.restricted %}
+              {{ mojBadge({ text: "Restricted", classes: "moj-badge--orange" }) }}
+            {% endif %}
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Name</p>
+            <p class="govuk-body"><a href="#" class="govuk-link">{{ activeCase.applicant.name }}</a></p>
+
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
+            <p class="govuk-body">{{ activeCase.applicant.dateOfBirth }}</p>
+
+          </div>
+
+          <div class="govuk-grid-column-one-third">
+
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Beneficiaries</h2>
+
+            {% for adult in activeCase.beneficiaries.adults %}
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Adult</p>
+              <p class="govuk-body">{{ adult }}</p>
             {% endfor %}
-          </p>
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">UK National Insurance number</p>
-          <p class="govuk-body">{{ activeCase.respondent.nationalInsuranceNumber }}</p>
+            {% for child in activeCase.beneficiaries.children %}
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Child</p>
+              <p class="govuk-body">{{ child }}</p>
+            {% endfor %}
 
-          <h2 class="govuk-heading-m rm-enquiry-section-heading govuk-!-margin-top-4">Applicant</h2>
+          </div>
 
-          {% if activeCase.applicant.restricted %}
-            {{ mojBadge({ text: "Restricted", classes: "moj-badge--orange" }) }}
-          {% endif %}
+          <div class="govuk-grid-column-one-third">
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Name</p>
-          <p class="govuk-body"><a href="#" class="govuk-link">{{ activeCase.applicant.name }}</a></p>
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Comment</h2>
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
-          <p class="govuk-body">{{ activeCase.applicant.dateOfBirth }}</p>
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Comment</p>
+            <p class="govuk-body">{{ activeCase.comment }}</p>
+            <a href="#" class="govuk-link">Change</a>
 
-        </div>
-
-        <div class="govuk-grid-column-one-third">
-
-          <h2 class="govuk-heading-m rm-enquiry-section-heading">Beneficiaries</h2>
-
-          {% for adult in activeCase.beneficiaries.adults %}
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Adult</p>
-            <p class="govuk-body">{{ adult }}</p>
-          {% endfor %}
-
-          {% for child in activeCase.beneficiaries.children %}
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Child</p>
-            <p class="govuk-body">{{ child }}</p>
-          {% endfor %}
+          </div>
 
         </div>
 
-        <div class="govuk-grid-column-one-third">
-
-          <h2 class="govuk-heading-m rm-enquiry-section-heading">Comment</h2>
-
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Comment</p>
-          <p class="govuk-body">{{ activeCase.comment }}</p>
-          <a href="#" class="govuk-link">Change</a>
-
-        </div>
-
-      </div>
+      {% endif %}
 
     </div>
   </div>
