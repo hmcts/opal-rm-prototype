@@ -7661,6 +7661,18 @@ const majorCreditorAccounts = {
   }
 }
 
+const monthNumbers = { January: '01', February: '02', March: '03', April: '04', May: '05', June: '06', July: '07', August: '08', September: '09', October: '10', November: '11', December: '12' }
+
+function toDatePickerValue(dateString) {
+  if (!dateString) return ''
+  const match = dateString.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/)
+  if (!match) return ''
+  const day = match[1].padStart(2, '0')
+  const month = monthNumbers[match[2]]
+  const year = match[3]
+  return month ? `${day}/${month}/${year}` : ''
+}
+
 function getActiveCaseRespondentRows(respondent) {
   const rows = [
     buildSummaryRow('Title', respondent.title),
@@ -7728,46 +7740,41 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
   }
 
   const r = activeCase.respondent
-  req.session.data['respondent-title'] = r.title || ''
-  req.session.data['respondent-first-names'] = r.firstNames || ''
-  req.session.data['respondent-last-name'] = r.lastName || ''
-  req.session.data['respondent-add-aliases'] = null
-  req.session.data['respondent-date-of-birth'] = r.dateOfBirth || ''
-  req.session.data['respondent-national-insurance-number'] = r.nationalInsuranceNumber || ''
-  req.session.data['respondent-other-personal-information'] = r.otherPersonalInformation || ''
-  req.session.data['respondent-main-email-address'] = r.mainEmail || ''
-  req.session.data['respondent-other-email-address'] = r.otherEmail || ''
-  req.session.data['respondent-main-telephone-number'] = r.mainTelephone || ''
-  req.session.data['respondent-other-telephone-number'] = r.otherTelephone || ''
-  req.session.data['respondent-address-line-1'] = r.address[0] || ''
-  req.session.data['respondent-address-line-2'] = r.address[1] || ''
-  req.session.data['respondent-address-line-3'] = r.address[2] || ''
-  req.session.data['respondent-address-line-4'] = ''
-  req.session.data['respondent-address-line-5'] = ''
-  req.session.data['respondent-postal-or-zip-code'] = r.address[3] || ''
-  req.session.data['respondent-country'] = r.address[4] || ''
-
-  if (r.thirdParty) {
-    req.session.data['respondent-send-correspondence-to-third-party'] = 'yes'
-    req.session.data['respondent-third-party-name-or-organisation'] = r.thirdParty.name || ''
-    req.session.data['respondent-third-party-relationship'] = r.thirdParty.relationship || ''
-    req.session.data['respondent-third-party-reference'] = r.thirdParty.reference || ''
-    req.session.data['respondent-third-party-address-line-1'] = r.thirdParty.address[0] || ''
-    req.session.data['respondent-third-party-address-line-2'] = r.thirdParty.address[1] || ''
-    req.session.data['respondent-third-party-address-line-3'] = r.thirdParty.address[2] || ''
-    req.session.data['respondent-third-party-address-line-4'] = r.thirdParty.address[3] || ''
-    req.session.data['respondent-third-party-address-line-5'] = ''
-    req.session.data['respondent-third-party-postal-or-zip-code'] = ''
-    req.session.data['respondent-third-party-country'] = r.thirdParty.address[r.thirdParty.address.length - 1] || ''
-  } else {
-    req.session.data['respondent-send-correspondence-to-third-party'] = null
+  const fields = {
+    'respondent-title': r.title || '',
+    'respondent-first-names': r.firstNames || '',
+    'respondent-last-name': r.lastName || '',
+    'respondent-add-aliases': null,
+    'respondent-date-of-birth': toDatePickerValue(r.dateOfBirth),
+    'respondent-national-insurance-number': r.nationalInsuranceNumber || '',
+    'respondent-other-personal-information': r.otherPersonalInformation || '',
+    'respondent-main-email-address': r.mainEmail || '',
+    'respondent-other-email-address': r.otherEmail || '',
+    'respondent-main-telephone-number': r.mainTelephone || '',
+    'respondent-other-telephone-number': r.otherTelephone || '',
+    'respondent-address-line-1': r.address[0] || '',
+    'respondent-address-line-2': r.address[1] || '',
+    'respondent-address-line-3': r.address[2] || '',
+    'respondent-address-line-4': '',
+    'respondent-address-line-5': '',
+    'respondent-postal-or-zip-code': r.address[3] || '',
+    'respondent-country': r.address[4] || '',
+    'respondent-send-correspondence-to-third-party': r.thirdParty ? 'yes' : null,
+    'respondent-third-party-name-or-organisation': r.thirdParty ? r.thirdParty.name || '' : '',
+    'respondent-third-party-relationship': r.thirdParty ? r.thirdParty.relationship || '' : '',
+    'respondent-third-party-reference': r.thirdParty ? r.thirdParty.reference || '' : '',
+    'respondent-third-party-address-line-1': r.thirdParty ? r.thirdParty.address[0] || '' : '',
+    'respondent-third-party-address-line-2': r.thirdParty ? r.thirdParty.address[1] || '' : '',
+    'respondent-third-party-address-line-3': r.thirdParty ? r.thirdParty.address[2] || '' : '',
+    'respondent-third-party-address-line-4': r.thirdParty ? r.thirdParty.address[3] || '' : '',
+    'respondent-third-party-address-line-5': '',
+    'respondent-third-party-postal-or-zip-code': '',
+    'respondent-third-party-country': r.thirdParty ? r.thirdParty.address[r.thirdParty.address.length - 1] || '' : '',
+    'respondent-restrict-personal-information': r.restricted ? 'yes' : null
   }
 
-  if (r.restricted) {
-    req.session.data['respondent-restrict-personal-information'] = 'yes'
-  } else {
-    req.session.data['respondent-restrict-personal-information'] = null
-  }
+  Object.assign(req.session.data, fields)
+  Object.assign(res.locals.data, fields)
 
   return res.render('create-a-case/respondent-details', {
     accountContextLabel: activeCase.caseReference + ' — ' + activeCase.respondentName,
@@ -7781,6 +7788,55 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
 router.post('/active-case/:id/respondent/edit', (req, res) => {
   const id = Number(req.params.id)
   return res.redirect('/active-case/' + id + '?tab=respondent')
+})
+
+router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const fields = {
+    'applicant-title': account.title || '',
+    'applicant-first-names': account.firstNames || '',
+    'applicant-last-name': account.lastName || '',
+    'applicant-add-aliases': null,
+    'applicant-date-of-birth': toDatePickerValue(account.dateOfBirth),
+    'applicant-main-email-address': account.mainEmail || '',
+    'applicant-other-email-address': account.otherEmail || '',
+    'applicant-main-telephone-number': account.mainTelephone || '',
+    'applicant-other-telephone-number': account.otherTelephone || '',
+    'applicant-address-line-1': account.address[0] || '',
+    'applicant-address-line-2': account.address[1] || '',
+    'applicant-address-line-3': account.address[2] || '',
+    'applicant-address-line-4': '',
+    'applicant-address-line-5': '',
+    'applicant-postal-or-zip-code': account.address[3] || '',
+    'applicant-country': account.address[4] || '',
+    'applicant-send-correspondence-to-third-party': null,
+    'applicant-restrict-personal-information': account.restricted ? 'yes' : null,
+    'applicant-restriction-reason': account.restrictionReason || '',
+    'applicant-bank-account-type': null
+  }
+
+  Object.assign(req.session.data, fields)
+  Object.assign(res.locals.data, fields)
+
+  return res.render('create-a-case/applicant-details', {
+    accountContextLabel: account.caseReference + ' — ' + account.name,
+    backHref: '/active-case/creditor/' + id + '?tab=applicant',
+    formAction: '/active-case/creditor/' + id + '/applicant/edit',
+    cancelHref: '/active-case/creditor/' + id + '?tab=applicant',
+    submitButtonText: 'Save changes',
+    applicantAge: getAgeFromDateString(fields['applicant-date-of-birth'])
+  })
+})
+
+router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
+  const id = Number(req.params.id)
+  return res.redirect('/active-case/creditor/' + id + '?tab=applicant')
 })
 
 router.get('/review-cases', (req, res) => {
