@@ -179,19 +179,7 @@
                   items: [{ href: "/active-case/creditor/" + accountId + "/applicant/edit", text: "Change", visuallyHiddenText: "applicant details" }]
                 }
               },
-              rows: [
-                ({ key: { text: "Title" }, value: { text: account.title or "–" } } if account.title),
-                { key: { text: "First names" }, value: { text: account.firstNames } },
-                { key: { text: "Last name" }, value: { text: account.lastName } },
-                { key: { text: "Date of birth" }, value: { text: account.dateOfBirth } },
-                { key: { text: "Main email address" }, value: { text: account.mainEmail or "–" } },
-                { key: { text: "Other email address" }, value: { text: account.otherEmail or "–" } },
-                { key: { text: "Main telephone number" }, value: { text: account.mainTelephone or "–" } },
-                { key: { text: "Other telephone number" }, value: { text: account.otherTelephone or "–" } },
-                { key: { text: "Applicant's address" }, value: { html: account.address | join("<br>") } },
-                { key: { text: "Restrict personal information" }, value: { text: "Yes" if account.restricted else "No" } },
-                ({ key: { text: "Restriction reason" }, value: { text: account.restrictionReason } } if account.restricted and account.restrictionReason)
-              ] | reject("undefined") | list
+              rows: applicantRows
             }) }}
 
           </div>

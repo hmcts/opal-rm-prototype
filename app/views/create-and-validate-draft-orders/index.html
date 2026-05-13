@@ -17,7 +17,8 @@
 
       {{ mojPageHeaderActions({
         heading: {
-          text: "Create cases"
+          text: "Create cases",
+          classes: "govuk-heading-l"
         },
         items: [{
           text: "Create a case",
@@ -81,7 +82,7 @@
           <p class="govuk-body">You have no rejected cases.</p>
         {% endif %}
       {% elseif activeTab == "approved" %}
-        <p class="govuk-body">Showing cases approved in the past 7 days.</p>
+        <p class="govuk-body">Showing cases approved and accounts created in the past 7 days.</p>
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">
