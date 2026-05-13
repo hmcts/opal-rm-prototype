@@ -87,6 +87,9 @@
         {% else %}
           <p class="govuk-body">You cannot proceed until all required sections have been completed.</p>
         {% endif %}
+
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+        <p class="govuk-body"><a class="govuk-link" href="/create-cases/{{ caseId }}/delete">Delete draft case</a></p>
       {% else %}
         {% set showChangeLinks = false %}
         {% include "create-a-case/_check-case-details-content.html" %}
@@ -106,7 +109,7 @@
             items: [
               {
                 value: "approve",
-                text: "Approve case"
+                text: "Approve case and create accounts"
               },
               {
                 value: "reject",

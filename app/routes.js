@@ -6855,7 +6855,7 @@ router.get('/create-cases', (req, res) => {
     { id: 1, status: 'in-review', applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, businessUnit: 'Bury St. Edmunds', respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', creditorAccounts: [{ href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, { href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }, { href: '/active-case/major-creditor/62', label: '06000387W – Australian Child Support Agency' }] },
+    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, businessUnit: 'Bury St. Edmunds', respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', creditorAccounts: [{ href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, { href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }] },
     { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, businessUnit: 'Reading', respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', creditorAccounts: [{ href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, { href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
     { id: 7, status: 'deleted', applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
@@ -7802,7 +7802,8 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
     'applicant-title': account.title || '',
     'applicant-first-names': account.firstNames || '',
     'applicant-last-name': account.lastName || '',
-    'applicant-add-aliases': null,
+    'applicant-add-aliases': (account.aliases && account.aliases.length > 0) ? 'yes' : null,
+    'applicant-alias-count': String((account.aliases && account.aliases.length > 0) ? account.aliases.length : 1),
     'applicant-date-of-birth': toDatePickerValue(account.dateOfBirth),
     'applicant-main-email-address': account.mainEmail || '',
     'applicant-other-email-address': account.otherEmail || '',
@@ -7824,6 +7825,17 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
   Object.assign(req.session.data, fields)
   Object.assign(res.locals.data, fields)
 
+  if (account.aliases && account.aliases.length > 0) {
+    account.aliases.forEach((alias, i) => {
+      const fnKey = `applicant-alias-${i + 1}-first-names`
+      const lnKey = `applicant-alias-${i + 1}-last-name`
+      req.session.data[fnKey] = alias.firstNames
+      req.session.data[lnKey] = alias.lastName
+      res.locals.data[fnKey] = alias.firstNames
+      res.locals.data[lnKey] = alias.lastName
+    })
+  }
+
   return res.render('create-a-case/applicant-details', {
     accountContextLabel: account.caseReference + ' — ' + account.name,
     backHref: '/active-case/creditor/' + id + '?tab=applicant',
@@ -7836,6 +7848,44 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
 
 router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
   const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account) return res.redirect('/create-cases?tab=approved')
+
+  account.title = req.body['applicant-title'] || null
+  account.firstNames = req.body['applicant-first-names'] || ''
+  account.lastName = req.body['applicant-last-name'] || ''
+  account.name = [account.title, account.firstNames, account.lastName].filter(Boolean).join(' ')
+  account.mainEmail = req.body['applicant-main-email-address'] || null
+  account.otherEmail = req.body['applicant-other-email-address'] || null
+  account.mainTelephone = req.body['applicant-main-telephone-number'] || null
+  account.otherTelephone = req.body['applicant-other-telephone-number'] || null
+  account.address = [
+    req.body['applicant-address-line-1'],
+    req.body['applicant-address-line-2'],
+    req.body['applicant-address-line-3'],
+    req.body['applicant-address-line-4'],
+    req.body['applicant-address-line-5'],
+    req.body['applicant-postal-or-zip-code'],
+    req.body['applicant-country']
+  ].filter(v => v && v.trim())
+  account.restricted = isChecked(req.body['applicant-restrict-personal-information'])
+  account.restrictionReason = account.restricted ? req.body['applicant-restriction-reason'] || null : null
+
+  account.aliases = []
+  if (isChecked(req.body['applicant-add-aliases'])) {
+    const aliasCount = Number.parseInt(req.body['applicant-alias-count'], 10) || 1
+    for (let i = 1; i <= aliasCount; i++) {
+      const firstNames = (req.body[`applicant-alias-${i}-first-names`] || '').trim()
+      const lastName = (req.body[`applicant-alias-${i}-last-name`] || '').trim()
+      if (firstNames || lastName) {
+        account.aliases.push({ firstNames, lastName })
+      }
+    }
+  }
+
+  syncAliasFields(req.session.data, req.body, 'applicant')
+
   return res.redirect('/active-case/creditor/' + id + '?tab=applicant')
 })
 
@@ -8527,6 +8577,29 @@ router.get('/resulting/submitted', (req, res) => {
   })
 })
 
+function buildApplicantAccountRows(account) {
+  const rows = []
+  if (account.title) rows.push(buildSummaryRow('Title', account.title))
+  rows.push(buildSummaryRow('First names', account.firstNames))
+  rows.push(buildSummaryRow('Last name', account.lastName))
+  if (account.aliases) {
+    account.aliases.forEach(alias => {
+      rows.push(buildSummaryRow('Alias', [alias.firstNames, alias.lastName].filter(Boolean).join(' ')))
+    })
+  }
+  rows.push(buildSummaryRow('Date of birth', account.dateOfBirth))
+  rows.push(buildSummaryRow('Main email address', account.mainEmail))
+  rows.push(buildSummaryRow('Other email address', account.otherEmail))
+  rows.push(buildSummaryRow('Main telephone number', account.mainTelephone))
+  rows.push(buildSummaryRow('Other telephone number', account.otherTelephone))
+  rows.push(buildSummaryHtmlRow("Applicant's address", formatLinesHtml(account.address || [])))
+  rows.push(buildSummaryRow('Restrict personal information', account.restricted ? 'Yes' : 'No'))
+  if (account.restricted && account.restrictionReason) {
+    rows.push(buildSummaryRow('Restriction reason', account.restrictionReason))
+  }
+  return rows.filter(Boolean)
+}
+
 router.get('/active-case/creditor/:id', (req, res) => {
   const id = Number(req.params.id)
   const account = minorCreditorAccounts[id]
@@ -8536,7 +8609,8 @@ router.get('/active-case/creditor/:id', (req, res) => {
   }
 
   const tab = req.query.tab || 'at-a-glance'
-  return res.render('active-case/creditor', { account, accountId: id, tab })
+  const applicantRows = buildApplicantAccountRows(account)
+  return res.render('active-case/creditor', { account, accountId: id, tab, applicantRows })
 })
 
 router.get('/active-case/major-creditor/:id', (req, res) => {
