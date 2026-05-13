@@ -6855,8 +6855,8 @@ router.get('/create-cases', (req, res) => {
     { id: 1, status: 'in-review', applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, businessUnit: 'Bury St. Edmunds', respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', creditorAccounts: [{ href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, { href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }] },
-    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, businessUnit: 'Reading', respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', creditorAccounts: [{ href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, { href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
+    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }] },
+    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
     { id: 7, status: 'deleted', applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
   const allRows = [
@@ -6877,15 +6877,18 @@ router.get('/create-cases', (req, res) => {
   ])
 
   const mapApprovedRows = (rows) => rows.map((row) => {
-    const creditorHtml = (row.creditorAccounts || [])
+    const applicantHtml = row.applicantAccount
+      ? `<a class="govuk-link" href="${row.applicantAccount.href}" target="_blank" rel="noreferrer">${escapeHtml(row.applicantAccount.label)}</a>`
+      : row.applicant ? escapeHtml(row.applicant) : '–'
+    const minorCreditorHtml = (row.minorCreditorAccounts || [])
       .map(ca => `<a class="govuk-link" href="${ca.href}" target="_blank" rel="noreferrer">${escapeHtml(ca.label)}</a>`)
       .join('<br>')
     return [
       { html: `<a class="govuk-link" href="${row.respondentAccountHref || row.activeHref || row.href || `/create-cases/${row.id}`}" target="_blank" rel="noreferrer">${escapeHtml(row.respondentAccountLabel || row.respondent)}</a>`, text: row.respondentAccountLabel || row.respondent },
-      { html: creditorHtml || '–' },
+      { html: applicantHtml },
+      { html: minorCreditorHtml || '–' },
       { text: row.approved, sortValue: row.approvedSort },
-      { text: row.caseType },
-      { text: row.businessUnit || '' }
+      { text: row.caseType }
     ]
   })
 

@@ -88,10 +88,10 @@
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header" aria-sort="none">Respondent account</th>
-                <th scope="col" class="govuk-table__header" aria-sort="none">Creditor accounts</th>
+                <th scope="col" class="govuk-table__header" aria-sort="none">Applicant account</th>
+                <th scope="col" class="govuk-table__header" aria-sort="none">Minor creditor accounts</th>
                 <th scope="col" class="govuk-table__header" aria-sort="descending">Approved</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Case type</th>
-                <th scope="col" class="govuk-table__header" aria-sort="none">Business unit</th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -99,8 +99,8 @@
                 <tr class="govuk-table__row">
                   <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
                   <td class="govuk-table__cell">{{ row[1].html | safe }}</td>
-                  <td class="govuk-table__cell" data-sort-value="{{ row[2].sortValue }}">{{ row[2].text }}</td>
-                  <td class="govuk-table__cell">{{ row[3].text }}</td>
+                  <td class="govuk-table__cell">{{ row[2].html | safe }}</td>
+                  <td class="govuk-table__cell" data-sort-value="{{ row[3].sortValue }}">{{ row[3].text }}</td>
                   <td class="govuk-table__cell">{{ row[4].text }}</td>
                 </tr>
               {% endfor %}
