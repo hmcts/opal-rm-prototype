@@ -17,6 +17,9 @@ site/
 .pages/
 
 # Agent working artifacts
+.codex-dev-server.*.log
+docs/superpowers/
+docs/video-journeys/
 PLAN.md
 TODO.md
 DECISIONS.md
