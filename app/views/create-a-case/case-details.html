@@ -22,26 +22,41 @@
       {% endif %}
       <h1 class="govuk-heading-l">{{ detailsPageHeading or "Case details" }}</h1>
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: {
-              text: "Case type"
+      {% if showApplicantType | default(true) %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Case type"
+              },
+              value: {
+                text: caseTypeLabel
+              }
             },
-            value: {
-              text: caseTypeLabel
+            {
+              key: {
+                text: "Applicant type"
+              },
+              value: {
+                text: applicantTypeLabel
+              }
             }
-          },
-          {
-            key: {
-              text: "Applicant type"
-            },
-            value: {
-              text: applicantTypeLabel
+          ]
+        }) }}
+      {% else %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Case type"
+              },
+              value: {
+                text: caseTypeLabel
+              }
             }
-          }
-        ]
-      }) }}
+          ]
+        }) }}
+      {% endif %}
 
       <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Party details</h2>
 
@@ -83,5 +98,3 @@
     </div>
   </div>
 {% endblock %}
-
-

@@ -1,0 +1,51 @@
+
+=== Confluence sync run: 2026-05-11T10:22:53Z ===
+Branch `spec-sync/2026-05-11` is ready for review. Here's a summary of what changed:
+
+---
+
+### Changes made (9 files, commit `528a281`)
+
+| File | Discrepancy | Fix |
+|---|---|---|
+| `create-a-case/index.html` | Fieldset legend: "Select **a** case type" | → "Select case type" (spec label column) |
+| `create-a-case/managing-payments.html` | Radio label: "Payments via the court" | → "Collect and pay" (spec says: One of: Collect and pay, Direct payments to creditors) |
+| `app/routes.js` | Check-case-details label map: `'Payments via the court'` | → `'Collect and pay'` (kept in sync with template) |
+| `create-a-case/lump-sum-payment.html` | Date field label: "Enter pay by date" | → "Pay by date" |
+| `create-a-case/lump-sum-payment.html` | Creditor radios legend: "Select creditor" | → "Who is the creditor?" |
+| `create-a-case/minor-creditor-details.html` | Creditor type radios legend: "Select creditor type" | → "Creditor type" |
+| `create-a-case/minor-creditor-details.html` | Sort code / account number: missing `inputmode="numeric"` | Added (present on applicant-details; spec requires it here too) |
+| `create-a-case/central-authority-details-manual.html` | Sort code / account number: missing `inputmode="numeric"` | Added |
+| `create-a-case/central-authority-details-manual.html` | Email/tel inputs: missing `type="email"` / `type="tel"` | Added |
+| `create-a-case/applicant-details.html` | Email/tel inputs: missing `type="email"` / `type="tel"` | Added; restriction reason label "Reason" → "Restriction reason" |
+| `create-a-case/respondent-details.html` | Email/tel inputs (contact + employer): missing `type="email"` / `type="tel"` | Added; restriction reason label "Reason" → "Restriction reason" |
+| `resulting/record-number.html` | Checkbox label: "Search exact match" | → "Exact match only" |
+
+---
+
+### Skipped / flagged for human review
+
+- **"BUSINESS NAME TEST name"** — The spec's `applicant-organisation-name` label column contains this as an obvious test artifact. The code has "Organisation name" which is correct; the spec needs updating.
+- **`autocomplete` attributes** (e.g. `autocomplete="given-name"`, `"email"`, `"tel"`) — Documented in Screen reader notes but not present anywhere in the existing templates. This looks like a broader accessibility task rather than a drift fix; left for deliberate implementation.
+=== Sync complete ===
+
+=== Confluence sync run: 2026-05-11T10:28:25Z ===
+Done. Here's a summary of what changed:
+
+---
+
+## Changes made (commit `9c675b8`)
+
+### 1. `app/views/create-a-case/order-details.html`
+- **Label fix**: `order-application-code` label was `"Select application"` → corrected to `"Application"` to match the spec.
+
+### 2. `app/routes.js` — `validateAlternativeOrderDetails`
+- **Required → optional**: `order-date-arrears-last-updated` was validated as required (gave "Enter the date arrears last updated" when blank). The spec marks it Required = No. Removed the `'missing'` error case so the field is now skipped when empty; format and future-date errors still fire if the user enters a value.
+
+---
+
+## Skipped / doubts noted
+
+- **Central authority manual entry — missing non-UK bank extra fields**: The spec lists `central-authority-bank-non-uk-bank-name`, `central-authority-bank-branch-office-or-sort-code`, and `central-authority-bank-non-uk-account-number` as fields on the manual entry page, but they are absent from the template. These appear to be a partially-wired incomplete feature (the session delete handler references some of them). Skipped — adding them would constitute adding new form fields.
+- **`autocomplete` attributes** on name/date inputs (`honorific-prefix`, `given-name`, `family-name`, etc.): Present in spec's screen-reader notes but absent from templates throughout. Skipped — extensive change across many files, borderline feature vs. mismatch.
+=== Sync complete ===

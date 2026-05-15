@@ -44,19 +44,6 @@
         }) }}
       {% endset %}
 
-      {% set applicantTypeHtmlRemoOut %}
-        {{ govukSelect({
-          id: "applicant-type-remo-out",
-          name: "applicant-type-remo-out",
-          label: {
-            text: "Select applicant type",
-            classes: "govuk-label--s"
-          },
-          classes: "govuk-!-width-one-third",
-          items: applicantTypeOptions
-        }) }}
-      {% endset %}
-
       <form method="post" action="/orders-applications-alternative">
         {{ govukRadios({
           idPrefix: "case-type",
@@ -79,10 +66,7 @@
             {
               value: "remo-out",
               text: "REMO Out",
-              checked: data["case-type"] == "remo-out",
-              conditional: {
-                html: applicantTypeHtmlRemoOut
-              }
+              checked: data["case-type"] == "remo-out"
             },
             {
               value: "remo-out-cms",
@@ -129,4 +113,3 @@
     </div>
   </div>
 {% endblock %}
-

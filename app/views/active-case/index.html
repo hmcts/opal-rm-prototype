@@ -20,7 +20,7 @@
 
       <div class="rm-account-type-row govuk-!-margin-bottom-1">
         {{ govukTag({ text: "Respondent" }) }}
-        <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ activeCase.caseReference }}</p>
+        <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ activeCase.accountNumber or activeCase.caseReference }}</p>
       </div>
 
       <div class="moj-page-header-actions">
@@ -164,7 +164,7 @@
             {% endif %}
 
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Applicant account</p>
-            <p class="govuk-body"><a href="{{ activeCase.applicant.accountHref }}" class="govuk-link">{{ activeCase.caseReference }}</a></p>
+            <p class="govuk-body"><a href="{{ activeCase.applicant.accountHref }}" class="govuk-link">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a></p>
 
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Applicant name</p>
             <p class="govuk-body">{{ activeCase.applicant.name }}</p>

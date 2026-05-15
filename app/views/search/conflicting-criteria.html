@@ -1,0 +1,44 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set showNav = true %}
+{% set activeNav = "search" %}
+
+{% block pageTitle %}
+  Search - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {{ govukBackLink({
+        text: "Back to search",
+        href: "/search"
+      }) }}
+
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: [
+          {
+            text: "You cannot search using a quick search field and advanced search fields at the same time"
+          }
+        ]
+      }) }}
+
+      <h1 class="govuk-heading-l">Search</h1>
+
+      <p class="govuk-body">Search using either:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>an account number</li>
+        <li>a reference or case number</li>
+        <li>advanced search fields (respondent, applicant, minor creditor or major creditor details)</li>
+      </ul>
+
+      <p class="govuk-body"><a href="/search" class="govuk-link">Search again</a></p>
+
+    </div>
+  </div>
+{% endblock %}
