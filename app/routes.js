@@ -1549,8 +1549,8 @@ function getMinorCreditorCards(sessionData) {
   return getMinorCreditors(sessionData).map((creditor, index) => ({
     title: getMinorCreditorName(creditor, index),
     rows: getMinorCreditorSummaryRows(creditor),
-    changeHref: `/minor-creditors/${index}/edit`,
-    removeHref: `/minor-creditors/${index}/remove`
+    changeHref: `/create-a-case/minor-creditors/${index}/edit`,
+    removeHref: `/create-a-case/minor-creditors/${index}/remove`
   }))
 }
 
@@ -4089,7 +4089,7 @@ function getTermsReviewGroups(sessionData) {
         text: 'Active'
       },
       {
-        html: `<a class="govuk-link" href="#">Change</a> <a class="govuk-link govuk-!-margin-left-2" href="/terms-per-beneficiary/${index}/remove">Remove</a>`
+        html: `<a class="govuk-link" href="#">Change</a> <a class="govuk-link govuk-!-margin-left-2" href="/create-a-case/terms-per-beneficiary/${index}/remove">Remove</a>`
       }
     ]
 
@@ -4909,7 +4909,7 @@ router.use((req, res, next) => {
 
 // Add your routes here
 router.get('/', (req, res) => {
-  return res.redirect('/cases')
+  return res.redirect('/search')
 })
 
 router.get('/cases', (req, res) => {
@@ -4923,6 +4923,17 @@ function getCreateACaseData(req) {
   }
 
   return req.session.data['create-a-case']
+}
+
+function setCreateACaseSuccessMessage(req, message) {
+  getCreateACaseData(req)['success-message'] = message
+}
+
+function consumeCreateACaseSuccessMessage(req) {
+  const sessionData = getCreateACaseData(req)
+  const message = sessionData['success-message'] || ''
+  delete sessionData['success-message']
+  return message
 }
 
 
@@ -4982,6 +4993,7 @@ router.get('/create-a-case/case-details', (req, res) => {
     detailsPageHeading: isApplicationJourney(getCreateACaseData(req))
       ? 'Case details'
       : 'Order details',
+    successMessage: consumeCreateACaseSuccessMessage(req),
     caseTypeLabel: caseTypeLabels[caseType] || caseType,
     applicantTypeLabel:
       applicantTypeLabels[getCreateACaseData(req)['applicant-type']] || 'Not selected',
@@ -5300,6 +5312,7 @@ router.get('/create-a-case/select-order-term', (req, res) => {
   }
 
   return res.render('create-a-case/select-order-term', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     orderTermCards: getOrderTermHubCards(getCreateACaseData(req)),
     recordedOrderTerms: getRecordedOrderTerms(getCreateACaseData(req))
   })
@@ -5409,6 +5422,7 @@ router.post('/create-a-case/order-term/:index/delete', (req, res, next) => {
   getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
     ({ index: _index, ...term }) => term
   )
+  setCreateACaseSuccessMessage(req, 'Order terms removed')
 
   if (String(getCreateACaseData(req)['alternative-edit-order-term-index']) === String(index)) {
     delete getCreateACaseData(req)['alternative-edit-order-term-index']
@@ -5562,6 +5576,7 @@ router.get('/create-a-case/order-term-creditor', (req, res) => {
   const editingIndex = pendingOrderTerm.editIndex != null ? Number(pendingOrderTerm.editIndex) : undefined
 
   return res.render('create-a-case/order-term-creditor', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     pendingMinorCreditor,
     pendingMinorCreditorCard: pendingMinorCreditor
       ? {
@@ -5637,6 +5652,7 @@ router.post('/create-a-case/order-term-creditor/remove-minor-creditor', (req, re
     delete pendingOrderTerm.creditor
     delete pendingOrderTerm.creditorLabel
   }
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
   return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
 })
 
@@ -5975,6 +5991,7 @@ router.get('/create-a-case/minor-creditors', (req, res) => {
   }
 
   return res.render('create-a-case/minor-creditors', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     minorCreditorCards: getMinorCreditorCards(getCreateACaseData(req)),
     primaryActionText: getCreateACaseData(req)['alternative-pending-order-term']
       ? 'Add to order term'
@@ -6026,7 +6043,7 @@ router.get('/create-a-case/minor-creditors/:index/edit', (req, res) => {
 
   return res.render('create-a-case/minor-creditor-details', {
     creditor: getMinorCreditors(getCreateACaseData(req))[index],
-    formAction: `/minor-creditors/${index}/edit`,
+    formAction: `/create-a-case/minor-creditors/${index}/edit`,
     cancelHref: '/create-a-case/minor-creditors'
   })
 })
@@ -6063,7 +6080,7 @@ router.get('/create-a-case/minor-creditors/:index/remove', (req, res) => {
       title: getMinorCreditorName(creditor, index),
       rows: getMinorCreditorSummaryRows(creditor)
     },
-    formAction: `/minor-creditors/${index}/remove`
+    formAction: `/create-a-case/minor-creditors/${index}/remove`
   })
 })
 
@@ -6077,6 +6094,7 @@ router.post('/create-a-case/minor-creditors/:index/remove', (req, res, next) => 
   const creditors = getMinorCreditors(getCreateACaseData(req))
   creditors.splice(index, 1)
   getCreateACaseData(req)['minor-creditors'] = creditors
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
 
   return redirectWithSessionSave(
     req,
@@ -6096,6 +6114,7 @@ router.get('/create-a-case/terms-per-beneficiary', (req, res) => {
   }
 
   return res.render('create-a-case/terms-review', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     beneficiaryGroups: getTermsReviewGroups(getCreateACaseData(req))
   })
 })
@@ -6185,7 +6204,7 @@ router.get('/create-a-case/terms-per-beneficiary/:index/remove', (req, res) => {
       tag: term.beneficiaryTag,
       rows: [getTermsReviewRow(term)]
     },
-    formAction: `/terms-per-beneficiary/${index}/remove`
+    formAction: `/create-a-case/terms-per-beneficiary/${index}/remove`
   })
 })
 
@@ -6199,6 +6218,7 @@ router.post('/create-a-case/terms-per-beneficiary/:index/remove', (req, res, nex
   const terms = getTermsPerBeneficiary(getCreateACaseData(req))
   terms.splice(index, 1)
   getCreateACaseData(req)['terms-per-beneficiary'] = terms
+  setCreateACaseSuccessMessage(req, 'Order terms removed')
 
   return redirectWithSessionSave(
     req,

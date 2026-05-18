@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% block pageTitle %}
   Order terms - {{ serviceName }} - GOV.UK Prototype Kit
@@ -15,6 +16,14 @@
         text: "Back",
         href: "/create-a-case/case-details"
       }) }}
+
+      {% if successMessage %}
+        {{ mojAlert({
+          variant: "success",
+          title: successMessage,
+          dismissible: true
+        }) }}
+      {% endif %}
 
       <h1 class="govuk-heading-l">Order terms</h1>
 

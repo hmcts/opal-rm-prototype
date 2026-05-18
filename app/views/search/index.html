@@ -257,9 +257,11 @@
           items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] == "yes" if formValues }]
         }) }}
 
-        {{ govukButton({
-          text: "Search"
-        }) }}
+        <div class="moj-button-group moj-button-group--inline">
+          {{ govukButton({
+            text: "Search"
+          }) }}
+        </div>
 
       </form>
 
