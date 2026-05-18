@@ -22,15 +22,15 @@
       }) }}
 
       <form method="post" action="{{ formAction }}">
-        {{ govukButton({
-          text: "Yes - remove order terms",
-          classes: "govuk-button--warning"
-        }) }}
-      </form>
+        <div class="moj-button-group moj-button-group--inline">
+          {{ govukButton({
+            text: "Yes - remove order terms",
+            classes: "govuk-button--warning"
+          }) }}
 
-      <p class="govuk-body">
-        <a class="govuk-link" href="/create-a-case/select-order-term">No - cancel</a>
-      </p>
+          <a class="govuk-link" href="/create-a-case/select-order-term">No - cancel</a>
+        </div>
+      </form>
     </div>
   </div>
 {% endblock %}

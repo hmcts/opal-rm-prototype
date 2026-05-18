@@ -1202,6 +1202,10 @@ function isRemoOutCase(sessionData) {
   return sessionData['case-type'] === 'remo-out'
 }
 
+function hasImplicitIndividualApplicantType(sessionData) {
+  return ['remo-out', 'remo-out-cms'].includes(sessionData['case-type'])
+}
+
 function isApplicationJourney(sessionData) {
   return hasValue(sessionData['case-type']) && sessionData['has-order'] === 'no'
 }
@@ -1545,8 +1549,8 @@ function getMinorCreditorCards(sessionData) {
   return getMinorCreditors(sessionData).map((creditor, index) => ({
     title: getMinorCreditorName(creditor, index),
     rows: getMinorCreditorSummaryRows(creditor),
-    changeHref: `/minor-creditors/${index}/edit`,
-    removeHref: `/minor-creditors/${index}/remove`
+    changeHref: `/create-a-case/minor-creditors/${index}/edit`,
+    removeHref: `/create-a-case/minor-creditors/${index}/remove`
   }))
 }
 
@@ -4085,7 +4089,7 @@ function getTermsReviewGroups(sessionData) {
         text: 'Active'
       },
       {
-        html: `<a class="govuk-link" href="#">Change</a> <a class="govuk-link govuk-!-margin-left-2" href="/terms-per-beneficiary/${index}/remove">Remove</a>`
+        html: `<a class="govuk-link" href="#">Change</a> <a class="govuk-link govuk-!-margin-left-2" href="/create-a-case/terms-per-beneficiary/${index}/remove">Remove</a>`
       }
     ]
 
@@ -4411,6 +4415,7 @@ function getCheckCaseDetailsViewData(sessionData) {
   return {
     caseTypeLabel: sessionData['case-type-label'] || caseTypeLabels[sessionData['case-type']] || sessionData['case-type'],
     applicantTypeLabel: applicantTypeLabels[sessionData['applicant-type']] || 'Not selected',
+    showApplicantType: !hasImplicitIndividualApplicantType(sessionData),
     isApplicationJourney: isApplicationJourney(sessionData),
     isRemoOutCase: isRemoOutCase(sessionData),
     applicantRows: getApplicantSummaryRows(sessionData),
@@ -4781,6 +4786,7 @@ function getRejectedInputterViewData(sessionData, caseId) {
   return {
     caseTypeLabel: sessionData['case-type-label'] || caseTypeLabels[sessionData['case-type']] || sessionData['case-type'],
     applicantTypeLabel: applicantTypeLabels[sessionData['applicant-type']] || 'Not selected',
+    showApplicantType: !hasImplicitIndividualApplicantType(sessionData),
     caseSectionHeading: isApplicationJourney(sessionData) ? 'Application' : 'Order',
     caseSectionIdPrefix: isApplicationJourney(sessionData) ? 'application' : 'order',
     partyDetailsItems: getAlternativePartyDetailsItems(sessionData, `/create-cases/${caseId}/edit`),
@@ -4903,7 +4909,7 @@ router.use((req, res, next) => {
 
 // Add your routes here
 router.get('/', (req, res) => {
-  return res.redirect('/cases')
+  return res.redirect('/search')
 })
 
 router.get('/cases', (req, res) => {
@@ -4917,6 +4923,17 @@ function getCreateACaseData(req) {
   }
 
   return req.session.data['create-a-case']
+}
+
+function setCreateACaseSuccessMessage(req, message) {
+  getCreateACaseData(req)['success-message'] = message
+}
+
+function consumeCreateACaseSuccessMessage(req) {
+  const sessionData = getCreateACaseData(req)
+  const message = sessionData['success-message'] || ''
+  delete sessionData['success-message']
+  return message
 }
 
 
@@ -4952,7 +4969,7 @@ router.post('/create-a-case', (req, res, next) => {
   }
 
   getCreateACaseData(req)['applicant-type'] =
-    caseType === 'remo-out'
+    hasImplicitIndividualApplicantType(getCreateACaseData(req))
       ? 'individual'
       : req.body['applicant-type-remo-in'] || ''
 
@@ -4976,9 +4993,11 @@ router.get('/create-a-case/case-details', (req, res) => {
     detailsPageHeading: isApplicationJourney(getCreateACaseData(req))
       ? 'Case details'
       : 'Order details',
+    successMessage: consumeCreateACaseSuccessMessage(req),
     caseTypeLabel: caseTypeLabels[caseType] || caseType,
     applicantTypeLabel:
       applicantTypeLabels[getCreateACaseData(req)['applicant-type']] || 'Not selected',
+    showApplicantType: !hasImplicitIndividualApplicantType(getCreateACaseData(req)),
     partyDetailsItems: getAlternativePartyDetailsItems(getCreateACaseData(req), '/create-a-case'),
     caseSectionHeading: isApplicationJourney(getCreateACaseData(req)) ? 'Application' : 'Order',
     caseSectionIdPrefix: isApplicationJourney(getCreateACaseData(req)) ? 'application' : 'order',
@@ -5293,6 +5312,7 @@ router.get('/create-a-case/select-order-term', (req, res) => {
   }
 
   return res.render('create-a-case/select-order-term', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     orderTermCards: getOrderTermHubCards(getCreateACaseData(req)),
     recordedOrderTerms: getRecordedOrderTerms(getCreateACaseData(req))
   })
@@ -5402,6 +5422,7 @@ router.post('/create-a-case/order-term/:index/delete', (req, res, next) => {
   getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
     ({ index: _index, ...term }) => term
   )
+  setCreateACaseSuccessMessage(req, 'Order terms removed')
 
   if (String(getCreateACaseData(req)['alternative-edit-order-term-index']) === String(index)) {
     delete getCreateACaseData(req)['alternative-edit-order-term-index']
@@ -5555,6 +5576,7 @@ router.get('/create-a-case/order-term-creditor', (req, res) => {
   const editingIndex = pendingOrderTerm.editIndex != null ? Number(pendingOrderTerm.editIndex) : undefined
 
   return res.render('create-a-case/order-term-creditor', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     pendingMinorCreditor,
     pendingMinorCreditorCard: pendingMinorCreditor
       ? {
@@ -5630,6 +5652,7 @@ router.post('/create-a-case/order-term-creditor/remove-minor-creditor', (req, re
     delete pendingOrderTerm.creditor
     delete pendingOrderTerm.creditorLabel
   }
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
   return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
 })
 
@@ -5968,6 +5991,7 @@ router.get('/create-a-case/minor-creditors', (req, res) => {
   }
 
   return res.render('create-a-case/minor-creditors', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     minorCreditorCards: getMinorCreditorCards(getCreateACaseData(req)),
     primaryActionText: getCreateACaseData(req)['alternative-pending-order-term']
       ? 'Add to order term'
@@ -6019,7 +6043,7 @@ router.get('/create-a-case/minor-creditors/:index/edit', (req, res) => {
 
   return res.render('create-a-case/minor-creditor-details', {
     creditor: getMinorCreditors(getCreateACaseData(req))[index],
-    formAction: `/minor-creditors/${index}/edit`,
+    formAction: `/create-a-case/minor-creditors/${index}/edit`,
     cancelHref: '/create-a-case/minor-creditors'
   })
 })
@@ -6056,7 +6080,7 @@ router.get('/create-a-case/minor-creditors/:index/remove', (req, res) => {
       title: getMinorCreditorName(creditor, index),
       rows: getMinorCreditorSummaryRows(creditor)
     },
-    formAction: `/minor-creditors/${index}/remove`
+    formAction: `/create-a-case/minor-creditors/${index}/remove`
   })
 })
 
@@ -6070,6 +6094,7 @@ router.post('/create-a-case/minor-creditors/:index/remove', (req, res, next) => 
   const creditors = getMinorCreditors(getCreateACaseData(req))
   creditors.splice(index, 1)
   getCreateACaseData(req)['minor-creditors'] = creditors
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
 
   return redirectWithSessionSave(
     req,
@@ -6089,6 +6114,7 @@ router.get('/create-a-case/terms-per-beneficiary', (req, res) => {
   }
 
   return res.render('create-a-case/terms-review', {
+    successMessage: consumeCreateACaseSuccessMessage(req),
     beneficiaryGroups: getTermsReviewGroups(getCreateACaseData(req))
   })
 })
@@ -6178,7 +6204,7 @@ router.get('/create-a-case/terms-per-beneficiary/:index/remove', (req, res) => {
       tag: term.beneficiaryTag,
       rows: [getTermsReviewRow(term)]
     },
-    formAction: `/terms-per-beneficiary/${index}/remove`
+    formAction: `/create-a-case/terms-per-beneficiary/${index}/remove`
   })
 })
 
@@ -6192,6 +6218,7 @@ router.post('/create-a-case/terms-per-beneficiary/:index/remove', (req, res, nex
   const terms = getTermsPerBeneficiary(getCreateACaseData(req))
   terms.splice(index, 1)
   getCreateACaseData(req)['terms-per-beneficiary'] = terms
+  setCreateACaseSuccessMessage(req, 'Order terms removed')
 
   return redirectWithSessionSave(
     req,
@@ -6855,8 +6882,8 @@ router.get('/create-cases', (req, res) => {
     { id: 1, status: 'in-review', applicant: 'ARKET, Patricia', respondent: 'FISHER, Edward', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'BROWN, Michael', respondent: 'TAYLOR, Lisa', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'SMITH, John', respondent: 'JONES, Sarah', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, businessUnit: 'Bury St. Edmunds', respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', creditorAccounts: [{ href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, { href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }] },
-    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, businessUnit: 'Reading', respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', creditorAccounts: [{ href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, { href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
+    { id: 6, status: 'approved', applicant: 'JOHNSON, Claire', respondent: 'WHITE, James', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: '06000387W – WHITE, James', respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: '06000387W – JOHNSON, Claire' }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: '06000387W – TAYLOR, Sophie' }] },
+    { id: 5, status: 'approved', applicant: 'WILSON, Emma', respondent: 'THOMAS, Peter', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: '05000215T – THOMAS, Peter', respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: '05000215T – WILSON, Emma' }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: '05000215T – THOMAS, Lily' }] },
     { id: 7, status: 'deleted', applicant: 'HARRIS, Robert', respondent: 'CLARK, Helen', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
   const allRows = [
@@ -6877,15 +6904,18 @@ router.get('/create-cases', (req, res) => {
   ])
 
   const mapApprovedRows = (rows) => rows.map((row) => {
-    const creditorHtml = (row.creditorAccounts || [])
+    const applicantHtml = row.applicantAccount
+      ? `<a class="govuk-link" href="${row.applicantAccount.href}" target="_blank" rel="noreferrer">${escapeHtml(row.applicantAccount.label)}</a>`
+      : row.applicant ? escapeHtml(row.applicant) : '–'
+    const minorCreditorHtml = (row.minorCreditorAccounts || [])
       .map(ca => `<a class="govuk-link" href="${ca.href}" target="_blank" rel="noreferrer">${escapeHtml(ca.label)}</a>`)
       .join('<br>')
     return [
       { html: `<a class="govuk-link" href="${row.respondentAccountHref || row.activeHref || row.href || `/create-cases/${row.id}`}" target="_blank" rel="noreferrer">${escapeHtml(row.respondentAccountLabel || row.respondent)}</a>`, text: row.respondentAccountLabel || row.respondent },
-      { html: creditorHtml || '–' },
+      { html: applicantHtml },
+      { html: minorCreditorHtml || '–' },
       { text: row.approved, sortValue: row.approvedSort },
-      { text: row.caseType },
-      { text: row.businessUnit || '' }
+      { text: row.caseType }
     ]
   })
 
@@ -7485,6 +7515,7 @@ router.post('/create-cases/:index/delete', (req, res, next) => {
 
 const activeCases = {
   5: {
+    accountNumber: accountRef(5, 'RP'),
     caseReference: '05000215T',
     respondentName: 'Mr Peter THOMAS',
     applicantName: 'Mrs Emma WILSON',
@@ -7514,6 +7545,7 @@ const activeCases = {
       name: 'Mrs Emma WILSON',
       dateOfBirth: '22 April 1979 (Age 47)',
       restricted: true,
+      accountNumber: accountRef(51, 'AP'),
       accountHref: '/active-case/creditor/51'
     },
     beneficiaries: {
@@ -7523,6 +7555,7 @@ const activeCases = {
     comment: 'Standard maintenance case. Payments maintained on time. No recent enforcement action.'
   },
   6: {
+    accountNumber: accountRef(6, 'RP'),
     caseReference: '06000387W',
     respondentName: 'Mr James WHITE',
     applicantName: 'Mrs Claire JOHNSON',
@@ -7557,6 +7590,7 @@ const activeCases = {
       name: 'Mrs Claire JOHNSON',
       dateOfBirth: '14 August 1972 (Age 53)',
       restricted: true,
+      accountNumber: accountRef(61, 'AP'),
       accountHref: '/active-case/creditor/61'
     },
     beneficiaries: {
@@ -7570,6 +7604,7 @@ const activeCases = {
 const minorCreditorAccounts = {
   51: {
     type: 'applicant',
+    accountNumber: accountRef(51, 'AP'),
     caseReference: '05000215T',
     name: 'Mrs Emma WILSON',
     title: 'Mrs',
@@ -7584,11 +7619,13 @@ const minorCreditorAccounts = {
     mainTelephone: '07700 900123',
     otherTelephone: null,
     respondentAccountHref: '/active-case/5',
+    respondentAccountNumber: accountRef(5, 'RP'),
     respondentName: 'Mr Peter THOMAS',
     restricted: false
   },
   52: {
-    type: 'applicant',
+    type: 'creditor',
+    accountNumber: accountRef(52, 'MC'),
     caseReference: '05000215T',
     name: 'Lily THOMAS',
     title: null,
@@ -7603,11 +7640,13 @@ const minorCreditorAccounts = {
     mainTelephone: null,
     otherTelephone: null,
     respondentAccountHref: '/active-case/5',
+    respondentAccountNumber: accountRef(5, 'RP'),
     respondentName: 'Mr Peter THOMAS',
     restricted: false
   },
   61: {
     type: 'applicant-creditor',
+    accountNumber: accountRef(61, 'AP'),
     caseReference: '06000387W',
     name: 'Mrs Claire JOHNSON',
     title: 'Mrs',
@@ -7622,6 +7661,7 @@ const minorCreditorAccounts = {
     mainTelephone: '07700 900456',
     otherTelephone: null,
     respondentAccountHref: '/active-case/6',
+    respondentAccountNumber: accountRef(6, 'RP'),
     respondentName: 'Mr James WHITE',
     bacsStatus: 'PROVIDED',
     restricted: true,
@@ -7629,30 +7669,34 @@ const minorCreditorAccounts = {
     paymentMethod: 'BACS',
     nameOnAccount: 'Mrs Claire JOHNSON',
     sortCode: '20-00-00',
-    accountNumber: '73538301',
+    bankAccountNumber: '73538301',
     paymentReference: 'REF-06387-CJ'
   },
   63: {
     type: 'creditor',
+    accountNumber: accountRef(63, 'MC'),
     caseReference: '06000387W',
     name: 'Ms Sophie TAYLOR',
     awaitingPayout: '£95.00',
     businessUnit: 'Bury St. Edmunds',
     address: ['22 River Walk', 'Norwich', 'Norfolk', 'NR1 1HD', 'United Kingdom'],
     respondentAccountHref: '/active-case/6',
+    respondentAccountNumber: accountRef(6, 'RP'),
     respondentName: 'Mr James WHITE',
     restricted: false,
     paymentMethod: 'BACS',
     nameOnAccount: 'S Taylor',
     sortCode: '60-16-13',
-    accountNumber: '31926819',
+    bankAccountNumber: '31926819',
     paymentReference: 'REF-06387-ST'
   }
 }
 
 const majorCreditorAccounts = {
   62: {
+    accountNumber: accountRef(62, 'MA'),
     caseReference: '06000387W',
+    majorCreditorCode: 'ca-australia',
     name: 'Australian Child Support Agency',
     awaitingPayout: '£180.00',
     dateOfLastMovement: '30 April 2026',
@@ -7777,7 +7821,7 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
   Object.assign(res.locals.data, fields)
 
   return res.render('create-a-case/respondent-details', {
-    accountContextLabel: activeCase.caseReference + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
     backHref: '/active-case/' + id + '?tab=respondent',
     formAction: '/active-case/' + id + '/respondent/edit',
     cancelHref: '/active-case/' + id + '?tab=respondent',
@@ -7837,7 +7881,7 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
   }
 
   return res.render('create-a-case/applicant-details', {
-    accountContextLabel: account.caseReference + ' — ' + account.name,
+    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + account.name,
     backHref: '/active-case/creditor/' + id + '?tab=applicant',
     formAction: '/active-case/creditor/' + id + '/applicant/edit',
     cancelHref: '/active-case/creditor/' + id + '?tab=applicant',
@@ -8622,4 +8666,511 @@ router.get('/active-case/major-creditor/:id', (req, res) => {
   }
 
   return res.render('active-case/major-creditor', { account })
+})
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+function makePcAddr(addr1, city, county, postcode) {
+  return county
+    ? [addr1, city, county, postcode, 'United Kingdom']
+    : [addr1, city, postcode, 'United Kingdom']
+}
+
+function normaliseSearchText(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function normaliseCompactSearchText(value) {
+  return normaliseSearchText(value).replace(/[\s-]/g, '')
+}
+
+function getSearchViewData(formValues = {}) {
+  return {
+    formValues,
+    majorCreditorItems: getMajorCreditorItems(formValues['major-creditor'] || '')
+  }
+}
+
+function getCaseMajorCreditorAccounts(caseReference) {
+  return Object.entries(majorCreditorAccounts)
+    .filter(([, account]) => account.caseReference === caseReference)
+    .map(([id, account]) => ({ id, ...account }))
+}
+
+// Compact search data — r=respondent, a=applicant creditor account, mc=minor creditors
+// bu=business unit, ct=case type, dolm=date of last movement, payout=awaiting payout
+const searchData = [
+  { id: 5, caseRef: '05000215T', remoRef: '2008/REMO/56789012',
+    status: 'Active', bu: 'Reading', arrears: '£180.00', ct: 'REMO In', dolm: '2 May 2026',
+    r: { ln: 'THOMAS', fn: 'Peter', ti: 'Mr', dob: '15 March 1975 (Age 51)', ni: 'AB 98 76 54 C', a1: '45 Park Road', city: 'Newbury', cy: 'Berkshire', pc: 'RG14 1BB', email: 'p.thomas@example.com', tel: '07700 900123', restr: false },
+    a: { id: 51, ln: 'WILSON', fn: 'Emma', ti: 'Mrs', dob: '22 April 1979 (Age 47)', payout: '£0.00', a1: '14 Elm Close', city: 'Newbury', cy: 'Berkshire', pc: 'RG14 2PQ', email: 'emma.wilson@example.com', tel: '07700 900123', restr: true },
+    mc: [{ id: 52, ln: 'THOMAS', fn: 'Lily', dob: '10 March 2013 (Age 13)', payout: '£0.00' }] },
+
+  { id: 6, caseRef: '06000387W', remoRef: '2010/REMO/34567890',
+    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£0.00', ct: 'REMO Out', dolm: '30 April 2026',
+    r: { ln: 'WHITE', fn: 'James', ti: 'Mr', dob: '8 June 1970 (Age 55)', ni: 'CD 11 22 33 B', a1: '22 Victoria Street', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 3HQ', email: 'j.white@example.com', tel: '07700 900456', restr: true },
+    a: { id: 61, ln: 'JOHNSON', fn: 'Claire', ti: 'Mrs', dob: '14 August 1972 (Age 53)', payout: '£180.00', a1: '8 Meadow Lane', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 7RR', email: 'claire.johnson@example.com', tel: '07700 900456', restr: true },
+    mc: [{ id: 63, ln: 'TAYLOR', fn: 'Sophie', dob: '12 May 2011 (Age 15)', payout: '£95.00' }] },
+
+  { id: 10, caseRef: '10000101S', remoRef: '2014/REMO/10000101',
+    status: 'Active', bu: 'Reading', arrears: '£240.00', ct: 'REMO In', dolm: '5 May 2026',
+    r: { ln: 'SMITH',    fn: 'James',       ti: 'Mr',  dob: '15 January 1975 (Age 51)',    ni: 'AB 12 34 56 A', a1: '12 Oak Street',           city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 1AA', email: 'j.smith@example.com',     tel: '07700 900100', restr: false },
+    a:  { id: 100, ln: 'SMITH',    fn: 'Anna',        ti: 'Mrs', dob: '22 March 1978 (Age 48)',      payout: '£0.00',   a1: '15 Elm Avenue',           city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 2AA', email: 'a.smith@example.com',     tel: '07700 900101', restr: false },
+    mc: [{ id: 201, ln: 'SMITH',    fn: 'Oliver',      dob: '15 April 2015 (Age 11)',      payout: '£0.00' }] },
+
+  { id: 11, caseRef: '11000201S', remoRef: '2016/REMO/11000201',
+    status: 'Active', bu: 'Bristol', arrears: '£0.00', ct: 'REMO Out', dolm: '28 April 2026',
+    r: { ln: 'SMITH',    fn: 'Robert',      ti: 'Mr',  dob: '8 April 1968 (Age 58)',       ni: 'CD 23 45 67 B', a1: '3 Park Street',            city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS1 1AA', email: 'r.smith@example.com',     tel: '07700 900110', restr: false },
+    a:  { id: 101, ln: 'JONES',    fn: 'Emma',        ti: 'Mrs', dob: '14 September 1971 (Age 54)',  payout: '£0.00',   a1: '7 Queen Square',          city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS1 2AA', email: 'e.jones@example.com',     tel: '07700 900111', restr: false },
+    mc: [] },
+
+  { id: 12, caseRef: '12000301S', remoRef: '2013/REMO/12000301',
+    status: 'Active', bu: 'Birmingham', arrears: '£180.00', ct: 'REMO In', dolm: '1 May 2026',
+    r: { ln: 'SMITH',    fn: 'David',       ti: 'Mr',  dob: '22 September 1980 (Age 45)',  ni: 'EF 34 56 78 C', a1: '25 Corporation Street',    city: 'Birmingham',        cy: 'West Midlands',    pc: 'B2 1AA',  email: 'd.smith@example.com',     tel: '07700 900120', restr: false },
+    a:  { id: 102, ln: 'SMITH',    fn: 'Helen',       ti: 'Mrs', dob: '5 July 1983 (Age 42)',        payout: '£0.00',   a1: '14 Broad Street',         city: 'Birmingham',        cy: 'West Midlands',    pc: 'B1 1AA',  email: 'h.smith@example.com',     tel: '07700 900121', restr: false },
+    mc: [
+      { id: 202, ln: 'SMITH',    fn: 'Lucy',        dob: '22 June 2012 (Age 13)',       payout: '£0.00' },
+      { id: 203, ln: 'SMITH',    fn: 'Tom',         dob: '8 February 2017 (Age 9)',     payout: '£0.00' }
+    ] },
+
+  { id: 13, caseRef: '13000401A', remoRef: '2015/REMO/13000401',
+    status: 'Suspended', bu: 'London', arrears: '£640.00', ct: 'REMO In', dolm: '15 April 2026',
+    r: { ln: 'ANDERSON', fn: 'Michael',    ti: 'Mr',  dob: '3 July 1971 (Age 54)',        ni: 'GH 45 67 89 D', a1: '45 Fleet Street',          city: 'London',            cy: null,               pc: 'EC4A 1AA', email: 'm.anderson@example.com',  tel: '07700 900130', restr: false },
+    a:  { id: 103, ln: 'SMITH',    fn: 'Sarah',       ti: 'Ms',  dob: '28 October 1975 (Age 50)',    payout: '£0.00',   a1: '8 The Strand',            city: 'London',            cy: null,               pc: 'WC2N 1AA', email: 's.smith@example.com',     tel: '07700 900131', restr: false },
+    mc: [{ id: 204, ln: 'ANDERSON', fn: 'Ella',        dob: '10 November 2014 (Age 11)',   payout: '£0.00' }] },
+
+  { id: 14, caseRef: '14000501S', remoRef: '2017/REMO/14000501',
+    status: 'Active', bu: 'Manchester', arrears: '£0.00', ct: 'REMO Out', dolm: '3 May 2026',
+    r: { ln: 'SMITH',    fn: 'Thomas',      ti: 'Mr',  dob: '11 November 1977 (Age 48)',   ni: 'IJ 56 78 90 A', a1: '18 Deansgate',             city: 'Manchester',        cy: 'Greater Manchester', pc: 'M3 1AA',  email: 't.smith@example.com',     tel: '07700 900140', restr: false },
+    a:  { id: 104, ln: 'WILSON',   fn: 'Claire',      ti: 'Mrs', dob: '11 January 1980 (Age 46)',    payout: '£0.00',   a1: '32 Market Street',        city: 'Manchester',        cy: 'Greater Manchester', pc: 'M1 1AA',  email: 'c.wilson@example.com',    tel: '07700 900141', restr: false },
+    mc: [{ id: 205, ln: 'SMITH',    fn: 'Hannah',      dob: '3 September 2016 (Age 9)',    payout: '£0.00' }] },
+
+  { id: 15, caseRef: '15000601B', remoRef: '2012/REMO/15000601',
+    status: 'Active', bu: 'Leeds', arrears: '£0.00', ct: 'REMO In', dolm: '20 April 2026',
+    r: { ln: 'BAKER',    fn: 'John',        ti: 'Mr',  dob: '25 March 1973 (Age 53)',      ni: 'KL 67 89 01 B', a1: '5 Briggate',               city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS1 1AA', email: 'j.baker@example.com',     tel: '07700 900150', restr: false },
+    a:  { id: 105, ln: 'BAKER',    fn: 'Mary',        ti: 'Mrs', dob: '7 April 1976 (Age 50)',        payout: '£0.00',   a1: '9 The Headrow',           city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS1 2AA', email: 'm.baker@example.com',     tel: '07700 900151', restr: false },
+    mc: [] },
+
+  { id: 16, caseRef: '16000701C', remoRef: '2018/REMO/16000701',
+    status: 'Inactive', bu: 'Newcastle', arrears: '£200.00', ct: 'REMO Out', dolm: '22 April 2026',
+    r: { ln: 'CARTER',   fn: 'William',     ti: 'Mr',  dob: '17 June 1966 (Age 59)',       ni: 'MN 78 90 12 C', a1: '22 Grainger Street',       city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 1AA', email: 'w.carter@example.com',    tel: '07700 900160', restr: false },
+    a:  { id: 106, ln: 'CARTER',   fn: 'Susan',       ti: 'Mrs', dob: '19 November 1969 (Age 56)',    payout: '£0.00',   a1: '15 Northumberland Street', city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 2AA', email: 's.carter@example.com',    tel: '07700 900161', restr: false },
+    mc: [] },
+
+  { id: 17, caseRef: '17000801D', remoRef: '2014/REMO/17000801',
+    status: 'Active', bu: 'Sheffield', arrears: '£80.00', ct: 'REMO In', dolm: '7 May 2026',
+    r: { ln: 'DAVIES',   fn: 'Richard',     ti: 'Mr',  dob: '4 February 1979 (Age 47)',    ni: 'OP 89 01 23 D', a1: '11 Fargate',               city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 1AA',  email: 'r.davies@example.com',    tel: '07700 900170', restr: false },
+    a:  { id: 107, ln: 'DAVIES',   fn: 'Patricia',    ti: 'Mrs', dob: '3 June 1982 (Age 43)',         payout: '£0.00',   a1: '6 High Street',           city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 2AA',  email: 'p.davies@example.com',    tel: '07700 900171', restr: false },
+    mc: [{ id: 206, ln: 'DAVIES',   fn: 'James',       dob: '17 January 2013 (Age 13)',    payout: '£0.00' }] },
+
+  { id: 18, caseRef: '18000901E', remoRef: '2016/REMO/18000901',
+    status: 'Active', bu: 'Exeter', arrears: '£0.00', ct: 'REMO Out', dolm: '25 April 2026',
+    r: { ln: 'EDWARDS',  fn: 'Christopher', ti: 'Mr',  dob: '28 August 1972 (Age 53)',     ni: 'QR 90 12 34 A', a1: '9 High Street',            city: 'Exeter',            cy: 'Devon',            pc: 'EX4 1AA', email: 'c.edwards@example.com',   tel: '07700 900180', restr: false },
+    a:  { id: 108, ln: 'EDWARDS',  fn: 'Margaret',    ti: 'Mrs', dob: '25 February 1974 (Age 52)',    payout: '£0.00',   a1: '14 Sidwell Street',       city: 'Exeter',            cy: 'Devon',            pc: 'EX4 2AA', email: 'm.edwards@example.com',   tel: '07700 900181', restr: false },
+    mc: [] },
+
+  { id: 19, caseRef: '19001001F', remoRef: '2013/REMO/19001001',
+    status: 'Suspended', bu: 'Bury St. Edmunds', arrears: '£520.00', ct: 'REMO In', dolm: '10 April 2026',
+    r: { ln: 'FLETCHER', fn: 'Stephen',     ti: 'Mr',  dob: '16 December 1969 (Age 56)',   ni: 'ST 01 23 45 B', a1: '3 Angel Hill',             city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 1AA', email: 's.fletcher@example.com',  tel: '07700 900190', restr: false },
+    a:  { id: 109, ln: 'FLETCHER', fn: 'Dorothy',     ti: 'Mrs', dob: '18 August 1972 (Age 53)',      payout: '£0.00',   a1: '17 Abbeygate Street',     city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 2AA', email: 'd.fletcher@example.com',  tel: '07700 900191', restr: false },
+    mc: [
+      { id: 207, ln: 'FLETCHER', fn: 'Emma',        dob: '5 August 2010 (Age 15)',      payout: '£0.00' },
+      { id: 208, ln: 'FLETCHER', fn: 'Noah',        dob: '28 March 2014 (Age 12)',      payout: '£0.00' }
+    ] },
+
+  { id: 20, caseRef: '20001101G', remoRef: '2015/REMO/20001101',
+    status: 'Active', bu: 'Reading', arrears: '£120.00', ct: 'REMO Out', dolm: '6 May 2026',
+    r: { ln: 'GRANT',    fn: 'Paul',        ti: 'Mr',  dob: '7 May 1981 (Age 45)',         ni: 'UV 12 34 56 C', a1: '28 Church Road',           city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 3AA', email: 'p.grant@example.com',     tel: '07700 900200', restr: false },
+    a:  { id: 110, ln: 'GRANT',    fn: 'Angela',      ti: 'Mrs', dob: '30 December 1985 (Age 40)',    payout: '£0.00',   a1: '6 London Road',           city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 4AA', email: 'a.grant@example.com',     tel: '07700 900201', restr: false },
+    mc: [] },
+
+  { id: 21, caseRef: '21001201H', remoRef: '2017/REMO/21001201',
+    status: 'Active', bu: 'Bristol', arrears: '£0.00', ct: 'REMO In', dolm: '2 May 2026',
+    r: { ln: 'HARRIS',   fn: 'Mark',        ti: 'Mr',  dob: '20 January 1974 (Age 52)',    ni: 'WX 23 45 67 D', a1: '18 College Road',          city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS8 1AA', email: 'm.harris@example.com',    tel: '07700 900210', restr: false },
+    a:  { id: 111, ln: 'HARRIS',   fn: 'Diane',       ti: 'Mrs', dob: '14 March 1977 (Age 49)',       payout: '£0.00',   a1: '4 Park Street',           city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS1 3AA', email: 'd.harris@example.com',    tel: '07700 900211', restr: false },
+    mc: [] },
+
+  { id: 22, caseRef: '22001301I', remoRef: '2012/REMO/22001301',
+    status: 'Active', bu: 'Birmingham', arrears: '£340.00', ct: 'REMO Out', dolm: '30 April 2026',
+    r: { ln: 'IRWIN',    fn: 'Andrew',      ti: 'Mr',  dob: '13 October 1976 (Age 49)',    ni: 'YZ 34 56 78 A', a1: '7 New Street',             city: 'Birmingham',        cy: 'West Midlands',    pc: 'B2 2AA',  email: 'a.irwin@example.com',     tel: '07700 900220', restr: false },
+    a:  { id: 112, ln: 'IRWIN',    fn: 'Christine',   ti: 'Mrs', dob: '22 September 1979 (Age 46)',   payout: '£0.00',   a1: '20 Colmore Row',          city: 'Birmingham',        cy: 'West Midlands',    pc: 'B3 1AA',  email: 'c.irwin@example.com',     tel: '07700 900221', restr: false },
+    mc: [{ id: 209, ln: 'IRWIN',    fn: 'Sophie',      dob: '12 December 2015 (Age 10)',   payout: '£0.00' }] },
+
+  { id: 23, caseRef: '23001401J', remoRef: '2018/REMO/23001401',
+    status: 'Active', bu: 'London', arrears: '£0.00', ct: 'REMO In', dolm: '8 May 2026',
+    r: { ln: 'JONES',    fn: 'Kevin',       ti: 'Mr',  dob: '5 August 1983 (Age 42)',      ni: 'AB 45 67 89 B', a1: '31 Aldgate High Street',  city: 'London',            cy: null,               pc: 'EC3N 1AA', email: 'k.jones@example.com',     tel: '07700 900230', restr: false },
+    a:  { id: 113, ln: 'JONES',    fn: 'Rebecca',     ti: 'Mrs', dob: '9 July 1984 (Age 41)',         payout: '£0.00',   a1: '12 Bishopsgate',          city: 'London',            cy: null,               pc: 'EC2M 1AA', email: 'r.jones@example.com',     tel: '07700 900231', restr: false },
+    mc: [] },
+
+  { id: 24, caseRef: '24001501K', remoRef: '2014/REMO/24001501',
+    status: 'Inactive', bu: 'Manchester', arrears: '£160.00', ct: 'REMO Out', dolm: '24 April 2026',
+    r: { ln: 'KELLY',    fn: 'Gary',        ti: 'Mr',  dob: '30 September 1965 (Age 60)',  ni: 'CD 56 78 90 C', a1: '5 Oxford Road',            city: 'Manchester',        cy: 'Greater Manchester', pc: 'M1 2AA',  email: 'g.kelly@example.com',     tel: '07700 900240', restr: false },
+    a:  { id: 114, ln: 'KELLY',    fn: 'Catherine',   ti: 'Mrs', dob: '1 May 1968 (Age 58)',           payout: '£0.00',   a1: '23 Deansgate',            city: 'Manchester',        cy: 'Greater Manchester', pc: 'M3 2AA',  email: 'c.kelly@example.com',     tel: '07700 900241', restr: false },
+    mc: [] },
+
+  { id: 25, caseRef: '25001601L', remoRef: '2016/REMO/25001601',
+    status: 'Active', bu: 'Leeds', arrears: '£0.00', ct: 'REMO In', dolm: '4 May 2026',
+    r: { ln: 'LEWIS',    fn: 'Simon',       ti: 'Mr',  dob: '18 April 1978 (Age 48)',      ni: 'EF 67 89 01 D', a1: '14 Park Row',              city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS1 3AA', email: 's.lewis@example.com',     tel: '07700 900250', restr: false },
+    a:  { id: 115, ln: 'LEWIS',    fn: 'Janet',       ti: 'Mrs', dob: '16 November 1981 (Age 44)',     payout: '£0.00',   a1: '3 City Square',           city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS1 4AA', email: 'j.lewis@example.com',     tel: '07700 900251', restr: false },
+    mc: [
+      { id: 210, ln: 'LEWIS',    fn: 'Harry',       dob: '9 July 2011 (Age 14)',        payout: '£0.00' },
+      { id: 211, ln: 'LEWIS',    fn: 'Isla',        dob: '21 February 2016 (Age 10)',   payout: '£0.00' }
+    ] },
+
+  { id: 26, caseRef: '26001701M', remoRef: '2013/REMO/26001701',
+    status: 'Active', bu: 'Newcastle', arrears: '£440.00', ct: 'REMO Out', dolm: '12 April 2026',
+    r: { ln: 'MARTIN',   fn: 'Alan',        ti: 'Mr',  dob: '9 June 1970 (Age 55)',        ni: 'GH 78 90 12 A', a1: '8 Pilgrim Street',         city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 3AA', email: 'a.martin@example.com',    tel: '07700 900260', restr: false },
+    a:  { id: 116, ln: 'MARTIN',   fn: 'Judith',      ti: 'Mrs', dob: '8 February 1973 (Age 53)',      payout: '£0.00',   a1: '19 Grey Street',          city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 4AA', email: 'j.martin@example.com',    tel: '07700 900261', restr: false },
+    mc: [] },
+
+  { id: 27, caseRef: '27001801N', remoRef: '2015/REMO/27001801',
+    status: 'Active', bu: 'Sheffield', arrears: '£0.00', ct: 'REMO In', dolm: '9 May 2026',
+    r: { ln: 'NELSON',   fn: 'James',       ti: 'Mr',  dob: '23 February 1985 (Age 41)',   ni: 'IJ 89 01 23 B', a1: '3 Pinstone Street',        city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 3AA',  email: 'j.nelson@example.com',    tel: '07700 900270', restr: false },
+    a:  { id: 117, ln: 'NELSON',   fn: 'Eileen',      ti: 'Mrs', dob: '20 June 1988 (Age 37)',         payout: '£0.00',   a1: '15 Norfolk Street',       city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 4AA',  email: 'e.nelson@example.com',    tel: '07700 900271', restr: false },
+    mc: [] },
+
+  { id: 28, caseRef: '28001901O', remoRef: '2017/REMO/28001901',
+    status: 'Suspended', bu: 'Exeter', arrears: '£720.00', ct: 'REMO Out', dolm: '17 April 2026',
+    r: { ln: 'OWEN',     fn: 'Colin',       ti: 'Mr',  dob: '14 July 1967 (Age 58)',        ni: 'KL 90 12 34 C', a1: '22 Paris Street',          city: 'Exeter',            cy: 'Devon',            pc: 'EX1 1AA', email: 'c.owen@example.com',      tel: '07700 900280', restr: false },
+    a:  { id: 118, ln: 'OWEN',     fn: 'Brenda',      ti: 'Mrs', dob: '4 January 1970 (Age 56)',       payout: '£0.00',   a1: '7 Queen Street',          city: 'Exeter',            cy: 'Devon',            pc: 'EX4 3AA', email: 'b.owen@example.com',      tel: '07700 900281', restr: false },
+    mc: [{ id: 212, ln: 'OWEN',     fn: 'Lily',        dob: '4 June 2018 (Age 7)',         payout: '£0.00' }] },
+
+  { id: 29, caseRef: '29002001P', remoRef: '2012/REMO/29002001',
+    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£60.00', ct: 'REMO In', dolm: '11 May 2026',
+    r: { ln: 'PRICE',    fn: 'Nicholas',    ti: 'Mr',  dob: '1 December 1982 (Age 43)',    ni: 'MN 01 23 45 D', a1: '9 Cornhill',               city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 3AA', email: 'n.price@example.com',     tel: '07700 900290', restr: false },
+    a:  { id: 119, ln: 'PRICE',    fn: 'Pauline',     ti: 'Mrs', dob: '27 August 1976 (Age 49)',       payout: '£0.00',   a1: '28 Risbygate Street',     city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 4AA', email: 'p.price@example.com',     tel: '07700 900291', restr: false },
+    mc: [] },
+
+  { id: 30, caseRef: '30002101Q', remoRef: '2018/REMO/30002101',
+    status: 'Active', bu: 'Reading', arrears: '£0.00', ct: 'REMO Out', dolm: '19 April 2026',
+    r: { ln: 'QUINN',    fn: 'Graham',      ti: 'Mr',  dob: '27 May 1973 (Age 53)',         ni: 'OP 12 34 56 A', a1: '17 Kings Road',            city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 5AA', email: 'g.quinn@example.com',     tel: '07700 900300', restr: false },
+    a:  { id: 120, ln: 'QUINN',    fn: 'Gloria',      ti: 'Mrs', dob: '13 April 1980 (Age 46)',        payout: '£0.00',   a1: '4 Forbury Road',          city: 'Reading',           cy: 'Berkshire',        pc: 'RG1 6AA', email: 'g.quinn2@example.com',    tel: '07700 900301', restr: false },
+    mc: [] },
+
+  { id: 31, caseRef: '31002201R', remoRef: '2014/REMO/31002201',
+    status: 'Active', bu: 'Bristol', arrears: '£200.00', ct: 'REMO In', dolm: '10 May 2026',
+    r: { ln: 'ROBERTS',  fn: 'Peter',       ti: 'Mr',  dob: '8 January 1969 (Age 57)',      ni: 'QR 23 45 67 B', a1: '5 Redcliff Street',        city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS1 4AA', email: 'p.roberts@example.com',   tel: '07700 900310', restr: false },
+    a:  { id: 121, ln: 'ROBERTS',  fn: 'Claire',      ti: 'Mrs', dob: '29 October 1986 (Age 39)',      payout: '£0.00',   a1: '12 Victoria Street',      city: 'Bristol',           cy: 'City of Bristol',  pc: 'BS1 5AA', email: 'c.roberts@example.com',   tel: '07700 900311', restr: false },
+    mc: [{ id: 213, ln: 'ROBERTS',  fn: 'Ethan',       dob: '30 October 2013 (Age 12)',    payout: '£0.00' }] },
+
+  { id: 32, caseRef: '32002301S', remoRef: '2016/REMO/32002301',
+    status: 'Inactive', bu: 'Birmingham', arrears: '£0.00', ct: 'REMO Out', dolm: '21 April 2026',
+    r: { ln: 'SCOTT',    fn: 'Derek',       ti: 'Mr',  dob: '15 November 1976 (Age 49)',   ni: 'ST 34 56 78 C', a1: '14 Snow Hill',             city: 'Birmingham',        cy: 'West Midlands',    pc: 'B4 1AA',  email: 'd.scott@example.com',     tel: '07700 900320', restr: false },
+    a:  { id: 122, ln: 'SCOTT',    fn: 'Frances',     ti: 'Mrs', dob: '11 March 1974 (Age 52)',         payout: '£0.00',   a1: '28 Temple Row',           city: 'Birmingham',        cy: 'West Midlands',    pc: 'B2 3AA',  email: 'f.scott@example.com',     tel: '07700 900321', restr: false },
+    mc: [] },
+
+  { id: 33, caseRef: '33002401T', remoRef: '2013/REMO/33002401',
+    status: 'Active', bu: 'London', arrears: '£300.00', ct: 'REMO In', dolm: '12 May 2026',
+    r: { ln: 'TAYLOR',   fn: 'Stuart',      ti: 'Mr',  dob: '3 April 1984 (Age 42)',        ni: 'UV 45 67 89 D', a1: '9 Cheapside',              city: 'London',            cy: null,               pc: 'EC2V 1AA', email: 's.taylor@example.com',    tel: '07700 900330', restr: false },
+    a:  { id: 123, ln: 'TAYLOR',   fn: 'Valerie',     ti: 'Mrs', dob: '25 July 1982 (Age 43)',          payout: '£0.00',   a1: '21 Old Bailey',           city: 'London',            cy: null,               pc: 'EC4M 1AA', email: 'v.taylor@example.com',    tel: '07700 900331', restr: false },
+    mc: [
+      { id: 214, ln: 'TAYLOR',   fn: 'Grace',       dob: '15 March 2012 (Age 14)',      payout: '£0.00' },
+      { id: 215, ln: 'TAYLOR',   fn: 'Finn',        dob: '8 November 2015 (Age 10)',    payout: '£0.00' }
+    ] },
+
+  { id: 34, caseRef: '34002501U', remoRef: '2015/REMO/34002501',
+    status: 'Active', bu: 'Manchester', arrears: '£0.00', ct: 'REMO Out', dolm: '23 April 2026',
+    r: { ln: 'UNDERHILL', fn: 'Frank',      ti: 'Mr',  dob: '19 September 1971 (Age 54)', ni: 'WX 56 78 90 A', a1: '33 Piccadilly',            city: 'Manchester',        cy: 'Greater Manchester', pc: 'M1 3AA',  email: 'f.underhill@example.com', tel: '07700 900340', restr: false },
+    a:  { id: 124, ln: 'UNDERHILL', fn: 'Teresa',    ti: 'Mrs', dob: '6 December 1978 (Age 47)',       payout: '£0.00',   a1: "11 St Ann's Square",      city: 'Manchester',        cy: 'Greater Manchester', pc: 'M2 1AA',  email: 't.underhill@example.com', tel: '07700 900341', restr: false },
+    mc: [] },
+
+  { id: 35, caseRef: '35002601V', remoRef: '2017/REMO/35002601',
+    status: 'Suspended', bu: 'Leeds', arrears: '£880.00', ct: 'REMO In', dolm: '13 May 2026',
+    r: { ln: 'VAUGHAN',  fn: 'Dennis',      ti: 'Mr',  dob: '12 March 1963 (Age 63)',      ni: 'YZ 67 89 01 B', a1: '6 Cookridge Street',       city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS2 1AA', email: 'd.vaughan@example.com',   tel: '07700 900350', restr: false },
+    a:  { id: 125, ln: 'VAUGHAN',  fn: 'Barbara',     ti: 'Mrs', dob: '18 September 1966 (Age 59)',    payout: '£0.00',   a1: '20 Bond Street',          city: 'Leeds',             cy: 'West Yorkshire',   pc: 'LS1 5AA', email: 'b.vaughan@example.com',   tel: '07700 900351', restr: false },
+    mc: [] },
+
+  { id: 36, caseRef: '36002701W', remoRef: '2012/REMO/36002701',
+    status: 'Active', bu: 'Newcastle', arrears: '£140.00', ct: 'REMO Out', dolm: '26 April 2026',
+    r: { ln: 'WALKER',   fn: 'David',       ti: 'Mr',  dob: '6 August 1975 (Age 50)',      ni: 'AB 78 90 12 C', a1: '12 Quayside',              city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 5AA', email: 'd.walker@example.com',    tel: '07700 900360', restr: false },
+    a:  { id: 126, ln: 'WALKER',   fn: 'Linda',       ti: 'Mrs', dob: '2 May 1983 (Age 42)',           payout: '£0.00',   a1: '5 Sandyford Road',        city: 'Newcastle upon Tyne', cy: 'Tyne and Wear',  pc: 'NE1 6AA', email: 'l.walker@example.com',    tel: '07700 900361', restr: false },
+    mc: [{ id: 216, ln: 'WALKER',   fn: 'Ruby',        dob: '27 August 2017 (Age 8)',      payout: '£0.00' }] },
+
+  { id: 37, caseRef: '37002801X', remoRef: '2018/REMO/37002801',
+    status: 'Active', bu: 'Sheffield', arrears: '£0.00', ct: 'REMO In', dolm: '1 May 2026',
+    r: { ln: 'XAVIER',   fn: 'Anthony',     ti: 'Mr',  dob: '24 July 1987 (Age 38)',       ni: 'CD 89 01 23 D', a1: '7 Surrey Street',          city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 5AA',  email: 'a.xavier@example.com',    tel: '07700 900370', restr: false },
+    a:  { id: 127, ln: 'XAVIER',   fn: 'Patricia',    ti: 'Mrs', dob: '10 January 1990 (Age 36)',       payout: '£0.00',   a1: '19 Division Street',      city: 'Sheffield',         cy: 'South Yorkshire',  pc: 'S1 6AA',  email: 'p.xavier@example.com',    tel: '07700 900371', restr: false },
+    mc: [] },
+
+  { id: 38, caseRef: '38002901Y', remoRef: '2014/REMO/38002901',
+    status: 'Active', bu: 'Exeter', arrears: '£260.00', ct: 'REMO Out', dolm: '27 April 2026',
+    r: { ln: 'YOUNG',    fn: 'Brian',       ti: 'Mr',  dob: '31 October 1979 (Age 46)',    ni: 'EF 90 12 34 A', a1: '3 Heavitree Road',         city: 'Exeter',            cy: 'Devon',            pc: 'EX1 2AA', email: 'b.young@example.com',     tel: '07700 900380', restr: false },
+    a:  { id: 128, ln: 'YOUNG',    fn: 'Sandra',      ti: 'Mrs', dob: '23 November 1975 (Age 50)',      payout: '£0.00',   a1: '15 Cowick Street',        city: 'Exeter',            cy: 'Devon',            pc: 'EX4 4AA', email: 's.young@example.com',     tel: '07700 900381', restr: false },
+    mc: [] },
+
+  { id: 39, caseRef: '39003001A', remoRef: '2016/REMO/39003001',
+    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£0.00', ct: 'REMO In', dolm: '29 April 2026',
+    r: { ln: 'ADAMS',    fn: 'Charles',     ti: 'Mr',  dob: '17 February 1965 (Age 61)',   ni: 'GH 01 23 45 B', a1: '8 Northgate Street',       city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 5AA', email: 'c.adams@example.com',     tel: '07700 900390', restr: false },
+    a:  { id: 129, ln: 'ADAMS',    fn: 'Jean',        ti: 'Mrs', dob: '7 August 1968 (Age 57)',          payout: '£0.00',   a1: '3 Churchgate Street',     city: 'Bury St. Edmunds',  cy: 'Suffolk',          pc: 'IP33 6AA', email: 'j.adams@example.com',     tel: '07700 900391', restr: false },
+    mc: [] }
+]
+
+// Populate activeCases and minorCreditorAccounts from searchData
+searchData.forEach((d) => {
+  const rAddr = makePcAddr(d.r.a1, d.r.city, d.r.cy, d.r.pc)
+  const aAddr = makePcAddr(d.a.a1, d.a.city, d.a.cy, d.a.pc)
+  const rName = `${d.r.ti} ${d.r.fn} ${d.r.ln}`
+  const aName = `${d.a.ti} ${d.a.fn} ${d.a.ln}`
+  const rDob  = d.r.dob.replace(/ \(Age \d+\)/, '')
+
+  if (!activeCases[d.id]) {
+    activeCases[d.id] = {
+      accountNumber: accountRef(d.id, 'RP'),
+      caseReference: d.caseRef, respondentName: rName, applicantName: aName,
+      caseType: d.ct, remoReference: d.remoRef, businessUnit: d.bu,
+      dateOfLastMovement: d.dolm, arrears: d.arrears,
+      respondent: {
+        name: rName, title: d.r.ti, firstNames: d.r.fn, lastName: d.r.ln,
+        dateOfBirth: rDob, nationalInsuranceNumber: d.r.ni,
+        otherPersonalInformation: null,
+        mainEmail: d.r.email, otherEmail: null,
+        mainTelephone: d.r.tel, otherTelephone: null,
+        address: rAddr, restricted: d.r.restr, restrictionReason: null, thirdParty: null
+      },
+      applicant: {
+        name: aName, dateOfBirth: d.a.dob,
+        restricted: d.a.restr,
+        accountNumber: accountRef(d.a.id, 'AP'),
+        accountHref: `/active-case/creditor/${d.a.id}`
+      },
+      comment: null
+    }
+  }
+
+  if (!minorCreditorAccounts[d.a.id]) {
+    minorCreditorAccounts[d.a.id] = {
+      type: 'applicant', caseReference: d.caseRef, accountNumber: accountRef(d.a.id, 'AP'), name: aName,
+      title: d.a.ti, firstNames: d.a.fn, lastName: d.a.ln,
+      awaitingPayout: d.a.payout, businessUnit: d.bu, dateOfBirth: d.a.dob,
+      address: aAddr, mainEmail: d.a.email, otherEmail: null,
+      mainTelephone: d.a.tel, otherTelephone: null,
+      respondentAccountHref: `/active-case/${d.id}`, respondentName: rName,
+      respondentAccountNumber: accountRef(d.id, 'RP'),
+      restricted: d.a.restr
+    }
+  }
+
+  d.mc.forEach((mc) => {
+    if (!minorCreditorAccounts[mc.id]) {
+      const mcAddr = makePcAddr(d.r.a1, d.r.city, d.r.cy, d.r.pc)
+      minorCreditorAccounts[mc.id] = {
+        type: 'creditor', caseReference: d.caseRef, accountNumber: accountRef(mc.id, 'MC'),
+        name: `${mc.fn} ${mc.ln}`, firstNames: mc.fn, lastName: mc.ln,
+        awaitingPayout: mc.payout, businessUnit: d.bu, dateOfBirth: mc.dob,
+        address: mcAddr, mainEmail: null, otherEmail: null,
+        mainTelephone: null, otherTelephone: null,
+        respondentAccountHref: `/active-case/${d.id}`, respondentName: rName,
+        respondentAccountNumber: accountRef(d.id, 'RP'),
+        restricted: false
+      }
+    }
+  })
+})
+
+function performSearch(params) {
+  const { accountNumber, referenceNumber,
+    respondentLastName, respondentLastNameExact, respondentFirstNames, respondentFirstNamesExact,
+    respondentAddress, respondentPostcode,
+    applicantLastName, applicantLastNameExact, applicantFirstNames, applicantFirstNamesExact,
+    applicantAddress, applicantPostcode,
+    minorType, minorLastName, minorLastNameExact, minorFirstNames, minorFirstNamesExact,
+    minorAddress, minorPostcode, minorCompany, minorCompanyExact,
+    majorCreditor,
+    minorCompanyAddress, minorCompanyPostcode, activeOnly } = params
+
+  function m(haystack, needle, exact) {
+    if (!needle) return true
+    const h = normaliseSearchText(haystack)
+    const n = normaliseSearchText(needle)
+    return exact === 'yes' ? h === n : h.includes(n)
+  }
+
+  function compactMatch(haystack, needle) {
+    if (!needle) return true
+    return normaliseCompactSearchText(haystack).includes(normaliseCompactSearchText(needle))
+  }
+
+  return searchData.filter((c) => {
+    if (activeOnly && c.status !== 'Active') return false
+
+    if (accountNumber) {
+      const accountNumbers = [
+        accountRef(c.id, 'RP'),
+        accountRef(c.a.id, 'AP'),
+        ...c.mc.map((mc) => accountRef(mc.id, 'MC')),
+        ...getCaseMajorCreditorAccounts(c.caseRef).map((account) => account.accountNumber)
+      ].map(normaliseCompactSearchText)
+
+      if (!accountNumbers.includes(normaliseCompactSearchText(accountNumber))) return false
+    }
+
+    if (referenceNumber) {
+      if (
+        !compactMatch(c.remoRef, referenceNumber) &&
+        !compactMatch(c.caseRef, referenceNumber)
+      ) {
+        return false
+      }
+    }
+
+    if (respondentLastName || respondentFirstNames || respondentAddress || respondentPostcode) {
+      if (!m(c.r.ln, respondentLastName, respondentLastNameExact)) return false
+      if (!m(c.r.fn, respondentFirstNames, respondentFirstNamesExact)) return false
+      if (!m(c.r.a1, respondentAddress)) return false
+      if (!compactMatch(c.r.pc, respondentPostcode)) return false
+    }
+
+    if (applicantLastName || applicantFirstNames || applicantAddress || applicantPostcode) {
+      if (!m(c.a.ln, applicantLastName, applicantLastNameExact)) return false
+      if (!m(c.a.fn, applicantFirstNames, applicantFirstNamesExact)) return false
+      if (!m(c.a.a1, applicantAddress)) return false
+      if (!compactMatch(c.a.pc, applicantPostcode)) return false
+    }
+
+    const isMinorSearch = minorLastName || minorFirstNames || minorAddress || minorPostcode || minorCompany
+    if (isMinorSearch && c.mc.length === 0) return false
+    if (isMinorSearch) {
+      const hasMatch = c.mc.some((mc) => {
+        if (minorType === 'company') {
+          if (!m(mc.companyName, minorCompany, minorCompanyExact)) return false
+          if (!m(mc.a1 || c.r.a1, minorCompanyAddress)) return false
+          if (!compactMatch(mc.pc || c.r.pc, minorCompanyPostcode)) return false
+        } else {
+          if (!m(mc.ln, minorLastName, minorLastNameExact)) return false
+          if (!m(mc.fn, minorFirstNames, minorFirstNamesExact)) return false
+          if (!m(mc.a1 || c.r.a1, minorAddress)) return false
+          if (!compactMatch(mc.pc || c.r.pc, minorPostcode)) return false
+        }
+        return true
+      })
+      if (!hasMatch) return false
+    }
+
+    if (majorCreditor) {
+      const hasMajorCreditor = getCaseMajorCreditorAccounts(c.caseRef).some(
+        (account) => account.majorCreditorCode === majorCreditor
+      )
+      if (!hasMajorCreditor) return false
+    }
+
+    return true
+  })
+}
+
+function accountRef(id, prefix) {
+  return prefix + String(id).padStart(6, '0')
+}
+
+function mapSearchRows(results) {
+  return results.map((c) => {
+    const rLabel = `${c.r.ln}, ${c.r.fn}`
+    const aLabel = `${c.a.ln}, ${c.a.fn}`
+    const rRef   = accountRef(c.id, 'RP')
+    const aRef   = accountRef(c.a.id, 'AP')
+    const creditorLinks = [
+      ...c.mc.map((mc) => {
+        const mcRef = accountRef(mc.id, 'MC')
+        return `<a class="govuk-link" href="/active-case/creditor/${mc.id}">${escapeHtml(mcRef)} – ${escapeHtml(mc.ln + ', ' + mc.fn)}</a>`
+      }),
+      ...getCaseMajorCreditorAccounts(c.caseRef).map((account) =>
+        `<a class="govuk-link" href="/active-case/major-creditor/${escapeHtml(account.id)}">${escapeHtml(account.accountNumber)} – ${escapeHtml(account.name)}</a>`
+      )
+    ]
+    const creditorHtml = creditorLinks.length ? creditorLinks.join('<br>') : '–'
+    return [
+      { html: `<a class="govuk-link" href="/active-case/${c.id}">${escapeHtml(rRef)} – ${escapeHtml(rLabel)}</a>`, text: rRef },
+      { html: `<a class="govuk-link" href="/active-case/creditor/${c.a.id}">${escapeHtml(aRef)} – ${escapeHtml(aLabel)}</a>` },
+      { html: creditorHtml },
+      { text: c.bu },
+      { text: c.status },
+      { text: c.arrears }
+    ]
+  })
+}
+
+router.get('/search', (req, res) => {
+  return res.render('search/index', getSearchViewData())
+})
+
+router.post('/search', (req, res, next) => {
+  const b = req.body
+  const get = (k) => (b[k] || '').trim()
+
+  const accountNumber = get('account-number')
+  const referenceNumber = get('reference-number')
+  const rLn = get('respondent-last-name')
+  const rFn = get('respondent-first-names')
+  const rA1 = get('respondent-address-line-1')
+  const rPc = get('respondent-postcode')
+  const aLn = get('applicant-last-name')
+  const aFn = get('applicant-first-names')
+  const aA1 = get('applicant-address-line-1')
+  const aPc = get('applicant-postcode')
+  const mcType = get('minor-creditor-type')
+  const mcLn  = get('minor-creditor-last-name')
+  const mcFn  = get('minor-creditor-first-names')
+  const mcA1  = get('minor-creditor-address-line-1')
+  const mcPc  = get('minor-creditor-postcode')
+  const mcCo  = get('minor-creditor-company-name')
+  const mcCoA1 = get('minor-creditor-company-address-line-1')
+  const mcCoPc = get('minor-creditor-company-postcode')
+  const majorCreditor = get('major-creditor')
+  const activeOnly = b['active-accounts-only'] === 'yes'
+
+  const hasQuick = !!(accountNumber || referenceNumber)
+  const hasAdv   = !!(rLn || rFn || rA1 || rPc || aLn || aFn || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc || majorCreditor)
+
+  if (hasQuick && hasAdv) return res.redirect('/search/conflicting-criteria')
+  if (!hasQuick && !hasAdv) return res.redirect('/search')
+
+  const results = performSearch({
+    accountNumber, referenceNumber,
+    respondentLastName: rLn, respondentLastNameExact: b['respondent-last-name-exact'],
+    respondentFirstNames: rFn, respondentFirstNamesExact: b['respondent-first-names-exact'],
+    respondentAddress: rA1, respondentPostcode: rPc,
+    applicantLastName: aLn, applicantLastNameExact: b['applicant-last-name-exact'],
+    applicantFirstNames: aFn, applicantFirstNamesExact: b['applicant-first-names-exact'],
+    applicantAddress: aA1, applicantPostcode: aPc,
+    minorType: mcType,
+    minorLastName: mcLn, minorLastNameExact: b['minor-creditor-last-name-exact'],
+    minorFirstNames: mcFn, minorFirstNamesExact: b['minor-creditor-first-names-exact'],
+    minorAddress: mcA1, minorPostcode: mcPc,
+    minorCompany: mcCo, minorCompanyExact: b['minor-creditor-company-name-exact'],
+    minorCompanyAddress: mcCoA1, minorCompanyPostcode: mcCoPc,
+    majorCreditor,
+    activeOnly
+  })
+
+  if (results.length === 0) return res.redirect('/search/no-results')
+  if (results.length > 100) return res.redirect('/search/too-many-results')
+
+  req.session.data = req.session.data || {}
+  req.session.data.searchResults = mapSearchRows(results)
+
+  return redirectWithSessionSave(req, res, next, '/search/results')
+})
+
+router.get('/search/conflicting-criteria', (req, res) => res.render('search/conflicting-criteria'))
+router.get('/search/no-results',           (req, res) => res.render('search/no-results'))
+router.get('/search/too-many-results',     (req, res) => res.render('search/too-many-results'))
+
+router.get('/search/results', (req, res) => {
+  const allResults = (req.session.data && req.session.data.searchResults) || []
+  const total   = allResults.length
+  const page    = Math.max(1, parseInt(req.query.page || '1', 10))
+  const perPage = 25
+  const from    = (page - 1) * perPage + 1
+  const to      = Math.min(page * perPage, total)
+  const pageCount = Math.ceil(total / perPage)
+  const pageRows  = allResults.slice((page - 1) * perPage, page * perPage)
+
+  const paginationItems = []
+  for (let i = 1; i <= pageCount; i++) {
+    paginationItems.push({ number: i, href: '/search/results?page=' + i, current: i === page })
+  }
+
+  return res.render('search/results', {
+    results: pageRows,
+    pagination: { items: paginationItems, results: { from, to, count: total } }
+  })
 })

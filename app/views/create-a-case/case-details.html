@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% block pageTitle %}
   {{ detailsPageHeading or "Case details" }} - {{ serviceName }} - GOV.UK Prototype Kit
@@ -17,31 +18,54 @@
         href: "/create-a-case/"
       }) }}
 
+      {% if successMessage %}
+        {{ mojAlert({
+          variant: "success",
+          title: successMessage,
+          dismissible: true
+        }) }}
+      {% endif %}
+
       {% if detailsPageCaption %}
         <span class="govuk-caption-l">{{ detailsPageCaption }}</span>
       {% endif %}
       <h1 class="govuk-heading-l">{{ detailsPageHeading or "Case details" }}</h1>
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: {
-              text: "Case type"
+      {% if showApplicantType | default(true) %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Case type"
+              },
+              value: {
+                text: caseTypeLabel
+              }
             },
-            value: {
-              text: caseTypeLabel
+            {
+              key: {
+                text: "Applicant type"
+              },
+              value: {
+                text: applicantTypeLabel
+              }
             }
-          },
-          {
-            key: {
-              text: "Applicant type"
-            },
-            value: {
-              text: applicantTypeLabel
+          ]
+        }) }}
+      {% else %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Case type"
+              },
+              value: {
+                text: caseTypeLabel
+              }
             }
-          }
-        ]
-      }) }}
+          ]
+        }) }}
+      {% endif %}
 
       <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Party details</h2>
 
@@ -83,5 +107,3 @@
     </div>
   </div>
 {% endblock %}
-
-

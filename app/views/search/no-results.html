@@ -1,0 +1,29 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+
+{% set showNav = true %}
+{% set activeNav = "search" %}
+
+{% block pageTitle %}
+  Search results - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {{ govukBackLink({
+        text: "Back to search",
+        href: "/search"
+      }) }}
+
+      <h1 class="govuk-heading-l">Search results</h1>
+
+      <p class="govuk-body">There are no matching results.</p>
+
+      <p class="govuk-body">Try <a href="/search" class="govuk-link">searching again</a> using different details.</p>
+
+    </div>
+  </div>
+{% endblock %}

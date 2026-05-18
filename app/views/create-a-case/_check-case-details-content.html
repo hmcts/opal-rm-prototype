@@ -3,27 +3,43 @@
 
 {% set showChangeLinks = showChangeLinks | default(true) %}
 {% set caseDetailsBasePath = caseDetailsBasePath | default("/create-a-case") %}
+{% set showApplicantType = showApplicantType | default(true) %}
 
-{{ govukSummaryList({
-  rows: [
-    {
-      key: {
-        text: "Case type"
+{% if showApplicantType %}
+  {{ govukSummaryList({
+    rows: [
+      {
+        key: {
+          text: "Case type"
+        },
+        value: {
+          text: caseTypeLabel
+        }
       },
-      value: {
-        text: caseTypeLabel
+      {
+        key: {
+          text: "Applicant type"
+        },
+        value: {
+          text: applicantTypeLabel
+        }
       }
-    },
-    {
-      key: {
-        text: "Applicant type"
-      },
-      value: {
-        text: applicantTypeLabel
+    ]
+  }) }}
+{% else %}
+  {{ govukSummaryList({
+    rows: [
+      {
+        key: {
+          text: "Case type"
+        },
+        value: {
+          text: caseTypeLabel
+        }
       }
-    }
-  ]
-}) }}
+    ]
+  }) }}
+{% endif %}
 
 {% set applicantWarningHtml %}
   {{ mojAlert({
