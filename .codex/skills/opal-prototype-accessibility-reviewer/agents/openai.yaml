@@ -1,0 +1,4 @@
+name: opal-prototype-accessibility-reviewer
+display_name: OPAL Accessibility Reviewer
+short_description: Reviews OPAL RM prototype pages for accessibility risks before UAT and developer handoff.
+default_prompt: Use $opal-prototype-accessibility-reviewer to review these OPAL RM prototype changes before UAT.

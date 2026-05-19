@@ -1,0 +1,4 @@
+name: opal-prototype-builder
+display_name: OPAL Prototype Builder
+short_description: Implements OPAL RM prototype changes using GOV.UK and MOJ patterns with accessibility evidence.
+default_prompt: Use $opal-prototype-builder to implement this agreed OPAL RM prototype plan and explain the accessibility decisions made.

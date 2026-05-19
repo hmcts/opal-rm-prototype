@@ -9,6 +9,8 @@ theme:
     - navigation.sections
     - navigation.top
     - content.code.copy
+extra_css:
+  - stylesheets/extra.css
 markdown_extensions:
   - admonition
   - tables
@@ -16,6 +18,8 @@ markdown_extensions:
       permalink: true
 nav:
   - Home: index.md
+  - Accessible Prototyping: accessible-prototyping.md
+  - Prototype Output Pack: prototype-output-pack.md
   - Windows Setup: windows-setup.md
   - Mac Setup: macbook-setup.md
   - Git and GitHub Basics: git-and-github.md

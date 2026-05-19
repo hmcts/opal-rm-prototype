@@ -48,6 +48,7 @@ Codex is useful for:
 - replacing custom markup with GOV.UK or MOJ components
 - improving page structure so it is easier to test with users
 - explaining which files control a screen or a journey
+- planning accessibility-aware UAT tasks and developer handoff notes
 
 Codex is less useful if your request is vague.
 
@@ -83,6 +84,34 @@ This repository is a GOV.UK Prototype Kit prototype, so the safest instructions 
 - keep styling changes small
 - keep the repository as a prototype, not a production application
 - do not add a backend, database, or API layer unless explicitly asked
+- treat accessibility as part of the prototype conversation, especially for repeated creditors, order terms, validation, check answers, and keyboard-only journeys
+
+## Local Codex skills for OPAL RM
+
+This repository includes Codex skills under `.codex/skills/`.
+
+Use this chain for a full BA-led prototype change:
+
+```text
+$opal-prototype-planner
+$opal-prototype-builder
+$opal-prototype-accessibility-reviewer
+$opal-prototype-uat-packager
+```
+
+Use a smaller chain when the task is narrower:
+
+```text
+$opal-prototype-planner
+Plan the OPAL RM prototype change only. Do not edit files yet.
+```
+
+```text
+$opal-prototype-accessibility-reviewer
+Review the changed OPAL RM prototype pages before UAT.
+```
+
+For the full BA guide, read [Accessible BA-led prototyping](accessible-prototyping.md).
 
 ## Copy-paste prompt examples
 
@@ -90,6 +119,26 @@ This repository is a GOV.UK Prototype Kit prototype, so the safest instructions 
 
 ```text
 Add a new page to this prototype after the hearing details step. The page should ask whether an interpreter is required. Use GOV.UK radios, save the answer in session data, and update app/routes.js so the journey continues to the review page.
+```
+
+### Plan an accessible UAT prototype
+
+```text
+$opal-prototype-planner
+We need to test whether caseworkers can add two creditors and one order term, recover from a validation error, then trust the check answers page.
+Use fake data only.
+Known risk: repeated creditor remove/change links need clear context.
+Out of scope: login, real APIs, document upload, payment.
+Plan this first and tell me what you need to know before editing files.
+```
+
+### Package a prototype for review
+
+```text
+$opal-prototype-uat-packager
+Prepare the prototype output pack for this branch.
+Create UAT_SCRIPT.md, ACCESSIBILITY_NOTES.md, DEVELOPER_HANDOFF.md, and DECISIONS.md.
+Make it clear what the prototype proves, what it does not prove, and what developers must preserve.
 ```
 
 ### Change page content
@@ -129,8 +178,9 @@ If no respondent email has been entered, show a GOV.UK warning text on the revie
 2. Open the current page in the browser.
 3. Write down what you want to change.
 4. Give Codex a precise instruction.
-5. Run the prototype again and check the result in the browser.
-6. If needed, ask Codex for a refinement.
+5. Ask Codex to capture accessibility assumptions and UAT tasks.
+6. Run the prototype again and check the result in the browser.
+7. If needed, ask Codex for a refinement.
 
 ## If you are not sure where to start
 

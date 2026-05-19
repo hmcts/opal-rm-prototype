@@ -1,0 +1,4 @@
+name: opal-prototype-uat-packager
+display_name: OPAL UAT Packager
+short_description: Packages OPAL RM prototype branches for UAT, accessibility review, and developer handoff.
+default_prompt: Use $opal-prototype-uat-packager to prepare the UAT script, accessibility notes, and developer handoff for this prototype.
