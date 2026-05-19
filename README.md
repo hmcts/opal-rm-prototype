@@ -52,10 +52,13 @@ Golden rules for beginners:
 ## Quick links
 
 - Full documentation site source: [docs/](docs/)
+- BA setup and first prototype change guide: [docs/ba-setup-guide.md](docs/ba-setup-guide.md)
 - Windows setup guide: [docs/windows-setup.md](docs/windows-setup.md)
 - Mac setup guide: [docs/macbook-setup.md](docs/macbook-setup.md)
 - Git and GitHub basics: [docs/git-and-github.md](docs/git-and-github.md)
 - Using Codex for prototyping: [docs/using-codex.md](docs/using-codex.md)
+- Accessible BA-led prototyping: [docs/accessible-prototyping.md](docs/accessible-prototyping.md)
+- Prototype output pack: [docs/prototype-output-pack.md](docs/prototype-output-pack.md)
 - Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
 - GitHub Pages publishing and preview rules: [docs/github-pages.md](docs/github-pages.md)
 
@@ -64,6 +67,34 @@ When GitHub Pages is enabled for this repository, the published documentation UR
 - Latest docs from `main`: `https://hmcts.github.io/opal-rm-prototype/latest/`
 - Branch preview: `https://hmcts.github.io/opal-rm-prototype/branches/<branch-name>/`
 - Pull request preview: `https://hmcts.github.io/opal-rm-prototype/pulls/pr-<number>/`
+
+## Accessible prototype workflow
+
+This repository now includes local Codex skills for BA-led accessible prototyping:
+
+```text
+$opal-prototype-planner
+$opal-prototype-builder
+$opal-prototype-accessibility-reviewer
+$opal-prototype-uat-packager
+```
+
+Use them when a BA, VA, designer, or delivery team wants Codex to help create or review a clickable OPAL RM prototype for UAT.
+
+The intended output is not just screens. A reviewable prototype branch should also include:
+
+- `UAT_SCRIPT.md`
+- `ACCESSIBILITY_NOTES.md`
+- `DEVELOPER_HANDOFF.md`
+- `DECISIONS.md`
+
+The GitHub Pages guide explains the workflow with copy-paste prompts and examples:
+
+- [Accessible BA-led prototyping](docs/accessible-prototyping.md)
+- [Prototype output pack](docs/prototype-output-pack.md)
+- [BA setup and first prototype change guide](docs/ba-setup-guide.md)
+
+The accessibility notes are early evidence for UAT and developer handoff. They do not replace manual accessibility review or production WCAG assessment.
 
 ## Windows setup from scratch
 

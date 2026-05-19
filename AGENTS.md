@@ -11,6 +11,7 @@
 - Do not invent custom UI patterns if an equivalent GOV.UK, GOV.UK Prototype Components, or MOJ component already exists.
 - Keep styling changes minimal. Only add custom CSS when the design systems do not already provide what is needed.
 - Preserve accessibility expectations that come with the design systems. Do not strip required classes, attributes, labels, legends, or hint/error patterns.
+- Treat accessibility as part of the prototype conversation, not as a late review task. Capture assumptions, user needs, risks, and follow-up decisions in the prototype output pack.
 
 ## Default implementation approach
 - Build pages in Nunjucks templates under `app/views/`.
@@ -37,6 +38,14 @@
 - Automated testing is not required for this repository.
 - Validate work by running the prototype locally when needed and checking the affected journey or page manually.
 - You may use the existing Playwright installation for lightweight agent verification of prototype flows, screenshots, or page behaviour, but do not add or configure a formal automated test suite unless the user explicitly asks for one.
+
+## BA-led accessible prototype workflow
+- Use `.codex/skills/opal-prototype-planner` when a BA, VA, designer, or delivery lead needs to turn a conversation, Jira story, Confluence note, or Figma design into a prototype brief.
+- Use `.codex/skills/opal-prototype-builder` when implementing prototype pages or route changes in this repository.
+- Use `.codex/skills/opal-prototype-accessibility-reviewer` before UAT or PR review to check labels, legends, headings, errors, keyboard flow, repeated sections, and summary-list action names.
+- Use `.codex/skills/opal-prototype-uat-packager` when preparing `UAT_SCRIPT.md`, `ACCESSIBILITY_NOTES.md`, `DEVELOPER_HANDOFF.md`, and decision notes for review.
+- For OPAL RM flows, pay particular attention to repeated creditors, order terms, hearing details, central authority details, check answers pages, result recording, and any action that can be ambiguous without visual context.
+- Do not claim that a prototype is WCAG certified. The expected output is early evidence, clearer acceptance criteria, and a better developer handoff.
 
 ## Running the prototype
 - Start the prototype locally from the repository root with `npm run dev`.

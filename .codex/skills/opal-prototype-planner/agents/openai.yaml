@@ -1,0 +1,4 @@
+name: opal-prototype-planner
+display_name: OPAL Prototype Planner
+short_description: Plans BA-led OPAL RM prototype changes with accessibility and UAT evidence built in.
+default_prompt: Use $opal-prototype-planner to turn this OPAL RM requirement into an accessibility-aware prototype plan before editing files.
