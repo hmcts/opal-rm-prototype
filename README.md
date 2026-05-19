@@ -52,6 +52,7 @@ Golden rules for beginners:
 ## Quick links
 
 - Full documentation site source: [docs/](docs/)
+- BA setup and first prototype change guide: [docs/ba-setup-guide.md](docs/ba-setup-guide.md)
 - Windows setup guide: [docs/windows-setup.md](docs/windows-setup.md)
 - Mac setup guide: [docs/macbook-setup.md](docs/macbook-setup.md)
 - Git and GitHub basics: [docs/git-and-github.md](docs/git-and-github.md)
@@ -91,6 +92,7 @@ The GitHub Pages guide explains the workflow with copy-paste prompts and example
 
 - [Accessible BA-led prototyping](docs/accessible-prototyping.md)
 - [Prototype output pack](docs/prototype-output-pack.md)
+- [BA setup and first prototype change guide](docs/ba-setup-guide.md)
 
 The accessibility notes are early evidence for UAT and developer handoff. They do not replace manual accessibility review or production WCAG assessment.
 

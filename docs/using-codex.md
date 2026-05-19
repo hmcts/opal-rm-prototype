@@ -2,6 +2,8 @@
 
 This guide is for business analysts and designers who want to use Codex to help change the prototype.
 
+If you are setting up the repository for the first time, start with the [BA setup guide](ba-setup-guide.md). It gives the full Windows and Mac path, then comes back to Codex once the prototype runs locally.
+
 ## How to start Codex for this repository
 
 Start Codex from the repository root so it can inspect the right files.
