@@ -1525,6 +1525,18 @@ function isApplicationDefinitionAvailableForCaseType(applicationCode, caseType) 
   return allowedGroups.includes(definition.group)
 }
 
+function getDefaultOrderApplicationCodeForCaseType(caseType) {
+  if (caseType === 'remo-in') {
+    return 'CJ82002'
+  }
+
+  if (caseType === 'remo-out') {
+    return 'HC07003'
+  }
+
+  return ''
+}
+
 function getApplicationOptionItems(selectedApplicationCode, caseType) {
   const selectedCode = String(getSingleValue(selectedApplicationCode) || '')
     .trim()
@@ -4658,6 +4670,14 @@ function createSessionReviewCase(req) {
     return existingCase
   }
 
+  if (
+    sessionData['submitted-case-id'] &&
+    getBaseRejectedDraftOrderEntry(sessionData['submitted-case-id']) &&
+    getReviewCaseStatus(req, sessionData['submitted-case-id']) === 'rejected'
+  ) {
+    return updateReviewCaseStatus(req, sessionData['submitted-case-id'], 'in-review')
+  }
+
   const reviewCase = {
     id: `session-${Date.now()}`,
     status: 'in-review',
@@ -4799,6 +4819,169 @@ function getRejectedInputterViewData(sessionData, caseId) {
     ),
     canCheckCase: canCheckAlternativeCase(sessionData)
   }
+}
+
+function getBaseRejectedDraftOrderEntry(id) {
+  const entries = {
+    3: {
+      respondentName: 'Mr Janos BALOGH',
+      caseTypeLabel: 'REMO In',
+      applicantTypeLabel: 'Individual',
+      submittedBy: 'emily.davis',
+      caseData: {
+        'case-type': 'remo-in',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'Ms',
+        'applicant-first-names': 'Eszter',
+        'applicant-last-name': 'Kovacs',
+        'applicant-main-email-address': 'eszter.kovacs@example.test',
+        'applicant-main-telephone-number': '+447700900441',
+        'applicant-address-line-1': '18 College Road',
+        'applicant-address-line-2': 'Bristol',
+        'applicant-postal-or-zip-code': 'BS8 1AA',
+        'applicant-country': 'united-kingdom',
+        'respondent-title': 'Mr',
+        'respondent-first-names': 'Janos',
+        'respondent-last-name': 'Balogh',
+        'respondent-date-of-birth': '11/11/1977',
+        'respondent-main-email-address': 'janos.balogh@example.test',
+        'respondent-address-line-1': '18 Deansgate',
+        'respondent-address-line-2': 'Manchester',
+        'respondent-postal-or-zip-code': 'M3 1AA',
+        'respondent-country': 'united-kingdom',
+        'central-authority-remo-reference': 'HU-REM-2026-214',
+        'central-authority-reference': 'HU-MJ-2026-214',
+        'central-authority-name': 'Hungarian Central Authority',
+        'order-application-code': 'CJ82002',
+        'order-court-that-made-the-order': 'Budapest Metropolitan Court',
+        'order-date-order-made': '11/01/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '175',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '',
+              'result-mat-arrears': '175',
+              'result-mat-creditor': 'Eszter Kovacs',
+              'result-mat-respondent': 'Janos Balogh',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '11/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Eszter Kovacs'
+          }
+        ],
+        'interest-and-indexation-completed': 'yes',
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation',
+        'managing-payments-completed': 'yes',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Rejected case awaiting inputter updates.',
+        'case-notes': 'Clarify respondent address before resubmitting.',
+        'applicant-details-completed': 'yes',
+        'respondent-details-completed': 'yes',
+        'order-details-completed': 'yes'
+      },
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'emily.davis',
+          at: '17 May 2026 at 9:20am'
+        },
+        {
+          action: 'Rejected',
+          by: 'joe.bloggs',
+          at: '17 May 2026 at 3:05pm',
+          note: 'Please check the respondent address before resubmitting.'
+        }
+      ]
+    },
+    4: {
+      respondentName: 'Mr Nikolai DIMITROV',
+      caseTypeLabel: 'REMO Out',
+      applicantTypeLabel: 'Individual',
+      submittedBy: 'joe.bloggs',
+      caseData: {
+        'case-type': 'remo-out',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'Ms',
+        'applicant-first-names': 'Irina',
+        'applicant-last-name': 'Petrova',
+        'applicant-main-email-address': 'irina.petrova@example.test',
+        'applicant-main-telephone-number': '+447700900442',
+        'applicant-address-line-1': '8 The Strand',
+        'applicant-address-line-2': 'London',
+        'applicant-postal-or-zip-code': 'WC2N 1AA',
+        'applicant-country': 'united-kingdom',
+        'respondent-title': 'Mr',
+        'respondent-first-names': 'Nikolai',
+        'respondent-last-name': 'Dimitrov',
+        'respondent-date-of-birth': '03/07/1971',
+        'respondent-main-email-address': 'nikolai.dimitrov@example.test',
+        'respondent-address-line-1': '45 Fleet Street',
+        'respondent-address-line-2': 'London',
+        'respondent-postal-or-zip-code': 'EC4A 1AA',
+        'respondent-country': 'united-kingdom',
+        'order-application-code': 'HC07003',
+        'order-court-that-made-the-order': 'Sofia Regional Court',
+        'order-date-order-made': '18/01/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '210',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '',
+              'result-mat-arrears': '210',
+              'result-mat-creditor': 'Irina Petrova',
+              'result-mat-respondent': 'Nikolai Dimitrov',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '18/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Irina Petrova'
+          }
+        ],
+        'interest-and-indexation-completed': 'yes',
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation',
+        'managing-payments-completed': 'yes',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Rejected case awaiting inputter updates.',
+        'case-notes': 'Update arrears wording before resubmitting.',
+        'applicant-details-completed': 'yes',
+        'respondent-details-completed': 'yes',
+        'order-details-completed': 'yes'
+      },
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'joe.bloggs',
+          at: '16 May 2026 at 10:10am'
+        },
+        {
+          action: 'Rejected',
+          by: 'emily.davis',
+          at: '18 May 2026 at 11:40am',
+          note: 'Please update the arrears wording before resubmitting.'
+        }
+      ]
+    }
+  }
+
+  const entry = entries[String(id)]
+  return entry ? cloneData(entry) : null
 }
 
 router.get('/create-data', (req, res) => {
@@ -5235,6 +5418,8 @@ router.get('/create-a-case/order-details', (req, res) => {
     return res.redirect('/create-a-case')
   }
 
+  const caseType = getCreateACaseData(req)['case-type']
+
   if (isApplicationJourney(getCreateACaseData(req))) {
     return res.redirect('/create-a-case/application-details')
   }
@@ -5243,16 +5428,26 @@ router.get('/create-a-case/order-details', (req, res) => {
     return res.redirect('/create-a-case/case-details')
   }
 
+  let selectedApplicationCode = getCreateACaseData(req)['order-application-code']
+
+  if (
+    hasValue(selectedApplicationCode) &&
+    !isApplicationDefinitionAvailableForCaseType(selectedApplicationCode, caseType)
+  ) {
+    selectedApplicationCode = getDefaultOrderApplicationCodeForCaseType(caseType)
+    getCreateACaseData(req)['order-application-code'] = selectedApplicationCode
+  }
+
   const orderApplicationDefinition = getApplicationDefinition(
-    getCreateACaseData(req)['order-application-code']
+    selectedApplicationCode
   )
 
   return res.render('create-a-case/order-details', {
     applicationItems: getApplicationOptionItems(
-      getCreateACaseData(req)['order-application-code'],
-      getCreateACaseData(req)['case-type']
+      selectedApplicationCode,
+      caseType
     ),
-    applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
+    applicationLookupJson: getApplicationLookupJson(caseType),
     errors: {},
     errorSummary: null,
     orderApplicationTitle:
@@ -6929,8 +7124,8 @@ router.get('/create-cases', (req, res) => {
       },
       { html: applicantHtml },
       { html: minorCreditorHtml || '–' },
-      { text: row.approved, sortValue: row.approvedSort },
-      { text: row.caseType }
+      { text: row.caseType },
+      { text: row.approved, sortValue: row.approvedSort }
     ]
   })
 
@@ -6939,6 +7134,14 @@ router.get('/create-cases', (req, res) => {
     { text: row.applicant },
     { text: row.caseType },
     { text: row.created, sortValue: row.createdSort }
+  ])
+
+  const mapRejectedRows = (rows) => rows.map((row) => [
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.rejected, sortValue: row.rejectedSort }
   ])
 
   const mapRows = (rows) => rows.map((row) => [
@@ -6951,7 +7154,7 @@ router.get('/create-cases', (req, res) => {
 
   const tabs = {
     'in-review': { label: 'In review', rows: mapInReviewRows(inReviewRows) },
-    'rejected': { label: 'Rejected', rows: mapInReviewRows(rejectedRows) },
+    'rejected': { label: 'Rejected', rows: mapRejectedRows(rejectedRows.sort((a, b) => (a.rejectedSort ?? 0) - (b.rejectedSort ?? 0))) },
     'approved': { label: 'Approved', rows: mapApprovedRows(approvedRows.filter(row => row.approvedSort >= -7)) },
     'deleted': { label: 'Deleted', rows: mapDeletedRows(deletedRows.filter(row => row.deletedSort >= -7)) }
   }
@@ -6983,7 +7186,9 @@ router.get('/create-cases/:index', (req, res) => {
       reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
       isChecker,
       showReviewDecisionForm: isChecker && draftOrderEntry.status === 'in-review',
-      showRejectedInputterTaskList: !isChecker && draftOrderEntry.status === 'rejected'
+      showRejectedInputterTaskList: !isChecker && draftOrderEntry.status === 'rejected',
+      backHref: draftOrderEntry.status === 'rejected' && !isChecker ? '/create-cases?tab=rejected' : '/create-cases',
+      timelineHeading: draftOrderEntry.status === 'rejected' && !isChecker ? 'Activity' : 'Review history'
     })
   }
 
@@ -7423,7 +7628,7 @@ router.get('/create-cases/:index', (req, res) => {
     ]
   }
 
-  const draftOrderEntry = draftOrderEntries[index]
+  const draftOrderEntry = draftOrderEntries[index] || getBaseRejectedDraftOrderEntry(index)
 
   if (!draftOrderEntry) {
     return res.redirect('/create-cases')
@@ -7435,6 +7640,7 @@ router.get('/create-cases/:index', (req, res) => {
     ...((decision && decision.events) || [])
   ]
   const isChecker = req.query.checker === 'true'
+  const showRejectedInputterTaskList = !isChecker && status === 'rejected'
 
   return res.render('create-and-validate-draft-orders/detail', {
     ...draftOrderEntry,
@@ -7446,20 +7652,28 @@ router.get('/create-cases/:index', (req, res) => {
     ...getRejectedInputterViewData(draftOrderEntry.caseData, requestedId),
     isChecker,
     showReviewDecisionForm: isChecker && status === 'in-review',
-    showRejectedInputterTaskList: !isChecker && status === 'rejected'
+    showRejectedInputterTaskList,
+    backHref: showRejectedInputterTaskList ? '/create-cases?tab=rejected' : '/create-cases',
+    timelineHeading: showRejectedInputterTaskList ? 'Activity' : 'Review history'
   })
 })
 
 router.get('/create-cases/:index/edit/:section', (req, res, next) => {
   const sessionCase = getSessionReviewCaseById(req, req.params.index)
+  const baseRejectedEntry = getBaseRejectedDraftOrderEntry(req.params.index)
 
-  if (!sessionCase || sessionCase.status !== 'rejected') {
+  if (
+    (!sessionCase || sessionCase.status !== 'rejected') &&
+    (!baseRejectedEntry || getReviewCaseStatus(req, req.params.index) !== 'rejected')
+  ) {
     return res.redirect(`/create-cases/${req.params.index}`)
   }
 
+  const caseData = sessionCase ? sessionCase.caseData : baseRejectedEntry.caseData
+
   req.session.data['create-a-case'] = {
-    ...cloneData(sessionCase.caseData),
-    'submitted-case-id': sessionCase.id
+    ...cloneData(caseData),
+    'submitted-case-id': sessionCase ? sessionCase.id : req.params.index
   }
 
   return redirectWithSessionSave(
@@ -7978,7 +8192,7 @@ router.get('/review-cases', (req, res) => {
   ])
 
   const mapRejectedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
@@ -8006,7 +8220,7 @@ router.get('/review-cases', (req, res) => {
 
   const tabs = {
     'to-review': { label: 'To review', rows: mapToReviewRows(toReviewRows) },
-    'rejected': { label: 'Rejected', rows: mapRejectedRows(rejectedRows) },
+    'rejected': { label: 'Rejected', rows: mapRejectedRows(rejectedRows.sort((a, b) => (a.rejectedSort ?? 0) - (b.rejectedSort ?? 0))) },
     'deleted': { label: 'Deleted', rows: mapDeletedRows(deletedRows.filter(row => row.deletedSort >= -7)) },
     'failed': { label: 'Failed', rows: mapFailedRows(failedRows) }
   }
@@ -8016,6 +8230,7 @@ router.get('/review-cases', (req, res) => {
   return res.render('review-cases/index', {
     activeTab: tab,
     tabLabel: activeTabData.label,
+    rejectedCount: rejectedRows.length,
     failedCount: failedRows.length,
     tableRows: activeTabData.rows
   })

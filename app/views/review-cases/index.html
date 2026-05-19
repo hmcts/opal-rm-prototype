@@ -16,6 +16,7 @@
 
       <h1 class="govuk-heading-l">Review cases</h1>
 
+      {% set rejectedTabHtml %}Rejected {{ mojNotificationBadge({ text: rejectedCount | string }) }}{% endset %}
       {% set failedTabHtml %}Failed {{ mojNotificationBadge({ text: failedCount | string }) }}{% endset %}
 
       {{ mojSubNavigation({
@@ -25,7 +26,7 @@
           href: "/review-cases",
           active: activeTab == "to-review"
         }, {
-          text: "Rejected",
+          html: rejectedTabHtml,
           href: "/review-cases?tab=rejected",
           active: activeTab == "rejected"
         }, {
@@ -79,7 +80,7 @@
                 <th scope="col" class="govuk-table__header" aria-sort="none">Case type</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Submitted by</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Created</th>
-                <th scope="col" class="govuk-table__header" aria-sort="descending">Rejected</th>
+                <th scope="col" class="govuk-table__header" aria-sort="ascending">Rejected</th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -130,6 +131,7 @@
         {% endif %}
 
       {% else %}
+        <p class="govuk-body">Showing cases that failed to publish.</p>
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">

@@ -27,6 +27,11 @@
 - If conditional logic is required, simple branching in Nunjucks is acceptable, but non-trivial logic should move to the JavaScript layer.
 - When composing pages, favour standard page sections such as back links, phase banners, service navigation, page headings, inset text, summaries, details, buttons, and form components from the design systems.
 
+## Tables and pagination
+- Any table with more than 25 rows must be paginated.
+- Use the MOJ pagination component for paginated tables.
+- Keep pagination state simple and prototype-friendly, usually with query-string page numbers or route-level pagination data.
+
 ## Logic and data rules
 - Any conditional logic can be handled in the JavaScript layer for the prototype.
 - Do not add a backend, database, ORM, API layer, or persistent storage unless the user explicitly asks for it.
