@@ -51,10 +51,7 @@
 
       <h2 class="govuk-heading-m">{{ tabLabel }}</h2>
 
-      {% if activeTab == "in-review" or activeTab == "rejected" %}
-        {% if activeTab == "rejected" %}
-          <p class="govuk-body">To resubmit cases for other team members, you can <a href="#" class="govuk-link">view all rejected cases</a>.</p>
-        {% endif %}
+      {% if activeTab == "in-review" %}
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">
@@ -76,8 +73,34 @@
               {% endfor %}
             </tbody>
           </table>
-        {% elseif activeTab == "in-review" %}
+        {% else %}
           <p class="govuk-body">You have no cases in review.</p>
+        {% endif %}
+      {% elseif activeTab == "rejected" %}
+        <p class="govuk-body">Showing rejected cases created by you and your colleagues.</p>
+        {% if tableRows | length %}
+          <table class="govuk-table" data-module="moj-sortable-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header" aria-sort="none">Respondent</th>
+                <th scope="col" class="govuk-table__header" aria-sort="none">Applicant</th>
+                <th scope="col" class="govuk-table__header" aria-sort="none">Case type</th>
+                <th scope="col" class="govuk-table__header" aria-sort="none">Created</th>
+                <th scope="col" class="govuk-table__header" aria-sort="ascending">Rejected</th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+              {% for row in tableRows %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
+                  <td class="govuk-table__cell">{{ row[1].text }}</td>
+                  <td class="govuk-table__cell">{{ row[2].text }}</td>
+                  <td class="govuk-table__cell" data-sort-value="{{ row[3].sortValue }}">{{ row[3].text }}</td>
+                  <td class="govuk-table__cell" data-sort-value="{{ row[4].sortValue }}">{{ row[4].text }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% else %}
           <p class="govuk-body">You have no rejected cases.</p>
         {% endif %}
@@ -90,8 +113,8 @@
                 <th scope="col" class="govuk-table__header" aria-sort="none">Respondent account</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Applicant account</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Minor creditor accounts</th>
-                <th scope="col" class="govuk-table__header" aria-sort="descending">Approved</th>
                 <th scope="col" class="govuk-table__header" aria-sort="none">Case type</th>
+                <th scope="col" class="govuk-table__header" aria-sort="descending">Approved</th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -100,8 +123,8 @@
                   <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
                   <td class="govuk-table__cell">{{ row[1].html | safe }}</td>
                   <td class="govuk-table__cell">{{ row[2].html | safe }}</td>
-                  <td class="govuk-table__cell" data-sort-value="{{ row[3].sortValue }}">{{ row[3].text }}</td>
-                  <td class="govuk-table__cell">{{ row[4].text }}</td>
+                  <td class="govuk-table__cell">{{ row[3].text }}</td>
+                  <td class="govuk-table__cell" data-sort-value="{{ row[4].sortValue }}">{{ row[4].text }}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -110,6 +133,7 @@
           <p class="govuk-body">No accounts have been approved in the past 7 days.</p>
         {% endif %}
       {% else %}
+        <p class="govuk-body">Showing cases deleted in the past 7 days.</p>
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">

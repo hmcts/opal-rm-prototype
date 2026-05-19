@@ -9,7 +9,7 @@
 - Use components and patterns from the GOV.UK Design System, GOV.UK Prototype Components, and MOJ Design System wherever possible.
 - Prefer Nunjucks macros over handwritten HTML for components.
 - Do not invent custom UI patterns if an equivalent GOV.UK, GOV.UK Prototype Components, or MOJ component already exists.
-- Keep styling changes minimal. Only add custom CSS when the design systems do not already provide what is needed.
+- Keep styling changes minimal. Only consider adding custom CSS when the design systems do not already provide what is needed or when a human has explicitly stated you can use custom CSS. Do not implement any custom CSS without first checking with a human.
 - Preserve accessibility expectations that come with the design systems. Do not strip required classes, attributes, labels, legends, or hint/error patterns.
 
 ## Default implementation approach
@@ -27,11 +27,22 @@
 - If conditional logic is required, simple branching in Nunjucks is acceptable, but non-trivial logic should move to the JavaScript layer.
 - When composing pages, favour standard page sections such as back links, phase banners, service navigation, page headings, inset text, summaries, details, buttons, and form components from the design systems.
 
+## Tables and pagination
+- Any table with more than 25 rows must be paginated.
+- Use the MOJ pagination component for paginated tables.
+- Keep pagination state simple and prototype-friendly, usually with query-string page numbers or route-level pagination data.
+
 ## Logic and data rules
 - Any conditional logic can be handled in the JavaScript layer for the prototype.
 - Do not add a backend, database, ORM, API layer, or persistent storage unless the user explicitly asks for it.
 - Use session data and route-level logic only as far as needed to demonstrate the prototype flow.
 - Keep data handling simple and easy to delete or reshape as the prototype evolves.
+
+## Removal and deletion journeys
+- Any time a user journey removes or deletes something, display a success message on the next screen after the user confirms the removal or deletion.
+- Use the MOJ alert banner macro with `variant: "success"` and `dismissible: true` so the alert includes a dismiss link.
+- Store the success message in session data before redirecting, then clear it when rendering the next screen so the message is shown once.
+- Use clear, specific message text that matches the action, for example `Minor creditor removed` or `Order terms removed`.
 
 ## Testing and validation
 - Automated testing is not required for this repository.
