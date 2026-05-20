@@ -9432,6 +9432,49 @@ function normaliseCompactSearchText(value) {
   return normaliseSearchText(value).replace(/[\s-]/g, '')
 }
 
+function normaliseDateSearchText(value) {
+  const trimmed = String(value || '').trim()
+  if (!trimmed) return ''
+
+  const monthNames = {
+    january: '01',
+    february: '02',
+    march: '03',
+    april: '04',
+    may: '05',
+    june: '06',
+    july: '07',
+    august: '08',
+    september: '09',
+    october: '10',
+    november: '11',
+    december: '12'
+  }
+
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`
+
+  const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (slashMatch) {
+    return [
+      slashMatch[1].padStart(2, '0'),
+      slashMatch[2].padStart(2, '0'),
+      slashMatch[3]
+    ].join('/')
+  }
+
+  const writtenMatch = trimmed.toLowerCase().match(/^(\d{1,2}) ([a-z]+) (\d{4})/)
+  if (writtenMatch && monthNames[writtenMatch[2]]) {
+    return [
+      writtenMatch[1].padStart(2, '0'),
+      monthNames[writtenMatch[2]],
+      writtenMatch[3]
+    ].join('/')
+  }
+
+  return normaliseSearchText(trimmed)
+}
+
 function getSearchViewData(formValues = {}) {
   return {
     formValues,
@@ -9717,11 +9760,11 @@ searchData.forEach((d) => {
 
 function performSearch(params) {
   const { accountNumber, referenceNumber,
-    respondentLastName, respondentLastNameExact, respondentFirstNames, respondentFirstNamesExact,
+    respondentLastName, respondentDateOfBirth, respondentFirstNames,
     respondentAddress, respondentPostcode,
-    applicantLastName, applicantLastNameExact, applicantFirstNames, applicantFirstNamesExact,
+    applicantLastName, applicantDateOfBirth, applicantFirstNames,
     applicantAddress, applicantPostcode,
-    minorType, minorLastName, minorLastNameExact, minorFirstNames, minorFirstNamesExact,
+    minorType, minorLastName, minorFirstNames,
     minorAddress, minorPostcode, minorCompany, minorCompanyExact,
     majorCreditor,
     minorCompanyAddress, minorCompanyPostcode, activeOnly } = params
@@ -9736,6 +9779,11 @@ function performSearch(params) {
   function compactMatch(haystack, needle) {
     if (!needle) return true
     return normaliseCompactSearchText(haystack).includes(normaliseCompactSearchText(needle))
+  }
+
+  function dateMatch(haystack, needle) {
+    if (!needle) return true
+    return normaliseDateSearchText(haystack) === normaliseDateSearchText(needle)
   }
 
   return searchData.filter((c) => {
@@ -9761,16 +9809,18 @@ function performSearch(params) {
       }
     }
 
-    if (respondentLastName || respondentFirstNames || respondentAddress || respondentPostcode) {
-      if (!m(c.r.ln, respondentLastName, respondentLastNameExact)) return false
-      if (!m(c.r.fn, respondentFirstNames, respondentFirstNamesExact)) return false
+    if (respondentLastName || respondentFirstNames || respondentDateOfBirth || respondentAddress || respondentPostcode) {
+      if (!m(c.r.ln, respondentLastName)) return false
+      if (!m(c.r.fn, respondentFirstNames)) return false
+      if (!dateMatch(c.r.dob, respondentDateOfBirth)) return false
       if (!m(c.r.a1, respondentAddress)) return false
       if (!compactMatch(c.r.pc, respondentPostcode)) return false
     }
 
-    if (applicantLastName || applicantFirstNames || applicantAddress || applicantPostcode) {
-      if (!m(c.a.ln, applicantLastName, applicantLastNameExact)) return false
-      if (!m(c.a.fn, applicantFirstNames, applicantFirstNamesExact)) return false
+    if (applicantLastName || applicantFirstNames || applicantDateOfBirth || applicantAddress || applicantPostcode) {
+      if (!m(c.a.ln, applicantLastName)) return false
+      if (!m(c.a.fn, applicantFirstNames)) return false
+      if (!dateMatch(c.a.dob, applicantDateOfBirth)) return false
       if (!m(c.a.a1, applicantAddress)) return false
       if (!compactMatch(c.a.pc, applicantPostcode)) return false
     }
@@ -9784,8 +9834,8 @@ function performSearch(params) {
           if (!m(mc.a1 || c.r.a1, minorCompanyAddress)) return false
           if (!compactMatch(mc.pc || c.r.pc, minorCompanyPostcode)) return false
         } else {
-          if (!m(mc.ln, minorLastName, minorLastNameExact)) return false
-          if (!m(mc.fn, minorFirstNames, minorFirstNamesExact)) return false
+          if (!m(mc.ln, minorLastName)) return false
+          if (!m(mc.fn, minorFirstNames)) return false
           if (!m(mc.a1 || c.r.a1, minorAddress)) return false
           if (!compactMatch(mc.pc || c.r.pc, minorPostcode)) return false
         }
@@ -9848,10 +9898,12 @@ router.post('/search', (req, res, next) => {
   const referenceNumber = get('reference-number')
   const rLn = get('respondent-last-name')
   const rFn = get('respondent-first-names')
+  const rDob = get('respondent-date-of-birth')
   const rA1 = get('respondent-address-line-1')
   const rPc = get('respondent-postcode')
   const aLn = get('applicant-last-name')
   const aFn = get('applicant-first-names')
+  const aDob = get('applicant-date-of-birth')
   const aA1 = get('applicant-address-line-1')
   const aPc = get('applicant-postcode')
   const mcType = get('minor-creditor-type')
@@ -9866,22 +9918,24 @@ router.post('/search', (req, res, next) => {
   const activeOnly = b['active-accounts-only'] === 'yes'
 
   const hasQuick = !!(accountNumber || referenceNumber)
-  const hasAdv   = !!(rLn || rFn || rA1 || rPc || aLn || aFn || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc || majorCreditor)
+  const hasAdv   = !!(rLn || rFn || rDob || rA1 || rPc || aLn || aFn || aDob || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc || majorCreditor)
 
   if (hasQuick && hasAdv) return res.redirect('/search/conflicting-criteria')
   if (!hasQuick && !hasAdv) return res.redirect('/search')
 
   const results = performSearch({
     accountNumber, referenceNumber,
-    respondentLastName: rLn, respondentLastNameExact: b['respondent-last-name-exact'],
-    respondentFirstNames: rFn, respondentFirstNamesExact: b['respondent-first-names-exact'],
+    respondentLastName: rLn,
+    respondentFirstNames: rFn,
+    respondentDateOfBirth: rDob,
     respondentAddress: rA1, respondentPostcode: rPc,
-    applicantLastName: aLn, applicantLastNameExact: b['applicant-last-name-exact'],
-    applicantFirstNames: aFn, applicantFirstNamesExact: b['applicant-first-names-exact'],
+    applicantLastName: aLn,
+    applicantFirstNames: aFn,
+    applicantDateOfBirth: aDob,
     applicantAddress: aA1, applicantPostcode: aPc,
     minorType: mcType,
-    minorLastName: mcLn, minorLastNameExact: b['minor-creditor-last-name-exact'],
-    minorFirstNames: mcFn, minorFirstNamesExact: b['minor-creditor-first-names-exact'],
+    minorLastName: mcLn,
+    minorFirstNames: mcFn,
     minorAddress: mcA1, minorPostcode: mcPc,
     minorCompany: mcCo, minorCompanyExact: b['minor-creditor-company-name-exact'],
     minorCompanyAddress: mcCoA1, minorCompanyPostcode: mcCoPc,

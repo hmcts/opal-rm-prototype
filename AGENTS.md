@@ -24,6 +24,7 @@
 
 ## Templating guidance
 - Prefer importing and calling macros from GOV.UK Frontend, GOV.UK Prototype Components, or MOJ Frontend instead of writing component markup manually.
+- All date fields must use the MOJ date picker macro from `moj/components/date-picker/macro.njk`. Do not use native HTML date inputs or handwritten date input markup.
 - Keep templates mostly declarative: page structure, copy, and macro calls belong in Nunjucks.
 - If conditional logic is required, simple branching in Nunjucks is acceptable, but non-trivial logic should move to the JavaScript layer.
 - When composing pages, favour standard page sections such as back links, phase banners, service navigation, page headings, inset text, summaries, details, buttons, and form components from the design systems.

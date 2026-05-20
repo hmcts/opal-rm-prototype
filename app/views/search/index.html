@@ -6,19 +6,22 @@
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/tabs/macro.njk" import govukTabs %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
 {% set showNav = true %}
 {% set activeNav = "search" %}
 
 {% block pageTitle %}
-  Search - {{ serviceName }} - GOV.UK Prototype Kit
+  Search for cases and accounts - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
-      <h1 class="govuk-heading-l">Search</h1>
+      <h1 class="govuk-heading-l">Search for cases and accounts</h1>
+
+      <p class="govuk-body">Use quick search to search by either account number, or reference number, or use advanced search.</p>
 
       <form method="post" action="/search">
 
@@ -37,44 +40,48 @@
           label: { text: "Reference or case number" },
           id: "reference-number",
           name: "reference-number",
+          classes: "govuk-input--width-10",
           value: formValues["reference-number"] if formValues
         }) }}
+
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-4 govuk-!-margin-bottom-4">
 
         <h2 class="govuk-heading-m govuk-!-margin-top-6">Advanced search</h2>
 
         {% set respondentsTabHtml %}
+          <h2 class="govuk-heading-m">Respondent</h2>
           {{ govukInput({
             label: { text: "Last name" },
             id: "respondent-last-name",
             name: "respondent-last-name",
+            classes: "govuk-input--width-20",
             value: formValues["respondent-last-name"] if formValues
-          }) }}
-          {{ govukCheckboxes({
-            idPrefix: "respondent-last-name-exact",
-            name: "respondent-last-name-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["respondent-last-name-exact"] == "yes" if formValues }]
           }) }}
           {{ govukInput({
             label: { text: "First names" },
             id: "respondent-first-names",
             name: "respondent-first-names",
+            classes: "govuk-input--width-20",
             value: formValues["respondent-first-names"] if formValues
           }) }}
-          {{ govukCheckboxes({
-            idPrefix: "respondent-first-names-exact",
-            name: "respondent-first-names-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["respondent-first-names-exact"] == "yes" if formValues }]
+          {{ mojDatePicker({
+            id: "respondent-date-of-birth",
+            name: "respondent-date-of-birth",
+            label: {
+              text: "Date of birth",
+              classes: "govuk-label--s"
+            },
+            value: formValues["respondent-date-of-birth"] if formValues
           }) }}
           {{ govukInput({
             label: { text: "Address line 1" },
             id: "respondent-address-line-1",
             name: "respondent-address-line-1",
+            classes: "govuk-input--width-30",
             value: formValues["respondent-address-line-1"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Postal or zip code" },
+            label: { text: "Postcode" },
             id: "respondent-postcode",
             name: "respondent-postcode",
             classes: "govuk-input--width-10",
@@ -83,38 +90,39 @@
         {% endset %}
 
         {% set applicantsTabHtml %}
+          <h2 class="govuk-heading-m">Applicant</h2>
           {{ govukInput({
             label: { text: "Last name" },
             id: "applicant-last-name",
             name: "applicant-last-name",
+            classes: "govuk-input--width-20",
             value: formValues["applicant-last-name"] if formValues
-          }) }}
-          {{ govukCheckboxes({
-            idPrefix: "applicant-last-name-exact",
-            name: "applicant-last-name-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["applicant-last-name-exact"] == "yes" if formValues }]
           }) }}
           {{ govukInput({
             label: { text: "First names" },
             id: "applicant-first-names",
             name: "applicant-first-names",
+            classes: "govuk-input--width-20",
             value: formValues["applicant-first-names"] if formValues
           }) }}
-          {{ govukCheckboxes({
-            idPrefix: "applicant-first-names-exact",
-            name: "applicant-first-names-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["applicant-first-names-exact"] == "yes" if formValues }]
+          {{ mojDatePicker({
+            id: "applicant-date-of-birth",
+            name: "applicant-date-of-birth",
+            label: {
+              text: "Date of birth",
+              classes: "govuk-label--s"
+            },
+            value: formValues["applicant-date-of-birth"] if formValues
           }) }}
           {{ govukInput({
             label: { text: "Address line 1" },
             id: "applicant-address-line-1",
             name: "applicant-address-line-1",
+            classes: "govuk-input--width-30",
             value: formValues["applicant-address-line-1"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Postal or zip code" },
+            label: { text: "Postcode" },
             id: "applicant-postcode",
             name: "applicant-postcode",
             classes: "govuk-input--width-10",
@@ -127,34 +135,25 @@
             label: { text: "Last name" },
             id: "minor-creditor-last-name",
             name: "minor-creditor-last-name",
+            classes: "govuk-input--width-20",
             value: formValues["minor-creditor-last-name"] if formValues
-          }) }}
-          {{ govukCheckboxes({
-            idPrefix: "minor-creditor-last-name-exact",
-            name: "minor-creditor-last-name-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["minor-creditor-last-name-exact"] == "yes" if formValues }]
           }) }}
           {{ govukInput({
             label: { text: "First names" },
             id: "minor-creditor-first-names",
             name: "minor-creditor-first-names",
+            classes: "govuk-input--width-20",
             value: formValues["minor-creditor-first-names"] if formValues
-          }) }}
-          {{ govukCheckboxes({
-            idPrefix: "minor-creditor-first-names-exact",
-            name: "minor-creditor-first-names-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["minor-creditor-first-names-exact"] == "yes" if formValues }]
           }) }}
           {{ govukInput({
             label: { text: "Address line 1" },
             id: "minor-creditor-address-line-1",
             name: "minor-creditor-address-line-1",
+            classes: "govuk-input--width-30",
             value: formValues["minor-creditor-address-line-1"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Postal or zip code" },
+            label: { text: "Postcode" },
             id: "minor-creditor-postcode",
             name: "minor-creditor-postcode",
             classes: "govuk-input--width-10",
@@ -167,22 +166,18 @@
             label: { text: "Company name" },
             id: "minor-creditor-company-name",
             name: "minor-creditor-company-name",
+            classes: "govuk-input--width-30",
             value: formValues["minor-creditor-company-name"] if formValues
-          }) }}
-          {{ govukCheckboxes({
-            idPrefix: "minor-creditor-company-name-exact",
-            name: "minor-creditor-company-name-exact",
-            classes: "govuk-!-margin-bottom-4",
-            items: [{ value: "yes", text: "Search for exact match", checked: formValues["minor-creditor-company-name-exact"] == "yes" if formValues }]
           }) }}
           {{ govukInput({
             label: { text: "Address line 1" },
             id: "minor-creditor-company-address-line-1",
             name: "minor-creditor-company-address-line-1",
+            classes: "govuk-input--width-30",
             value: formValues["minor-creditor-company-address-line-1"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Postal or zip code" },
+            label: { text: "Postcode" },
             id: "minor-creditor-company-postcode",
             name: "minor-creditor-company-postcode",
             classes: "govuk-input--width-10",
@@ -196,15 +191,15 @@
             name: "minor-creditor-type",
             fieldset: {
               legend: {
-                text: "Type",
-                classes: "govuk-fieldset__legend--s"
+                text: "Minor creditor accounts",
+                classes: "govuk-fieldset__legend--m"
               }
             },
             items: [
               {
                 value: "individual",
                 text: "Individual",
-                checked: formValues["minor-creditor-type"] == "individual" if formValues,
+                checked: formValues["minor-creditor-type"] != "company",
                 conditional: { html: minorCreditorIndividualHtml }
               },
               {
@@ -254,7 +249,7 @@
         {{ govukCheckboxes({
           idPrefix: "active-accounts-only",
           name: "active-accounts-only",
-          items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] == "yes" if formValues }]
+          items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] != "no" }]
         }) }}
 
         <div class="moj-button-group moj-button-group--inline">
