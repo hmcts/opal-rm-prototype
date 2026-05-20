@@ -212,18 +212,10 @@
               card: {
                 title: { text: "Minor creditor details" },
                 actions: {
-                  items: [{ href: "#", text: "Change", visuallyHiddenText: "minor creditor details" }]
+                  items: [{ href: "/active-case/creditor/" + accountId + "/creditor/edit", text: "Change", visuallyHiddenText: "minor creditor details" }]
                 }
               },
-              rows: [
-                { key: { text: "Name" }, value: { text: account.name } },
-                { key: { text: "Address" }, value: { html: account.address | join("<br>") } },
-                { key: { text: "Payment method" }, value: { text: account.paymentMethod or "–" } },
-                { key: { text: "Name on account" }, value: { text: account.nameOnAccount or "–" } },
-                { key: { text: "Sort code" }, value: { text: account.sortCode or "–" } },
-                { key: { text: "Account number" }, value: { text: account.bankAccountNumber or "–" } },
-                { key: { text: "Payment reference" }, value: { text: account.paymentReference or "–" } }
-              ]
+              rows: creditorRows
             }) }}
 
           </div>

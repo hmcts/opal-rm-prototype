@@ -29,6 +29,8 @@ const titleLabels = {
 
 const sessionReviewCasesKey = 'session-review-cases'
 const caseReviewDecisionsKey = 'case-review-decisions'
+const reviewCasesSuccessMessageKey = 'review-cases-success-message'
+const allRejectedCasesSuccessMessageKey = 'all-rejected-cases-success-message'
 
 const applicationDefinitionList = [
   {
@@ -4467,6 +4469,64 @@ function getCheckCaseDetailsViewData(sessionData) {
   }
 }
 
+function getFailedPublishingCheckCaseViewData() {
+  return {
+    orderDetailsRows: [
+      buildSummaryRow(
+        'Application code',
+        'PL-REM-2026-088 Application from EU Country for registration or recognition of an order in the family court'
+      ),
+      buildSummaryRow('Court that made the order', 'District Court of Warsaw'),
+      buildSummaryRow('Date order made', '10 January 2026'),
+      buildSummaryRow('Date arrears last updated', '01 April 2026')
+    ],
+    orderTermCards: [
+      {
+        title: 'MAT - Matrimonial Order for Adult',
+        rows: [
+          buildSummaryRow('Amount', '£400.00'),
+          buildSummaryRow('Payment frequency', 'Monthly'),
+          buildSummaryRow('Expiry date', '10 January 2028'),
+          buildSummaryRow('Arrears', '£200.00'),
+          buildSummaryRow('Creditor', 'Anna Nowak')
+        ]
+      },
+      {
+        title: 'MCHILD - Maintenance Order for child(ren)',
+        rows: [
+          buildSummaryRow('Amount', '£250.00'),
+          buildSummaryRow('Payment frequency', 'Monthly'),
+          buildSummaryRow('Expiry date', '22 August 2035'),
+          buildSummaryRow('Expiry terms', 'Yes - see case comment or notes'),
+          buildSummaryRow('Arrears', '£100.00'),
+          buildSummaryRow('Child’s name', 'Sofia Nowak (Age: 10)'),
+          buildSummaryRow('Creditor', 'Anna Nowak')
+        ]
+      }
+    ],
+    interestAndIndexationRows: [
+      buildSummaryRow('Interest', 'Yes / No / –'),
+      buildSummaryRow(
+        'Indexation',
+        'Retail Price Index (RPI) / Consumer Price Index (CPI) / Other indexation / None / –'
+      )
+    ],
+    managingPaymentsRows: [
+      buildSummaryRow(
+        'Payment arrangement',
+        'Payments via the court / Direct payments to creditors'
+      )
+    ],
+    caseCommentsRows: [
+      buildSummaryRow('Comment', 'Expiry terms: Order until completion of full-time education'),
+      buildSummaryRow(
+        'Case note',
+        'Applicant lives in Poland (outside UK) and respondent lives in Manchester (UK). MAT plus MCHILD terms recorded.'
+      )
+    ]
+  }
+}
+
 function getReviewHistoryTimelineItems(reviewHistory) {
   return reviewHistory.map((event) => ({
     label: {
@@ -4474,8 +4534,8 @@ function getReviewHistoryTimelineItems(reviewHistory) {
     },
     text: event.note || '',
     datetime: {
-      timestamp: getReviewHistoryTimestamp(event.at),
-      type: 'datetime'
+      timestamp: event.timestamp || getReviewHistoryTimestamp(event.at),
+      ...(event.datetimeFormat ? { format: event.datetimeFormat } : { type: 'datetime' })
     },
     byline: {
       text: event.by
@@ -4485,7 +4545,7 @@ function getReviewHistoryTimelineItems(reviewHistory) {
 
 function getReviewHistoryTimestamp(dateTimeText) {
   const match = String(dateTimeText || '').match(
-    /^(\d{1,2}) ([A-Za-z]+) (\d{4}) at (\d{1,2}):(\d{2})(am|pm)$/i
+    /^(\d{1,2}) ([A-Za-z]+) (\d{4}) at (\d{1,2}):(\d{2})(am|pm)?$/i
   )
 
   if (!match) {
@@ -4511,7 +4571,7 @@ function getReviewHistoryTimestamp(dateTimeText) {
     return dateTimeText
   }
 
-  const period = match[6].toLowerCase()
+  const period = match[6]?.toLowerCase()
   let hour = Number(match[4])
 
   if (period === 'pm' && hour < 12) {
@@ -4570,13 +4630,15 @@ function getReviewStatusTag(status, isChecker) {
     'in-review': isChecker ? 'To review' : 'In review',
     approved: 'Approved',
     rejected: 'Rejected',
-    deleted: 'Deleted'
+    deleted: 'Deleted',
+    failed: 'Failed'
   }
   const classes = {
     'in-review': 'govuk-tag--blue',
     approved: 'govuk-tag--green',
     rejected: 'govuk-tag--orange',
-    deleted: 'govuk-tag--red'
+    deleted: 'govuk-tag--red',
+    failed: 'govuk-tag--red'
   }
 
   return {
@@ -4726,6 +4788,32 @@ function getSessionReviewCaseRow(caseEntry) {
   return row
 }
 
+function getGeneratedAccountId(id, offset = 0) {
+  const idString = String(id)
+
+  if (/^\d+$/.test(idString)) {
+    return (Number(idString) * 10) + offset
+  }
+
+  const hash = idString.split('').reduce((total, char) => total + char.charCodeAt(0), 0)
+  return (hash * 10) + offset
+}
+
+function getGeneratedApprovedCaseAccounts(row) {
+  const respondentAccountNumber = accountRef(getGeneratedAccountId(row.id, 0), 'RP')
+  const applicantAccountNumber = accountRef(getGeneratedAccountId(row.id, 1), 'AP')
+
+  return {
+    respondentAccountLabel: row.respondentAccountLabel || `${respondentAccountNumber} – ${row.respondent}`,
+    respondentAccountHref: row.respondentAccountHref || row.activeHref || row.href || `/active-case/${row.id}`,
+    applicantAccount: row.applicantAccount || {
+      href: `/active-case/creditor/${getGeneratedAccountId(row.id, 1)}`,
+      label: `${applicantAccountNumber} – ${row.applicant}`
+    },
+    minorCreditorAccounts: row.minorCreditorAccounts || []
+  }
+}
+
 function applyReviewDecisions(rows, decisions) {
   return rows.map((row) => {
     const decision = decisions[String(row.id)]
@@ -4744,6 +4832,13 @@ function applyReviewDecisions(rows, decisions) {
     if (statusDateField) {
       updatedRow[statusDateField] = decision.statusLabel || 'Today'
       updatedRow[`${statusDateField}Sort`] = decision.statusSort || 0
+    }
+
+    if (decision.status === 'approved') {
+      return {
+        ...updatedRow,
+        ...getGeneratedApprovedCaseAccounts(updatedRow)
+      }
     }
 
     return updatedRow
@@ -4975,6 +5070,137 @@ function getBaseRejectedDraftOrderEntry(id) {
           by: 'emily.davis',
           at: '18 May 2026 at 11:40am',
           note: 'Please update the arrears wording before resubmitting.'
+        }
+      ]
+    }
+  }
+
+  const entry = entries[String(id)]
+  return entry ? cloneData(entry) : null
+}
+
+function getBaseFailedDraftOrderEntry(id) {
+  const entries = {
+    8: {
+      respondentName: 'Mr Piotr NOWAK',
+      caseTypeLabel: 'REMO In',
+      applicantTypeLabel: 'Individual',
+      submittedBy: 'emily.davis',
+      status: 'failed',
+      caseData: {
+        'case-type': 'remo-in',
+        'applicant-type': 'individual',
+        'has-order': 'yes',
+        'applicant-title': 'Mrs',
+        'applicant-first-names': 'Anna',
+        'applicant-last-name': 'Nowak',
+        'applicant-date-of-birth': '08/06/1982',
+        'applicant-main-email-address': 'anna.nowak@gmail.com',
+        'applicant-main-telephone-number': '+48 22 1234567',
+        'applicant-other-telephone-number': '+48 22 1234567',
+        'applicant-address-line-1': 'Zlota 59',
+        'applicant-address-line-2': '00-120',
+        'applicant-address-line-3': 'Warszawa',
+        'applicant-country': 'poland',
+        'applicant-send-correspondence-to-third-party': 'yes',
+        'applicant-third-party-name-or-organisation': 'Agnieszka Wiśniewska',
+        'applicant-third-party-relationship': 'Solicitor',
+        'applicant-third-party-reference': 'GFH72846',
+        'applicant-third-party-address-line-1': 'Zlota 76',
+        'applicant-third-party-address-line-2': '00-122',
+        'applicant-third-party-address-line-3': 'Warszawa',
+        'applicant-third-party-country': 'poland',
+        'applicant-restrict-personal-information': 'yes',
+        'applicant-restriction-reason': 'There is a domestic violence case between the respondent and the applicant.',
+        'respondent-title': 'Mr',
+        'respondent-first-names': 'Piotr',
+        'respondent-last-name': 'Nowak',
+        'respondent-date-of-birth': '04/09/1978',
+        'respondent-national-insurance-number': 'QA 12 34 56 E',
+        'respondent-other-personal-information': 'NI - JY 85 21 84 D\nMilitary - CX/D765-TG762',
+        'respondent-main-email-address': 'piotr.nowak@gmail.com',
+        'respondent-main-telephone-number': '07634 625847',
+        'respondent-address-line-1': 'Flat 1B',
+        'respondent-address-line-2': '24 High Street',
+        'respondent-address-line-3': 'Twyford',
+        'respondent-address-line-4': 'Berkshire',
+        'respondent-postal-or-zip-code': 'RG10 9JB',
+        'respondent-country': 'united-kingdom',
+        'respondent-send-correspondence-to-third-party': 'yes',
+        'respondent-third-party-name-or-organisation': 'Henry Johnson',
+        'respondent-third-party-relationship': 'Solicitor',
+        'respondent-third-party-reference': 'FC-6735',
+        'respondent-third-party-address-line-1': '3 Church Street',
+        'respondent-third-party-address-line-2': 'Maidenhead',
+        'respondent-third-party-address-line-3': 'Berkshire',
+        'respondent-third-party-postal-or-zip-code': 'SL6 1DF',
+        'respondent-third-party-country': 'united-kingdom',
+        'respondent-restrict-personal-information': 'yes',
+        'respondent-restriction-reason': 'There is a domestic violence case between the respondent and the applicant.',
+        'central-authority-remo-reference': '2007/REMO/12345678',
+        'central-authority-reference': 'CXD-2736549-PL',
+        'central-authority-manual-name': 'Polish Central Authority',
+        'order-application-code': 'PL-REM-2026-088',
+        'order-court-that-made-the-order': 'District Court of Warsaw',
+        'order-date-order-made': '10/01/2026',
+        'order-date-arrears-last-updated': '01/04/2026',
+        'entered-order-terms': [
+          {
+            code: 'MAT',
+            title: 'Matrimonial Order for Adult',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mat-amount': '400',
+              'result-mat-frequency': 'monthly',
+              'result-mat-expiry': '10/01/2028',
+              'result-mat-arrears': '200',
+              'result-mat-creditor': 'Anna Nowak',
+              'result-mat-respondent': 'Piotr Nowak',
+              'result-mat-payment': 'payable through the Court',
+              'result-mat-commencement': '10/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Anna Nowak'
+          },
+          {
+            code: 'MCHILD',
+            title: 'Maintenance Order for child(ren)',
+            category: 'FINAL',
+            categoryLabel: 'Final',
+            responses: {
+              'result-mchild-amount': '250',
+              'result-mchild-frequency': 'monthly',
+              'result-mchild-expiry': '22/08/2035',
+              'result-mchild-education': ['Additional terms affect order expiry'],
+              'result-mchild-arrears': '100',
+              'result-mchild-beneficiary': 'Sofia Nowak',
+              'result-mchild-child-dob': '22/08/2015',
+              'result-mchild-respondent': 'Piotr Nowak',
+              'result-mchild-payment': 'payable through the Court',
+              'result-mchild-commencement': '10/01/2026'
+            },
+            creditor: 'applicant',
+            creditorLabel: 'Anna Nowak'
+          }
+        ],
+        'interest-and-indexation-completed': 'yes',
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation',
+        'managing-payments-completed': 'yes',
+        'order-managing-payments': 'payments-via-court',
+        'case-comment': 'Expiry terms: Order until completion of full-time education',
+        'case-notes': 'Applicant lives in Poland (outside UK) and respondent lives in Manchester (UK). MAT plus MCHILD terms recorded.',
+        'applicant-details-completed': 'yes',
+        'respondent-details-completed': 'yes',
+        'order-details-completed': 'yes'
+      },
+      reviewHistory: [
+        {
+          action: 'Submitted',
+          by: 'joe.bloggs',
+          at: '07 May 2026 at 13:25',
+          datetimeFormat: 'DD MMMM YYYY [at] HH:mm'
         }
       ]
     }
@@ -7069,21 +7295,30 @@ router.get('/check-results/:index', (req, res) => {
   return res.render('check-results/detail', checkEntry)
 })
 
-router.get('/create-cases', (req, res) => {
-  const tab = req.query.tab || 'in-review'
-  const baseRows = [
+function getCreateCasesBaseRows() {
+  return [
     { id: 2, status: 'in-review', applicant: 'KOWALSKI, Ewa', respondent: 'KOWALSKI, Marek', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
     { id: 0, status: 'in-review', applicant: 'NOWAK, Anna', respondent: 'NOWAK, Piotr', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
     { id: 1, status: 'in-review', applicant: 'HORVATH, Katarina', respondent: 'NOVOTNY, Matej', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'PETROVA, Irina', respondent: 'DIMITROV, Nikolai', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'KOVACS, Eszter', respondent: 'BALOGH, Janos', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'YILMAZ, Elif', respondent: 'DEMIR, Cem', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: '06000387W – DEMIR, Cem', respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: '06000387W – YILMAZ, Elif' }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: '06000387W – DEMIR, Leyla' }] },
-    { id: 5, status: 'approved', applicant: 'POPA, Alina', respondent: 'POPA, Andrei', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: '05000215T – POPA, Andrei', respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: '05000215T – POPA, Alina' }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: '05000215T – POPA, Mira' }] },
+    { id: 6, status: 'approved', applicant: 'YILMAZ, Elif', respondent: 'DEMIR, Cem', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: `${accountRef(6, 'RP')} – DEMIR, Cem`, respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: `${accountRef(61, 'AP')} – YILMAZ, Elif` }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: `${accountRef(63, 'MC')} – DEMIR, Leyla` }] },
+    { id: 5, status: 'approved', applicant: 'POPA, Alina', respondent: 'POPA, Andrei', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: `${accountRef(5, 'RP')} – POPA, Andrei`, respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: `${accountRef(51, 'AP')} – POPA, Alina` }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: `${accountRef(52, 'MC')} – POPA, Mira` }] },
     { id: 7, status: 'deleted', applicant: 'RUSU, Mihai', respondent: 'RUSU, Ioana', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
-  const allRows = [
+}
+
+function getCreateCasesRows(req) {
+  return [
     ...getSessionReviewCases(req).map(getSessionReviewCaseRow),
-    ...applyReviewDecisions(baseRows, getCaseReviewDecisions(req))
+    ...applyReviewDecisions(getCreateCasesBaseRows(), getCaseReviewDecisions(req))
+  ]
+}
+
+router.get('/create-cases', (req, res) => {
+  const tab = req.query.tab || 'in-review'
+  const allRows = [
+    ...getCreateCasesRows(req)
   ]
   const inReviewRows = allRows.filter((row) => row.status === 'in-review')
   const rejectedRows = allRows.filter((row) => row.status === 'rejected')
@@ -7169,13 +7404,38 @@ router.get('/create-cases', (req, res) => {
   })
 })
 
+router.get('/create-cases/all-rejected', (req, res) => {
+  const successMessage = req.session.data[allRejectedCasesSuccessMessageKey]
+  delete req.session.data[allRejectedCasesSuccessMessageKey]
+
+  const rejectedRows = getCreateCasesRows(req)
+    .filter((row) => row.status === 'rejected')
+    .sort((a, b) => (a.rejectedSort ?? 0) - (b.rejectedSort ?? 0))
+
+  const tableRows = rejectedRows.map((row) => [
+    { html: `<a class="govuk-link" href="${row.href || `/create-cases/${row.id}`}?allRejected=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { text: row.applicant },
+    { text: row.caseType },
+    { text: row.submittedBy },
+    { text: row.created, sortValue: row.createdSort },
+    { text: row.rejected, sortValue: row.rejectedSort }
+  ])
+
+  return res.render('create-and-validate-draft-orders/all-rejected', {
+    successMessage,
+    tableRows
+  })
+})
+
 router.get('/create-cases/:index', (req, res) => {
   const requestedId = req.params.index
   const sessionCase = getSessionReviewCaseById(req, requestedId)
+  const fromAllRejected = req.query.allRejected === 'true'
 
   if (sessionCase) {
     const draftOrderEntry = getSessionDraftOrderEntry(sessionCase)
     const isChecker = req.query.checker === 'true'
+    const showRejectedInputterTaskList = !isChecker && draftOrderEntry.status === 'rejected'
 
     return res.render('create-and-validate-draft-orders/detail', {
       ...draftOrderEntry,
@@ -7186,9 +7446,12 @@ router.get('/create-cases/:index', (req, res) => {
       reviewTimelineItems: getReviewHistoryTimelineItems(draftOrderEntry.reviewHistory),
       isChecker,
       showReviewDecisionForm: isChecker && draftOrderEntry.status === 'in-review',
-      showRejectedInputterTaskList: !isChecker && draftOrderEntry.status === 'rejected',
-      backHref: draftOrderEntry.status === 'rejected' && !isChecker ? '/create-cases?tab=rejected' : '/create-cases',
-      timelineHeading: draftOrderEntry.status === 'rejected' && !isChecker ? 'Activity' : 'Review history'
+      showRejectedInputterTaskList,
+      returnToAllRejected: fromAllRejected && showRejectedInputterTaskList,
+      backHref: fromAllRejected && showRejectedInputterTaskList
+        ? '/create-cases/all-rejected'
+        : showRejectedInputterTaskList ? '/create-cases?tab=rejected' : '/create-cases',
+      timelineHeading: showRejectedInputterTaskList ? 'Activity' : 'Review history'
     })
   }
 
@@ -7628,13 +7891,15 @@ router.get('/create-cases/:index', (req, res) => {
     ]
   }
 
-  const draftOrderEntry = draftOrderEntries[index] || getBaseRejectedDraftOrderEntry(index)
+  const draftOrderEntry = draftOrderEntries[index] ||
+    getBaseRejectedDraftOrderEntry(index) ||
+    getBaseFailedDraftOrderEntry(index)
 
   if (!draftOrderEntry) {
     return res.redirect('/create-cases')
   }
   const decision = getCaseReviewDecisions(req)[String(index)]
-  const status = decision?.status || getBaseReviewCaseStatus(index) || 'in-review'
+  const status = decision?.status || draftOrderEntry.status || getBaseReviewCaseStatus(index) || 'in-review'
   const reviewHistory = [
     ...draftOrderEntry.reviewHistory,
     ...((decision && decision.events) || [])
@@ -7649,11 +7914,23 @@ router.get('/create-cases/:index', (req, res) => {
     statusTag: getReviewStatusTag(status, isChecker),
     reviewTimelineItems: getReviewHistoryTimelineItems(reviewHistory),
     ...getCheckCaseDetailsViewData(draftOrderEntry.caseData),
+    ...(status === 'failed' && isChecker ? getFailedPublishingCheckCaseViewData() : {}),
     ...getRejectedInputterViewData(draftOrderEntry.caseData, requestedId),
     isChecker,
     showReviewDecisionForm: isChecker && status === 'in-review',
     showRejectedInputterTaskList,
-    backHref: showRejectedInputterTaskList ? '/create-cases?tab=rejected' : '/create-cases',
+    returnToAllRejected: fromAllRejected && showRejectedInputterTaskList,
+    failedPublishingAlert: status === 'failed' && isChecker
+      ? {
+          title: 'There was a problem publishing the case',
+          html: '<p class="govuk-body">Contact the service desk.</p><p class="govuk-body">Error code: [operation_ID].</p>'
+        }
+      : null,
+    backHref: status === 'failed'
+      ? '/review-cases?tab=failed'
+      : fromAllRejected && showRejectedInputterTaskList
+        ? '/create-cases/all-rejected'
+        : showRejectedInputterTaskList ? '/create-cases?tab=rejected' : '/create-cases',
     timelineHeading: showRejectedInputterTaskList ? 'Activity' : 'Review history'
   })
 })
@@ -7694,7 +7971,8 @@ router.post('/create-cases/:index/review', (req, res, next) => {
 
   if (decision === 'approve') {
     updateReviewCaseStatus(req, req.params.index, 'approved')
-    return redirectWithSessionSave(req, res, next, '/create-cases?tab=approved')
+    req.session.data[reviewCasesSuccessMessageKey] = 'Account approved'
+    return redirectWithSessionSave(req, res, next, '/review-cases')
   }
 
   if (decision === 'reject') {
@@ -7710,7 +7988,19 @@ router.post('/create-cases/:index/resubmit', (req, res, next) => {
     return res.redirect(`/create-cases/${req.params.index}`)
   }
 
+  const sessionCase = getSessionReviewCaseById(req, req.params.index)
+  const draftOrderEntry = sessionCase
+    ? getSessionDraftOrderEntry(sessionCase)
+    : getBaseRejectedDraftOrderEntry(req.params.index)
+  const respondentName = (draftOrderEntry?.respondentName || 'the case')
+    .replace(/^(Mr|Mrs|Ms|Miss|Dr)\s+/, '')
+
   updateReviewCaseStatus(req, req.params.index, 'in-review')
+
+  if (req.query.allRejected === 'true') {
+    req.session.data[allRejectedCasesSuccessMessageKey] = `You have submitted ${respondentName}'s case for review.`
+    return redirectWithSessionSave(req, res, next, '/create-cases/all-rejected')
+  }
 
   return redirectWithSessionSave(req, res, next, '/create-cases')
 })
@@ -7946,6 +8236,154 @@ function toDatePickerValue(dateString) {
   return month ? `${day}/${month}/${year}` : ''
 }
 
+function getAddressFormFields(address = [], prefix) {
+  const parts = Array.isArray(address) ? address.filter(hasValue) : []
+  const country = parts.length > 0 ? parts[parts.length - 1] : ''
+  const postcode = parts.length > 1 ? parts[parts.length - 2] : ''
+  const lines = parts.slice(0, -2)
+
+  return {
+    [`${prefix}-address-line-1`]: lines[0] || '',
+    [`${prefix}-address-line-2`]: lines[1] || '',
+    [`${prefix}-address-line-3`]: lines[2] || '',
+    [`${prefix}-address-line-4`]: lines[3] || '',
+    [`${prefix}-address-line-5`]: lines[4] || '',
+    [`${prefix}-postal-or-zip-code`]: postcode || '',
+    [`${prefix}-country`]: country || ''
+  }
+}
+
+function getAddressFromBody(body, prefix) {
+  return [
+    body[`${prefix}-address-line-1`],
+    body[`${prefix}-address-line-2`],
+    body[`${prefix}-address-line-3`],
+    body[`${prefix}-address-line-4`],
+    body[`${prefix}-address-line-5`],
+    body[`${prefix}-postal-or-zip-code`],
+    body[`${prefix}-country`] ? getCountryLabel(body[`${prefix}-country`]) : ''
+  ].filter((value) => value && value.trim())
+}
+
+function getMinorCreditorFormDataFromAccount(account) {
+  const addressFields = getAddressFormFields(account.address, 'minor-creditor')
+  const countryValue = countryLabels[addressFields['minor-creditor-country']]
+    ? addressFields['minor-creditor-country']
+    : slugifyCountryName(addressFields['minor-creditor-country'] || '')
+  const hasUkBankDetails = account.sortCode || account.bankAccountNumber || account.paymentMethod === 'BACS'
+  const hasNonUkBankDetails = account.iban || account.bicOrSwiftCode || account.paymentMethod === 'IBAN'
+
+  return {
+    creditorType: account.organisationName ? 'organisation' : 'individual',
+    title: account.title || '',
+    firstNames: account.firstNames || '',
+    lastName: account.lastName || '',
+    organisationName: account.organisationName || '',
+    addressLine1: addressFields['minor-creditor-address-line-1'],
+    addressLine2: addressFields['minor-creditor-address-line-2'],
+    addressLine3: addressFields['minor-creditor-address-line-3'],
+    addressLine4: addressFields['minor-creditor-address-line-4'],
+    addressLine5: addressFields['minor-creditor-address-line-5'],
+    postcode: addressFields['minor-creditor-postal-or-zip-code'],
+    country: countryLabels[countryValue] ? countryValue : '',
+    bankAccountType: hasUkBankDetails
+      ? 'uk-bank-account'
+      : hasNonUkBankDetails
+        ? 'non-uk-bank-account'
+        : 'none',
+    ukNameOnAccount: hasUkBankDetails ? account.nameOnAccount || '' : '',
+    ukSortCode: hasUkBankDetails ? account.sortCode || '' : '',
+    ukAccountNumber: hasUkBankDetails ? account.bankAccountNumber || '' : '',
+    ukPaymentReference: hasUkBankDetails ? account.paymentReference || '' : '',
+    nonUkNameOnAccount: hasNonUkBankDetails ? account.nameOnAccount || '' : '',
+    nonUkBicOrSwiftCode: account.bicOrSwiftCode || '',
+    nonUkIban: account.iban || '',
+    nonUkPaymentReference: hasNonUkBankDetails ? account.paymentReference || '' : '',
+    nonUkBankName: account.bankName || '',
+    nonUkBranchOfficeOrSortCode: account.branchOfficeOrSortCode || '',
+    nonUkAccountNumber: account.nonUkAccountNumber || ''
+  }
+}
+
+function getMinorCreditorAddressFromData(creditor) {
+  return [
+    creditor.addressLine1,
+    creditor.addressLine2,
+    creditor.addressLine3,
+    creditor.addressLine4,
+    creditor.addressLine5,
+    creditor.postcode,
+    creditor.country ? getCountryLabel(creditor.country) : ''
+  ].filter(hasValue)
+}
+
+function updateMinorCreditorAccountFromForm(account, body) {
+  const creditor = buildMinorCreditor(body)
+
+  account.creditorType = creditor.creditorType
+  account.title = creditor.title || null
+  account.firstNames = creditor.firstNames || ''
+  account.lastName = creditor.lastName || ''
+  account.organisationName = creditor.organisationName || ''
+  account.name = getMinorCreditorName(creditor, 0)
+  account.address = getMinorCreditorAddressFromData(creditor)
+
+  if (creditor.bankAccountType === 'uk-bank-account') {
+    account.paymentMethod = 'BACS'
+    account.bacsStatus = 'PROVIDED'
+    account.nameOnAccount = creditor.ukNameOnAccount || null
+    account.sortCode = creditor.ukSortCode || null
+    account.bankAccountNumber = creditor.ukAccountNumber || null
+    account.paymentReference = creditor.ukPaymentReference || null
+    delete account.bicOrSwiftCode
+    delete account.iban
+    delete account.bankName
+    delete account.branchOfficeOrSortCode
+    delete account.nonUkAccountNumber
+  } else if (creditor.bankAccountType === 'non-uk-bank-account') {
+    account.paymentMethod = 'IBAN'
+    account.bacsStatus = 'PROVIDED'
+    account.nameOnAccount = creditor.nonUkNameOnAccount || null
+    account.bicOrSwiftCode = creditor.nonUkBicOrSwiftCode || null
+    account.iban = creditor.nonUkIban || null
+    account.paymentReference = creditor.nonUkPaymentReference || null
+    account.bankName = creditor.nonUkBankName || null
+    account.branchOfficeOrSortCode = creditor.nonUkBranchOfficeOrSortCode || null
+    account.nonUkAccountNumber = creditor.nonUkAccountNumber || null
+    delete account.sortCode
+    delete account.bankAccountNumber
+  } else {
+    account.paymentMethod = null
+    account.bacsStatus = null
+    account.nameOnAccount = null
+    account.paymentReference = null
+    delete account.sortCode
+    delete account.bankAccountNumber
+    delete account.bicOrSwiftCode
+    delete account.iban
+    delete account.bankName
+    delete account.branchOfficeOrSortCode
+    delete account.nonUkAccountNumber
+  }
+}
+
+function getMinorCreditorRowsFromAccount(account) {
+  const creditor = getMinorCreditorFormDataFromAccount(account)
+  const nameRows = creditor.creditorType === 'organisation'
+    ? [buildSummaryRow('Organisation name', creditor.organisationName)]
+    : [
+        buildSummaryRow('Title', creditor.title),
+        buildSummaryRow('First names', creditor.firstNames),
+        buildSummaryRow('Last name', creditor.lastName)
+      ]
+
+  return [
+    buildSummaryRow('Creditor type', creditor.creditorType === 'organisation' ? 'Organisation' : 'Individual'),
+    ...nameRows,
+    ...getMinorCreditorSummaryRows(creditor)
+  ]
+}
+
 function getActiveCaseRespondentRows(respondent) {
   const rows = [
     buildSummaryRow('Title', respondent.title),
@@ -8025,25 +8463,14 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
     'respondent-other-email-address': r.otherEmail || '',
     'respondent-main-telephone-number': r.mainTelephone || '',
     'respondent-other-telephone-number': r.otherTelephone || '',
-    'respondent-address-line-1': r.address[0] || '',
-    'respondent-address-line-2': r.address[1] || '',
-    'respondent-address-line-3': r.address[2] || '',
-    'respondent-address-line-4': '',
-    'respondent-address-line-5': '',
-    'respondent-postal-or-zip-code': r.address[3] || '',
-    'respondent-country': r.address[4] || '',
+    ...getAddressFormFields(r.address, 'respondent'),
     'respondent-send-correspondence-to-third-party': r.thirdParty ? 'yes' : null,
     'respondent-third-party-name-or-organisation': r.thirdParty ? r.thirdParty.name || '' : '',
     'respondent-third-party-relationship': r.thirdParty ? r.thirdParty.relationship || '' : '',
     'respondent-third-party-reference': r.thirdParty ? r.thirdParty.reference || '' : '',
-    'respondent-third-party-address-line-1': r.thirdParty ? r.thirdParty.address[0] || '' : '',
-    'respondent-third-party-address-line-2': r.thirdParty ? r.thirdParty.address[1] || '' : '',
-    'respondent-third-party-address-line-3': r.thirdParty ? r.thirdParty.address[2] || '' : '',
-    'respondent-third-party-address-line-4': r.thirdParty ? r.thirdParty.address[3] || '' : '',
-    'respondent-third-party-address-line-5': '',
-    'respondent-third-party-postal-or-zip-code': '',
-    'respondent-third-party-country': r.thirdParty ? r.thirdParty.address[r.thirdParty.address.length - 1] || '' : '',
-    'respondent-restrict-personal-information': r.restricted ? 'yes' : null
+    ...getAddressFormFields(r.thirdParty ? r.thirdParty.address : [], 'respondent-third-party'),
+    'respondent-restrict-personal-information': r.restricted ? 'yes' : null,
+    'respondent-restriction-reason': r.restrictionReason || ''
   }
 
   Object.assign(req.session.data, fields)
@@ -8060,6 +8487,54 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
 
 router.post('/active-case/:id/respondent/edit', (req, res) => {
   const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const respondent = activeCase.respondent
+  respondent.title = req.body['respondent-title'] || null
+  respondent.firstNames = req.body['respondent-first-names'] || ''
+  respondent.lastName = req.body['respondent-last-name'] || ''
+  respondent.name = [
+    respondent.title,
+    respondent.firstNames,
+    respondent.lastName
+  ].filter(Boolean).join(' ')
+  respondent.dateOfBirth = hasValue(req.body['respondent-date-of-birth'])
+    ? formatDateLong(req.body['respondent-date-of-birth'])
+    : null
+  respondent.nationalInsuranceNumber = req.body['respondent-national-insurance-number'] || null
+  respondent.otherPersonalInformation = req.body['respondent-other-personal-information'] || null
+  respondent.mainEmail = req.body['respondent-main-email-address'] || null
+  respondent.otherEmail = req.body['respondent-other-email-address'] || null
+  respondent.mainTelephone = req.body['respondent-main-telephone-number'] || null
+  respondent.otherTelephone = req.body['respondent-other-telephone-number'] || null
+  respondent.address = getAddressFromBody(req.body, 'respondent')
+  respondent.restricted = isChecked(req.body['respondent-restrict-personal-information'])
+  respondent.restrictionReason = respondent.restricted
+    ? req.body['respondent-restriction-reason'] || null
+    : null
+
+  if (isChecked(req.body['respondent-send-correspondence-to-third-party'])) {
+    respondent.thirdParty = {
+      name: req.body['respondent-third-party-name-or-organisation'] || '',
+      relationship: req.body['respondent-third-party-relationship'] || '',
+      reference: req.body['respondent-third-party-reference'] || '',
+      address: getAddressFromBody(req.body, 'respondent-third-party')
+    }
+  } else {
+    respondent.thirdParty = null
+  }
+
+  activeCase.respondentName = respondent.name
+  Object.values(minorCreditorAccounts)
+    .filter((account) => account.respondentAccountHref === `/active-case/${id}`)
+    .forEach((account) => {
+      account.respondentName = respondent.name
+    })
+
   return res.redirect('/active-case/' + id + '?tab=respondent')
 })
 
@@ -8162,8 +8637,44 @@ router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
   return res.redirect('/active-case/creditor/' + id + '?tab=applicant')
 })
 
+router.get('/active-case/creditor/:id/creditor/edit', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account || account.type !== 'creditor') {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const creditor = getMinorCreditorFormDataFromAccount(account)
+
+  return res.render('create-a-case/minor-creditor-details', {
+    creditor,
+    countryItems: getCountrySelectItems(creditor.country || ''),
+    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + account.name,
+    backHref: '/active-case/creditor/' + id + '?tab=creditor',
+    formAction: '/active-case/creditor/' + id + '/creditor/edit',
+    cancelHref: '/active-case/creditor/' + id + '?tab=creditor',
+    submitButtonText: 'Save changes'
+  })
+})
+
+router.post('/active-case/creditor/:id/creditor/edit', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account || account.type !== 'creditor') {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  updateMinorCreditorAccountFromForm(account, req.body)
+
+  return res.redirect('/active-case/creditor/' + id + '?tab=creditor')
+})
+
 router.get('/review-cases', (req, res) => {
   const tab = req.query.tab || 'to-review'
+  const successMessage = req.session.data[reviewCasesSuccessMessageKey]
+  delete req.session.data[reviewCasesSuccessMessageKey]
   const baseRows = [
     { id: 2, status: 'in-review', respondent: 'KOWALSKI, Marek', applicant: 'KOWALSKI, Ewa', caseType: 'REMO Out (CMS)', submittedBy: 'emily.davis', created: '1 day ago', createdSort: -1 },
     { id: 0, status: 'in-review', respondent: 'NOWAK, Piotr', applicant: 'NOWAK, Anna', caseType: 'REMO In', submittedBy: 'david.watts', created: 'Today', createdSort: 0 },
@@ -8180,7 +8691,7 @@ router.get('/review-cases', (req, res) => {
   const rejectedRows = allRows.filter((row) => row.status === 'rejected')
   const deletedRows = allRows.filter((row) => row.status === 'deleted')
   const failedRows = [
-    { id: 8, respondent: 'SOKOLOV, Pavel', applicant: 'LEBED, Nadia', caseType: 'REMO Out', submittedBy: 'david.watts', created: '2 days ago', createdSort: -2, failed: 'Today', failedSort: 0 }
+    { id: 8, respondent: 'NOWAK, Piotr', applicant: 'NOWAK, Anna', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, failed: 'Today', failedSort: 0 }
   ]
 
   const mapToReviewRows = (rows) => rows.map((row) => [
@@ -8210,7 +8721,7 @@ router.get('/review-cases', (req, res) => {
   ])
 
   const mapFailedRows = (rows) => rows.map((row) => [
-    { html: `<a class="govuk-link" href="/create-cases/${row.id}">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
+    { html: `<a class="govuk-link" href="/create-cases/${row.id}?checker=true">${escapeHtml(row.respondent)}</a>`, text: row.respondent },
     { text: row.applicant },
     { text: row.caseType },
     { text: row.submittedBy },
@@ -8230,6 +8741,7 @@ router.get('/review-cases', (req, res) => {
   return res.render('review-cases/index', {
     activeTab: tab,
     tabLabel: activeTabData.label,
+    successMessage,
     rejectedCount: rejectedRows.length,
     failedCount: failedRows.length,
     tableRows: activeTabData.rows
@@ -8884,7 +9396,13 @@ router.get('/active-case/creditor/:id', (req, res) => {
 
   const tab = req.query.tab || 'at-a-glance'
   const applicantRows = buildApplicantAccountRows(account)
-  return res.render('active-case/creditor', { account, accountId: id, tab, applicantRows })
+  return res.render('active-case/creditor', {
+    account,
+    accountId: id,
+    tab,
+    applicantRows,
+    creditorRows: getMinorCreditorRowsFromAccount(account)
+  })
 })
 
 router.get('/active-case/major-creditor/:id', (req, res) => {

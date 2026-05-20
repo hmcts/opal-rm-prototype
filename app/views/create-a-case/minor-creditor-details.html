@@ -11,12 +11,18 @@
 {% endblock %}
 
 {% block content %}
+  {% set backHref = backHref or "javascript:window.history.back()" %}
+  {% set submitButtonText = submitButtonText or "Save details" %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
         text: "Back",
-        href: "javascript:window.history.back()"
+        href: backHref
       }) }}
+
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% endif %}
 
       <h1 class="govuk-heading-l">Minor creditor details</h1>
 
@@ -375,7 +381,7 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Save details"
+            text: submitButtonText
           }) }}
 
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
@@ -384,4 +390,3 @@
     </div>
   </div>
 {% endblock %}
-

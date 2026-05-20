@@ -77,7 +77,7 @@
           <p class="govuk-body">You have no cases in review.</p>
         {% endif %}
       {% elseif activeTab == "rejected" %}
-        <p class="govuk-body">Showing rejected cases created by you and your colleagues.</p>
+        <p class="govuk-body">To resubmit cases for other team members, you can <a class="govuk-link" href="/create-cases/all-rejected">view all rejected cases</a>.</p>
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">
