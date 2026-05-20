@@ -7,13 +7,14 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "moj/components/timeline/macro.njk" import mojTimeline %}
 
 {% block pageTitle %}
   {{ respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
-{% block content %}
+{% block beforeContent %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
@@ -21,6 +22,22 @@
         href: backHref | default("/create-cases")
       }) }}
 
+      {% if failedPublishingAlert %}
+        {{ mojAlert({
+          variant: "error",
+          title: failedPublishingAlert.title,
+          html: failedPublishingAlert.html,
+          showTitleAsHeading: true,
+          dismissible: true
+        }) }}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{ respondentName }}</h1>
 
       {{ govukTag(statusTag) }}
@@ -94,7 +111,7 @@
         <h2 class="govuk-heading-m govuk-!-margin-top-8">Check and submit</h2>
 
         {% if canCheckCase %}
-          <form method="post" action="/create-cases/{{ caseId }}/resubmit">
+          <form method="post" action="/create-cases/{{ caseId }}/resubmit{% if returnToAllRejected %}?allRejected=true{% endif %}">
             {{ govukButton({
               text: "Check case"
             }) }}

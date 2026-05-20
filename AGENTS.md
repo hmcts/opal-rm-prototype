@@ -11,6 +11,7 @@
 - Do not invent custom UI patterns if an equivalent GOV.UK, GOV.UK Prototype Components, or MOJ component already exists.
 - Keep styling changes minimal. Only consider adding custom CSS when the design systems do not already provide what is needed or when a human has explicitly stated you can use custom CSS. Do not implement any custom CSS without first checking with a human.
 - Preserve accessibility expectations that come with the design systems. Do not strip required classes, attributes, labels, legends, or hint/error patterns.
+- If given a Figma link, use the design and content from Figma unless told not to. 
 
 ## Default implementation approach
 - Build pages in Nunjucks templates under `app/views/`.

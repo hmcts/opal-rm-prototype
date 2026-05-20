@@ -1,0 +1,63 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+
+{% set showNav = true %}
+
+{% block pageTitle %}
+  All rejected cases - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back to your cases",
+    href: "/create-cases?tab=rejected"
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      {% if successMessage %}
+        {{ mojAlert({
+          variant: "success",
+          title: successMessage,
+          dismissible: true
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-l">All rejected cases</h1>
+
+      {% if tableRows | length %}
+        <table class="govuk-table" data-module="moj-sortable-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header" aria-sort="none">Respondent</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Applicant</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Case type</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Submitted by</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Created</th>
+              <th scope="col" class="govuk-table__header" aria-sort="ascending">Rejected</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for row in tableRows %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
+                <td class="govuk-table__cell">{{ row[1].text }}</td>
+                <td class="govuk-table__cell">{{ row[2].text }}</td>
+                <td class="govuk-table__cell">{{ row[3].text }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[4].sortValue }}">{{ row[4].text }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[5].sortValue }}">{{ row[5].text }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="govuk-body">There are no rejected cases.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

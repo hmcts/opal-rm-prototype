@@ -2,6 +2,7 @@
 
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {%- from "moj/components/sub-navigation/macro.njk" import mojSubNavigation -%}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "moj/components/notification-badge/macro.njk" import mojNotificationBadge %}
 
 {% set showNav = true %}
@@ -15,6 +16,14 @@
     <div class="govuk-grid-column-full">
 
       <h1 class="govuk-heading-l">Review cases</h1>
+
+      {% if successMessage %}
+        {{ mojAlert({
+          variant: "success",
+          title: successMessage,
+          dismissible: true
+        }) }}
+      {% endif %}
 
       {% set rejectedTabHtml %}Rejected {{ mojNotificationBadge({ text: rejectedCount | string }) }}{% endset %}
       {% set failedTabHtml %}Failed {{ mojNotificationBadge({ text: failedCount | string }) }}{% endset %}
@@ -131,7 +140,7 @@
         {% endif %}
 
       {% else %}
-        <p class="govuk-body">Showing cases that failed to publish.</p>
+        <p class="govuk-body">Showing all accounts that have failed to publish.</p>
         {% if tableRows | length %}
           <table class="govuk-table" data-module="moj-sortable-table">
             <thead class="govuk-table__head">
