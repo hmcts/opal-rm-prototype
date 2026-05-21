@@ -2,10 +2,11 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/tabs/macro.njk" import govukTabs %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
 {% set showNav = true %}
@@ -21,35 +22,18 @@
 
       <h1 class="govuk-heading-l">Search for cases and accounts</h1>
 
-      <p class="govuk-body">Use quick search to search by either account number, or reference number, or use advanced search.</p>
-
       <form method="post" action="/search">
-
-        <h2 class="govuk-heading-m">Quick search</h2>
 
         {{ govukInput({
           label: { text: "Account number" },
-          hint: { text: "For example, 12345678 or 12345678A" },
           id: "account-number",
           name: "account-number",
           classes: "govuk-input--width-10",
           value: formValues["account-number"] if formValues
         }) }}
 
-        {{ govukInput({
-          label: { text: "Reference or case number" },
-          id: "reference-number",
-          name: "reference-number",
-          classes: "govuk-input--width-10",
-          value: formValues["reference-number"] if formValues
-        }) }}
-
-        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-4 govuk-!-margin-bottom-4">
-
-        <h2 class="govuk-heading-m govuk-!-margin-top-6">Advanced search</h2>
-
         {% set respondentsTabHtml %}
-          <h2 class="govuk-heading-m">Respondent</h2>
+          <h2 class="govuk-heading-m">Respondents</h2>
           {{ govukInput({
             label: { text: "Last name" },
             id: "respondent-last-name",
@@ -71,17 +55,13 @@
               text: "Date of birth",
               classes: "govuk-label--s"
             },
+            hint: {
+              text: "For example, 31/01/2023"
+            },
             value: formValues["respondent-date-of-birth"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Address line 1" },
-            id: "respondent-address-line-1",
-            name: "respondent-address-line-1",
-            classes: "govuk-input--width-30",
-            value: formValues["respondent-address-line-1"] if formValues
-          }) }}
-          {{ govukInput({
-            label: { text: "Postcode" },
+            label: { text: "Postal or zip code" },
             id: "respondent-postcode",
             name: "respondent-postcode",
             classes: "govuk-input--width-10",
@@ -90,7 +70,7 @@
         {% endset %}
 
         {% set applicantsTabHtml %}
-          <h2 class="govuk-heading-m">Applicant</h2>
+          <h2 class="govuk-heading-m">Applicants</h2>
           {{ govukInput({
             label: { text: "Last name" },
             id: "applicant-last-name",
@@ -112,17 +92,13 @@
               text: "Date of birth",
               classes: "govuk-label--s"
             },
+            hint: {
+              text: "For example, 31/01/2023"
+            },
             value: formValues["applicant-date-of-birth"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Address line 1" },
-            id: "applicant-address-line-1",
-            name: "applicant-address-line-1",
-            classes: "govuk-input--width-30",
-            value: formValues["applicant-address-line-1"] if formValues
-          }) }}
-          {{ govukInput({
-            label: { text: "Postcode" },
+            label: { text: "Postal or zip code" },
             id: "applicant-postcode",
             name: "applicant-postcode",
             classes: "govuk-input--width-10",
@@ -146,14 +122,7 @@
             value: formValues["minor-creditor-first-names"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Address line 1" },
-            id: "minor-creditor-address-line-1",
-            name: "minor-creditor-address-line-1",
-            classes: "govuk-input--width-30",
-            value: formValues["minor-creditor-address-line-1"] if formValues
-          }) }}
-          {{ govukInput({
-            label: { text: "Postcode" },
+            label: { text: "Postal or zip code" },
             id: "minor-creditor-postcode",
             name: "minor-creditor-postcode",
             classes: "govuk-input--width-10",
@@ -170,14 +139,7 @@
             value: formValues["minor-creditor-company-name"] if formValues
           }) }}
           {{ govukInput({
-            label: { text: "Address line 1" },
-            id: "minor-creditor-company-address-line-1",
-            name: "minor-creditor-company-address-line-1",
-            classes: "govuk-input--width-30",
-            value: formValues["minor-creditor-company-address-line-1"] if formValues
-          }) }}
-          {{ govukInput({
-            label: { text: "Postcode" },
+            label: { text: "Postal or zip code" },
             id: "minor-creditor-company-postcode",
             name: "minor-creditor-company-postcode",
             classes: "govuk-input--width-10",
@@ -191,7 +153,7 @@
             name: "minor-creditor-type",
             fieldset: {
               legend: {
-                text: "Minor creditor accounts",
+                text: "Minor creditors",
                 classes: "govuk-fieldset__legend--m"
               }
             },
@@ -213,43 +175,57 @@
         {% endset %}
 
         {% set majorCreditorsTabHtml %}
-          {{ govukSelect({
+          <h2 class="govuk-heading-m">Major creditors</h2>
+          {{ xGovukAutocomplete({
             id: "major-creditor",
             name: "major-creditor",
-            label: { text: "Select a major creditor" },
+            label: {
+              text: "Select major creditor",
+              classes: "govuk-label--s"
+            },
+            value: formValues["major-creditor"] if formValues,
             items: majorCreditorItems
           }) }}
         {% endset %}
 
-        {{ govukTabs({
-          items: [
-            {
-              label: "Respondents",
-              id: "respondents",
-              panel: { html: respondentsTabHtml }
-            },
-            {
-              label: "Applicants",
-              id: "applicants",
-              panel: { html: applicantsTabHtml }
-            },
-            {
-              label: "Minor creditors",
-              id: "minor-creditors",
-              panel: { html: minorCreditorsTabHtml }
-            },
-            {
-              label: "Major creditors",
-              id: "major-creditors",
-              panel: { html: majorCreditorsTabHtml }
-            }
-          ]
-        }) }}
+        {% set advancedSearchHtml %}
+          <h2 class="govuk-heading-m">Advanced search</h2>
 
-        {{ govukCheckboxes({
-          idPrefix: "active-accounts-only",
-          name: "active-accounts-only",
-          items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] != "no" }]
+          {{ govukTabs({
+            items: [
+              {
+                label: "Respondents",
+                id: "respondents",
+                panel: { html: respondentsTabHtml }
+              },
+              {
+                label: "Applicants",
+                id: "applicants",
+                panel: { html: applicantsTabHtml }
+              },
+              {
+                label: "Minor creditors",
+                id: "minor-creditors",
+                panel: { html: minorCreditorsTabHtml }
+              },
+              {
+                label: "Major creditors",
+                id: "major-creditors",
+                panel: { html: majorCreditorsTabHtml }
+              }
+            ]
+          }) }}
+
+          {{ govukCheckboxes({
+            idPrefix: "active-accounts-only",
+            name: "active-accounts-only",
+            items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] != "no" }]
+          }) }}
+        {% endset %}
+
+        {{ govukDetails({
+          summaryText: "or use advanced search",
+          html: advancedSearchHtml
         }) }}
 
         <div class="moj-button-group moj-button-group--inline">
