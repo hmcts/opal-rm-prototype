@@ -9496,6 +9496,13 @@ function getCaseMajorCreditorAccounts(caseReference) {
     .map(([id, account]) => ({ id, ...account }))
 }
 
+function getMajorCreditorAccountByCode(majorCreditorCode) {
+  const account = Object.entries(majorCreditorAccounts)
+    .find(([, account]) => account.majorCreditorCode === majorCreditorCode)
+
+  return account ? { id: account[0], ...account[1] } : null
+}
+
 // Compact search data — r=respondent, a=applicant creditor account, mc=minor creditors
 // bu=business unit, ct=case type, dolm=date of last movement, payout=awaiting payout
 const searchData = [
@@ -9868,26 +9875,24 @@ function accountRef(id, prefix) {
 }
 
 function mapSearchRows(results) {
+  const buildSearchAccountHtml = (href, accountNumber, partyName) =>
+    `<a class="govuk-link" href="${escapeHtml(href)}">${escapeHtml(accountNumber)}</a><br>${escapeHtml(partyName)}`
+
   return results.map((c) => {
     const rLabel = `${c.r.ln}, ${c.r.fn}`
     const aLabel = `${c.a.ln}, ${c.a.fn}`
     const rRef   = accountRef(c.id, 'RP')
     const aRef   = accountRef(c.a.id, 'AP')
-    const creditorLinks = [
-      ...c.mc.map((mc) => {
-        const mcRef = accountRef(mc.id, 'MC')
-        return `<a class="govuk-link" href="/active-case/creditor/${mc.id}">${escapeHtml(mcRef)} – ${escapeHtml(mc.ln + ', ' + mc.fn)}</a>`
-      }),
-      ...getCaseMajorCreditorAccounts(c.caseRef).map((account) =>
-        `<a class="govuk-link" href="/active-case/major-creditor/${escapeHtml(account.id)}">${escapeHtml(account.accountNumber)} – ${escapeHtml(account.name)}</a>`
-      )
-    ]
-    const creditorHtml = creditorLinks.length ? creditorLinks.join('<br>') : '–'
+    const minorCreditorLinks = c.mc.map((mc) => {
+      const mcRef = accountRef(mc.id, 'MC')
+      return buildSearchAccountHtml(`/active-case/creditor/${mc.id}`, mcRef, `${mc.ln}, ${mc.fn}`)
+    })
+    const minorCreditorHtml = minorCreditorLinks.length ? minorCreditorLinks.join('<br>') : '–'
+
     return [
-      { html: `<a class="govuk-link" href="/active-case/${c.id}">${escapeHtml(rRef)} – ${escapeHtml(rLabel)}</a>`, text: rRef },
-      { html: `<a class="govuk-link" href="/active-case/creditor/${c.a.id}">${escapeHtml(aRef)} – ${escapeHtml(aLabel)}</a>` },
-      { html: creditorHtml },
-      { text: c.bu },
+      { html: buildSearchAccountHtml(`/active-case/${c.id}`, rRef, rLabel), text: rRef },
+      { html: buildSearchAccountHtml(`/active-case/creditor/${c.a.id}`, aRef, aLabel) },
+      { html: minorCreditorHtml },
       { text: c.status },
       { text: c.arrears }
     ]
@@ -9927,9 +9932,17 @@ router.post('/search', (req, res, next) => {
 
   const hasQuick = !!(accountNumber || referenceNumber)
   const hasAdv   = !!(rLn || rFn || rDob || rA1 || rPc || aLn || aFn || aDob || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc || majorCreditor)
+  const hasAdvancedSearchFieldsOtherThanMajorCreditor = !!(rLn || rFn || rDob || rA1 || rPc || aLn || aFn || aDob || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc)
 
   if (hasQuick && hasAdv) return res.redirect('/search/conflicting-criteria')
   if (!hasQuick && !hasAdv) return res.redirect('/search')
+
+  if (majorCreditor && !hasAdvancedSearchFieldsOtherThanMajorCreditor) {
+    const account = getMajorCreditorAccountByCode(majorCreditor)
+    if (!account) return res.redirect('/search/no-results')
+
+    return redirectWithSessionSave(req, res, next, `/active-case/major-creditor/${account.id}`)
+  }
 
   const results = performSearch({
     accountNumber, referenceNumber,
@@ -9981,6 +9994,7 @@ router.get('/search/results', (req, res) => {
 
   return res.render('search/results', {
     results: pageRows,
+    hasPagination: pageCount > 1,
     pagination: { items: paginationItems, results: { from, to, count: total } }
   })
 })

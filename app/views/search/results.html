@@ -29,8 +29,7 @@
             <tr class="govuk-table__row">
               <th scope="col" class="govuk-table__header" aria-sort="none">Respondent account</th>
               <th scope="col" class="govuk-table__header" aria-sort="none">Applicant account</th>
-              <th scope="col" class="govuk-table__header" aria-sort="none">Creditor accounts</th>
-              <th scope="col" class="govuk-table__header" aria-sort="none">Business unit</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Minor creditor accounts</th>
               <th scope="col" class="govuk-table__header" aria-sort="none">Status</th>
               <th scope="col" class="govuk-table__header" aria-sort="none">Arrears</th>
             </tr>
@@ -43,13 +42,14 @@
                 <td class="govuk-table__cell">{{ row[2].html | safe }}</td>
                 <td class="govuk-table__cell">{{ row[3].text }}</td>
                 <td class="govuk-table__cell">{{ row[4].text }}</td>
-                <td class="govuk-table__cell">{{ row[5].text }}</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
 
-        {{ mojPagination(pagination) }}
+        {% if hasPagination %}
+          {{ mojPagination(pagination) }}
+        {% endif %}
 
       {% else %}
         <p class="govuk-body">There are no matching results.</p>
