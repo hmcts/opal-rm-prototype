@@ -3949,6 +3949,14 @@ function getMajorCreditorItems(selectedValue) {
   ]
 }
 
+function getMajorCreditorAutocompleteItems(selectedValue) {
+  return majorCreditorOptions.map((c) => ({
+    value: c.value,
+    text: c.text,
+    selected: c.value === selectedValue
+  }))
+}
+
 function getMajorCreditorLabel(value) {
   const found = majorCreditorOptions.find((c) => c.value === value)
   return found ? found.text : null
@@ -9478,7 +9486,7 @@ function normaliseDateSearchText(value) {
 function getSearchViewData(formValues = {}) {
   return {
     formValues,
-    majorCreditorItems: getMajorCreditorItems(formValues['major-creditor'] || '')
+    majorCreditorItems: getMajorCreditorAutocompleteItems(formValues['major-creditor'] || '')
   }
 }
 
