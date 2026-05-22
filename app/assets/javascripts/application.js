@@ -99,4 +99,21 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     renumberAliases()
   })
+
+  document.querySelectorAll('[data-module="rm-toggle-details-summary"]').forEach(function ($details) {
+    var $summaryText = $details.querySelector('.govuk-details__summary-text')
+    var openText = $details.getAttribute('data-open-text')
+    var closedText = $details.getAttribute('data-closed-text')
+
+    if (!$summaryText || !openText || !closedText) {
+      return
+    }
+
+    function updateSummaryText () {
+      $summaryText.textContent = $details.open ? openText : closedText
+    }
+
+    $details.addEventListener('toggle', updateSummaryText)
+    updateSummaryText()
+  })
 })

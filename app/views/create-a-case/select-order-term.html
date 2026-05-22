@@ -29,28 +29,9 @@
 
       {% if recordedOrderTerms.length %}
         {% for card in orderTermCards %}
-          {{ govukSummaryList({
-            card: {
-              title: {
-                text: card.title
-              },
-              actions: {
-                items: [
-                  {
-                    href: card.changeHref,
-                    text: "Change",
-                    visuallyHiddenText: card.title
-                  },
-                  {
-                    href: card.removeHref,
-                    text: "Remove",
-                    visuallyHiddenText: card.title
-                  }
-                ]
-              }
-            },
-            rows: card.rows
-          }) }}
+          {% set orderTermCard = card %}
+          {% set showOrderTermCardActions = true %}
+          {% include "create-a-case/_order-term-summary-card.html" %}
         {% endfor %}
       {% else %}
         <p class="govuk-body">There are currently no order terms.</p>

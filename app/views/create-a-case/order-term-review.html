@@ -18,26 +18,8 @@
 
       <h1 class="govuk-heading-l">Review order term</h1>
 
-      {{ govukSummaryList({
-        card: {
-          title: {
-            text: orderTerm.code ~ " - " ~ orderTerm.title
-          },
-          actions: {
-            items: [
-              {
-                text: "Change",
-                href: "/create-a-case/order-term/" ~ orderTerm.index ~ "/change"
-              },
-              {
-                text: "Remove",
-                href: "/create-a-case/order-term/" ~ orderTerm.index ~ "/delete"
-              }
-            ]
-          }
-        },
-        rows: orderTermRows
-      }) }}
+      {% set showOrderTermCardActions = true %}
+      {% include "create-a-case/_order-term-summary-card.html" %}
 
       <div class="govuk-button-group">
         {{ govukButton({
