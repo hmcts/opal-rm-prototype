@@ -546,6 +546,35 @@ function buildBaseSessionData() {
   return cloneData(sessionDataDefaults)
 }
 
+function buildKatarzynaKowalczykMinorCreditor() {
+  return {
+    creditorType: 'individual',
+    title: 'Ms',
+    firstNames: 'Katarzyna',
+    lastName: 'Kowalczyk',
+    organisationName: '',
+    addressLine1: 'ul. Grzybowska 12',
+    addressLine2: 'Warszawa',
+    addressLine3: '',
+    addressLine4: '',
+    addressLine5: '',
+    postcode: '00-132',
+    country: 'poland',
+    bankAccountType: 'non-uk-bank-account',
+    ukNameOnAccount: '',
+    ukSortCode: '',
+    ukAccountNumber: '',
+    ukPaymentReference: '',
+    nonUkNameOnAccount: 'Katarzyna Kowalczyk',
+    nonUkBicOrSwiftCode: 'PKOPPLPW',
+    nonUkIban: 'PL27114020040000300201355387',
+    nonUkPaymentReference: 'KOWALCZYK-MICHAL',
+    nonUkBankName: 'PKO Bank Polski',
+    nonUkBranchOfficeOrSortCode: '11402004',
+    nonUkAccountNumber: '300201355387'
+  }
+}
+
 function buildCreateDataScenarios() {
   return {
     'create-a-case-remo-in': {
@@ -720,6 +749,9 @@ function buildCreateDataScenarios() {
           'order-court-that-made-the-order': 'Leeds Family Court',
           'order-date-order-made': '14/02/2026',
           'order-date-arrears-last-updated': '01/04/2026',
+          'minor-creditors': [
+            buildKatarzynaKowalczykMinorCreditor()
+          ],
           'entered-order-terms': [
             {
               code: 'MAT',
@@ -769,7 +801,7 @@ function buildCreateDataScenarios() {
               category: 'FINAL',
               categoryLabel: 'Final',
               wording:
-                'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
+                'Order for payment by Piotr Nowak to Katarzyna Kowalczyk payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
               responses: {
                 'result-mchild-amount': '220',
                 'result-mchild-frequency': 'monthly',
@@ -782,8 +814,9 @@ function buildCreateDataScenarios() {
                 'result-mchild-payment': 'payable through the Court',
                 'result-mchild-commencement': '14/02/2026'
               },
-              creditor: 'applicant',
-              creditorLabel: 'Anna Nowak'
+              creditor: 'new-minor-creditor',
+              creditorLabel: 'Katarzyna Kowalczyk',
+              minorCreditorData: buildKatarzynaKowalczykMinorCreditor()
             }
           ],
           'interest-and-indexation-completed': 'yes',
@@ -1375,102 +1408,46 @@ function getMinorCreditorSummaryRows(creditor) {
     }
   ]
 
+  addMinorCreditorBankRows(rows, creditor)
+
+  return rows
+}
+
+function addMinorCreditorBankRows(rows, creditor) {
   if (creditor.bankAccountType === 'uk-bank-account') {
     rows.push(
-      {
-        key: {
-          text: 'Payment method'
-        },
-        value: {
-          text: 'UK bank account'
-        }
-      },
-      {
-        key: {
-          text: 'Name on account'
-        },
-        value: {
-          text: formatTextValue(creditor.ukNameOnAccount)
-        }
-      },
-      {
-        key: {
-          text: 'Sort code'
-        },
-        value: {
-          text: formatTextValue(creditor.ukSortCode)
-        }
-      },
-      {
-        key: {
-          text: 'Account number'
-        },
-        value: {
-          text: formatTextValue(creditor.ukAccountNumber)
-        }
-      },
-      {
-        key: {
-          text: 'Payment reference'
-        },
-        value: {
-          text: formatTextValue(creditor.ukPaymentReference)
-        }
-      }
+      buildSummaryRow('Type of bank account', 'UK bank account'),
+      buildSummaryRow('Name on account', creditor.ukNameOnAccount),
+      buildSummaryRow('Sort code', creditor.ukSortCode),
+      buildSummaryRow('Account number', creditor.ukAccountNumber),
+      buildSummaryRow('Payment reference', creditor.ukPaymentReference)
     )
   } else if (creditor.bankAccountType === 'non-uk-bank-account') {
     rows.push(
-      {
-        key: {
-          text: 'Payment method'
-        },
-        value: {
-          text: 'IBAN'
-        }
-      },
-      {
-        key: {
-          text: 'Name on account'
-        },
-        value: {
-          text: formatTextValue(creditor.nonUkNameOnAccount)
-        }
-      },
-      {
-        key: {
-          text: 'BIC or SWIFT code'
-        },
-        value: {
-          text: formatTextValue(creditor.nonUkBicOrSwiftCode)
-        }
-      },
-      {
-        key: {
-          text: 'Account number'
-        },
-        value: {
-          text: formatTextValue(creditor.nonUkIban)
-        }
-      },
-      {
-        key: {
-          text: 'Payment reference'
-        },
-        value: {
-          text: formatTextValue(creditor.nonUkPaymentReference)
-        }
-      }
+      buildSummaryRow('Type of bank account', 'Non-UK bank account'),
+      buildSummaryRow('Name on account', creditor.nonUkNameOnAccount),
+      buildSummaryRow('BIC or SWIFT code', creditor.nonUkBicOrSwiftCode),
+      buildSummaryRow('IBAN', creditor.nonUkIban),
+      buildSummaryRow('Payment reference', creditor.nonUkPaymentReference)
     )
+    addSummaryRowIfHasValue(rows, 'Bank name', creditor.nonUkBankName)
+    addSummaryRowIfHasValue(
+      rows,
+      'Branch code or sort code',
+      creditor.nonUkBranchOfficeOrSortCode
+    )
+    addSummaryRowIfHasValue(rows, 'Account number', creditor.nonUkAccountNumber)
   } else {
-    rows.push({
-      key: {
-        text: 'Payment method'
-      },
-      value: {
-        text: 'Cheque'
-      }
-    })
+    rows.push(buildSummaryRow('Type of bank account', 'None entered'))
   }
+}
+
+function getMinorCreditorDetailsRows(creditor) {
+  const rows = [
+    buildSummaryHtmlRow('Address', getMinorCreditorAddressHtml(creditor))
+  ]
+
+  addMinorCreditorBankRows(rows, creditor)
 
   return rows
 }
@@ -1750,6 +1727,12 @@ function buildSummaryHtmlRow(keyText, html) {
   }
 }
 
+function addSummaryRowIfHasValue(rows, keyText, valueText) {
+  if (hasValue(valueText)) {
+    rows.push(buildSummaryRow(keyText, valueText))
+  }
+}
+
 function buildSummarySectionHeadingRow(headingText) {
   return {
     classes: 'rm-summary-list__section-heading rm-summary-list__section-start',
@@ -1795,6 +1778,48 @@ function hasThirdPartyCorrespondenceDetails(sessionData, party) {
     sessionData[`${party}-send-correspondence-to-third-party`] === 'yes' ||
     hasValue(sessionData[`${party}-third-party-name-or-organisation`])
   )
+}
+
+function getApplicantBankSummaryRows(sessionData) {
+  const rows = [
+    buildSummarySectionHeadingRow('Bank details')
+  ]
+
+  if (sessionData['applicant-bank-account-type'] === 'uk-bank-account') {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'UK bank account'),
+      buildSummaryRow('Name on account', sessionData['applicant-bank-name-on-account']),
+      buildSummaryRow('Sort code', sessionData['applicant-bank-sort-code']),
+      buildSummaryRow('Account number', sessionData['applicant-bank-account-number']),
+      buildSummaryRow('Payment reference', sessionData['applicant-bank-payment-reference'])
+    )
+  } else if (sessionData['applicant-bank-account-type'] === 'non-uk-bank-account') {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'Non-UK bank account'),
+      buildSummaryRow('Name on account', sessionData['applicant-bank-non-uk-name-on-account']),
+      buildSummaryRow('BIC or SWIFT code', sessionData['applicant-bank-bic-or-swift-code']),
+      buildSummaryRow('IBAN', sessionData['applicant-bank-iban']),
+      buildSummaryRow(
+        'Payment reference',
+        sessionData['applicant-bank-non-uk-payment-reference']
+      )
+    )
+    addSummaryRowIfHasValue(rows, 'Bank name', sessionData['applicant-bank-name'])
+    addSummaryRowIfHasValue(
+      rows,
+      'Branch code or sort code',
+      sessionData['applicant-bank-branch-office-or-sort-code']
+    )
+    addSummaryRowIfHasValue(
+      rows,
+      'Account number',
+      sessionData['applicant-bank-non-uk-account-number']
+    )
+  } else {
+    rows.push(buildSummaryRow('Type of bank account', 'None entered'))
+  }
+
+  return rows
 }
 
 function getApplicationTitle(sessionData) {
@@ -3508,19 +3533,53 @@ function getOrderTermReviewRows(orderTerm) {
   return rows
 }
 
-function getCheckCaseOrderTermCards(sessionData) {
-  return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
+function getOrderTermMinorCreditorData(orderTerm, sessionData) {
+  if (orderTerm?.minorCreditorData) {
+    return orderTerm.minorCreditorData
+  }
+
+  const creditor = String(orderTerm?.creditor || '')
+
+  if (creditor.startsWith('minor-creditor-')) {
+    const index = Number(creditor.replace('minor-creditor-', ''))
+    return Number.isInteger(index) ? getMinorCreditors(sessionData)[index] : null
+  }
+
+  if (creditor.startsWith('order-term-minor-creditor-')) {
+    const termIndex = Number(creditor.replace('order-term-minor-creditor-', ''))
+    const existingOrderTerm = getRecordedOrderTerms(sessionData).find((term) => term.index === termIndex)
+    return existingOrderTerm?.minorCreditorData || null
+  }
+
+  return null
+}
+
+function getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData) {
+  const minorCreditor = getOrderTermMinorCreditorData(orderTerm, sessionData)
+  return minorCreditor ? getMinorCreditorDetailsRows(minorCreditor) : []
+}
+
+function getOrderTermReviewCard(orderTerm, sessionData) {
+  return {
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getOrderTermReviewRows(orderTerm),
+    creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData),
     changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
     removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
-  }))
+  }
+}
+
+function getCheckCaseOrderTermCards(sessionData) {
+  return getRecordedOrderTerms(sessionData).map((orderTerm) =>
+    getOrderTermReviewCard(orderTerm, sessionData)
+  )
 }
 
 function getOrderTermHubCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getOrderTermReviewRows(orderTerm).slice(1).filter((row) => row.value.text !== '-'),
+    creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData),
     changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
     removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
   }))
@@ -3571,7 +3630,7 @@ function getAlternativeOrderTermResponseItems(sessionData) {
 
 function getApplicantSummaryRows(sessionData) {
   if (sessionData['applicant-type'] === 'organisation') {
-    return [
+    const rows = [
       buildSummaryRow('Organisation name', sessionData['applicant-organisation-name']),
       buildSummaryRow(
         'Foreign authority reference',
@@ -3599,6 +3658,11 @@ function getApplicantSummaryRows(sessionData) {
           getCountryLabel(sessionData['applicant-country'])
         ])
       )
+    ]
+
+    return [
+      ...rows,
+      ...getApplicantBankSummaryRows(sessionData)
     ]
   }
 
@@ -3634,6 +3698,8 @@ function getApplicantSummaryRows(sessionData) {
   if (hasThirdPartyCorrespondenceDetails(sessionData, 'applicant')) {
     rows.push(...getThirdPartySummaryRows(sessionData, 'applicant'))
   }
+
+  rows.push(...getApplicantBankSummaryRows(sessionData))
 
   rows.push({
     ...buildSummaryRow(
@@ -6145,13 +6211,29 @@ router.post('/create-a-case/order-term-creditor', (req, res, next) => {
     getCreateACaseData(req)['alternative-selected-major-creditor'] = selectedMajorCode
   } else {
     creditorLabel = getOrderTermCreditorLabelByValue(selectedCreditor, getCreateACaseData(req))
+
+    if (String(selectedCreditor).startsWith('order-term-minor-creditor-')) {
+      const termIndex = Number(String(selectedCreditor).replace('order-term-minor-creditor-', ''))
+      const existingMinorCreditorTerm = recordedTerms.find((term) => term.index === termIndex)
+      minorCreditorData = existingMinorCreditorTerm?.minorCreditorData || null
+    } else if (String(selectedCreditor).startsWith('minor-creditor-')) {
+      const minorCreditorIndex = Number(String(selectedCreditor).replace('minor-creditor-', ''))
+      minorCreditorData = Number.isInteger(minorCreditorIndex)
+        ? getMinorCreditors(getCreateACaseData(req))[minorCreditorIndex]
+        : null
+    }
   }
 
   const completedOrderTerm = {
     ...pendingOrderTerm,
     creditor: finalCreditorValue,
-    creditorLabel,
-    ...(minorCreditorData ? { minorCreditorData } : {})
+    creditorLabel
+  }
+
+  if (minorCreditorData) {
+    completedOrderTerm.minorCreditorData = minorCreditorData
+  } else {
+    delete completedOrderTerm.minorCreditorData
   }
   const editIndex = hasValue(pendingOrderTerm.editIndex)
     ? Number(pendingOrderTerm.editIndex)
@@ -6191,7 +6273,7 @@ router.get('/create-a-case/order-term-review', (req, res) => {
 
   return res.render('create-a-case/order-term-review', {
     orderTerm,
-    orderTermRows: getOrderTermReviewRows(orderTerm)
+    orderTermCard: getOrderTermReviewCard(orderTerm, getCreateACaseData(req))
   })
 })
 
@@ -6414,6 +6496,7 @@ router.get('/create-a-case/minor-creditors', (req, res) => {
   if (!hasMinorCreditors(getCreateACaseData(req))) {
     return res.render('create-a-case/minor-creditor-details', {
       creditor: {},
+      countryItems: getCountrySelectItems(''),
       formAction: '/create-a-case/minor-creditors',
       cancelHref: '/create-a-case/case-details'
     })
@@ -6446,6 +6529,7 @@ router.get('/create-a-case/minor-creditors/new', (req, res) => {
 
   return res.render('create-a-case/minor-creditor-details', {
     creditor: {},
+    countryItems: getCountrySelectItems(''),
     formAction: '/create-a-case/minor-creditors/new',
     cancelHref: '/create-a-case/minor-creditors'
   })
@@ -6472,6 +6556,7 @@ router.get('/create-a-case/minor-creditors/:index/edit', (req, res) => {
 
   return res.render('create-a-case/minor-creditor-details', {
     creditor: getMinorCreditors(getCreateACaseData(req))[index],
+    countryItems: getCountrySelectItems(getMinorCreditors(getCreateACaseData(req))[index].country || ''),
     formAction: `/create-a-case/minor-creditors/${index}/edit`,
     cancelHref: '/create-a-case/minor-creditors'
   })

@@ -1,0 +1,57 @@
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set showOrderTermCardActions = showOrderTermCardActions | default(true) %}
+
+<div class="govuk-summary-card govuk-!-margin-bottom-6">
+  <div class="govuk-summary-card__title-wrapper">
+    <h2 class="govuk-summary-card__title">{{ orderTermCard.title }}</h2>
+    {% if showOrderTermCardActions and (orderTermCard.changeHref or orderTermCard.removeHref) %}
+      <ul class="govuk-summary-card__actions">
+        {% if orderTermCard.changeHref %}
+          <li class="govuk-summary-card__action">
+            <a class="govuk-link" href="{{ orderTermCard.changeHref }}">
+              Change
+              {% if orderTermCard.title %}
+                <span class="govuk-visually-hidden"> {{ orderTermCard.title }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+        {% if orderTermCard.removeHref %}
+          <li class="govuk-summary-card__action">
+            <a class="govuk-link" href="{{ orderTermCard.removeHref }}">
+              Remove
+              {% if orderTermCard.title %}
+                <span class="govuk-visually-hidden"> {{ orderTermCard.title }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    {% endif %}
+  </div>
+  <div class="govuk-summary-card__content">
+    {{ govukSummaryList({
+      rows: orderTermCard.rows
+    }) }}
+
+    {% if orderTermCard.creditorDetailsRows and orderTermCard.creditorDetailsRows | length %}
+      {% set creditorDetailsHtml %}
+        {{ govukSummaryList({
+          rows: orderTermCard.creditorDetailsRows
+        }) }}
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "Show creditor details",
+        attributes: {
+          "data-module": "rm-toggle-details-summary",
+          "data-open-text": "Hide creditor details",
+          "data-closed-text": "Show creditor details"
+        },
+        html: creditorDetailsHtml
+      }) }}
+    {% endif %}
+  </div>
+</div>

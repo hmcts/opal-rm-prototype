@@ -215,37 +215,8 @@
   <h2 class="govuk-heading-m">Order terms</h2>
 
   {% for orderTermCard in orderTermCards %}
-    {% if showChangeLinks %}
-      {{ govukSummaryList({
-        card: {
-          title: {
-            text: orderTermCard.title
-          },
-          actions: {
-            items: [
-              {
-                text: "Change",
-                href: orderTermCard.changeHref
-              },
-              {
-                text: "Remove",
-                href: orderTermCard.removeHref
-              }
-            ]
-          }
-        },
-        rows: orderTermCard.rows
-      }) }}
-    {% else %}
-      {{ govukSummaryList({
-        card: {
-          title: {
-            text: orderTermCard.title
-          }
-        },
-        rows: orderTermCard.rows
-      }) }}
-    {% endif %}
+    {% set showOrderTermCardActions = showChangeLinks %}
+    {% include "create-a-case/_order-term-summary-card.html" %}
   {% endfor %}
 
   <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">

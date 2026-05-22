@@ -292,7 +292,7 @@
           id: "applicant-bank-branch-office-or-sort-code",
           name: "applicant-bank-branch-office-or-sort-code",
           label: {
-            text: "Branch office or sort code",
+            text: "Branch code or sort code",
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
@@ -611,10 +611,10 @@
             },
             {
               value: "none",
-              text: "None",
+              text: "None or not applicable",
               checked: data["applicant-bank-account-type"] == "none",
               hint: {
-                text: "Cheques will be used if no payment details are added"
+                text: "Cheques will be used for any applicable payments"
               }
             }
           ]
