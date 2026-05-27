@@ -219,12 +219,18 @@
           {{ govukCheckboxes({
             idPrefix: "active-accounts-only",
             name: "active-accounts-only",
+            classes: "govuk-checkboxes--small",
             items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] != "no" }]
           }) }}
         {% endset %}
 
         {{ govukDetails({
           summaryText: "or use advanced search",
+          attributes: {
+            "data-module": "rm-toggle-details-summary",
+            "data-open-text": "Hide advanced search",
+            "data-closed-text": "or use advanced search"
+          },
           html: advancedSearchHtml
         }) }}
 

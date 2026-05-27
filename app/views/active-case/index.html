@@ -15,6 +15,14 @@
 {% endblock %}
 
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({
+      variant: "success",
+      title: successMessage,
+      dismissible: true
+    }) }}
+  {% endif %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
@@ -47,16 +55,16 @@
 
       <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
         <div class="rm-case-summary-tile rm-case-summary-tile--dark">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Balance</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.balance }}</p>
+        </div>
+        <div class="rm-case-summary-tile rm-metric-card--mid govuk-!-padding-left-3 govuk-!-padding-right-3">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrears</p>
           <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.arrears }}</p>
         </div>
         <div class="rm-case-summary-tile">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Case type</p>
           <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.caseType }}</p>
-        </div>
-        <div class="rm-case-summary-tile">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">REMO reference</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.remoReference }}</p>
         </div>
         <div class="rm-case-summary-tile">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Business unit</p>
@@ -73,7 +81,7 @@
         items: [
           { text: "At a glance", href: "/active-case/" + caseId, active: tab === 'at-a-glance' },
           { text: "Respondent", href: "/active-case/" + caseId + "?tab=respondent", active: tab === 'respondent' },
-          { text: "Authority", href: "#" },
+          { text: "Authority", href: "/active-case/" + caseId + "?tab=authority", active: tab === 'authority' },
           { text: "Applications", href: "#" },
           { text: "Orders", href: "#" },
           { text: "Enforcement", href: "#" },
@@ -126,6 +134,36 @@
                 </ul>
               </nav>
             </aside>
+          </div>
+        </div>
+
+      {% elif tab === 'authority' %}
+
+        <div class="govuk-grid-row govuk-!-margin-top-6">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Authority details</h2>
+          </div>
+        </div>
+
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            {{ govukSummaryList({
+              card: {
+                title: {
+                  text: "Central authority details"
+                },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/authority/edit",
+                      text: "Change",
+                      visuallyHiddenText: "central authority details"
+                    }
+                  ]
+                }
+              },
+              rows: centralAuthorityRows
+            }) }}
           </div>
         </div>
 

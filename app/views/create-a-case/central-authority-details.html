@@ -14,12 +14,13 @@
   {% set formAction = formAction or "/create-a-case/central-authority-details" %}
   {% set manualHref = manualHref or "/create-a-case/central-authority-details/manual" %}
   {% set removeHref = removeHref or "/create-a-case/central-authority-details/remove" %}
+  {% set backHref = backHref or "/create-a-case/case-details" %}
   {% set cancelHref = cancelHref or "/create-a-case/case-details" %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
         text: "Back",
-        href: "/create-a-case/case-details"
+        href: backHref
       }) }}
 
       {% if accountContextLabel %}
@@ -131,7 +132,7 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Return to case details"
+            text: submitButtonText or "Return to case details"
           }) }}
 
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
@@ -140,5 +141,4 @@
     </div>
   </div>
 {% endblock %}
-
 

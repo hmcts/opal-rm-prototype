@@ -263,7 +263,7 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Save"
+            text: submitButtonText or "Save"
           }) }}
 
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
@@ -272,4 +272,3 @@
     </div>
   </div>
 {% endblock %}
-
