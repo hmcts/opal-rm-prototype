@@ -8,6 +8,7 @@ Use it if you need to:
 - set up a MacBook from scratch
 - learn the basic Git commands needed for day-to-day work
 - understand how to use Codex to make prototype changes safely
+- document the Search journey flows and matching logic for functional specification work
 - understand how the repository publishes documentation previews for branches and pull requests
 
 ## Start here
@@ -18,6 +19,10 @@ If you are new to development tools, read in this order:
 2. [Git and GitHub basics](git-and-github.md)
 3. [Using Codex for prototyping](using-codex.md)
 4. [Troubleshooting](troubleshooting.md)
+
+## Functional documentation
+
+- [Search flows and logic](search-flows-and-logic.md)
 
 ## What this repository is
 

@@ -1780,6 +1780,24 @@ function hasThirdPartyCorrespondenceDetails(sessionData, party) {
   )
 }
 
+function getRestrictedPersonalInformationRows(isRestricted, restrictionReason) {
+  const rows = [
+    buildSummarySectionHeadingRow('Restrictions'),
+    buildSummaryRow('Restricted personal information', isRestricted ? 'Yes' : 'No')
+  ]
+
+  if (isRestricted && hasValue(restrictionReason)) {
+    rows.push(
+      buildSummaryHtmlRow(
+        'Reason for restriction',
+        formatLinesHtml(String(restrictionReason).split('\n'))
+      )
+    )
+  }
+
+  return rows
+}
+
 function getApplicantBankSummaryRows(sessionData) {
   const rows = [
     buildSummarySectionHeadingRow('Bank details')
@@ -3701,22 +3719,13 @@ function getApplicantSummaryRows(sessionData) {
 
   rows.push(...getApplicantBankSummaryRows(sessionData))
 
-  rows.push({
-    ...buildSummaryRow(
-      'Restrict personal information',
-      sessionData['applicant-restrict-personal-information'] ? 'Yes' : 'No'
-    ),
-    classes: 'rm-summary-list__section-start'
-  })
-
-  if (sessionData['applicant-restrict-personal-information'] && sessionData['applicant-restriction-reason']) {
-    rows.push(
-      buildSummaryHtmlRow(
-        'Reason for restriction',
-        formatLinesHtml(sessionData['applicant-restriction-reason'].split('\n'))
-      )
+  rows.push(
+    ...getRestrictedPersonalInformationRows(
+      sessionData['applicant-restrict-personal-information'] === true ||
+        isChecked(sessionData['applicant-restrict-personal-information']),
+      sessionData['applicant-restriction-reason']
     )
-  }
+  )
 
   return rows
 }
@@ -3793,22 +3802,13 @@ function getRespondentSummaryRows(sessionData) {
     rows.push(...getThirdPartySummaryRows(sessionData, 'respondent'))
   }
 
-  rows.push({
-    ...buildSummaryRow(
-      'Restrict personal information',
-      sessionData['respondent-restrict-personal-information'] ? 'Yes' : 'No'
-    ),
-    classes: 'rm-summary-list__section-start'
-  })
-
-  if (sessionData['respondent-restrict-personal-information'] && sessionData['respondent-restriction-reason']) {
-    rows.push(
-      buildSummaryHtmlRow(
-        'Reason for restriction',
-        formatLinesHtml(sessionData['respondent-restriction-reason'].split('\n'))
-      )
+  rows.push(
+    ...getRestrictedPersonalInformationRows(
+      sessionData['respondent-restrict-personal-information'] === true ||
+        isChecked(sessionData['respondent-restrict-personal-information']),
+      sessionData['respondent-restriction-reason']
     )
-  }
+  )
 
   return rows
 }
@@ -8213,6 +8213,27 @@ const activeCases = {
   }
 }
 
+const activeCaseSuccessMessageKey = 'active-case-success-message'
+const activeCaseSuccessMessages = new Map()
+
+function setActiveCaseSuccessMessage(req, path, message) {
+  req.session.data = {
+    ...req.session.data,
+    [activeCaseSuccessMessageKey]: message
+  }
+  activeCaseSuccessMessages.set(path, message)
+}
+
+function consumeActiveCaseSuccessMessage(req) {
+  const message =
+    req.session.data[activeCaseSuccessMessageKey] ||
+    activeCaseSuccessMessages.get(req.path)
+  const { [activeCaseSuccessMessageKey]: _message, ...data } = req.session.data
+  req.session.data = data
+  activeCaseSuccessMessages.delete(req.path)
+  return message
+}
+
 const minorCreditorAccounts = {
   51: {
     type: 'applicant',
@@ -8331,7 +8352,7 @@ function toDatePickerValue(dateString) {
 
 function getAddressFormFields(address = [], prefix) {
   const parts = Array.isArray(address) ? address.filter(hasValue) : []
-  const country = parts.length > 0 ? parts[parts.length - 1] : ''
+  const country = parts.length > 0 ? slugifyCountryName(parts[parts.length - 1]) : ''
   const postcode = parts.length > 1 ? parts[parts.length - 2] : ''
   const lines = parts.slice(0, -2)
 
@@ -8343,6 +8364,107 @@ function getAddressFormFields(address = [], prefix) {
     [`${prefix}-address-line-5`]: lines[4] || '',
     [`${prefix}-postal-or-zip-code`]: postcode || '',
     [`${prefix}-country`]: country || ''
+  }
+}
+
+function getApplicantBankFormFieldsFromAccount(account) {
+  const hasUkBankDetails = account.sortCode || account.bankAccountNumber || account.paymentMethod === 'BACS'
+  const hasNonUkBankDetails = account.iban || account.bicOrSwiftCode || account.paymentMethod === 'IBAN'
+
+  return {
+    'applicant-bank-account-type': hasUkBankDetails
+      ? 'uk-bank-account'
+      : hasNonUkBankDetails
+        ? 'non-uk-bank-account'
+        : 'none',
+    'applicant-bank-name-on-account': hasUkBankDetails ? account.nameOnAccount || '' : '',
+    'applicant-bank-sort-code': hasUkBankDetails ? account.sortCode || '' : '',
+    'applicant-bank-account-number': hasUkBankDetails ? account.bankAccountNumber || '' : '',
+    'applicant-bank-payment-reference': hasUkBankDetails ? account.paymentReference || '' : '',
+    'applicant-bank-non-uk-name-on-account': hasNonUkBankDetails ? account.nameOnAccount || '' : '',
+    'applicant-bank-bic-or-swift-code': account.bicOrSwiftCode || '',
+    'applicant-bank-iban': account.iban || '',
+    'applicant-bank-non-uk-payment-reference': hasNonUkBankDetails ? account.paymentReference || '' : '',
+    'applicant-bank-name': account.bankName || '',
+    'applicant-bank-branch-office-or-sort-code': account.branchOfficeOrSortCode || '',
+    'applicant-bank-non-uk-account-number': account.nonUkAccountNumber || ''
+  }
+}
+
+function getThirdPartyFormFieldsFromAccount(thirdParty, prefix) {
+  return {
+    [`${prefix}-send-correspondence-to-third-party`]: thirdParty ? 'yes' : null,
+    [`${prefix}-third-party-name-or-organisation`]: thirdParty ? thirdParty.name || '' : '',
+    [`${prefix}-third-party-relationship`]: thirdParty ? thirdParty.relationship || '' : '',
+    [`${prefix}-third-party-reference`]: thirdParty ? thirdParty.reference || '' : '',
+    ...getAddressFormFields(thirdParty ? thirdParty.address : [], `${prefix}-third-party`)
+  }
+}
+
+function getThirdPartyRowsFromAccount(thirdParty, party) {
+  if (!thirdParty) {
+    return []
+  }
+
+  return [
+    buildSummarySectionHeadingRow('Third party details'),
+    buildSummaryRow('Third party name', thirdParty.name),
+    buildSummaryRow(`Relationship to ${party}`, thirdParty.relationship),
+    buildSummaryRow('Reference', thirdParty.reference),
+    buildSummaryHtmlRow('Address', formatLinesHtml(thirdParty.address || []))
+  ]
+}
+
+function updateThirdPartyFromForm(body, prefix) {
+  if (!isChecked(body[`${prefix}-send-correspondence-to-third-party`])) {
+    return null
+  }
+
+  return {
+    name: body[`${prefix}-third-party-name-or-organisation`] || '',
+    relationship: body[`${prefix}-third-party-relationship`] || '',
+    reference: body[`${prefix}-third-party-reference`] || '',
+    address: getAddressFromBody(body, `${prefix}-third-party`)
+  }
+}
+
+function updateApplicantBankDetailsFromForm(account, body) {
+  if (body['applicant-bank-account-type'] === 'uk-bank-account') {
+    account.paymentMethod = 'BACS'
+    account.bacsStatus = 'PROVIDED'
+    account.nameOnAccount = body['applicant-bank-name-on-account'] || null
+    account.sortCode = body['applicant-bank-sort-code'] || null
+    account.bankAccountNumber = body['applicant-bank-account-number'] || null
+    account.paymentReference = body['applicant-bank-payment-reference'] || null
+    delete account.bicOrSwiftCode
+    delete account.iban
+    delete account.bankName
+    delete account.branchOfficeOrSortCode
+    delete account.nonUkAccountNumber
+  } else if (body['applicant-bank-account-type'] === 'non-uk-bank-account') {
+    account.paymentMethod = 'IBAN'
+    account.bacsStatus = 'PROVIDED'
+    account.nameOnAccount = body['applicant-bank-non-uk-name-on-account'] || null
+    account.bicOrSwiftCode = body['applicant-bank-bic-or-swift-code'] || null
+    account.iban = body['applicant-bank-iban'] || null
+    account.paymentReference = body['applicant-bank-non-uk-payment-reference'] || null
+    account.bankName = body['applicant-bank-name'] || null
+    account.branchOfficeOrSortCode = body['applicant-bank-branch-office-or-sort-code'] || null
+    account.nonUkAccountNumber = body['applicant-bank-non-uk-account-number'] || null
+    delete account.sortCode
+    delete account.bankAccountNumber
+  } else {
+    account.paymentMethod = null
+    account.bacsStatus = null
+    account.nameOnAccount = null
+    account.paymentReference = null
+    delete account.sortCode
+    delete account.bankAccountNumber
+    delete account.bicOrSwiftCode
+    delete account.iban
+    delete account.bankName
+    delete account.branchOfficeOrSortCode
+    delete account.nonUkAccountNumber
   }
 }
 
@@ -8511,8 +8633,10 @@ function getActiveCaseRespondentRows(respondent) {
   }
 
   rows.push(
-    buildSummaryRow('Restrict personal information', respondent.restricted ? 'Yes' : 'No'),
-    buildSummaryRow('Reason for restriction', respondent.restrictionReason)
+    ...getRestrictedPersonalInformationRows(
+      respondent.restricted,
+      respondent.restrictionReason
+    )
   )
 
   return rows
@@ -8531,7 +8655,8 @@ router.get('/active-case/:id', (req, res) => {
     activeCase,
     caseId: id,
     tab,
-    respondentRows: getActiveCaseRespondentRows(activeCase.respondent)
+    respondentRows: getActiveCaseRespondentRows(activeCase.respondent),
+    successMessage: consumeActiveCaseSuccessMessage(req)
   })
 })
 
@@ -8578,7 +8703,7 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
   })
 })
 
-router.post('/active-case/:id/respondent/edit', (req, res) => {
+router.post('/active-case/:id/respondent/edit', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
 
@@ -8628,7 +8753,9 @@ router.post('/active-case/:id/respondent/edit', (req, res) => {
       account.respondentName = respondent.name
     })
 
-  return res.redirect('/active-case/' + id + '?tab=respondent')
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Respondent details updated.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id + '?tab=respondent')
 })
 
 router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
@@ -8650,17 +8777,11 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
     'applicant-other-email-address': account.otherEmail || '',
     'applicant-main-telephone-number': account.mainTelephone || '',
     'applicant-other-telephone-number': account.otherTelephone || '',
-    'applicant-address-line-1': account.address[0] || '',
-    'applicant-address-line-2': account.address[1] || '',
-    'applicant-address-line-3': account.address[2] || '',
-    'applicant-address-line-4': '',
-    'applicant-address-line-5': '',
-    'applicant-postal-or-zip-code': account.address[3] || '',
-    'applicant-country': account.address[4] || '',
-    'applicant-send-correspondence-to-third-party': null,
+    ...getAddressFormFields(account.address, 'applicant'),
+    ...getThirdPartyFormFieldsFromAccount(account.thirdParty, 'applicant'),
     'applicant-restrict-personal-information': account.restricted ? 'yes' : null,
     'applicant-restriction-reason': account.restrictionReason || '',
-    'applicant-bank-account-type': null
+    ...getApplicantBankFormFieldsFromAccount(account)
   }
 
   Object.assign(req.session.data, fields)
@@ -8687,7 +8808,7 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
   })
 })
 
-router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
+router.post('/active-case/creditor/:id/applicant/edit', (req, res, next) => {
   const id = Number(req.params.id)
   const account = minorCreditorAccounts[id]
 
@@ -8697,21 +8818,18 @@ router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
   account.firstNames = req.body['applicant-first-names'] || ''
   account.lastName = req.body['applicant-last-name'] || ''
   account.name = [account.title, account.firstNames, account.lastName].filter(Boolean).join(' ')
+  account.dateOfBirth = hasValue(req.body['applicant-date-of-birth'])
+    ? `${formatDateLong(req.body['applicant-date-of-birth'])} (Age ${getAgeFromDateString(req.body['applicant-date-of-birth'])})`
+    : null
   account.mainEmail = req.body['applicant-main-email-address'] || null
   account.otherEmail = req.body['applicant-other-email-address'] || null
   account.mainTelephone = req.body['applicant-main-telephone-number'] || null
   account.otherTelephone = req.body['applicant-other-telephone-number'] || null
-  account.address = [
-    req.body['applicant-address-line-1'],
-    req.body['applicant-address-line-2'],
-    req.body['applicant-address-line-3'],
-    req.body['applicant-address-line-4'],
-    req.body['applicant-address-line-5'],
-    req.body['applicant-postal-or-zip-code'],
-    req.body['applicant-country']
-  ].filter(v => v && v.trim())
+  account.address = getAddressFromBody(req.body, 'applicant')
+  account.thirdParty = updateThirdPartyFromForm(req.body, 'applicant')
   account.restricted = isChecked(req.body['applicant-restrict-personal-information'])
   account.restrictionReason = account.restricted ? req.body['applicant-restriction-reason'] || null : null
+  updateApplicantBankDetailsFromForm(account, req.body)
 
   account.aliases = []
   if (isChecked(req.body['applicant-add-aliases'])) {
@@ -8726,8 +8844,9 @@ router.post('/active-case/creditor/:id/applicant/edit', (req, res) => {
   }
 
   syncAliasFields(req.session.data, req.body, 'applicant')
+  setActiveCaseSuccessMessage(req, '/active-case/creditor/' + id, 'Applicant details updated.')
 
-  return res.redirect('/active-case/creditor/' + id + '?tab=applicant')
+  return redirectWithSessionSave(req, res, next, '/active-case/creditor/' + id + '?tab=applicant')
 })
 
 router.get('/active-case/creditor/:id/creditor/edit', (req, res) => {
@@ -9472,11 +9591,49 @@ function buildApplicantAccountRows(account) {
   rows.push(buildSummaryRow('Main telephone number', account.mainTelephone))
   rows.push(buildSummaryRow('Other telephone number', account.otherTelephone))
   rows.push(buildSummaryHtmlRow("Applicant's address", formatLinesHtml(account.address || [])))
-  rows.push(buildSummaryRow('Restrict personal information', account.restricted ? 'Yes' : 'No'))
-  if (account.restricted && account.restrictionReason) {
-    rows.push(buildSummaryRow('Restriction reason', account.restrictionReason))
-  }
+
+  rows.push(...getThirdPartyRowsFromAccount(account.thirdParty, 'applicant'))
+
+  rows.push(...getApplicantAccountBankRows(account))
+
+  rows.push(
+    ...getRestrictedPersonalInformationRows(
+      account.restricted,
+      account.restrictionReason
+    )
+  )
   return rows.filter(Boolean)
+}
+
+function getApplicantAccountBankRows(account) {
+  const rows = [
+    buildSummarySectionHeadingRow('Bank details')
+  ]
+
+  if (account.paymentMethod === 'BACS' || account.sortCode || account.bankAccountNumber) {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'UK bank account'),
+      buildSummaryRow('Name on account', account.nameOnAccount),
+      buildSummaryRow('Sort code', account.sortCode),
+      buildSummaryRow('Account number', account.bankAccountNumber),
+      buildSummaryRow('Payment reference', account.paymentReference)
+    )
+  } else if (account.paymentMethod === 'IBAN' || account.iban || account.bicOrSwiftCode) {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'Non-UK bank account'),
+      buildSummaryRow('Name on account', account.nameOnAccount),
+      buildSummaryRow('BIC or SWIFT code', account.bicOrSwiftCode),
+      buildSummaryRow('IBAN', account.iban),
+      buildSummaryRow('Payment reference', account.paymentReference)
+    )
+    addSummaryRowIfHasValue(rows, 'Bank name', account.bankName)
+    addSummaryRowIfHasValue(rows, 'Branch code or sort code', account.branchOfficeOrSortCode)
+    addSummaryRowIfHasValue(rows, 'Account number', account.nonUkAccountNumber)
+  } else {
+    rows.push(buildSummaryRow('Type of bank account', 'None entered'))
+  }
+
+  return rows
 }
 
 router.get('/active-case/creditor/:id', (req, res) => {
@@ -9494,7 +9651,8 @@ router.get('/active-case/creditor/:id', (req, res) => {
     accountId: id,
     tab,
     applicantRows,
-    creditorRows: getMinorCreditorRowsFromAccount(account)
+    creditorRows: getMinorCreditorRowsFromAccount(account),
+    successMessage: consumeActiveCaseSuccessMessage(req)
   })
 })
 
