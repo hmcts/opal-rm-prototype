@@ -8135,7 +8135,13 @@ const activeCases = {
     remoReference: '2008/REMO/56789012',
     businessUnit: 'Reading',
     dateOfLastMovement: '2 May 2026',
+    balance: '£180.00',
     arrears: '£180.00',
+    centralAuthority: {
+      'central-authority-remo-reference': '2008/REMO/56789012',
+      'central-authority-reference': 'RO-MJ-2026-215',
+      'central-authority-name': 'Polish Central Authority'
+    },
     respondent: {
       name: 'Mr Andrei POPA',
       title: 'Mr',
@@ -8175,7 +8181,13 @@ const activeCases = {
     remoReference: '2010/REMO/34567890',
     businessUnit: 'Bury St. Edmunds',
     dateOfLastMovement: '30 April 2026',
+    balance: '£0.00',
     arrears: '£0.00',
+    centralAuthority: {
+      'central-authority-remo-reference': '2010/REMO/34567890',
+      'central-authority-reference': 'TR-MJ-2026-387',
+      'central-authority-name': 'The Collection Agency for Child Support and Overpaid Benefits'
+    },
     respondent: {
       name: 'Mr Cem DEMIR',
       title: 'Mr',
@@ -8599,6 +8611,98 @@ function getMinorCreditorRowsFromAccount(account) {
   ]
 }
 
+const centralAuthorityFieldNames = [
+  'central-authority-remo-reference',
+  'central-authority-reference',
+  'central-authority-name',
+  'central-authority-manual-name',
+  'central-authority-main-email-address',
+  'central-authority-other-email-address',
+  'central-authority-main-telephone-number',
+  'central-authority-other-telephone-number',
+  'central-authority-address-line-1',
+  'central-authority-address-line-2',
+  'central-authority-address-line-3',
+  'central-authority-address-line-4',
+  'central-authority-address-line-5',
+  'central-authority-postal-or-zip-code',
+  'central-authority-country',
+  'central-authority-bank-account-type',
+  'central-authority-bank-name-on-account',
+  'central-authority-bank-sort-code',
+  'central-authority-bank-account-number',
+  'central-authority-bank-payment-reference',
+  'central-authority-bank-non-uk-name-on-account',
+  'central-authority-bank-bic-or-swift-code',
+  'central-authority-bank-iban',
+  'central-authority-bank-non-uk-payment-reference',
+  'central-authority-bank-name',
+  'central-authority-bank-branch-office-or-sort-code',
+  'central-authority-bank-non-uk-account-number'
+]
+
+function getActiveCaseCentralAuthorityData(activeCase) {
+  return {
+    'central-authority-remo-reference': activeCase.remoReference || '',
+    'central-authority-reference': '',
+    'central-authority-name': '',
+    ...(activeCase.centralAuthority || {})
+  }
+}
+
+function getActiveCaseCentralAuthorityRows(activeCase) {
+  const centralAuthority = getActiveCaseCentralAuthorityData(activeCase)
+
+  return [
+    buildSummaryRow('REMO reference', centralAuthority['central-authority-remo-reference']),
+    buildSummaryRow(
+      "Central authority's reference",
+      centralAuthority['central-authority-reference']
+    ),
+    buildSummaryRow(
+      'Central authority name',
+      centralAuthority['central-authority-manual-name'] ||
+        centralAuthority['central-authority-name']
+    )
+  ]
+}
+
+function setCentralAuthorityFormData(req, res, centralAuthority) {
+  Object.assign(req.session.data, centralAuthority)
+  Object.assign(res.locals.data, centralAuthority)
+}
+
+function updateActiveCaseCentralAuthority(activeCase, body, options = {}) {
+  const current = getActiveCaseCentralAuthorityData(activeCase)
+  const updated = { ...current }
+
+  centralAuthorityFieldNames.forEach((fieldName) => {
+    if (Object.prototype.hasOwnProperty.call(body, fieldName)) {
+      updated[fieldName] = getSingleValue(body[fieldName]) || ''
+    }
+  })
+
+  if (options.clearSelectedAuthority) {
+    updated['central-authority-name'] = ''
+  }
+
+  if (options.clearManualAuthority) {
+    centralAuthorityFieldNames
+      .filter((fieldName) => fieldName !== 'central-authority-remo-reference' &&
+        fieldName !== 'central-authority-reference' &&
+        fieldName !== 'central-authority-name')
+      .forEach((fieldName) => {
+        updated[fieldName] = ''
+      })
+  }
+
+  activeCase.centralAuthority = updated
+
+  if (hasValue(updated['central-authority-remo-reference'])) {
+    activeCase.remoReference = updated['central-authority-remo-reference']
+  }
+}
+
 function getActiveCaseRespondentRows(respondent) {
   const rows = [
     buildSummaryRow('Title', respondent.title),
@@ -8656,6 +8760,7 @@ router.get('/active-case/:id', (req, res) => {
     caseId: id,
     tab,
     respondentRows: getActiveCaseRespondentRows(activeCase.respondent),
+    centralAuthorityRows: getActiveCaseCentralAuthorityRows(activeCase),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
 })
@@ -8756,6 +8861,112 @@ router.post('/active-case/:id/respondent/edit', (req, res, next) => {
   setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Respondent details updated.')
 
   return redirectWithSessionSave(req, res, next, '/active-case/' + id + '?tab=respondent')
+})
+
+router.get('/active-case/:id/authority/edit', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const centralAuthority = getActiveCaseCentralAuthorityData(activeCase)
+  setCentralAuthorityFormData(req, res, centralAuthority)
+
+  return res.render('create-a-case/central-authority-details', {
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    backHref: '/active-case/' + id + '?tab=authority',
+    formAction: '/active-case/' + id + '/authority/edit',
+    manualHref: '/active-case/' + id + '/authority/edit/manual',
+    removeHref: '/active-case/' + id + '/authority/edit/remove',
+    cancelHref: '/active-case/' + id + '?tab=authority',
+    submitButtonText: 'Save changes',
+    hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(centralAuthority),
+    centralAuthorityCardRows: getCentralAuthorityCardRows(centralAuthority)
+  })
+})
+
+router.post('/active-case/:id/authority/edit', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  updateActiveCaseCentralAuthority(activeCase, req.body)
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Central authority details updated.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id + '?tab=authority')
+})
+
+router.get('/active-case/:id/authority/edit/manual', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const centralAuthority = getActiveCaseCentralAuthorityData(activeCase)
+  setCentralAuthorityFormData(req, res, centralAuthority)
+
+  return res.render('create-a-case/central-authority-details-manual', {
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    formAction: '/active-case/' + id + '/authority/edit/manual',
+    cancelHref: '/active-case/' + id + '/authority/edit',
+    submitButtonText: 'Save changes'
+  })
+})
+
+router.post('/active-case/:id/authority/edit/manual', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  updateActiveCaseCentralAuthority(activeCase, req.body, { clearSelectedAuthority: true })
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id + '/authority/edit')
+})
+
+router.get('/active-case/:id/authority/edit/remove', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const centralAuthority = getActiveCaseCentralAuthorityData(activeCase)
+
+  if (!hasCentralAuthorityManualDetails(centralAuthority)) {
+    return res.redirect('/active-case/' + id + '/authority/edit')
+  }
+
+  return res.render('create-a-case/remove-central-authority-details', {
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    formAction: '/active-case/' + id + '/authority/edit/remove',
+    cancelHref: '/active-case/' + id + '/authority/edit',
+    centralAuthorityCardRows: getCentralAuthorityCardRows(centralAuthority)
+  })
+})
+
+router.post('/active-case/:id/authority/edit/remove', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  updateActiveCaseCentralAuthority(activeCase, {}, { clearManualAuthority: true })
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Central authority details removed.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id + '?tab=authority')
 })
 
 router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
