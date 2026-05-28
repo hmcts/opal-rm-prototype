@@ -1,0 +1,87 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-m">History</h2>
+
+    {% set filterHtml %}
+      {{ mojDatePicker({
+        id: "history-date-from",
+        name: "history-date-from",
+        label: {
+          text: "Dates from",
+          classes: "govuk-label--s"
+        }
+      }) }}
+
+      {{ mojDatePicker({
+        id: "history-date-to",
+        name: "history-date-to",
+        label: {
+          text: "Dates to",
+          classes: "govuk-label--s"
+        }
+      }) }}
+
+      {{ govukCheckboxes({
+        idPrefix: "history-categories",
+        name: "history-categories",
+        classes: "govuk-checkboxes--small",
+        fieldset: {
+          legend: {
+            text: "Categories",
+            classes: "govuk-fieldset__legend--s"
+          }
+        },
+        items: [
+          { value: "amendments", text: "Amendments" },
+          { value: "documents", text: "Documents" },
+          { value: "enforcement-actions", text: "Enforcement actions" },
+          { value: "financial", text: "Financial" },
+          { value: "notes", text: "Notes" },
+          { value: "payment-terms", text: "Payment terms" }
+        ]
+      }) }}
+
+      {{ govukButton({
+        text: "Filter"
+      }) }}
+    {% endset %}
+
+    {{ govukDetails({
+      summaryText: "Show filter",
+      attributes: {
+        "data-module": "rm-toggle-details-summary",
+        "data-open-text": "Hide filter",
+        "data-closed-text": "Show filter"
+      },
+      html: filterHtml
+    }) }}
+
+    <table class="govuk-table" data-module="moj-sortable-table">
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header" aria-sort="descending">Date</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">User</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">Type</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">Details</th>
+          <th scope="col" class="govuk-table__header govuk-table__header--numeric" aria-sort="none">Amount</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for row in historyRows %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" data-sort-value="{{ row.sortValue or 0 }}">{{ row.date }}</td>
+            <td class="govuk-table__cell">{{ row.user }}</td>
+            <td class="govuk-table__cell">{{ row.type }}</td>
+            <td class="govuk-table__cell">{{ row.details | escape | replace("\n", "<br>") | safe }}</td>
+            <td class="govuk-table__cell govuk-table__cell--numeric">{{ row.amount or "" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -31,7 +31,7 @@
         <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ activeCase.accountNumber or activeCase.caseReference }}</p>
       </div>
 
-      <div class="moj-page-header-actions">
+      <div class="moj-page-header-actions govuk-!-margin-bottom-3">
         <div class="moj-page-header-actions__title">
           <h1 class="govuk-heading-xl">{{ activeCase.respondentName }}</h1>
         </div>
@@ -39,6 +39,7 @@
           <div class="moj-button-group moj-button-group--inline">
             {{ govukButton({
               text: "Add account note",
+              href: "/active-case/" + caseId + "/note",
               classes: "govuk-button--secondary"
             }) }}
             {{ mojButtonMenu({
@@ -55,24 +56,12 @@
 
       <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
         <div class="rm-case-summary-tile rm-case-summary-tile--dark">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Balance</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.balance }}</p>
-        </div>
-        <div class="rm-case-summary-tile rm-metric-card--mid govuk-!-padding-left-3 govuk-!-padding-right-3">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrears</p>
           <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.arrears }}</p>
         </div>
-        <div class="rm-case-summary-tile">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Case type</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.caseType }}</p>
-        </div>
-        <div class="rm-case-summary-tile">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Business unit</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.businessUnit }}</p>
-        </div>
-        <div class="rm-case-summary-tile">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of last movement</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.dateOfLastMovement }}</p>
+        <div class="rm-case-summary-tile rm-case-summary-tile--light">
+          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Balance</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.balance }}</p>
         </div>
       </div>
 
@@ -85,7 +74,7 @@
           { text: "Applications", href: "#" },
           { text: "Orders", href: "#" },
           { text: "Enforcement", href: "#" },
-          { text: "History and notes", href: "#" }
+          { text: "History and notes", href: "/active-case/" + caseId + "?tab=history-and-notes", active: tab === 'history-and-notes' }
         ]
       }) }}
 
@@ -167,6 +156,10 @@
           </div>
         </div>
 
+      {% elif tab === 'history-and-notes' %}
+
+        {% include "active-case/_history-and-notes.html" %}
+
       {% else %}
 
         <div class="govuk-grid-row govuk-!-margin-top-6">
@@ -188,8 +181,14 @@
               {% endfor %}
             </p>
 
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">UK National Insurance number</p>
-            <p class="govuk-body">{{ activeCase.respondent.nationalInsuranceNumber }}</p>
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Main email address</p>
+            <p class="govuk-body">
+              {% if activeCase.respondent.mainEmail %}
+                <a class="govuk-link" href="mailto:{{ activeCase.respondent.mainEmail }}">{{ activeCase.respondent.mainEmail }}</a>
+              {% else %}
+                -
+              {% endif %}
+            </p>
 
           </div>
 
@@ -211,11 +210,14 @@
 
           <div class="govuk-grid-column-one-third">
 
-            <h2 class="govuk-heading-m rm-enquiry-section-heading">Comment</h2>
+            <h2 class="govuk-heading-m rm-enquiry-section-heading">Comments</h2>
 
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Comment</p>
-            <p class="govuk-body">{{ activeCase.comment }}</p>
-            <p class="govuk-body"><a href="#" class="govuk-link">Change</a></p>
+            {% if activeCase.comment %}
+              <p class="govuk-body">{{ activeCase.comment | escape | replace("\n", "<br>") | safe }}</p>
+              <p class="govuk-body"><a href="/active-case/{{ caseId }}/comment" class="govuk-link">Change</a></p>
+            {% else %}
+              <p class="govuk-body"><a href="/active-case/{{ caseId }}/comment" class="govuk-link">Add comments</a></p>
+            {% endif %}
 
           </div>
 

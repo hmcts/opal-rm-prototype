@@ -1706,6 +1706,17 @@ function getTitleLabel(title) {
 }
 
 function buildSummaryRow(keyText, valueText) {
+  if (isEmailSummaryRow(keyText, valueText)) {
+    return {
+      key: {
+        text: keyText
+      },
+      value: {
+        html: formatEmailLinkHtml(valueText)
+      }
+    }
+  }
+
   return {
     key: {
       text: keyText
@@ -1714,6 +1725,20 @@ function buildSummaryRow(keyText, valueText) {
       text: formatTextValue(valueText)
     }
   }
+}
+
+function isEmailSummaryRow(keyText, valueText) {
+  return (
+    String(keyText || '').toLowerCase().includes('email address') &&
+    hasValue(valueText) &&
+    String(valueText).includes('@')
+  )
+}
+
+function formatEmailLinkHtml(email) {
+  const value = String(email || '').trim()
+  const safeValue = escapeHtml(value)
+  return `<a class="govuk-link" href="mailto:${safeValue}">${safeValue}</a>`
 }
 
 function buildSummaryHtmlRow(keyText, html) {
@@ -4859,6 +4884,13 @@ function getSessionReviewCaseRow(caseEntry) {
     row[`${statusDateField}Sort`] = caseEntry.statusSort || 0
   }
 
+  if (caseEntry.status === 'approved') {
+    return {
+      ...row,
+      ...ensureApprovedAccountsForReviewCase(caseEntry)
+    }
+  }
+
   return row
 }
 
@@ -4871,6 +4903,292 @@ function getGeneratedAccountId(id, offset = 0) {
 
   const hash = idString.split('').reduce((total, char) => total + char.charCodeAt(0), 0)
   return (hash * 10) + offset
+}
+
+function getApprovedAccountIds(caseId, minorCreditorCount = 0) {
+  return {
+    respondent: getGeneratedAccountId(caseId, 0),
+    applicant: getGeneratedAccountId(caseId, 1),
+    minorCreditors: Array.from(
+      { length: minorCreditorCount },
+      (_, index) => getGeneratedAccountId(caseId, index + 2)
+    )
+  }
+}
+
+function getCasePartyFullName(sessionData, party, options = {}) {
+  if (party === 'applicant' && sessionData['applicant-type'] === 'organisation') {
+    return sessionData['applicant-organisation-name'] || 'Organisation'
+  }
+
+  const title = titleLabels[String(sessionData[`${party}-title`] || '').toLowerCase()] || ''
+  const lastName = options.uppercaseLastName && hasValue(sessionData[`${party}-last-name`])
+    ? String(sessionData[`${party}-last-name`]).toUpperCase()
+    : sessionData[`${party}-last-name`]
+
+  return [
+    title,
+    sessionData[`${party}-first-names`],
+    lastName
+  ].filter(hasValue).join(' ')
+}
+
+function getCasePartyAddress(sessionData, party) {
+  return [
+    sessionData[`${party}-address-line-1`],
+    sessionData[`${party}-address-line-2`],
+    sessionData[`${party}-address-line-3`],
+    sessionData[`${party}-address-line-4`],
+    sessionData[`${party}-address-line-5`],
+    sessionData[`${party}-postal-or-zip-code`],
+    sessionData[`${party}-country`] ? getCountryLabel(sessionData[`${party}-country`]) : ''
+  ].filter(hasValue)
+}
+
+function getCasePartyThirdParty(sessionData, party) {
+  if (!isChecked(sessionData[`${party}-send-correspondence-to-third-party`])) {
+    return null
+  }
+
+  return {
+    name: sessionData[`${party}-third-party-name-or-organisation`] || '',
+    relationship: sessionData[`${party}-third-party-relationship`] || '',
+    reference: sessionData[`${party}-third-party-reference`] || '',
+    address: getCasePartyAddress(sessionData, `${party}-third-party`)
+  }
+}
+
+function getDateWithAge(dateString) {
+  if (!hasValue(dateString)) {
+    return null
+  }
+
+  const formattedDate = formatDateLong(dateString)
+  const age = getAgeFromDateString(dateString)
+
+  return age === null ? formattedDate : `${formattedDate} (Age ${age})`
+}
+
+function getApprovedCaseReference(caseId) {
+  return `${String(getGeneratedAccountId(caseId, 9)).padStart(8, '0')}T`
+}
+
+function getApprovedCaseArrears(caseData) {
+  const terms = Array.isArray(caseData['entered-order-terms'])
+    ? caseData['entered-order-terms']
+    : []
+  const total = terms.reduce((sum, term) => {
+    const responses = term.responses || {}
+    const arrearsKey = Object.keys(responses).find((key) => key.endsWith('-arrears'))
+    const value = arrearsKey ? Number(String(responses[arrearsKey]).replace(/,/g, '')) : 0
+
+    return Number.isNaN(value) ? sum : sum + value
+  }, 0)
+
+  return formatCurrency(total)
+}
+
+function applyApplicantBankDetailsToAccount(account, sessionData) {
+  updateApplicantBankDetailsFromForm(account, {
+    'applicant-bank-account-type': sessionData['applicant-bank-account-type'],
+    'applicant-bank-name-on-account': sessionData['applicant-bank-name-on-account'],
+    'applicant-bank-sort-code': sessionData['applicant-bank-sort-code'],
+    'applicant-bank-account-number': sessionData['applicant-bank-account-number'],
+    'applicant-bank-payment-reference': sessionData['applicant-bank-payment-reference'],
+    'applicant-bank-non-uk-name-on-account': sessionData['applicant-bank-non-uk-name-on-account'],
+    'applicant-bank-bic-or-swift-code': sessionData['applicant-bank-bic-or-swift-code'],
+    'applicant-bank-iban': sessionData['applicant-bank-iban'],
+    'applicant-bank-non-uk-payment-reference': sessionData['applicant-bank-non-uk-payment-reference'],
+    'applicant-bank-name': sessionData['applicant-bank-name'],
+    'applicant-bank-branch-office-or-sort-code': sessionData['applicant-bank-branch-office-or-sort-code'],
+    'applicant-bank-non-uk-account-number': sessionData['applicant-bank-non-uk-account-number']
+  })
+}
+
+function applyMinorCreditorBankDetailsToAccount(account, creditor) {
+  updateMinorCreditorAccountFromForm(account, {
+    'minor-creditor-type': creditor.creditorType,
+    'minor-creditor-title': creditor.title,
+    'minor-creditor-first-names': creditor.firstNames,
+    'minor-creditor-last-name': creditor.lastName,
+    'minor-creditor-organisation-name': creditor.organisationName,
+    'minor-creditor-address-line-1': creditor.addressLine1,
+    'minor-creditor-address-line-2': creditor.addressLine2,
+    'minor-creditor-address-line-3': creditor.addressLine3,
+    'minor-creditor-address-line-4': creditor.addressLine4,
+    'minor-creditor-address-line-5': creditor.addressLine5,
+    'minor-creditor-postcode': creditor.postcode,
+    'minor-creditor-country': creditor.country,
+    'minor-creditor-bank-account-type': creditor.bankAccountType,
+    'minor-creditor-uk-name-on-account': creditor.ukNameOnAccount,
+    'minor-creditor-uk-sort-code': creditor.ukSortCode,
+    'minor-creditor-uk-account-number': creditor.ukAccountNumber,
+    'minor-creditor-uk-payment-reference': creditor.ukPaymentReference,
+    'minor-creditor-non-uk-name-on-account': creditor.nonUkNameOnAccount,
+    'minor-creditor-non-uk-bic-or-swift-code': creditor.nonUkBicOrSwiftCode,
+    'minor-creditor-non-uk-iban': creditor.nonUkIban,
+    'minor-creditor-non-uk-payment-reference': creditor.nonUkPaymentReference,
+    'minor-creditor-non-uk-bank-name': creditor.nonUkBankName,
+    'minor-creditor-non-uk-branch-office-or-sort-code': creditor.nonUkBranchOfficeOrSortCode,
+    'minor-creditor-non-uk-account-number': creditor.nonUkAccountNumber
+  })
+}
+
+function ensureApprovedAccountsForReviewCase(caseEntry) {
+  if (!caseEntry || !caseEntry.caseData) {
+    return null
+  }
+
+  const caseData = caseEntry.caseData
+  const creditors = getMinorCreditors(caseData)
+  const ids = getApprovedAccountIds(caseEntry.id, creditors.length)
+  const respondentAccountNumber = accountRef(ids.respondent, 'RP')
+  const applicantAccountNumber = accountRef(ids.applicant, 'AP')
+  const caseReference = getApprovedCaseReference(caseEntry.id)
+  const respondentName = getCasePartyFullName(caseData, 'respondent', { uppercaseLastName: true }) || 'Respondent'
+  const applicantName = getCasePartyFullName(caseData, 'applicant', { uppercaseLastName: true }) || 'Applicant'
+  const arrears = getApprovedCaseArrears(caseData) || '£0.00'
+  const businessUnit = caseData['business-unit'] || 'Reading'
+
+  activeCases[ids.respondent] = {
+    ...(activeCases[ids.respondent] || {}),
+    accountNumber: respondentAccountNumber,
+    caseReference,
+    respondentName,
+    applicantName,
+    caseType: caseData['case-type-label'] ||
+      caseTypeLabels[caseData['case-type']] ||
+      caseData['case-type'],
+    remoReference: caseData['central-authority-remo-reference'] || caseReference,
+    businessUnit,
+    dateOfLastMovement: 'Today',
+    balance: arrears,
+    arrears,
+    centralAuthority: {
+      'central-authority-remo-reference': caseData['central-authority-remo-reference'] || '',
+      'central-authority-reference': caseData['central-authority-reference'] || '',
+      'central-authority-name': caseData['central-authority-name'] || '',
+      'central-authority-manual-name': caseData['central-authority-manual-name'] || '',
+      'central-authority-main-email-address': caseData['central-authority-main-email-address'] || '',
+      'central-authority-main-telephone-number': caseData['central-authority-main-telephone-number'] || '',
+      'central-authority-address-line-1': caseData['central-authority-address-line-1'] || '',
+      'central-authority-address-line-2': caseData['central-authority-address-line-2'] || '',
+      'central-authority-address-line-3': caseData['central-authority-address-line-3'] || '',
+      'central-authority-address-line-4': caseData['central-authority-address-line-4'] || '',
+      'central-authority-address-line-5': caseData['central-authority-address-line-5'] || '',
+      'central-authority-postal-or-zip-code': caseData['central-authority-postal-or-zip-code'] || '',
+      'central-authority-country': caseData['central-authority-country'] || ''
+    },
+    respondent: {
+      name: respondentName,
+      title: titleLabels[String(caseData['respondent-title'] || '').toLowerCase()] || null,
+      firstNames: caseData['respondent-first-names'] || '',
+      lastName: hasValue(caseData['respondent-last-name'])
+        ? String(caseData['respondent-last-name']).toUpperCase()
+        : '',
+      dateOfBirth: formatDateLong(caseData['respondent-date-of-birth']),
+      nationalInsuranceNumber: caseData['respondent-national-insurance-number'] || null,
+      otherPersonalInformation: caseData['respondent-other-personal-information'] || null,
+      mainEmail: caseData['respondent-main-email-address'] || null,
+      otherEmail: caseData['respondent-other-email-address'] || null,
+      mainTelephone: caseData['respondent-main-telephone-number'] || null,
+      otherTelephone: caseData['respondent-other-telephone-number'] || null,
+      address: getCasePartyAddress(caseData, 'respondent'),
+      restricted: isChecked(caseData['respondent-restrict-personal-information']),
+      restrictionReason: caseData['respondent-restriction-reason'] || null,
+      thirdParty: getCasePartyThirdParty(caseData, 'respondent')
+    },
+    applicant: {
+      name: applicantName,
+      dateOfBirth: getDateWithAge(caseData['applicant-date-of-birth']),
+      restricted: isChecked(caseData['applicant-restrict-personal-information']),
+      accountNumber: applicantAccountNumber,
+      accountHref: `/active-case/creditor/${ids.applicant}`
+    },
+    beneficiaries: {
+      adults: [applicantName],
+      children: creditors.map((creditor, index) => getMinorCreditorName(creditor, index))
+    },
+    comment: caseData['case-comment'] || caseData['case-notes'] || null
+  }
+
+  const applicantAccount = {
+    ...(minorCreditorAccounts[ids.applicant] || {}),
+    type: 'applicant',
+    accountNumber: applicantAccountNumber,
+    caseReference,
+    name: applicantName,
+    title: titleLabels[String(caseData['applicant-title'] || '').toLowerCase()] || null,
+    firstNames: caseData['applicant-type'] === 'organisation'
+      ? caseData['applicant-organisation-name'] || ''
+      : caseData['applicant-first-names'] || '',
+    lastName: caseData['applicant-type'] === 'organisation'
+      ? ''
+      : hasValue(caseData['applicant-last-name'])
+        ? String(caseData['applicant-last-name']).toUpperCase()
+        : '',
+    awaitingPayout: '£0.00',
+    businessUnit,
+    dateOfBirth: getDateWithAge(caseData['applicant-date-of-birth']),
+    address: getCasePartyAddress(caseData, 'applicant'),
+    mainEmail: caseData['applicant-main-email-address'] || null,
+    otherEmail: caseData['applicant-other-email-address'] || null,
+    mainTelephone: caseData['applicant-main-telephone-number'] || null,
+    otherTelephone: caseData['applicant-other-telephone-number'] || null,
+    respondentAccountHref: `/active-case/${ids.respondent}`,
+    respondentAccountNumber,
+    respondentName,
+    thirdParty: getCasePartyThirdParty(caseData, 'applicant'),
+    restricted: isChecked(caseData['applicant-restrict-personal-information']),
+    restrictionReason: caseData['applicant-restriction-reason'] || null
+  }
+  applyApplicantBankDetailsToAccount(applicantAccount, caseData)
+  minorCreditorAccounts[ids.applicant] = applicantAccount
+
+  const minorCreditorAccountRows = creditors.map((creditor, index) => {
+    const accountId = ids.minorCreditors[index]
+    const accountNumber = accountRef(accountId, 'MC')
+    const name = getMinorCreditorName(creditor, index)
+    const account = {
+      ...(minorCreditorAccounts[accountId] || {}),
+      type: 'creditor',
+      caseReference,
+      accountNumber,
+      name,
+      firstNames: creditor.firstNames || '',
+      lastName: creditor.lastName || '',
+      organisationName: creditor.organisationName || '',
+      awaitingPayout: '£0.00',
+      businessUnit,
+      address: getMinorCreditorAddressFromData(creditor),
+      mainEmail: null,
+      otherEmail: null,
+      mainTelephone: null,
+      otherTelephone: null,
+      respondentAccountHref: `/active-case/${ids.respondent}`,
+      respondentAccountNumber,
+      respondentName,
+      restricted: false
+    }
+
+    applyMinorCreditorBankDetailsToAccount(account, creditor)
+    minorCreditorAccounts[accountId] = account
+
+    return {
+      href: `/active-case/creditor/${accountId}`,
+      label: `${accountNumber} – ${name}`
+    }
+  })
+
+  return {
+    respondentAccountLabel: `${respondentAccountNumber} – ${getCasePartyName(caseData, 'respondent')}`,
+    respondentAccountHref: `/active-case/${ids.respondent}`,
+    applicantAccount: {
+      href: `/active-case/creditor/${ids.applicant}`,
+      label: `${applicantAccountNumber} – ${getCasePartyName(caseData, 'applicant')}`
+    },
+    minorCreditorAccounts: minorCreditorAccountRows
+  }
 }
 
 function getGeneratedApprovedCaseAccounts(row) {
@@ -8063,7 +8381,12 @@ router.post('/create-cases/:index/review', (req, res, next) => {
   const rejectionReason = getSingleValue(req.body['rejection-reason']) || ''
 
   if (decision === 'approve') {
-    updateReviewCaseStatus(req, req.params.index, 'approved')
+    const approvedCase = updateReviewCaseStatus(req, req.params.index, 'approved')
+
+    if (approvedCase.caseData) {
+      ensureApprovedAccountsForReviewCase(approvedCase)
+    }
+
     req.session.data[reviewCasesSuccessMessageKey] = 'Account approved'
     return redirectWithSessionSave(req, res, next, '/review-cases')
   }
@@ -8244,6 +8567,93 @@ function consumeActiveCaseSuccessMessage(req) {
   req.session.data = data
   activeCaseSuccessMessages.delete(req.path)
   return message
+}
+
+function getHistoryDateToday() {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date())
+}
+
+function getSampleHistoryRows() {
+  const sampleHistorySortValue = Date.parse('12 Mar 2015')
+
+  return [
+    {
+      date: '12 Mar 2015',
+      sortValue: sampleHistorySortValue,
+      user: 'Sarah Davis',
+      type: 'Financial',
+      details: 'Cheque used | Cheque number: Not yet written',
+      amount: '£250.00'
+    },
+    {
+      date: '12 Mar 2015',
+      sortValue: sampleHistorySortValue,
+      user: 'Sarah Davis',
+      type: 'Enforcement actions',
+      details: 'COLLO\nGranted by court'
+    },
+    {
+      date: '12 Mar 2015',
+      sortValue: sampleHistorySortValue,
+      user: 'Sarah Davis',
+      type: 'Notes',
+      details: 'Verified ID, gave update.'
+    }
+  ]
+}
+
+function getAccountHistoryRows(account) {
+  const noteRows = (account.notes || []).map((note) => ({
+    date: note.date,
+    sortValue: note.sortValue || Date.parse(note.date) || 0,
+    user: note.user,
+    type: 'Notes',
+    details: note.text
+  }))
+
+  return [
+    ...noteRows,
+    ...getSampleHistoryRows()
+  ].sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
+}
+
+function getAccountNoteViewData(account, formAction, cancelHref, note = '', errors = null) {
+  return {
+    accountName: account.name || account.respondentName,
+    accountNumber: account.accountNumber || account.caseReference,
+    formAction,
+    cancelHref,
+    note,
+    ...(errors ? { errors, errorSummary: buildErrorSummary(errors) } : {})
+  }
+}
+
+function validateAccountNote(note) {
+  const errors = {}
+
+  if (!hasValue(note)) {
+    errors['account-note'] = buildFieldError('Enter an account note')
+  } else if (note.length > 1000) {
+    errors['account-note'] = buildFieldError('Account note must be 1,000 characters or fewer')
+  }
+
+  return errors
+}
+
+function addAccountNote(account, note) {
+  account.notes = [
+    {
+      date: getHistoryDateToday(),
+      sortValue: Date.now(),
+      user: 'you',
+      text: note.trim()
+    },
+    ...(account.notes || [])
+  ]
 }
 
 const minorCreditorAccounts = {
@@ -8761,8 +9171,111 @@ router.get('/active-case/:id', (req, res) => {
     tab,
     respondentRows: getActiveCaseRespondentRows(activeCase.respondent),
     centralAuthorityRows: getActiveCaseCentralAuthorityRows(activeCase),
+    historyRows: getAccountHistoryRows(activeCase),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
+})
+
+router.get('/active-case/:id/note', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render(
+    'active-case/note',
+    getAccountNoteViewData(
+      activeCase,
+      '/active-case/' + id + '/note',
+      '/active-case/' + id
+    )
+  )
+})
+
+router.post('/active-case/:id/note', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const note = getSingleValue(req.body['account-note']) || ''
+  const errors = validateAccountNote(note)
+
+  if (Object.keys(errors).length > 0) {
+    return res.render(
+      'active-case/note',
+      getAccountNoteViewData(
+        activeCase,
+        '/active-case/' + id + '/note',
+        '/active-case/' + id,
+        note,
+        errors
+      )
+    )
+  }
+
+  addAccountNote(activeCase, note)
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Account note added.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id)
+})
+
+router.get('/active-case/:id/comment', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/comment', {
+    activeCase,
+    formAction: '/active-case/' + id + '/comment',
+    cancelHref: '/active-case/' + id,
+    comment: activeCase.comment || '',
+    hintText: activeCase.comment
+      ? 'For example, terms that affect the case'
+      : 'For example, terms that affect the case and other key information, which will appear on the account summary'
+  })
+})
+
+router.post('/active-case/:id/comment', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const comment = getSingleValue(req.body['active-case-comment']) || ''
+  const errors = {}
+
+  if (comment.length > 1000) {
+    errors['active-case-comment'] = buildFieldError('Comment must be 1,000 characters or fewer')
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.render('active-case/comment', {
+      activeCase,
+      formAction: '/active-case/' + id + '/comment',
+      cancelHref: '/active-case/' + id,
+      comment,
+      hintText: activeCase.comment
+        ? 'For example, terms that affect the case'
+        : 'For example, terms that affect the case and other key information, which will appear on the account summary',
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  activeCase.comment = comment.trim() || null
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Comment updated.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id)
 })
 
 router.get('/active-case/:id/respondent/edit', (req, res) => {
@@ -9863,8 +10376,57 @@ router.get('/active-case/creditor/:id', (req, res) => {
     tab,
     applicantRows,
     creditorRows: getMinorCreditorRowsFromAccount(account),
+    historyRows: getAccountHistoryRows(account),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
+})
+
+router.get('/active-case/creditor/:id/note', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render(
+    'active-case/note',
+    getAccountNoteViewData(
+      account,
+      '/active-case/creditor/' + id + '/note',
+      '/active-case/creditor/' + id
+    )
+  )
+})
+
+router.post('/active-case/creditor/:id/note', (req, res, next) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+
+  if (!account) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const note = getSingleValue(req.body['account-note']) || ''
+  const errors = validateAccountNote(note)
+
+  if (Object.keys(errors).length > 0) {
+    return res.render(
+      'active-case/note',
+      getAccountNoteViewData(
+        account,
+        '/active-case/creditor/' + id + '/note',
+        '/active-case/creditor/' + id,
+        note,
+        errors
+      )
+    )
+  }
+
+  addAccountNote(account, note)
+  setActiveCaseSuccessMessage(req, '/active-case/creditor/' + id, 'Account note added.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/creditor/' + id)
 })
 
 router.get('/active-case/major-creditor/:id', (req, res) => {
