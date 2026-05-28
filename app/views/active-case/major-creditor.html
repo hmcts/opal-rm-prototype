@@ -1,6 +1,5 @@
 {% extends "layouts/main.html" %}
 
-{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
 {% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
@@ -21,36 +20,26 @@
         <p class="govuk-caption-xl govuk-!-margin-bottom-0">{{ account.accountNumber or account.caseReference }}</p>
       </div>
 
-      <div class="moj-page-header-actions">
+      <div class="moj-page-header-actions govuk-!-margin-bottom-3">
         <div class="moj-page-header-actions__title">
           <h1 class="govuk-heading-xl">{{ account.name }}</h1>
         </div>
         <div class="moj-page-header-actions__actions">
-          <div class="moj-button-group moj-button-group--inline">
-            {{ govukButton({
-              text: "Add account note",
-              classes: "govuk-button--secondary"
-            }) }}
-            {{ mojButtonMenu({
-              button: { text: "More actions", classes: "govuk-button--secondary" },
-              alignMenu: "right",
-              items: [
-                { text: "Print", href: "#" },
-                { text: "Export", href: "#" }
-              ]
-            }) }}
-          </div>
+          {{ mojButtonMenu({
+            button: { text: "More actions", classes: "govuk-button--secondary" },
+            alignMenu: "right",
+            items: [
+              { text: "Print", href: "#" },
+              { text: "Export", href: "#" }
+            ]
+          }) }}
         </div>
       </div>
 
       <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
-        <div class="rm-case-summary-tile rm-case-summary-tile--dark">
+        <div class="rm-case-summary-tile rm-case-summary-tile--light">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Awaiting payout</p>
           <p class="govuk-body govuk-!-margin-bottom-0">{{ account.awaitingPayout }}</p>
-        </div>
-        <div class="rm-case-summary-tile">
-          <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of last movement</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ account.dateOfLastMovement }}</p>
         </div>
       </div>
 
