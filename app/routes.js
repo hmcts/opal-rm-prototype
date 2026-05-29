@@ -8458,6 +8458,7 @@ const activeCases = {
     remoReference: '2008/REMO/56789012',
     businessUnit: 'Reading',
     dateOfLastMovement: '2 May 2026',
+    dateArrearsUpdated: '16 October 2025',
     balance: '£180.00',
     arrears: '£180.00',
     centralAuthority: {
@@ -8504,6 +8505,7 @@ const activeCases = {
     remoReference: '2010/REMO/34567890',
     businessUnit: 'Bury St. Edmunds',
     dateOfLastMovement: '30 April 2026',
+    dateArrearsUpdated: '16 October 2025',
     balance: '£0.00',
     arrears: '£0.00',
     centralAuthority: {
@@ -10740,7 +10742,8 @@ searchData.forEach((d) => {
       accountNumber: accountRef(d.id, 'RP'),
       caseReference: d.caseRef, respondentName: rName, applicantName: aName,
       caseType: d.ct, remoReference: d.remoRef, businessUnit: d.bu,
-      dateOfLastMovement: d.dolm, arrears: d.arrears,
+      dateOfLastMovement: d.dolm, dateArrearsUpdated: d.dateArrearsUpdated || d.dolm,
+      arrears: d.arrears, balance: d.arrears,
       respondent: {
         name: rName, title: d.r.ti, firstNames: d.r.fn, lastName: d.r.ln,
         dateOfBirth: rDob, nationalInsuranceNumber: d.r.ni,
