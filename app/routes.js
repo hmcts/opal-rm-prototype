@@ -9158,6 +9158,18 @@ function getActiveCaseRespondentRows(respondent) {
   return rows
 }
 
+function getActiveCaseTypeValue(activeCase) {
+  return Object.keys(caseTypeLabels).find((value) => caseTypeLabels[value] === activeCase.caseType) || ''
+}
+
+function getActiveCaseTypeItems(selectedCaseType) {
+  return Object.entries(caseTypeLabels).map(([value, text]) => ({
+    value,
+    text,
+    checked: value === selectedCaseType
+  }))
+}
+
 router.get('/active-case/:id', (req, res) => {
   const id = Number(req.params.id)
   const tab = req.query.tab || 'at-a-glance'
@@ -9176,6 +9188,53 @@ router.get('/active-case/:id', (req, res) => {
     historyRows: getAccountHistoryRows(activeCase),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
+})
+
+router.get('/active-case/:id/change-case-type', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/change-case-type', {
+    activeCase,
+    formAction: '/active-case/' + id + '/change-case-type',
+    cancelHref: '/active-case/' + id,
+    caseTypeItems: getActiveCaseTypeItems(getActiveCaseTypeValue(activeCase))
+  })
+})
+
+router.post('/active-case/:id/change-case-type', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const caseType = getSingleValue(req.body['case-type']) || ''
+
+  if (!caseTypeLabels[caseType]) {
+    const errors = {
+      'case-type': buildFieldError('Select a case type')
+    }
+
+    return res.render('active-case/change-case-type', {
+      activeCase,
+      formAction: '/active-case/' + id + '/change-case-type',
+      cancelHref: '/active-case/' + id,
+      caseTypeItems: getActiveCaseTypeItems(caseType),
+      errors,
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  activeCase.caseType = caseTypeLabels[caseType]
+  setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Case type updated.')
+
+  return redirectWithSessionSave(req, res, next, '/active-case/' + id)
 })
 
 router.get('/active-case/:id/note', (req, res) => {

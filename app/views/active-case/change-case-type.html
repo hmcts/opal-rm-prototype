@@ -1,0 +1,50 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+  Change case type - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set formErrors = errors or {} %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Change case type</h1>
+
+      <form method="post" action="{{ formAction }}">
+        {{ govukRadios({
+          idPrefix: "case-type",
+          name: "case-type",
+          fieldset: {
+            legend: {
+              text: "Select a case type",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: caseTypeItems,
+          errorMessage: formErrors["case-type"]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save changes"
+          }) }}
+
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
