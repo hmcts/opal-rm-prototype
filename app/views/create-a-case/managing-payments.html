@@ -12,13 +12,13 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Managing payments</h1>
 
-      <form method="post" action="/create-a-case/managing-payments">
+      <form method="post" action="{{ formAction or '/create-a-case/managing-payments' }}">
         {{ govukRadios({
           idPrefix: "order-managing-payments",
           name: "order-managing-payments",
           fieldset: {
             legend: {
-              text: "How will payments be managed?",
+              text: paymentLegendText or "How will payments be managed?",
               classes: "govuk-fieldset__legend--s"
             }
           },
@@ -43,10 +43,10 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Return to case details"
+            text: primaryButtonText or "Return to case details"
           }) }}
 
-          <a class="govuk-link" href="/create-a-case/case-details">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/case-details' }}">Cancel</a>
         </div>
       </form>
     </div>

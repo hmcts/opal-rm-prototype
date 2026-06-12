@@ -80,7 +80,7 @@
           { text: "Respondent", href: "/active-case/" + caseId + "?tab=respondent", active: tab === 'respondent' },
           { text: "Authority", href: "/active-case/" + caseId + "?tab=authority", active: tab === 'authority' },
           { text: "Applications", href: "#" },
-          { text: "Orders", href: "#" },
+          { text: "Orders", href: "/active-case/" + caseId + "?tab=orders", active: tab === 'orders' },
           { text: "Enforcement", href: "#" },
           { text: "History and notes", href: "/active-case/" + caseId + "?tab=history-and-notes", active: tab === 'history-and-notes' }
         ]
@@ -168,6 +168,10 @@
 
         {% include "active-case/_history-and-notes.html" %}
 
+      {% elif tab === 'orders' %}
+
+        {% include "active-case/_orders.html" %}
+
       {% else %}
 
         <div class="govuk-grid-row govuk-!-margin-top-6">
@@ -209,10 +213,10 @@
             {% endif %}
 
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Applicant account</p>
-            <p class="govuk-body"><a href="{{ activeCase.applicant.accountHref }}" class="govuk-link">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a></p>
-
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Applicant name</p>
-            <p class="govuk-body">{{ activeCase.applicant.name }}</p>
+            <p class="govuk-body">
+              <a href="{{ activeCase.applicant.accountHref }}" class="govuk-link">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a><br>
+              {{ activeCase.applicant.name }}
+            </p>
 
           </div>
 

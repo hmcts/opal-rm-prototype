@@ -1,0 +1,70 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-two-thirds">
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Orders</h2>
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Order details"
+        },
+        actions: {
+          items: [
+            {
+              href: "/active-case/" + caseId + "/order-details",
+              text: "Change",
+              visuallyHiddenText: "order details"
+            }
+          ]
+        }
+      },
+      rows: orderDetailsRows
+    }) }}
+
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-top-6 govuk-!-margin-bottom-4">Order terms</h2>
+
+    {% for card in orderTermCards %}
+      {% set orderTermCard = card %}
+      {% include "active-case/_order-term-card.html" %}
+    {% endfor %}
+
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-top-6 govuk-!-margin-bottom-4">Additional order information</h2>
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Interest and indexation"
+        },
+        actions: {
+          items: [
+            {
+              href: "/active-case/" + caseId + "/interest-and-indexation",
+              text: "Change",
+              visuallyHiddenText: "interest and indexation"
+            }
+          ]
+        }
+      },
+      rows: interestAndIndexationRows
+    }) }}
+
+    {{ govukSummaryList({
+      card: {
+        title: {
+          text: "Managing payments"
+        },
+        actions: {
+          items: [
+            {
+              href: "/active-case/" + caseId + "/managing-payments",
+              text: "Change",
+              visuallyHiddenText: "managing payments"
+            }
+          ]
+        }
+      },
+      rows: managingPaymentsRows
+    }) }}
+  </div>
+</div>

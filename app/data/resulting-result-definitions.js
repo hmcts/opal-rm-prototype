@@ -137,13 +137,13 @@ const rawResultDefinitions = {
       },
       {
         name: 'Beneficiary',
-        prompt: "Child's name",
+        prompt: 'Child’s name',
         type: 'text-60',
         mandatory: 'Yes'
       },
       {
         name: 'Child DOB',
-        prompt: "Child's date of birth",
+        prompt: 'Child’s date of birth',
         type: 'date',
         mandatory: 'No'
       },

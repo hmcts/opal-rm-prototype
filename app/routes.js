@@ -632,6 +632,7 @@ function buildCreateDataScenarios() {
           'order-application-code': 'PL-REM-2026-088',
           'order-court-that-made-the-order': 'District Court of Warsaw',
           'order-date-order-made': '10/01/2026',
+          'order-payment-frequency': 'monthly',
           'order-date-arrears-last-updated': '01/04/2026',
           'entered-order-terms': [
             {
@@ -748,6 +749,7 @@ function buildCreateDataScenarios() {
           'order-application-code': 'HC07003',
           'order-court-that-made-the-order': 'Leeds Family Court',
           'order-date-order-made': '14/02/2026',
+          'order-payment-frequency': 'monthly',
           'order-date-arrears-last-updated': '01/04/2026',
           'minor-creditors': [
             buildKatarzynaKowalczykMinorCreditor()
@@ -843,7 +845,7 @@ function buildCreateDataScenarios() {
       sessionData: {
         ...buildBaseSessionData(),
         'resulting-search-mode': 'record-number',
-        'resulting-selected-record-id': '18392016A',
+        'resulting-selected-record-id': '26000022U',
         'case-type': 'remo-in',
         'applicant-type': 'individual',
         'applicant-title': 'Ms',
@@ -1373,7 +1375,10 @@ function getMinorCreditorName(creditor, index) {
     return creditor.organisationName
   }
 
-  const fullName = [getTitleLabel(creditor.title), creditor.firstNames, creditor.lastName]
+  const lastName = hasValue(creditor.lastName)
+    ? String(creditor.lastName).toUpperCase()
+    : creditor.lastName
+  const fullName = [getOptionalTitleLabel(creditor.title), creditor.firstNames, lastName]
     .filter(hasValue)
     .join(' ')
 
@@ -1551,7 +1556,7 @@ function getApplicantFullName(sessionData) {
   }
 
   return [
-    getTitleLabel(sessionData['applicant-title']),
+    getOptionalTitleLabel(sessionData['applicant-title']),
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
   ]
@@ -1564,12 +1569,7 @@ function getApplicantCreditorLabel(sessionData) {
     return sessionData['applicant-organisation-name']
   }
 
-  const applicantName = [
-    sessionData['applicant-first-names'],
-    sessionData['applicant-last-name']
-  ]
-    .filter(hasValue)
-    .join(' ')
+  const applicantName = getCasePartyFullName(sessionData, 'applicant', { uppercaseLastName: true })
 
   return hasValue(applicantName) ? applicantName : 'Applicant'
 }
@@ -1586,6 +1586,29 @@ function getFrequencyLabel(frequency) {
   return labels[frequency] || 'Not provided'
 }
 
+function getPaymentFrequencyItems(selectedFrequency) {
+  return ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'].map((frequency) => ({
+    value: frequency,
+    text: getFrequencyLabel(frequency),
+    checked: selectedFrequency === frequency
+  }))
+}
+
+function getOrderTermFrequencySummaryText(frequency) {
+  if (!hasValue(frequency)) {
+    return ''
+  }
+
+  const normalisedFrequency = String(frequency).trim().toLowerCase()
+
+  if (['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'].includes(normalisedFrequency)) {
+    return normalisedFrequency
+  }
+
+  const label = getFrequencyLabel(frequency)
+  return label === 'Not provided' ? normalisedFrequency : label.toLowerCase()
+}
+
 function formatCurrency(value) {
   if (!hasValue(value)) {
     return ''
@@ -1598,6 +1621,20 @@ function formatCurrency(value) {
   }
 
   return `£${number.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function formatOrderTermAmountForSummary(value) {
+  return formatCurrency(value).replace(/\.00$/, '')
+}
+
+function formatOrderTermAmountWithFrequency(amount, frequency) {
+  const amountText = formatOrderTermAmountForSummary(amount)
+
+  if (!hasValue(amountText)) {
+    return ''
+  }
+
+  return [amountText, getOrderTermFrequencySummaryText(frequency)].filter(hasValue).join(' ')
 }
 
 function formatDateForReview(dateString) {
@@ -1703,6 +1740,10 @@ function getCountrySelectItems(selectedCountry) {
 
 function getTitleLabel(title) {
   return titleLabels[String(title || '').toLowerCase()] || formatTextValue(title)
+}
+
+function getOptionalTitleLabel(title) {
+  return hasValue(title) ? getTitleLabel(title) : ''
 }
 
 function buildSummaryRow(keyText, valueText) {
@@ -2082,7 +2123,7 @@ function getHearingSummaryRows(sessionData) {
 
 function getResultingRecordSummaryRows(sessionData) {
   const applicantName = [
-    getTitleLabel(sessionData['applicant-title']),
+    getOptionalTitleLabel(sessionData['applicant-title']),
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
   ]
@@ -2090,7 +2131,7 @@ function getResultingRecordSummaryRows(sessionData) {
     .join(' ')
 
   const respondentName = [
-    getTitleLabel(sessionData['respondent-title']),
+    getOptionalTitleLabel(sessionData['respondent-title']),
     sessionData['respondent-first-names'],
     sessionData['respondent-last-name']
   ]
@@ -2146,14 +2187,14 @@ function getResultingHearingString(sessionData) {
 
 function getResultingRecordSearchMatches(sessionData) {
   const respondentName = [
-    getTitleLabel(sessionData['respondent-title']),
+    getOptionalTitleLabel(sessionData['respondent-title']),
     sessionData['respondent-first-names'],
     sessionData['respondent-last-name']
   ]
     .filter(hasValue)
     .join(' ')
   const applicantName = [
-    getTitleLabel(sessionData['applicant-title']),
+    getOptionalTitleLabel(sessionData['applicant-title']),
     sessionData['applicant-first-names'],
     sessionData['applicant-last-name']
   ]
@@ -2170,7 +2211,7 @@ function getResultingRecordSearchMatches(sessionData) {
   const matches = [
     {
       id: 'record-1',
-      accountNumber: sessionData['resulting-record-number'] || '18392016A',
+      accountNumber: sessionData['resulting-record-number'] || '26000022U',
       respondentName: respondentName || 'Mr Marek Kowalski',
       applicantName: applicantName || 'Ms Ewa Kowalska',
       balance: 0,
@@ -2181,9 +2222,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: sessionData['hearing-start-time'] || '10:00',
       courtVenue: sharedVenue,
       courtroom: sessionData['hearing-courtroom-number'] || '2',
-      respondentAccountNumber: '13000988U',
+      respondentAccountNumber: '26000025T',
       respondentAddressLines: ['24 High Street', 'Twyford', 'Berkshire', 'RG10 9RT'],
-      applicantAccountNumber: '13034923P',
+      applicantAccountNumber: '26000026A',
       applicantAddressLines: ['84 REDA', 'GDANSKA', 'POLAND'],
       totalArrears: 25,
       orderedToPay: 25,
@@ -2192,7 +2233,7 @@ function getResultingRecordSearchMatches(sessionData) {
     },
     {
       id: 'record-2',
-      accountNumber: '92746103B',
+      accountNumber: '26000023Q',
       respondentName: 'Mr Matej Novotny',
       applicantName: 'Ms Katarina Horvath',
       balance: 120,
@@ -2202,9 +2243,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: '11:00',
       courtVenue: 'Bury St Edmunds Magistrates Court',
       courtroom: '4',
-      respondentAccountNumber: '13000991Q',
+      respondentAccountNumber: '26000027B',
       respondentAddressLines: ['99 High Street', 'Bury St Edmunds', 'IP33 1AA'],
-      applicantAccountNumber: '13034929R',
+      applicantAccountNumber: '26000028C',
       applicantAddressLines: ['14 Market Street', 'Reading', 'RG1 1AA'],
       totalArrears: 120,
       orderedToPay: 25,
@@ -2213,7 +2254,7 @@ function getResultingRecordSearchMatches(sessionData) {
     },
     {
       id: 'record-3',
-      accountNumber: '34017892C',
+      accountNumber: '26000024M',
       respondentName: 'Mr Nikolai Dimitrov',
       applicantName: 'Ms Irina Petrova',
       balance: 47.32,
@@ -2223,9 +2264,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: '14:00',
       courtVenue: 'Bury St Edmunds Magistrates Court',
       courtroom: '1',
-      respondentAccountNumber: '13001021K',
+      respondentAccountNumber: '26000029D',
       respondentAddressLines: ['11 Church Road', 'Cambridge', 'CB1 2XY'],
-      applicantAccountNumber: '13034945T',
+      applicantAccountNumber: '26000030E',
       applicantAddressLines: ['1 Oak Avenue', 'Warsaw', 'Poland'],
       totalArrears: 47.32,
       orderedToPay: 15,
@@ -2268,7 +2309,7 @@ function getResultingAccountContextLabel(sessionData) {
   }
 
   const respondentName = [
-    getTitleLabel(sessionData['respondent-title']),
+    getOptionalTitleLabel(sessionData['respondent-title']),
     sessionData['respondent-first-names'],
     hasValue(sessionData['respondent-last-name'])
       ? String(sessionData['respondent-last-name']).toUpperCase()
@@ -2987,10 +3028,26 @@ function findFrequencyField(resultDefinition) {
   }
 
   return (
-    resultDefinition.responses.find((field) =>
-      ['frequency', 'terms frequency'].includes(normaliseComparableText(field.name || field.prompt))
-    ) || null
+    resultDefinition.responses.find((field) => isFrequencyField(field)) || null
   )
+}
+
+function isFrequencyField(field) {
+  return ['frequency', 'terms frequency'].includes(normaliseComparableText(field?.name || field?.prompt))
+}
+
+function hasFieldText(field, expectedTexts) {
+  return [field?.name, field?.prompt].some((text) =>
+    expectedTexts.includes(normaliseComparableText(text))
+  )
+}
+
+function isOrderTermAmountField(field) {
+  return hasFieldText(field, ['amount'])
+}
+
+function isOrderTermFrequencyField(field) {
+  return hasFieldText(field, ['frequency', 'payment frequency', 'terms frequency'])
 }
 
 function getEffectiveResultResponses(sessionData, resultDefinition) {
@@ -3249,6 +3306,7 @@ function validateAlternativeOrderDetails(body, caseType) {
   )
     .trim()
     .toUpperCase()
+  const selectedPaymentFrequency = getSingleValue(body['order-payment-frequency']) || ''
 
   if (!hasValue(selectedApplicationCode)) {
     errors['order-application-code'] = buildFieldError('Select an application code')
@@ -3258,6 +3316,10 @@ function validateAlternativeOrderDetails(body, caseType) {
 
   if (!hasValue(getSingleValue(body['order-court-that-made-the-order']))) {
     errors['order-court-that-made-the-order'] = buildFieldError('Enter the court that made the order')
+  }
+
+  if (!getPaymentFrequencyItems('').some((item) => item.value === selectedPaymentFrequency)) {
+    errors['order-payment-frequency'] = buildFieldError('Select a payment frequency')
   }
 
   const orderMadeDate = parseDateInput(body['order-date-order-made'])
@@ -3551,7 +3613,19 @@ function getAlternativeOrderTermsStatus(sessionData) {
 }
 
 
-function getOrderTermReviewRows(orderTerm) {
+function getOrderTermDisplayCreditorLabel(orderTerm, sessionData) {
+  if (orderTerm?.minorCreditorData) {
+    return getMinorCreditorName(orderTerm.minorCreditorData, 0)
+  }
+
+  if (orderTerm?.creditor === 'applicant') {
+    return getApplicantCreditorLabel(sessionData)
+  }
+
+  return orderTerm?.creditorLabel || ''
+}
+
+function getOrderTermReviewRows(orderTerm, sessionData) {
   const orderTermDefinition = getResultDefinition(orderTerm?.code, 'orders')
   const rows = [
     buildSummaryRow(
@@ -3561,16 +3635,27 @@ function getOrderTermReviewRows(orderTerm) {
   ]
 
   if (orderTermDefinition) {
+    const frequencyField = orderTermDefinition.responses.find(isOrderTermFrequencyField)
+    const frequencyValue = frequencyField ? orderTerm?.responses?.[frequencyField.id] : ''
+
     orderTermDefinition.responses.forEach((field) => {
+      if (isOrderTermFrequencyField(field)) {
+        return
+      }
+
       const value = orderTerm?.responses?.[field.id]
-      const displayValue = getResultValueForSummary(field, value)
+      const displayValue = isOrderTermAmountField(field)
+        ? formatOrderTermAmountWithFrequency(value, frequencyValue)
+        : getResultValueForSummary(field, value)
 
       rows.push(buildSummaryRow(field.prompt, displayValue))
     })
   }
 
-  if (hasValue(orderTerm?.creditorLabel)) {
-    rows.push(buildSummaryRow('Creditor', orderTerm.creditorLabel))
+  const creditorLabel = getOrderTermDisplayCreditorLabel(orderTerm, sessionData)
+
+  if (hasValue(creditorLabel)) {
+    rows.push(buildSummaryRow('Creditor', creditorLabel))
   }
 
   return rows
@@ -3605,7 +3690,7 @@ function getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData) {
 function getOrderTermReviewCard(orderTerm, sessionData) {
   return {
     title: `${orderTerm.code} - ${orderTerm.title}`,
-    rows: getOrderTermReviewRows(orderTerm),
+    rows: getOrderTermReviewRows(orderTerm, sessionData),
     creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData),
     changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
     removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
@@ -3621,7 +3706,7 @@ function getCheckCaseOrderTermCards(sessionData) {
 function getOrderTermHubCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
-    rows: getOrderTermReviewRows(orderTerm).slice(1).filter((row) => row.value.text !== '-'),
+    rows: getOrderTermReviewRows(orderTerm, sessionData).slice(1).filter((row) => row.value.text !== '-'),
     creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData),
     changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
     removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
@@ -3632,6 +3717,50 @@ function getCurrentAlternativeOrderResponses(sessionData) {
   return sessionData['alternative-current-order-term-responses'] || {}
 }
 
+function getSharedOrderPaymentFrequency(sessionData) {
+  return getSingleValue(sessionData['order-payment-frequency']) || ''
+}
+
+function getEffectiveAlternativeOrderResponses(sessionData, definition) {
+  const responses = {
+    ...getCurrentAlternativeOrderResponses(sessionData)
+  }
+  const frequencyField = findFrequencyField(definition)
+  const sharedFrequency = getSharedOrderPaymentFrequency(sessionData)
+
+  if (frequencyField && hasValue(sharedFrequency)) {
+    responses[frequencyField.id] = sharedFrequency
+  }
+
+  return responses
+}
+
+function applySharedFrequencyToRecordedOrderTerms(recordedTerms, sharedFrequency) {
+  if (!hasValue(sharedFrequency)) {
+    return recordedTerms
+  }
+
+  return recordedTerms.map((term) => {
+    const definition = getResultDefinition(term.code, 'orders')
+    const frequencyField = findFrequencyField(definition)
+
+    if (!frequencyField) {
+      return term
+    }
+
+    const responses = {
+      ...(term.responses || {}),
+      [frequencyField.id]: sharedFrequency
+    }
+
+    return {
+      ...term,
+      responses,
+      wording: getDefinitionWording(definition, responses)
+    }
+  })
+}
+
 function isEditingAlternativeOrderTerm(sessionData) {
   const editIndex = Number(sessionData['alternative-edit-order-term-index'])
   return Number.isInteger(editIndex) && editIndex >= 0
@@ -3639,36 +3768,61 @@ function isEditingAlternativeOrderTerm(sessionData) {
 
 function getAlternativeOrderTermWording(sessionData) {
   const definition = getResultDefinition(sessionData['alternative-order-term-code'], 'orders')
-  return getDefinitionWording(definition, getCurrentAlternativeOrderResponses(sessionData))
+  return getDefinitionWording(definition, getEffectiveAlternativeOrderResponses(sessionData, definition))
 }
 
 function getAlternativeOrderTermResponseItems(sessionData) {
   const definition = getResultDefinition(sessionData['alternative-order-term-code'], 'orders')
-  const values = getCurrentAlternativeOrderResponses(sessionData)
+  const values = getEffectiveAlternativeOrderResponses(sessionData, definition)
   const errors = sessionData['alternative-order-term-errors'] || {}
 
   if (!definition) {
     return []
   }
 
-  return definition.responses.map((field) => ({
-    ...field,
-    value: values[field.id] || (field.type === 'checkboxes' ? [] : ''),
-    isChildDobField: normaliseComparableText(field.name || field.prompt) === 'child dob',
-    calculatedAge:
-      normaliseComparableText(field.name || field.prompt) === 'child dob'
-        ? getAgeFromDateString(values[field.id] || '')
-        : null,
-    items:
-      field.type === 'radios' || field.type === 'checkboxes' || field.type === 'autocomplete'
-        ? getResultFieldOptionItems(field, values[field.id] || (field.type === 'checkboxes' ? [] : ''))
-        : undefined,
-    errorMessage: errors[field.id]
-      ? {
+  const editableFields = definition.responses
+    .filter((field) => !isFrequencyField(field))
+    .map((field) => ({
+      ...field,
+      isPaymentField: ['amount', 'arrears'].includes(normaliseComparableText(field.name || field.prompt)),
+      value: values[field.id] || (field.type === 'checkboxes' ? [] : ''),
+      isChildDobField: normaliseComparableText(field.name || field.prompt) === 'child dob',
+      calculatedAge:
+        normaliseComparableText(field.name || field.prompt) === 'child dob'
+          ? getAgeFromDateString(values[field.id] || '')
+          : null,
+      items:
+        field.type === 'radios' || field.type === 'checkboxes' || field.type === 'autocomplete'
+          ? getResultFieldOptionItems(field, values[field.id] || (field.type === 'checkboxes' ? [] : ''))
+          : undefined,
+      errorMessage: errors[field.id]
+        ? {
           text: errors[field.id]
         }
       : undefined
-  }))
+    }))
+
+  const usesMchildTemplate = definition.code === 'MCHILD'
+
+  if (usesMchildTemplate) {
+    return editableFields.map((field) => ({
+      ...field,
+      showPaymentFrequencyAfter: isOrderTermAmountField(field)
+    }))
+  }
+
+  const paymentFields = editableFields.filter((field) => field.isPaymentField)
+  const otherFields = editableFields
+    .filter((field) => !field.isPaymentField)
+    .map((field, index) => ({
+      ...field,
+      startsNonPaymentSection: index === 0 && paymentFields.length > 0
+    }))
+
+  return [
+    ...paymentFields,
+    ...otherFields
+  ]
 }
 
 function getApplicantSummaryRows(sessionData) {
@@ -4058,7 +4212,7 @@ function getMinorCreditorsFromOrderTerms(sessionData, excludeIndex) {
   return getRecordedOrderTerms(sessionData)
     .filter((term) => term.minorCreditorData && term.index !== excludeIndex)
     .reduce((acc, term) => {
-      const name = term.creditorLabel || getMinorCreditorName(term.minorCreditorData, 0)
+      const name = getMinorCreditorName(term.minorCreditorData, 0) || term.creditorLabel
       if (!seen.has(name)) {
         seen.add(name)
         acc.push({ value: `order-term-minor-creditor-${term.index}`, text: `${name} (Minor creditor)` })
@@ -4105,7 +4259,9 @@ function getOrderTermCreditorLabelByValue(value, sessionData) {
   if (value.startsWith('order-term-minor-creditor-')) {
     const termIndex = Number(value.replace('order-term-minor-creditor-', ''))
     const term = getRecordedOrderTerms(sessionData).find((t) => t.index === termIndex)
-    return term?.creditorLabel || 'Minor creditor'
+    return term?.minorCreditorData
+      ? getMinorCreditorName(term.minorCreditorData, 0)
+      : term?.creditorLabel || 'Minor creditor'
   }
   return getCreditorLabel(value, sessionData)
 }
@@ -4583,8 +4739,7 @@ function getFailedPublishingCheckCaseViewData() {
       {
         title: 'MAT - Matrimonial Order for Adult',
         rows: [
-          buildSummaryRow('Amount', '£400.00'),
-          buildSummaryRow('Payment frequency', 'Monthly'),
+          buildSummaryRow('Amount', formatOrderTermAmountWithFrequency('400', 'monthly')),
           buildSummaryRow('Expiry date', '10 January 2028'),
           buildSummaryRow('Arrears', '£200.00'),
           buildSummaryRow('Creditor', 'Anna Nowak')
@@ -4593,8 +4748,7 @@ function getFailedPublishingCheckCaseViewData() {
       {
         title: 'MCHILD - Maintenance Order for child(ren)',
         rows: [
-          buildSummaryRow('Amount', '£250.00'),
-          buildSummaryRow('Payment frequency', 'Monthly'),
+          buildSummaryRow('Amount', formatOrderTermAmountWithFrequency('250', 'monthly')),
           buildSummaryRow('Expiry date', '22 August 2035'),
           buildSummaryRow('Expiry terms', 'Yes - see case comment or notes'),
           buildSummaryRow('Arrears', '£100.00'),
@@ -4782,7 +4936,7 @@ function getReviewCaseStatus(req, id) {
 function getCasePartyName(sessionData, party, format = 'list') {
   const firstNames = sessionData[`${party}-first-names`] || ''
   const lastName = sessionData[`${party}-last-name`] || ''
-  const title = getTitleLabel(sessionData[`${party}-title`])
+  const title = getOptionalTitleLabel(sessionData[`${party}-title`])
 
   if (party === 'applicant' && sessionData['applicant-type'] === 'organisation') {
     return sessionData['applicant-organisation-name'] || 'Organisation'
@@ -6068,6 +6222,9 @@ router.get('/create-a-case/order-details', (req, res) => {
     applicationLookupJson: getApplicationLookupJson(caseType),
     errors: {},
     errorSummary: null,
+    paymentFrequencyItems: getPaymentFrequencyItems(
+      getCreateACaseData(req)['order-payment-frequency']
+    ),
     orderApplicationTitle:
       orderApplicationDefinition?.title ||
       'Application from EU Country for registration or recognition of an order in the family court'
@@ -6103,6 +6260,9 @@ router.post('/create-a-case/order-details', (req, res, next) => {
       applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
       errors,
       errorSummary: buildErrorSummary(errors),
+      paymentFrequencyItems: getPaymentFrequencyItems(
+        getSingleValue(req.body['order-payment-frequency']) || ''
+      ),
       orderApplicationTitle:
         orderApplicationDefinition?.title ||
         'Application from EU Country for registration or recognition of an order in the family court'
@@ -6110,7 +6270,12 @@ router.post('/create-a-case/order-details', (req, res, next) => {
   }
 
   delete getCreateACaseData(req)['order-payment-terms']
-  delete getCreateACaseData(req)['order-payment-frequency']
+  getCreateACaseData(req)['order-payment-frequency'] =
+    getSingleValue(req.body['order-payment-frequency']) || ''
+  getCreateACaseData(req)['entered-order-terms'] = applySharedFrequencyToRecordedOrderTerms(
+    getRecordedOrderTerms(getCreateACaseData(req)),
+    getCreateACaseData(req)['order-payment-frequency']
+  ).map(({ index, ...term }) => term)
   delete getCreateACaseData(req)['order-managing-payments']
   getCreateACaseData(req)['order-has-periodical-payments'] = ''
   getCreateACaseData(req)['order-has-lump-sum'] = ''
@@ -6213,7 +6378,7 @@ router.get('/create-a-case/order-term/:index/delete', (req, res, next) => {
   return res.render('create-a-case/remove-order-term', {
     orderTermCard: {
       title: `${selectedTerm.code} - ${selectedTerm.title}`,
-      rows: getOrderTermReviewRows(selectedTerm).slice(1).filter((row) => row.value.text !== '-')
+      rows: getOrderTermReviewRows(selectedTerm, getCreateACaseData(req)).slice(1).filter((row) => row.value.text !== '-')
     },
     formAction: `/create-a-case/order-term/${index}/delete`
   })
@@ -6268,6 +6433,8 @@ router.get('/create-a-case/order-term-details', (req, res) => {
     resultCategory: getResultCategoryLabel(orderTermDefinition.category),
     requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
     resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
+    paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(getCreateACaseData(req))),
+    showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
     responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
     errorSummary: null
   })
@@ -6287,7 +6454,16 @@ router.post('/create-a-case/order-term-details', (req, res, next) => {
     return res.redirect('/create-a-case/select-order-term')
   }
 
-  const { errors, values } = validateResultResponses(orderTermDefinition, req.body)
+  const frequencyField = findFrequencyField(orderTermDefinition)
+  const bodyWithSharedFrequency = {
+    ...req.body
+  }
+
+  if (frequencyField) {
+    bodyWithSharedFrequency[frequencyField.id] = getSharedOrderPaymentFrequency(getCreateACaseData(req))
+  }
+
+  const { errors, values } = validateResultResponses(orderTermDefinition, bodyWithSharedFrequency)
 
   getCreateACaseData(req)['alternative-current-order-term-responses'] = values
 
@@ -6301,6 +6477,8 @@ router.post('/create-a-case/order-term-details', (req, res, next) => {
       resultCategory: getResultCategoryLabel(orderTermDefinition.category),
       requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
       resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
+      paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(getCreateACaseData(req))),
+      showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
       responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
       errorSummary: buildErrorSummary(errors)
     })
@@ -8962,7 +9140,7 @@ function updateMinorCreditorAccountFromForm(account, body) {
   account.creditorType = creditor.creditorType
   account.title = creditor.title || null
   account.firstNames = creditor.firstNames || ''
-  account.lastName = creditor.lastName || ''
+  account.lastName = hasValue(creditor.lastName) ? String(creditor.lastName).toUpperCase() : ''
   account.organisationName = creditor.organisationName || ''
   account.name = getMinorCreditorName(creditor, 0)
   account.address = getMinorCreditorAddressFromData(creditor)
@@ -9170,6 +9348,596 @@ function getActiveCaseTypeItems(selectedCaseType) {
   }))
 }
 
+function getNameWithoutTitle(name) {
+  return String(name || '').replace(/^(Mr|Mrs|Ms|Miss|Dr)\s+/, '')
+}
+
+function getIndividualCreditorNameFromParts(account) {
+  if (!account) {
+    return ''
+  }
+
+  const lastName = hasValue(account.lastName) ? String(account.lastName).toUpperCase() : account.lastName
+  return [
+    getOptionalTitleLabel(account.title),
+    account.firstNames,
+    lastName
+  ].filter(hasValue).join(' ')
+}
+
+function getCreditorAccountDisplayName(account, fallback = '') {
+  if (hasValue(account?.organisationName)) {
+    return account.organisationName
+  }
+
+  const individualName = getIndividualCreditorNameFromParts(account)
+  return hasValue(individualName) ? individualName : fallback || account?.name || ''
+}
+
+function getActiveCaseChildName(activeCase, index, fallback) {
+  const child = activeCase.beneficiaries?.children?.[index]
+  return child ? String(child).replace(/\s+\(Age.*$/, '') : fallback
+}
+
+function getActiveCaseOrderApplicationCode(activeCase) {
+  return getDefaultOrderApplicationCodeForCaseType(getActiveCaseTypeValue(activeCase)) || 'CJ82002'
+}
+
+function buildActiveCaseOrderTerm(code, responses, creditorLabel, options = {}) {
+  const definition = getResultDefinition(code, 'orders')
+
+  return {
+    code,
+    title: definition?.title || '',
+    category: definition?.category || 'FINAL',
+    categoryLabel: getResultCategoryLabel(definition?.category || 'FINAL'),
+    responses,
+    creditorLabel,
+    creditor: options.creditor || 'applicant',
+    minorCreditorData: options.minorCreditorData,
+    previousTerms: options.previousTerms || []
+  }
+}
+
+function buildDefaultActiveCaseOrders(activeCase) {
+  const applicantName = activeCase.applicantName || activeCase.applicant?.name
+  const firstChildName = getActiveCaseChildName(activeCase, 0, 'Sofia Nowak')
+  const secondChildName = getActiveCaseChildName(activeCase, 1, 'Michal Nowak')
+
+  const minorCreditorData = {
+    creditorType: 'individual',
+    title: 'Ms',
+    firstNames: 'Katarzyna',
+    lastName: 'Kowalczyk',
+    addressLine1: '10 Market Street',
+    addressLine2: '',
+    addressLine3: '',
+    addressLine4: 'Leeds',
+    addressLine5: '',
+    postcode: 'LS1 2AB',
+    country: 'united-kingdom',
+    bankAccountType: 'none'
+  }
+
+  // Two previous MAT terms showing how the order amount was varied over time
+  const previousMatTerms = [
+    buildActiveCaseOrderTerm(
+      'MAT',
+      {
+        'result-mat-amount': '300',
+        'result-mat-frequency': 'monthly',
+        'result-mat-expiry': '15/01/2024',
+        'result-mat-arrears': '2800'
+      },
+      applicantName
+    ),
+    buildActiveCaseOrderTerm(
+      'MAT',
+      {
+        'result-mat-amount': '420',
+        'result-mat-frequency': 'monthly',
+        'result-mat-expiry': '14/07/2026',
+        'result-mat-arrears': '1600'
+      },
+      applicantName
+    )
+  ]
+
+  // Two previous MCHILD terms for Michal — the more recent one has a minor creditor
+  const previousMchildTermsMichal = [
+    buildActiveCaseOrderTerm(
+      'MCHILD',
+      {
+        'result-mchild-amount': '180',
+        'result-mchild-frequency': 'monthly',
+        'result-mchild-expiry': '22/09/2036',
+        'result-mchild-arrears': '320',
+        'result-mchild-beneficiary': secondChildName,
+        'result-mchild-child-dob': '22/09/2018'
+      },
+      applicantName
+    ),
+    buildActiveCaseOrderTerm(
+      'MCHILD',
+      {
+        'result-mchild-amount': '280',
+        'result-mchild-frequency': 'monthly',
+        'result-mchild-expiry': '22/09/2036',
+        'result-mchild-arrears': '250',
+        'result-mchild-beneficiary': secondChildName,
+        'result-mchild-child-dob': '22/09/2018'
+      },
+      'Katarzyna Kowalczyk',
+      {
+        creditor: 'minor-creditor-katarzyna-kowalczyk',
+        minorCreditorData
+      }
+    )
+  ]
+
+  return {
+    details: {
+      applicationCode: getActiveCaseOrderApplicationCode(activeCase),
+      applicationLabel:
+        'PL-REM-2026-088 Application from EU Country for registration or recognition of an order in the family court',
+      court: 'District Court of Warsaw',
+      dateOrderMade: '10/01/2026',
+      dateArrearsLastUpdated: '01/04/2026',
+      paymentFrequency: 'monthly'
+    },
+    terms: [
+      buildActiveCaseOrderTerm(
+        'MAT',
+        {
+          'result-mat-amount': '500',
+          'result-mat-frequency': 'monthly',
+          'result-mat-expiry': '16/04/2028',
+          'result-mat-arrears': '1000'
+        },
+        applicantName,
+        {
+          previousTerms: previousMatTerms
+        }
+      ),
+      buildActiveCaseOrderTerm(
+        'MCHILD',
+        {
+          'result-mchild-amount': '350',
+          'result-mchild-frequency': 'monthly',
+          'result-mchild-expiry': '15/03/2034',
+          'result-mchild-education': ['Additional terms affect order expiry'],
+          'result-mchild-arrears': '750',
+          'result-mchild-beneficiary': firstChildName,
+          'result-mchild-child-dob': '15/03/2016'
+        },
+        applicantName
+      ),
+      buildActiveCaseOrderTerm(
+        'MCHILD',
+        {
+          'result-mchild-amount': '400',
+          'result-mchild-frequency': 'monthly',
+          'result-mchild-expiry': '22/09/2036',
+          'result-mchild-education': ['Additional terms affect order expiry'],
+          'result-mchild-arrears': '800',
+          'result-mchild-beneficiary': secondChildName,
+          'result-mchild-child-dob': '22/09/2018'
+        },
+        'Katarzyna Kowalczyk',
+        {
+          creditor: 'minor-creditor-katarzyna-kowalczyk',
+          minorCreditorData,
+          previousTerms: previousMchildTermsMichal
+        }
+      )
+    ],
+    interestAndIndexation: {
+      'interest-applies': 'yes',
+      'indexation-type': 'rpi'
+    },
+    managingPayments: {
+      'order-managing-payments': 'payments-via-court'
+    }
+  }
+}
+
+function getActiveCaseOrders(activeCase) {
+  if (!activeCase.orders) {
+    activeCase.orders = buildDefaultActiveCaseOrders(activeCase)
+  }
+
+  return activeCase.orders
+}
+
+function formatActiveCaseOrderCurrency(value) {
+  const formatted = formatCurrency(value)
+  return formatted.replace(/\.00$/, '')
+}
+
+function getActiveCaseOrderTermDisplay(field, value) {
+  if (
+    normaliseComparableText(field.name || field.prompt) === 'expiry terms' ||
+    normaliseComparableText(field.prompt) === 'expiry terms'
+  ) {
+    return isFieldValueChecked(value) ? "Expires on last day of child's education." : 'None'
+  }
+
+  if (field.type === 'currency') {
+    return formatActiveCaseOrderCurrency(value)
+  }
+
+  return getResultValueForSummary(field, value)
+}
+
+function getActiveCaseMinorCreditorAccounts(caseId) {
+  return Object.entries(minorCreditorAccounts)
+    .filter(([, account]) =>
+      account.type === 'creditor' &&
+      account.respondentAccountHref === `/active-case/${caseId}`
+    )
+    .map(([id, account]) => ({
+      id,
+      href: `/active-case/creditor/${id}`,
+      ...account
+    }))
+    .sort((a, b) => Number(a.id) - Number(b.id))
+}
+
+function getNextActiveCaseMinorCreditorAccountId(caseId) {
+  let offset = 2
+  let accountId = getGeneratedAccountId(caseId, offset)
+
+  while (minorCreditorAccounts[accountId]) {
+    offset += 1
+    accountId = getGeneratedAccountId(caseId, offset)
+  }
+
+  return accountId
+}
+
+function ensureActiveCaseMinorCreditorAccount(orderTerm, activeCase, caseId) {
+  if (!orderTerm?.minorCreditorData) {
+    return null
+  }
+
+  const creditorName = getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId)
+  const existingAccount = getActiveCaseMinorCreditorAccounts(caseId).find((account) =>
+    normaliseCreditorAccountName(account.name) === normaliseCreditorAccountName(creditorName)
+  )
+
+  if (existingAccount) {
+    applyMinorCreditorBankDetailsToAccount(
+      minorCreditorAccounts[existingAccount.id],
+      orderTerm.minorCreditorData
+    )
+    return existingAccount.href
+  }
+
+  const accountId = getNextActiveCaseMinorCreditorAccountId(caseId)
+  const account = {
+    type: 'creditor',
+    accountNumber: accountRef(accountId, 'MC'),
+    caseReference: activeCase?.caseReference || '',
+    name: creditorName,
+    firstNames: orderTerm.minorCreditorData.firstNames || '',
+    lastName: orderTerm.minorCreditorData.lastName || '',
+    organisationName: orderTerm.minorCreditorData.organisationName || '',
+    awaitingPayout: '£0.00',
+    businessUnit: activeCase?.businessUnit || '',
+    address: getMinorCreditorAddressFromData(orderTerm.minorCreditorData),
+    mainEmail: null,
+    otherEmail: null,
+    mainTelephone: null,
+    otherTelephone: null,
+    respondentAccountHref: `/active-case/${caseId}`,
+    respondentAccountNumber: activeCase?.accountNumber || accountRef(caseId, 'RP'),
+    respondentName: activeCase?.respondentName || activeCase?.respondent?.name || '',
+    restricted: false
+  }
+
+  applyMinorCreditorBankDetailsToAccount(account, orderTerm.minorCreditorData)
+  minorCreditorAccounts[accountId] = account
+
+  return `/active-case/creditor/${accountId}`
+}
+
+function normaliseCreditorAccountName(value) {
+  return normaliseComparableText(getNameWithoutTitle(String(value || '').replace(/\s+\(Age.*$/, '')))
+}
+
+function getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId) {
+  if (orderTerm?.minorCreditorData) {
+    return getMinorCreditorName(orderTerm.minorCreditorData, 0)
+  }
+
+  const creditor = String(orderTerm?.creditor || '')
+
+  if (creditor === 'applicant') {
+    return getCreditorAccountDisplayName(
+      activeCase?.applicant,
+      activeCase?.applicant?.name || activeCase?.applicantName || orderTerm?.creditorLabel
+    )
+  }
+
+  if (creditor.startsWith('major-creditor-')) {
+    const account = getMajorCreditorAccountByCode(creditor.replace('major-creditor-', ''))
+    return account
+      ? getCreditorAccountDisplayName(account, account.name)
+      : orderTerm?.creditorLabel || ''
+  }
+
+  if (creditor.startsWith('minor-creditor-')) {
+    const index = Number(creditor.replace('minor-creditor-', ''))
+    const minorCreditorAccountsForCase = caseId ? getActiveCaseMinorCreditorAccounts(caseId) : []
+
+    if (Number.isInteger(index) && minorCreditorAccountsForCase[index]) {
+      return getCreditorAccountDisplayName(
+        minorCreditorAccountsForCase[index],
+        minorCreditorAccountsForCase[index].name
+      )
+    }
+  }
+
+  return orderTerm?.creditorLabel || ''
+}
+
+function getActiveCaseOrderTermCreditorAccount(orderTerm, activeCase, caseId) {
+  const creditor = String(orderTerm?.creditor || '')
+  const creditorLabel = orderTerm?.creditorLabel || getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId)
+
+  if (!hasValue(creditorLabel)) {
+    return null
+  }
+
+  if (creditor === 'applicant') {
+    return activeCase?.applicant?.accountHref
+      ? {
+          href: activeCase.applicant.accountHref,
+          accountNumber: activeCase.applicant.accountNumber || activeCase.caseReference,
+          name: getCreditorAccountDisplayName(activeCase.applicant, activeCase.applicant.name || activeCase.applicantName)
+        }
+      : null
+  }
+
+  if (creditor.startsWith('major-creditor-')) {
+    const account = getMajorCreditorAccountByCode(creditor.replace('major-creditor-', ''))
+    return account
+      ? {
+          href: `/active-case/major-creditor/${account.id}`,
+          accountNumber: account.accountNumber,
+          name: getCreditorAccountDisplayName(account, account.name)
+        }
+      : null
+  }
+
+  if (creditor === 'major-creditor') {
+    const matchingMajorCreditor = getCaseMajorCreditorAccounts(activeCase?.caseReference)
+      .find((account) =>
+        normaliseCreditorAccountName(account.name) === normaliseCreditorAccountName(creditorLabel)
+      )
+
+    return matchingMajorCreditor
+      ? {
+          href: `/active-case/major-creditor/${matchingMajorCreditor.id}`,
+          accountNumber: matchingMajorCreditor.accountNumber,
+          name: getCreditorAccountDisplayName(matchingMajorCreditor, matchingMajorCreditor.name)
+        }
+      : null
+  }
+
+  const minorCreditorAccountsForCase = getActiveCaseMinorCreditorAccounts(caseId)
+
+  if (creditor.startsWith('minor-creditor-')) {
+    const index = Number(creditor.replace('minor-creditor-', ''))
+    if (Number.isInteger(index) && minorCreditorAccountsForCase[index]) {
+      const account = minorCreditorAccountsForCase[index]
+      return {
+        href: account.href,
+        accountNumber: account.accountNumber,
+        name: getCreditorAccountDisplayName(account, account.name)
+      }
+    }
+  }
+
+  const embeddedMinorCreditorHref = ensureActiveCaseMinorCreditorAccount(orderTerm, activeCase, caseId)
+
+  if (embeddedMinorCreditorHref) {
+    const accountId = Number(embeddedMinorCreditorHref.split('/').pop())
+    const account = Number.isInteger(accountId) ? minorCreditorAccounts[accountId] : null
+
+    if (account) {
+      return {
+        href: embeddedMinorCreditorHref,
+        accountNumber: account.accountNumber,
+        name: getCreditorAccountDisplayName(account, account.name)
+      }
+    }
+  }
+
+  const matchingMinorCreditor = minorCreditorAccountsForCase.find((account) =>
+    normaliseCreditorAccountName(account.name) === normaliseCreditorAccountName(creditorLabel)
+  )
+
+  if (matchingMinorCreditor) {
+    return {
+      href: matchingMinorCreditor.href,
+      accountNumber: matchingMinorCreditor.accountNumber,
+      name: getCreditorAccountDisplayName(matchingMinorCreditor, matchingMinorCreditor.name)
+    }
+  }
+
+  if (
+    normaliseCreditorAccountName(activeCase?.applicant?.name || activeCase?.applicantName) ===
+    normaliseCreditorAccountName(creditorLabel)
+  ) {
+    return activeCase?.applicant?.accountHref
+      ? {
+          href: activeCase.applicant.accountHref,
+          accountNumber: activeCase.applicant.accountNumber || activeCase.caseReference,
+          name: getCreditorAccountDisplayName(activeCase.applicant, activeCase.applicant.name || activeCase.applicantName)
+        }
+      : null
+  }
+
+  return null
+}
+
+function buildCreditorAccountLinkRow(account) {
+  const accountNumber = account.accountNumber || account.name
+  const accountNameHtml = account.accountNumber && hasValue(account.name)
+    ? `<br>${escapeHtml(account.name)}`
+    : ''
+
+  return buildSummaryHtmlRow(
+    'Creditor',
+    `<a class="govuk-link" href="${escapeHtml(account.href)}">${escapeHtml(accountNumber)}</a>${accountNameHtml}`
+  )
+}
+
+function getActiveCaseOrderTermRows(orderTerm, activeCase, caseId) {
+  const definition = getResultDefinition(orderTerm?.code, 'orders')
+  const rows = []
+
+  if (definition) {
+    const frequencyField = definition.responses.find(isOrderTermFrequencyField)
+    const frequencyValue = frequencyField ? orderTerm?.responses?.[frequencyField.id] : ''
+
+    definition.responses.forEach((field) => {
+      if (isOrderTermFrequencyField(field)) {
+        return
+      }
+
+      const value = orderTerm?.responses?.[field.id]
+      const displayValue = isOrderTermAmountField(field)
+        ? formatOrderTermAmountWithFrequency(value, frequencyValue)
+        : getActiveCaseOrderTermDisplay(field, value)
+
+      if (hasValue(displayValue)) {
+        rows.push(buildSummaryRow(field.prompt, displayValue))
+      }
+    })
+  }
+
+  const creditorLabel = getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId)
+
+  if (hasValue(creditorLabel)) {
+    const creditorAccount = getActiveCaseOrderTermCreditorAccount(orderTerm, activeCase, caseId)
+    rows.push(
+      creditorAccount
+        ? buildCreditorAccountLinkRow(creditorAccount)
+        : buildSummaryRow('Creditor', creditorLabel)
+    )
+  }
+
+  return rows
+}
+
+function getActiveCasePreviousOrderTermCard(orderTerm, activeCase, caseId) {
+  return {
+    title: `${orderTerm.code} - ${orderTerm.title} - CLOSED`,
+    rows: getActiveCaseOrderTermRows(orderTerm, activeCase, caseId),
+    creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {})
+  }
+}
+
+function getActiveCaseOrderTermCard(orderTerm, index, caseId, activeCase) {
+  return {
+    title: `${orderTerm.code} - ${orderTerm.title}`,
+    rows: getActiveCaseOrderTermRows(orderTerm, activeCase, caseId),
+    creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {}),
+    previousTerms: (orderTerm.previousTerms || []).map((previousTerm) =>
+      getActiveCasePreviousOrderTermCard(previousTerm, activeCase, caseId)
+    ),
+    changeHref: `/active-case/${caseId}/order-term/${index}/change`
+  }
+}
+
+function getActiveCaseOrderDetailsRows(activeCase) {
+  const orders = getActiveCaseOrders(activeCase)
+
+  return [
+    buildSummaryRow('Application code', orders.details.applicationLabel),
+    buildSummaryRow('Court that made the order', orders.details.court),
+    buildSummaryRow('Date order made', formatDateLong(orders.details.dateOrderMade)),
+    buildSummaryRow('Payment frequency', getFrequencyLabel(orders.details.paymentFrequency)),
+    buildSummaryRow('Date arrears last updated', formatDateLong(orders.details.dateArrearsLastUpdated))
+  ]
+}
+
+function getActiveCaseInterestAndIndexationRows(activeCase) {
+  const interestAndIndexation = getActiveCaseOrders(activeCase).interestAndIndexation
+  const interestLabels = {
+    yes: 'Yes',
+    no: 'No'
+  }
+  const indexationLabels = {
+    rpi: 'Retail Price Index (RPI)',
+    cpi: 'Consumer Price Index (CPI)',
+    'other-indexation': 'Other indexation',
+    'no-indexation': 'None'
+  }
+
+  return [
+    buildSummaryRow('Interest', interestLabels[interestAndIndexation['interest-applies']] || '-'),
+    buildSummaryRow('Indexation', indexationLabels[interestAndIndexation['indexation-type']] || '-')
+  ]
+}
+
+function getActiveCaseManagingPaymentsRows(activeCase) {
+  const managingPayments = getActiveCaseOrders(activeCase).managingPayments
+  const paymentLabels = {
+    'payments-via-court': 'Payments via the court',
+    'direct-payments': 'Direct payments to creditors'
+  }
+
+  return [
+    buildSummaryRow(
+      'Payment arrangement',
+      paymentLabels[managingPayments['order-managing-payments']] || '-'
+    )
+  ]
+}
+
+function setOrderDetailsFormData(req, res, orderDetails) {
+  const formData = {
+    'order-application-code': orderDetails.applicationCode,
+    'order-court-that-made-the-order': orderDetails.court,
+    'order-date-order-made': orderDetails.dateOrderMade,
+    'order-payment-frequency': orderDetails.paymentFrequency || 'monthly',
+    'order-date-arrears-last-updated': orderDetails.dateArrearsLastUpdated
+  }
+
+  Object.assign(req.session.data, formData)
+  Object.assign(res.locals.data, formData)
+}
+
+function setInterestAndIndexationFormData(req, res, interestAndIndexation) {
+  Object.assign(req.session.data, interestAndIndexation)
+  Object.assign(res.locals.data, interestAndIndexation)
+}
+
+function setManagingPaymentsFormData(req, res, managingPayments) {
+  Object.assign(req.session.data, managingPayments)
+  Object.assign(res.locals.data, managingPayments)
+}
+
+function getActiveCaseOrderTermCreditorItems(activeCase, selectedCreditor) {
+  const items = []
+
+  ;(activeCase.beneficiaries?.children || []).forEach((child, index) => {
+    const childName = String(child).replace(/\s+\(Age.*$/, '')
+    const value = `minor-creditor-${index}`
+
+    items.push({
+      value,
+      text: childName,
+      checked: selectedCreditor === value
+    })
+  })
+
+  return items
+}
+
 router.get('/active-case/:id', (req, res) => {
   const id = Number(req.params.id)
   const tab = req.query.tab || 'at-a-glance'
@@ -9185,6 +9953,12 @@ router.get('/active-case/:id', (req, res) => {
     tab,
     respondentRows: getActiveCaseRespondentRows(activeCase.respondent),
     centralAuthorityRows: getActiveCaseCentralAuthorityRows(activeCase),
+    orderDetailsRows: getActiveCaseOrderDetailsRows(activeCase),
+    orderTermCards: getActiveCaseOrders(activeCase).terms.map((orderTerm, index) =>
+      getActiveCaseOrderTermCard(orderTerm, index, id, activeCase)
+    ),
+    interestAndIndexationRows: getActiveCaseInterestAndIndexationRows(activeCase),
+    managingPaymentsRows: getActiveCaseManagingPaymentsRows(activeCase),
     historyRows: getAccountHistoryRows(activeCase),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
@@ -9235,6 +10009,385 @@ router.post('/active-case/:id/change-case-type', (req, res, next) => {
   setActiveCaseSuccessMessage(req, '/active-case/' + id, 'Case type updated.')
 
   return redirectWithSessionSave(req, res, next, '/active-case/' + id)
+})
+
+router.get('/active-case/:id/order-details', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const orders = getActiveCaseOrders(activeCase)
+  const caseType = getActiveCaseTypeValue(activeCase)
+  setOrderDetailsFormData(req, res, orders.details)
+
+  return res.render('create-a-case/order-details', {
+    formAction: `/active-case/${id}/order-details`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    primaryButtonText: 'Save changes',
+    applicationItems: getApplicationOptionItems(orders.details.applicationCode, caseType),
+    applicationLookupJson: getApplicationLookupJson(caseType),
+    errors: {},
+    errorSummary: null,
+    paymentFrequencyItems: getPaymentFrequencyItems(orders.details.paymentFrequency || 'monthly')
+  })
+})
+
+router.post('/active-case/:id/order-details', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const caseType = getActiveCaseTypeValue(activeCase)
+  const selectedApplicationCode = String(
+    getSingleValue(req.body['order-application-code']) || ''
+  )
+    .trim()
+    .toUpperCase()
+  const errors = validateAlternativeOrderDetails(req.body, caseType)
+
+  if (Object.keys(errors).length > 0) {
+    Object.assign(res.locals.data, req.body)
+
+    return res.render('create-a-case/order-details', {
+      formAction: `/active-case/${id}/order-details`,
+      cancelHref: `/active-case/${id}?tab=orders`,
+      primaryButtonText: 'Return to case details',
+      applicationItems: getApplicationOptionItems(selectedApplicationCode, caseType),
+      applicationLookupJson: getApplicationLookupJson(caseType),
+      errors,
+      errorSummary: buildErrorSummary(errors),
+      paymentFrequencyItems: getPaymentFrequencyItems(
+        getSingleValue(req.body['order-payment-frequency']) || ''
+      )
+    })
+  }
+
+  const orders = getActiveCaseOrders(activeCase)
+  const applicationDefinition = getApplicationDefinition(selectedApplicationCode)
+
+  orders.details = {
+    applicationCode: selectedApplicationCode,
+    applicationLabel: applicationDefinition
+      ? `${selectedApplicationCode} ${applicationDefinition.title}`
+      : selectedApplicationCode,
+    court: getSingleValue(req.body['order-court-that-made-the-order']) || '',
+    dateOrderMade: getSingleValue(req.body['order-date-order-made']) || '',
+    paymentFrequency: getSingleValue(req.body['order-payment-frequency']) || '',
+    dateArrearsLastUpdated: getSingleValue(req.body['order-date-arrears-last-updated']) || ''
+  }
+  orders.terms = applySharedFrequencyToRecordedOrderTerms(
+    orders.terms || [],
+    orders.details.paymentFrequency
+  )
+  activeCase.dateArrearsUpdated = formatDateLong(orders.details.dateArrearsLastUpdated)
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order details updated.')
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/order-term/:index/change', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const sessionData = {
+    'alternative-order-term-code': orderTerm.code,
+    'alternative-current-order-term-responses': orderTerm.responses || {},
+    'order-payment-frequency': getActiveCaseOrders(activeCase).details.paymentFrequency || 'monthly'
+  }
+
+  return res.render('create-a-case/order-term-details', {
+    backHref: `/active-case/${id}?tab=orders`,
+    formAction: `/active-case/${id}/order-term/${termIndex}/change`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    resultCode: orderTerm.code,
+    resultTitle: orderTerm.title,
+    resultCategory: orderTerm.categoryLabel,
+    requiresCreditor: true,
+    resultWording: orderTerm.wording || '',
+    paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
+    showPaymentFrequencyAtTop: orderTerm.code !== 'MCHILD',
+    responseItems: getAlternativeOrderTermResponseItems(sessionData),
+    errorSummary: null
+  })
+})
+
+router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const orderTermDefinition = getResultDefinition(orderTerm.code, 'orders')
+  const sharedFrequency = getActiveCaseOrders(activeCase).details.paymentFrequency || 'monthly'
+  const frequencyField = findFrequencyField(orderTermDefinition)
+  const bodyWithSharedFrequency = {
+    ...req.body
+  }
+
+  if (frequencyField) {
+    bodyWithSharedFrequency[frequencyField.id] = sharedFrequency
+  }
+
+  const { errors, values } = validateResultResponses(orderTermDefinition, bodyWithSharedFrequency)
+  const sessionData = {
+    'alternative-order-term-code': orderTerm.code,
+    'alternative-current-order-term-responses': values,
+    'alternative-order-term-errors': errors,
+    'order-payment-frequency': sharedFrequency
+  }
+
+  if (Object.keys(errors).length) {
+    return res.render('create-a-case/order-term-details', {
+      backHref: `/active-case/${id}?tab=orders`,
+      formAction: `/active-case/${id}/order-term/${termIndex}/change`,
+      cancelHref: `/active-case/${id}?tab=orders`,
+      resultCode: orderTerm.code,
+      resultTitle: orderTerm.title,
+      resultCategory: orderTerm.categoryLabel,
+      requiresCreditor: true,
+      resultWording: orderTerm.wording || '',
+      paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
+      showPaymentFrequencyAtTop: orderTerm.code !== 'MCHILD',
+      responseItems: getAlternativeOrderTermResponseItems(sessionData),
+      errorSummary: buildErrorSummary(errors)
+    })
+  }
+
+  orderTerm.responses = values
+  orderTerm.wording = getDefinitionWording(orderTermDefinition, values)
+
+  if (orderTermDefinition?.nextStep === 'create-creditor') {
+    return redirectWithSessionSave(
+      req,
+      res,
+      next,
+      `/active-case/${id}/order-term/${termIndex}/creditor`
+    )
+  }
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    `/active-case/${id}/order-term/${termIndex}/review`
+  )
+})
+
+router.get('/active-case/:id/order-term/:index/creditor', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const selectedCreditor = String(orderTerm.creditor || 'applicant')
+  const majorCreditorCode = selectedCreditor.startsWith('major-creditor-')
+    ? selectedCreditor.replace('major-creditor-', '')
+    : ''
+
+  return res.render('create-a-case/order-term-creditor', {
+    backHref: `/active-case/${id}/order-term/${termIndex}/change`,
+    formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    pendingMinorCreditor: null,
+    pendingMinorCreditorCard: null,
+    applicantItem: {
+      value: 'applicant',
+      text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
+      checked: selectedCreditor === 'applicant'
+    },
+    existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, selectedCreditor),
+    selectedCreditor: selectedCreditor.startsWith('major-creditor-') ? 'major-creditor' : selectedCreditor,
+    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
+    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
+    selectionError: null
+  })
+})
+
+router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
+
+  if (!selectedCreditor || selectedCreditor === 'add-new-minor-creditor') {
+    return res.render('create-a-case/order-term-creditor', {
+      backHref: `/active-case/${id}/order-term/${termIndex}/change`,
+      formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
+      cancelHref: `/active-case/${id}?tab=orders`,
+      pendingMinorCreditor: null,
+      pendingMinorCreditorCard: null,
+      applicantItem: {
+        value: 'applicant',
+        text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
+        checked: selectedCreditor === 'applicant'
+      },
+      existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, selectedCreditor),
+      selectedCreditor,
+      majorCreditorItems: getMajorCreditorItems(''),
+      majorCreditorValue: '',
+      selectionError: 'Select a creditor.'
+    })
+  }
+
+  if (selectedCreditor === 'major-creditor') {
+    const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
+    orderTerm.creditor = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
+    orderTerm.creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
+  } else if (selectedCreditor === 'applicant') {
+    orderTerm.creditor = 'applicant'
+    orderTerm.creditorLabel = getActiveCaseOrderTermCreditorLabel(
+      { ...orderTerm, creditor: 'applicant' },
+      activeCase,
+      id
+    )
+    delete orderTerm.minorCreditorData
+  } else if (selectedCreditor.startsWith('minor-creditor-')) {
+    const childIndex = Number(selectedCreditor.replace('minor-creditor-', ''))
+    orderTerm.creditor = selectedCreditor
+    orderTerm.creditorLabel = getActiveCaseChildName(activeCase, childIndex, 'Minor creditor')
+    delete orderTerm.minorCreditorData
+  }
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    `/active-case/${id}/order-term/${termIndex}/review`
+  )
+})
+
+router.get('/active-case/:id/order-term/:index/review', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/order-term-review', {
+    backHref: `/active-case/${id}/order-term/${termIndex}/creditor`,
+    formAction: `/active-case/${id}/order-term/${termIndex}/review`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    orderTermCard: {
+      title: `${orderTerm.code} - ${orderTerm.title}`,
+      rows: getActiveCaseOrderTermRows(orderTerm, activeCase, id),
+      creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {}),
+      changeHref: `/active-case/${id}/order-term/${termIndex}/change`
+    }
+  })
+})
+
+router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[Number(req.params.index)] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order terms updated.')
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/interest-and-indexation', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const orders = getActiveCaseOrders(activeCase)
+  setInterestAndIndexationFormData(req, res, orders.interestAndIndexation)
+
+  return res.render('create-a-case/interest-and-indexation', {
+    formAction: `/active-case/${id}/interest-and-indexation`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    primaryButtonText: 'Save changes',
+    indexationLegendText: 'Does any indexation apply?'
+  })
+})
+
+router.post('/active-case/:id/interest-and-indexation', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  getActiveCaseOrders(activeCase).interestAndIndexation = {
+    'interest-applies': getSingleValue(req.body['interest-applies']) || '',
+    'indexation-type': getSingleValue(req.body['indexation-type']) || ''
+  }
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Interest and indexation updated.')
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/managing-payments', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const orders = getActiveCaseOrders(activeCase)
+  setManagingPaymentsFormData(req, res, orders.managingPayments)
+
+  return res.render('create-a-case/managing-payments', {
+    formAction: `/active-case/${id}/managing-payments`,
+    cancelHref: `/active-case/${id}?tab=orders`,
+    primaryButtonText: 'Save changes',
+    paymentLegendText: 'Payment arrangement'
+  })
+})
+
+router.post('/active-case/:id/managing-payments', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  getActiveCaseOrders(activeCase).managingPayments = {
+    'order-managing-payments': getSingleValue(req.body['order-managing-payments']) || ''
+  }
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Managing payments updated.')
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
 
 router.get('/active-case/:id/note', (req, res) => {
@@ -9778,7 +10931,7 @@ router.post('/resulting/record-number', (req, res, next) => {
   req.session.data['resulting-record-number'] =
     getSingleValue(req.body['resulting-record-number-search']) ||
     req.session.data['resulting-record-number'] ||
-    'RM12345678'
+    '26000022U'
 
   req.session.data['resulting-record-search-last-name'] =
     getSingleValue(req.body['resulting-record-search-last-name']) || ''
@@ -10949,7 +12102,18 @@ function performSearch(params) {
 }
 
 function accountRef(id, prefix) {
-  return prefix + String(id).padStart(6, '0')
+  const accountLetters = ['U', 'M', 'Q', 'T', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'N', 'P', 'R', 'S', 'V', 'W', 'X', 'Y', 'Z']
+  const prefixOffsets = {
+    RP: 0,
+    AP: 1,
+    MC: 2,
+    MA: 3
+  }
+  const offset = prefixOffsets[prefix] || 0
+  const numericPart = 26000000 + (Number(id) * 10) + offset
+  const letter = accountLetters[(Number(id) + offset) % accountLetters.length]
+
+  return `${String(numericPart).padStart(8, '0')}${letter}`
 }
 
 function mapSearchRows(results) {

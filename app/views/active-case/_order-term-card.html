@@ -1,0 +1,42 @@
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<div class="govuk-summary-card govuk-!-margin-bottom-6">
+  <div class="govuk-summary-card__title-wrapper">
+    <h3 class="govuk-summary-card__title">{{ orderTermCard.title }}</h3>
+    {% if orderTermCard.changeHref %}
+      <ul class="govuk-summary-card__actions">
+        <li class="govuk-summary-card__action">
+          <a class="govuk-link" href="{{ orderTermCard.changeHref }}">
+            Change<span class="govuk-visually-hidden"> {{ orderTermCard.title }}</span>
+          </a>
+        </li>
+      </ul>
+    {% endif %}
+  </div>
+  <div class="govuk-summary-card__content">
+    {{ govukSummaryList({
+      rows: orderTermCard.rows
+    }) }}
+
+    {% if orderTermCard.previousTerms and orderTermCard.previousTerms | length %}
+      {% set previousTermsHtml %}
+        {% for previousTerm in orderTermCard.previousTerms %}
+          <div class="govuk-summary-card govuk-!-margin-bottom-4">
+            <div class="govuk-summary-card__title-wrapper">
+              <h4 class="govuk-summary-card__title">{{ previousTerm.title }}</h4>
+            </div>
+            <div class="govuk-summary-card__content">
+              {{ govukSummaryList({ rows: previousTerm.rows }) }}
+            </div>
+          </div>
+        {% endfor %}
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "Previous terms",
+        html: previousTermsHtml
+      }) }}
+    {% endif %}
+  </div>
+</div>
