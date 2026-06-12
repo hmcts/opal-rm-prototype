@@ -20,7 +20,7 @@
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
         text: "Back",
-        href: "/create-a-case/select-order-term"
+        href: backHref or "/create-a-case/select-order-term"
       }) }}
 
       <span class="govuk-caption-l">Order terms</span>
@@ -33,8 +33,22 @@
         }) }}
       {% endif %}
 
-      <form method="post" action="/create-a-case/order-term-details">
+      <form method="post" action="{{ formAction or '/create-a-case/order-term-details' }}">
+        {% if paymentFrequencyLabel and showPaymentFrequencyAtTop !== false %}
+          <h2 class="govuk-heading-m">Payments</h2>
+
+          <div class="govuk-!-margin-bottom-4">
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Frequency</p>
+            <p class="govuk-body">{{ paymentFrequencyLabel }}</p>
+          </div>
+        {% endif %}
+
         {% for field in responseItems %}
+          {% if field.startsNonPaymentSection %}
+            <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+            <h2 class="govuk-heading-m">Order expiry</h2>
+          {% endif %}
+
           {% set fieldHint = undefined %}
           {% if field.hint %}
             {% set fieldHint = {
@@ -178,16 +192,23 @@
               }
             }) }}
           {% endif %}
+
+          {% if field.showPaymentFrequencyAfter and paymentFrequencyLabel %}
+            <div class="govuk-!-margin-bottom-6">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Frequency</p>
+              <p class="govuk-body">{{ paymentFrequencyLabel }}</p>
+            </div>
+          {% endif %}
         {% endfor %}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Continue"
+            text: primaryButtonText or "Continue"
           }) }}
 
-          <a class="govuk-link" href="/create-a-case/select-order-term">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/select-order-term' }}">Cancel</a>
         </div>
       </form>
     </div>

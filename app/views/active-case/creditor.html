@@ -103,8 +103,11 @@
                 {{ mojBadge({ text: "Restricted", classes: "moj-badge--orange" }) }}
               {% endif %}
 
-              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Name</p>
-              <p class="govuk-body">{{ account.name }}</p>
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Applicant account</p>
+              <p class="govuk-body">
+                {{ account.accountNumber or account.caseReference }}<br>
+                {{ account.name }}
+              </p>
 
               <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Date of birth</p>
               <p class="govuk-body">{{ account.dateOfBirth }}</p>

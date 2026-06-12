@@ -17,7 +17,7 @@
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
         text: "Back",
-        href: "/create-a-case/order-term-details"
+        href: backHref or "/create-a-case/order-term-details"
       }) }}
 
       {% if successMessage %}
@@ -43,7 +43,7 @@
       <span class="govuk-caption-l">Order terms</span>
       <h1 class="govuk-heading-l">Creditor</h1>
 
-      <form method="post" action="/create-a-case/order-term-creditor">
+      <form method="post" action="{{ formAction or '/create-a-case/order-term-creditor' }}">
 
         {% if pendingMinorCreditor %}
 
@@ -56,11 +56,11 @@
                 items: [
                   {
                     text: "Change",
-                    href: "/create-a-case/order-term-creditor/add-minor-creditor"
+                    href: addMinorCreditorHref or "/create-a-case/order-term-creditor/add-minor-creditor"
                   },
                   {
                     text: "Remove",
-                    href: "/create-a-case/order-term-creditor/remove-minor-creditor"
+                    href: removeMinorCreditorHref or "/create-a-case/order-term-creditor/remove-minor-creditor"
                   }
                 ]
               }
@@ -118,10 +118,10 @@
 
         <div class="govuk-button-group">
           {{ govukButton({
-            text: "Continue"
+            text: primaryButtonText or "Continue"
           }) }}
 
-          <a class="govuk-link" href="/create-a-case/order-term-creditor/cancel">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/order-term-creditor/cancel' }}">Cancel</a>
         </div>
       </form>
     </div>
