@@ -214,7 +214,7 @@
 
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Applicant account</p>
             <p class="govuk-body">
-              <a href="{{ activeCase.applicant.accountHref }}" class="govuk-link">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a><br>
+              <a href="{{ activeCase.applicant.accountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a><br>
               {{ activeCase.applicant.name }}
             </p>
 

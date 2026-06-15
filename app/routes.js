@@ -31,6 +31,7 @@ const sessionReviewCasesKey = 'session-review-cases'
 const caseReviewDecisionsKey = 'case-review-decisions'
 const reviewCasesSuccessMessageKey = 'review-cases-success-message'
 const allRejectedCasesSuccessMessageKey = 'all-rejected-cases-success-message'
+const prototypeCurrentUserName = 'David Watts'
 
 const applicationDefinitionList = [
   {
@@ -4976,7 +4977,7 @@ function createSessionReviewCase(req) {
         ...(existingCase.reviewHistory || []),
         {
           action: 'Resubmitted',
-          by: 'you',
+          by: prototypeCurrentUserName,
           at: getReviewWorkflowTimestamp()
         }
       ]
@@ -4998,14 +4999,14 @@ function createSessionReviewCase(req) {
     status: 'in-review',
     created: 'Today',
     createdSort: 0,
-    submittedBy: 'you',
+    submittedBy: prototypeCurrentUserName,
     statusLabel: 'Today',
     statusSort: 0,
     caseData: cloneData(sessionData),
     reviewHistory: [
       {
         action: 'Submitted',
-        by: 'you',
+        by: prototypeCurrentUserName,
         at: getReviewWorkflowTimestamp()
       }
     ]
@@ -5028,7 +5029,7 @@ function getSessionReviewCaseRow(caseEntry) {
     caseType: caseEntry.caseData['case-type-label'] ||
       caseTypeLabels[caseEntry.caseData['case-type']] ||
       caseEntry.caseData['case-type'],
-    submittedBy: caseEntry.submittedBy || 'you',
+    submittedBy: caseEntry.submittedBy || prototypeCurrentUserName,
     created: caseEntry.created || 'Today',
     createdSort: caseEntry.createdSort || 0
   }
@@ -5346,18 +5347,53 @@ function ensureApprovedAccountsForReviewCase(caseEntry) {
 }
 
 function getGeneratedApprovedCaseAccounts(row) {
-  const respondentAccountNumber = accountRef(getGeneratedAccountId(row.id, 0), 'RP')
-  const applicantAccountNumber = accountRef(getGeneratedAccountId(row.id, 1), 'AP')
+  const activeRecord = getActiveSearchRecordForApprovedRow(row)
+  const respondentAccountId = activeRecord?.id || getGeneratedAccountId(row.id, 0)
+  const applicantAccountId = activeRecord?.a?.id || getGeneratedAccountId(row.id, 1)
+  const respondentAccountNumber = accountRef(respondentAccountId, 'RP')
+  const applicantAccountNumber = accountRef(applicantAccountId, 'AP')
+  const minorCreditorAccountsForRecord = activeRecord
+    ? activeRecord.mc.map((minorCreditor) => ({
+        href: `/active-case/creditor/${minorCreditor.id}`,
+        label: `${accountRef(minorCreditor.id, 'MC')} – ${minorCreditor.ln}, ${minorCreditor.fn}`
+      }))
+    : []
 
   return {
     respondentAccountLabel: row.respondentAccountLabel || `${respondentAccountNumber} – ${row.respondent}`,
-    respondentAccountHref: row.respondentAccountHref || row.activeHref || row.href || `/active-case/${row.id}`,
+    respondentAccountHref: row.respondentAccountHref || row.activeHref || `/active-case/${respondentAccountId}`,
     applicantAccount: row.applicantAccount || {
-      href: `/active-case/creditor/${getGeneratedAccountId(row.id, 1)}`,
+      href: `/active-case/creditor/${applicantAccountId}`,
       label: `${applicantAccountNumber} – ${row.applicant}`
     },
-    minorCreditorAccounts: row.minorCreditorAccounts || []
+    minorCreditorAccounts: row.minorCreditorAccounts || minorCreditorAccountsForRecord
   }
+}
+
+function getActiveSearchRecordForApprovedRow(row) {
+  const respondentName = normaliseListPartyName(row.respondent)
+  const applicantName = normaliseListPartyName(row.applicant)
+
+  if (!respondentName || !applicantName) {
+    return null
+  }
+
+  return searchData.find((record) =>
+    normaliseListPartyName(`${record.r.ln}, ${record.r.fn}`) === respondentName &&
+    normaliseListPartyName(`${record.a.ln}, ${record.a.fn}`) === applicantName
+  ) || null
+}
+
+function normaliseListPartyName(name) {
+  const [lastName, firstNames] = String(name || '')
+    .split(',')
+    .map((part) => part.trim().toLowerCase())
+
+  if (!lastName || !firstNames) {
+    return ''
+  }
+
+  return `${lastName}|${firstNames}`
 }
 
 function applyReviewDecisions(rows, decisions) {
@@ -5401,7 +5437,7 @@ function updateReviewCaseStatus(req, id, status, note) {
   }[status]
   const event = {
     action,
-    by: 'you',
+    by: prototypeCurrentUserName,
     at,
     ...(hasValue(note) ? { note } : {})
   }
@@ -5436,7 +5472,7 @@ function getSessionDraftOrderEntry(caseEntry) {
       caseTypeLabels[caseEntry.caseData['case-type']] ||
       caseEntry.caseData['case-type'],
     applicantTypeLabel: applicantTypeLabels[caseEntry.caseData['applicant-type']] || 'Not selected',
-    submittedBy: caseEntry.submittedBy || 'you',
+    submittedBy: caseEntry.submittedBy || prototypeCurrentUserName,
     caseData: caseEntry.caseData,
     reviewHistory: caseEntry.reviewHistory || [],
     status: caseEntry.status || 'in-review'
@@ -8829,7 +8865,7 @@ function addAccountNote(account, note) {
     {
       date: getHistoryDateToday(),
       sortValue: Date.now(),
-      user: 'you',
+      user: prototypeCurrentUserName,
       text: note.trim()
     },
     ...(account.notes || [])
@@ -9395,6 +9431,7 @@ function buildActiveCaseOrderTerm(code, responses, creditorLabel, options = {}) 
     creditorLabel,
     creditor: options.creditor || 'applicant',
     minorCreditorData: options.minorCreditorData,
+    dateAdded: options.dateAdded || '',
     previousTerms: options.previousTerms || []
   }
 }
@@ -9429,7 +9466,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
         'result-mat-expiry': '15/01/2024',
         'result-mat-arrears': '2800'
       },
-      applicantName
+      applicantName,
+      {
+        dateAdded: '16/04/2026'
+      }
     ),
     buildActiveCaseOrderTerm(
       'MAT',
@@ -9439,7 +9479,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
         'result-mat-expiry': '14/07/2026',
         'result-mat-arrears': '1600'
       },
-      applicantName
+      applicantName,
+      {
+        dateAdded: '16/04/2026'
+      }
     )
   ]
 
@@ -9455,7 +9498,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
         'result-mchild-beneficiary': secondChildName,
         'result-mchild-child-dob': '22/09/2018'
       },
-      applicantName
+      applicantName,
+      {
+        dateAdded: '16/04/2026'
+      }
     ),
     buildActiveCaseOrderTerm(
       'MCHILD',
@@ -9470,6 +9516,7 @@ function buildDefaultActiveCaseOrders(activeCase) {
       'Katarzyna Kowalczyk',
       {
         creditor: 'minor-creditor-katarzyna-kowalczyk',
+        dateAdded: '16/04/2026',
         minorCreditorData
       }
     )
@@ -9496,6 +9543,7 @@ function buildDefaultActiveCaseOrders(activeCase) {
         },
         applicantName,
         {
+          dateAdded: '16/04/2026',
           previousTerms: previousMatTerms
         }
       ),
@@ -9510,7 +9558,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
           'result-mchild-beneficiary': firstChildName,
           'result-mchild-child-dob': '15/03/2016'
         },
-        applicantName
+        applicantName,
+        {
+          dateAdded: '16/04/2026'
+        }
       ),
       buildActiveCaseOrderTerm(
         'MCHILD',
@@ -9527,6 +9578,7 @@ function buildDefaultActiveCaseOrders(activeCase) {
         {
           creditor: 'minor-creditor-katarzyna-kowalczyk',
           minorCreditorData,
+          dateAdded: '16/04/2026',
           previousTerms: previousMchildTermsMichal
         }
       )
@@ -9790,7 +9842,7 @@ function buildCreditorAccountLinkRow(account) {
 
   return buildSummaryHtmlRow(
     'Creditor',
-    `<a class="govuk-link" href="${escapeHtml(account.href)}">${escapeHtml(accountNumber)}</a>${accountNameHtml}`
+    `<a class="govuk-link" href="${escapeHtml(account.href)}" target="_blank" rel="noreferrer">${escapeHtml(accountNumber)}</a>${accountNameHtml}`
   )
 }
 
@@ -9829,15 +9881,187 @@ function getActiveCaseOrderTermRows(orderTerm, activeCase, caseId) {
     )
   }
 
+  if (hasValue(orderTerm?.dateAdded)) {
+    rows.push(buildSummaryRow('Date added', formatDateLong(orderTerm.dateAdded)))
+  }
+
   return rows
 }
 
-function getActiveCasePreviousOrderTermCard(orderTerm, activeCase, caseId) {
-  return {
-    title: `${orderTerm.code} - ${orderTerm.title} - CLOSED`,
-    rows: getActiveCaseOrderTermRows(orderTerm, activeCase, caseId),
-    creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {})
+function getActiveCaseOrderTermHistoryItems(orderTerm) {
+  return [
+    ...(orderTerm.previousTerms || []).map((previousTerm) => ({
+      ...previousTerm,
+      status: 'Closed'
+    })),
+    {
+      ...orderTerm,
+      status: 'Active'
+    }
+  ].sort((left, right) => {
+    const dateDifference =
+      getDateSortValue(left.dateAdded) - getDateSortValue(right.dateAdded)
+
+    if (dateDifference !== 0) {
+      return dateDifference
+    }
+
+    if (left.status === right.status) {
+      return 0
+    }
+
+    return left.status === 'Closed' ? -1 : 1
+  })
+}
+
+function getDateSortValue(dateString) {
+  if (!hasValue(dateString)) {
+    return 0
   }
+
+  const parts = String(dateString).split('/')
+
+  if (parts.length !== 3) {
+    return 0
+  }
+
+  const [day, month, year] = parts.map((part) => Number.parseInt(part, 10))
+
+  if (!day || !month || !year) {
+    return 0
+  }
+
+  return Date.UTC(year, month - 1, day)
+}
+
+function getActiveCaseOrderTermHistoryColumns(orderTerm) {
+  const definition = getResultDefinition(orderTerm?.code, 'orders')
+  const columns = []
+
+  if (definition) {
+    definition.responses.forEach((field) => {
+      if (isOrderTermFrequencyField(field)) {
+        return
+      }
+
+      columns.push({
+        key: field.id,
+        label: field.prompt
+      })
+    })
+  }
+
+  columns.push({ key: 'creditor', label: 'Creditor' })
+  columns.push({ key: 'dateAdded', label: 'Date added' })
+  columns.push({ key: 'status', label: 'Status' })
+
+  const columnPriority = {
+    dateAdded: 0,
+    amount: 1,
+    expiryDate: 2,
+    arrears: 3,
+    creditor: 4,
+    status: 5
+  }
+
+  const getColumnSortKey = (column) => {
+    if (column.key === 'dateAdded' || column.label === 'Date added') {
+      return columnPriority.dateAdded
+    }
+
+    if (column.key.includes('amount') || column.label === 'Amount') {
+      return columnPriority.amount
+    }
+
+    if (column.key.includes('expiry') || column.label === 'Expiry date') {
+      return columnPriority.expiryDate
+    }
+
+    if (column.key.includes('arrears') || column.label === 'Arrears') {
+      return columnPriority.arrears
+    }
+
+    if (column.key === 'creditor' || column.label === 'Creditor') {
+      return columnPriority.creditor
+    }
+
+    if (column.key === 'status' || column.label === 'Status') {
+      return columnPriority.status
+    }
+
+    return columnPriority.arrears
+  }
+
+  return columns.sort((left, right) => {
+    const priorityDifference = getColumnSortKey(left) - getColumnSortKey(right)
+
+    if (priorityDifference !== 0) {
+      return priorityDifference
+    }
+
+    return left.label.localeCompare(right.label)
+  })
+}
+
+function getActiveCaseOrderTermHistoryCell(orderTerm, column, activeCase, caseId) {
+  if (column.key === 'creditor') {
+    const creditorAccount = getActiveCaseOrderTermCreditorAccount(orderTerm, activeCase, caseId)
+    const creditorLabel = getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId)
+
+    if (creditorAccount) {
+      const accountNumber = creditorAccount.accountNumber || creditorAccount.caseReference || ''
+
+      return {
+        html: `<a class="govuk-link" href="${escapeHtml(creditorAccount.href)}" target="_blank" rel="noreferrer">${escapeHtml(accountNumber)}</a><br>${escapeHtml(creditorAccount.name)}`,
+        sortValue: `${accountNumber} ${creditorAccount.name || ''}`.trim()
+      }
+    }
+
+    return {
+      text: creditorLabel,
+      sortValue: creditorLabel
+    }
+  }
+
+  if (column.key === 'dateAdded') {
+    return {
+      text: formatDateForReview(orderTerm.dateAdded),
+      sortValue: getDateSortValue(orderTerm.dateAdded)
+    }
+  }
+
+  if (column.key === 'status') {
+    return {
+      text: orderTerm.status,
+      sortValue: orderTerm.status === 'Closed' ? 0 : 1
+    }
+  }
+
+  const definition = getResultDefinition(orderTerm?.code, 'orders')
+  const field = definition?.responses?.find((response) => response.id === column.key)
+  const frequencyField = definition?.responses?.find(isOrderTermFrequencyField)
+  const frequencyValue = frequencyField ? orderTerm?.responses?.[frequencyField.id] : ''
+  const value = orderTerm?.responses?.[column.key]
+  const displayValue = field?.type === 'date'
+    ? formatDateForReview(value)
+    : field && isOrderTermAmountField(field)
+      ? formatOrderTermAmountWithFrequency(value, frequencyValue)
+      : getActiveCaseOrderTermDisplay(field, value)
+
+  return {
+    text: displayValue || '',
+    sortValue: field?.type === 'date'
+      ? getDateSortValue(value)
+      : (displayValue || '')
+  }
+}
+
+function getActiveCaseOrderTermHistoryRows(orderTerm, activeCase, caseId) {
+  const columns = getActiveCaseOrderTermHistoryColumns(orderTerm)
+
+  return getActiveCaseOrderTermHistoryItems(orderTerm).map((historyItem) => ({
+    cells: columns.map((column) => getActiveCaseOrderTermHistoryCell(historyItem, column, activeCase, caseId))
+  }))
 }
 
 function getActiveCaseOrderTermCard(orderTerm, index, caseId, activeCase) {
@@ -9845,9 +10069,9 @@ function getActiveCaseOrderTermCard(orderTerm, index, caseId, activeCase) {
     title: `${orderTerm.code} - ${orderTerm.title}`,
     rows: getActiveCaseOrderTermRows(orderTerm, activeCase, caseId),
     creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {}),
-    previousTerms: (orderTerm.previousTerms || []).map((previousTerm) =>
-      getActiveCasePreviousOrderTermCard(previousTerm, activeCase, caseId)
-    ),
+    historyHref: (orderTerm.previousTerms || []).length
+      ? `/active-case/${caseId}/order-term/${index}/history`
+      : null,
     changeHref: `/active-case/${caseId}/order-term/${index}/change`
   }
 }
@@ -10089,6 +10313,25 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order details updated.')
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/order-term/:index/history', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  return res.render('active-case/order-term-history', {
+    showNav: false,
+    activeCase,
+    termTitle: `${orderTerm.code} - ${orderTerm.title}`,
+    termHistoryColumns: getActiveCaseOrderTermHistoryColumns(orderTerm),
+    termHistoryRows: getActiveCaseOrderTermHistoryRows(orderTerm, activeCase, id)
+  })
 })
 
 router.get('/active-case/:id/order-term/:index/change', (req, res) => {
@@ -10808,7 +11051,7 @@ router.get('/active-case/creditor/:id/creditor/edit', (req, res) => {
   })
 })
 
-router.post('/active-case/creditor/:id/creditor/edit', (req, res) => {
+router.post('/active-case/creditor/:id/creditor/edit', (req, res, next) => {
   const id = Number(req.params.id)
   const account = minorCreditorAccounts[id]
 
@@ -10817,8 +11060,9 @@ router.post('/active-case/creditor/:id/creditor/edit', (req, res) => {
   }
 
   updateMinorCreditorAccountFromForm(account, req.body)
+  setActiveCaseSuccessMessage(req, '/active-case/creditor/' + id, 'Minor creditor details updated')
 
-  return res.redirect('/active-case/creditor/' + id + '?tab=creditor')
+  return redirectWithSessionSave(req, res, next, '/active-case/creditor/' + id + '?tab=creditor')
 })
 
 router.get('/review-cases', (req, res) => {
@@ -12118,7 +12362,7 @@ function accountRef(id, prefix) {
 
 function mapSearchRows(results) {
   const buildSearchAccountHtml = (href, accountNumber, partyName) =>
-    `<a class="govuk-link" href="${escapeHtml(href)}">${escapeHtml(accountNumber)}</a><br>${escapeHtml(partyName)}`
+    `<a class="govuk-link" href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${escapeHtml(accountNumber)}</a><br>${escapeHtml(partyName)}`
 
   return results.map((c) => {
     const rLabel = `${c.r.ln}, ${c.r.fn}`
