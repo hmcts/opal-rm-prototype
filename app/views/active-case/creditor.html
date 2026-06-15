@@ -139,10 +139,10 @@
             <h2 class="govuk-heading-m rm-enquiry-section-heading">Respondent</h2>
 
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Respondent account</p>
-            <p class="govuk-body"><a href="{{ account.respondentAccountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ account.respondentAccountNumber or account.caseReference }}</a></p>
-
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Respondent name</p>
-            <p class="govuk-body">{{ account.respondentName }}</p>
+            <p class="govuk-body">
+              <a href="{{ account.respondentAccountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ account.respondentAccountNumber or account.caseReference }}</a><br>
+              {{ account.respondentName }}
+            </p>
 
           </div>
 
