@@ -15,10 +15,12 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({
-        text: "Back",
-        href: backHref or "/create-a-case/order-term-details"
-      }) }}
+      {% if showBackLink !== false %}
+        {{ govukBackLink({
+          text: "Back",
+          href: backHref or "/create-a-case/order-term-details"
+        }) }}
+      {% endif %}
 
       {% if successMessage %}
         {{ mojAlert({
@@ -40,7 +42,7 @@
         }) }}
       {% endif %}
 
-      <span class="govuk-caption-l">Order terms</span>
+      <span class="govuk-caption-l">{{ accountContextLabel or "Order terms" }}</span>
       <h1 class="govuk-heading-l">Creditor</h1>
 
       <form method="post" action="{{ formAction or '/create-a-case/order-term-creditor' }}">

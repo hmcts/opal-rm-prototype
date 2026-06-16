@@ -18,12 +18,14 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({
-        text: "Back",
-        href: backHref or "/create-a-case/select-order-term"
-      }) }}
+      {% if showBackLink !== false %}
+        {{ govukBackLink({
+          text: "Back",
+          href: backHref or "/create-a-case/select-order-term"
+        }) }}
+      {% endif %}
 
-      <span class="govuk-caption-l">Order terms</span>
+      <span class="govuk-caption-l">{{ accountContextLabel or "Order terms" }}</span>
       <h1 class="govuk-heading-l">{{ resultCode }} - {{ resultTitle }}</h1>
 
       {% if errorSummary %}
