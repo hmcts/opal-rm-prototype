@@ -33,6 +33,17 @@ const reviewCasesSuccessMessageKey = 'review-cases-success-message'
 const allRejectedCasesSuccessMessageKey = 'all-rejected-cases-success-message'
 const prototypeCurrentUserName = 'David Watts'
 
+router.get('/prototype-admin/clear-data', (req, res) => {
+  return res.render('manage-prototype/clear-data')
+})
+
+router.post('/prototype-admin/clear-data', (req, res) => {
+  req.session.data = {}
+  resetPrototypeState()
+
+  return res.render('manage-prototype/clear-data-success')
+})
+
 const applicationDefinitionList = [
   {
     group: 'APPEAL',
@@ -541,6 +552,19 @@ const caseEnquiryRecords = [
 
 function cloneData(value) {
   return JSON.parse(JSON.stringify(value))
+}
+
+function replaceCollectionContents(target, source) {
+  if (Array.isArray(target) && Array.isArray(source)) {
+    target.splice(0, target.length, ...cloneData(source))
+    return
+  }
+
+  Object.keys(target).forEach((key) => {
+    delete target[key]
+  })
+
+  Object.assign(target, cloneData(source))
 }
 
 function buildBaseSessionData() {
@@ -12247,6 +12271,20 @@ searchData.forEach((d) => {
     }
   })
 })
+
+const initialPrototypeState = {
+  activeCases: cloneData(activeCases),
+  minorCreditorAccounts: cloneData(minorCreditorAccounts),
+  majorCreditorAccounts: cloneData(majorCreditorAccounts),
+  searchData: cloneData(searchData)
+}
+
+function resetPrototypeState() {
+  replaceCollectionContents(activeCases, initialPrototypeState.activeCases)
+  replaceCollectionContents(minorCreditorAccounts, initialPrototypeState.minorCreditorAccounts)
+  replaceCollectionContents(majorCreditorAccounts, initialPrototypeState.majorCreditorAccounts)
+  replaceCollectionContents(searchData, initialPrototypeState.searchData)
+}
 
 function performSearch(params) {
   const { accountNumber, referenceNumber,
