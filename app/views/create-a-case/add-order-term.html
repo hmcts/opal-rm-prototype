@@ -12,12 +12,18 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({
-        text: "Back",
-        href: "/create-a-case/select-order-term"
-      }) }}
+      {% if showBackLink !== false %}
+        {{ govukBackLink({
+          text: "Back",
+          href: backHref or "/create-a-case/select-order-term"
+        }) }}
+      {% endif %}
 
-      <span class="govuk-caption-l">Order terms</span>
+      {% if accountContextLabel %}
+        <span class="govuk-caption-l">{{ accountContextLabel }}</span>
+      {% else %}
+        <span class="govuk-caption-l">Order terms</span>
+      {% endif %}
       <h1 class="govuk-heading-l">What type of order are you adding?</h1>
 
       {% if selectionError %}
@@ -39,7 +45,7 @@
         } %}
       {% endif %}
 
-      <form method="post" action="/create-a-case/select-order-term">
+      <form method="post" action="{{ formAction or '/create-a-case/select-order-term' }}">
         {{ xGovukAutocomplete({
           id: "alternative-order-term-code",
           name: "alternative-order-term-code",
@@ -58,7 +64,7 @@
             text: "Continue"
           }) }}
 
-          <a class="govuk-link" href="/create-a-case/case-details">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/case-details' }}">Cancel</a>
         </div>
       </form>
     </div>
