@@ -10930,6 +10930,7 @@ router.get('/active-case/:id/order-term/:index/history', (req, res) => {
   return res.render('active-case/order-term-history', {
     showNav: false,
     activeCase,
+    backHref: `/active-case/${id}?tab=orders`,
     termTitle: `${orderTerm.code} - ${orderTerm.title}`,
     termHistoryColumns: getActiveCaseOrderTermHistoryColumns(orderTerm),
     termHistoryRows: getActiveCaseOrderTermHistoryRows(orderTerm, activeCase, id)
