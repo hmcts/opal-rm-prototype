@@ -114,7 +114,7 @@
                 actions: {
                   items: [
                     {
-                      href: "/active-case/" + caseId + "/respondent/edit#respondent-details-section",
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-title",
                       text: "Change",
                       visuallyHiddenText: "respondent details"
                     }
@@ -130,7 +130,7 @@
                 actions: {
                   items: [
                     {
-                      href: "/active-case/" + caseId + "/respondent/edit#respondent-contact-details-section",
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-main-email-address",
                       text: "Change",
                       visuallyHiddenText: "contact details"
                     }
@@ -142,11 +142,43 @@
 
             {{ govukSummaryList({
               card: {
+                title: { text: "Third party details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-send-correspondence-to-third-party",
+                      text: "Change",
+                      visuallyHiddenText: "third party details"
+                    }
+                  ]
+                }
+              },
+              rows: respondentThirdPartyRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Employer details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-add-employer-details",
+                      text: "Change",
+                      visuallyHiddenText: "employer details"
+                    }
+                  ]
+                }
+              },
+              rows: respondentEmployerRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
                 title: { text: "Restrictions" },
                 actions: {
                   items: [
                     {
-                      href: "/active-case/" + caseId + "/respondent/edit#respondent-restrictions-section",
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-restrict-personal-information",
                       text: "Change",
                       visuallyHiddenText: "restrictions"
                     }
