@@ -3,6 +3,7 @@
 {% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
@@ -59,21 +60,37 @@
           {% endif %}
 
           {% if field.type == "textarea" %}
-            {{ govukTextarea({
-              id: field.id,
-              name: field.id,
-              label: {
-                text: field.prompt,
-                classes: "govuk-label--s"
-              },
-              rows: 4,
-              hint: fieldHint,
-              value: field.value,
-              errorMessage: field.errorMessage,
-              attributes: {
-                maxlength: field.maxLength
-              }
-            }) }}
+            {% if field.useCharacterCount and field.maxLength %}
+              {{ govukCharacterCount({
+                id: field.id,
+                name: field.id,
+                label: {
+                  text: field.prompt,
+                  classes: "govuk-label--s"
+                },
+                rows: 4,
+                maxlength: field.maxLength,
+                hint: fieldHint,
+                value: field.value,
+                errorMessage: field.errorMessage
+              }) }}
+            {% else %}
+              {{ govukTextarea({
+                id: field.id,
+                name: field.id,
+                label: {
+                  text: field.prompt,
+                  classes: "govuk-label--s"
+                },
+                rows: 4,
+                hint: fieldHint,
+                value: field.value,
+                errorMessage: field.errorMessage,
+                attributes: {
+                  maxlength: field.maxLength
+                }
+              }) }}
+            {% endif %}
           {% elif field.type == "date" %}
             {{ mojDatePicker({
               id: field.id,

@@ -94,15 +94,19 @@
           </div>
         </div>
 
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-two-thirds">
-
-            {% if activeCase.respondent.restricted %}
+        {% if activeCase.respondent.restricted %}
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
               {{ mojAlert({
                 variant: "warning",
                 text: "Respondent's personal information should not be shared."
               }) }}
-            {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
 
             {{ govukSummaryList({
               card: {
@@ -110,14 +114,46 @@
                 actions: {
                   items: [
                     {
-                      href: "/active-case/" + caseId + "/respondent/edit",
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-details-section",
                       text: "Change",
                       visuallyHiddenText: "respondent details"
                     }
                   ]
                 }
               },
-              rows: respondentRows
+              rows: respondentDetailsRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Contact details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-contact-details-section",
+                      text: "Change",
+                      visuallyHiddenText: "contact details"
+                    }
+                  ]
+                }
+              },
+              rows: respondentContactRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Restrictions" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/" + caseId + "/respondent/edit#respondent-restrictions-section",
+                      text: "Change",
+                      visuallyHiddenText: "restrictions"
+                    }
+                  ]
+                }
+              },
+              rows: respondentRestrictionsRows
             }) }}
 
           </div>

@@ -3,6 +3,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/tabs/macro.njk" import govukTabs %}
@@ -13,14 +14,23 @@
 {% set activeNav = "search" %}
 
 {% block pageTitle %}
-  Search for cases and accounts - {{ serviceName }} - GOV.UK Prototype Kit
+  {% if errorSummary %}Error: {% endif %}Search for cases and accounts - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
+  {% set formErrors = errors or {} %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
       <h1 class="govuk-heading-l">Search for cases and accounts</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
 
       <form method="post" action="/search">
 
@@ -29,6 +39,10 @@
           id: "account-number",
           name: "account-number",
           classes: "govuk-input--width-10",
+          attributes: {
+            maxlength: "9"
+          },
+          errorMessage: formErrors["account-number"],
           value: formValues["account-number"] if formValues
         }) }}
 

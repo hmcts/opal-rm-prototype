@@ -6,7 +6,7 @@
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 
 {% block pageTitle %}
-  Create a case – {{ serviceName }} – GOV.UK Prototype Kit
+  Create a case — {{ serviceName }} — GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
@@ -76,6 +76,30 @@
           ]
         }) }}
 
+        {{ govukRadios({
+          idPrefix: "has-order",
+          name: "has-order",
+          classes: "govuk-radios--inline",
+          fieldset: {
+            legend: {
+              text: "Do you have an order to add?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "yes",
+              text: "Yes",
+              checked: data["has-order"] == "yes"
+            },
+            {
+              value: "no",
+              text: "No",
+              checked: data["has-order"] == "no"
+            }
+          ]
+        }) }}
+
         <div class="govuk-button-group">
           {{ govukButton({
             text: "Continue"
@@ -87,5 +111,4 @@
     </div>
   </div>
 {% endblock %}
-
 

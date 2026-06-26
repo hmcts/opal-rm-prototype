@@ -31,7 +31,7 @@
         <span class="govuk-caption-l">{{ accountContextLabel }}</span>
       {% endif %}
 
-      <h1 class="govuk-heading-l">Applicant details</h1>
+      <h1 class="govuk-heading-l" id="applicant-details-section">Applicant details</h1>
 
       {% if errorSummary %}
         {{ govukErrorSummary({
@@ -48,7 +48,7 @@
       {% endset %}
 
       {% set thirdPartyHtml %}
-        <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Third party details</h2>
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2" id="applicant-third-party-details-section">Third party details</h2>
         <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence</p>
 
         {{ govukInput({
@@ -424,7 +424,7 @@
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-        <h2 class="govuk-heading-m">Contact details</h2>
+        <h2 class="govuk-heading-m" id="applicant-contact-details-section">Contact details</h2>
 
         {{ govukInput({
           id: "applicant-main-email-address",
@@ -476,9 +476,7 @@
           value: data["applicant-other-telephone-number"]
         }) }}
 
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
-
-        <h2 class="govuk-heading-m">Address</h2>
+        <h2 class="govuk-heading-m" id="applicant-address-section">Address</h2>
 
         {{ govukInput({
           id: "applicant-address-line-1",
@@ -580,7 +578,7 @@
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-        <h2 class="govuk-heading-m">Bank details</h2>
+        <h2 class="govuk-heading-m" id="applicant-bank-details-section">Bank details</h2>
 
         {{ govukRadios({
           idPrefix: "applicant-bank-account-type",
@@ -623,7 +621,7 @@
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         {% if not isOrganisationApplicant %}
-          <h2 class="govuk-heading-m">Restrict personal information</h2>
+          <h2 class="govuk-heading-m" id="applicant-restrictions-section">Restrict personal information</h2>
           <p class="govuk-hint">A flag will be added to the account to remind HMCTS staff not to share the applicant's details with third parties</p>
 
           {{ govukCheckboxes({

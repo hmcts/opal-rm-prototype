@@ -99,7 +99,7 @@ module.exports = [
     registerText: 'Application for [application details].',
     act: 'Withdrawal Agreement (WAC)',
     actSummary:
-      'Application under the EU–UK Withdrawal Agreement (2019) – “WAC cases” (as implemented by the European Union (Withdrawal Agreement) Act 2020)'
+      'Application under the EU–UK Withdrawal Agreement (2019) — “WAC cases” (as implemented by the European Union (Withdrawal Agreement) Act 2020)'
   },
   {
     group: 'OTBM',

@@ -24,7 +24,7 @@
         <span class="govuk-caption-l">{{ accountContextLabel }}</span>
       {% endif %}
 
-      <h1 class="govuk-heading-l">Minor creditor details</h1>
+      <h1 class="govuk-heading-l" id="minor-creditor-details-section">Minor creditor details</h1>
 
       {% set individualHtml %}
         {{ govukInput({
@@ -252,8 +252,6 @@
           ]
         }) }}
 
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
-
         <h2 class="govuk-heading-m">Address</h2>
 
         {{ govukInput({
@@ -335,7 +333,7 @@
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-        <h2 class="govuk-heading-m">Bank details</h2>
+        <h2 class="govuk-heading-m" id="minor-creditor-bank-details-section">Bank details</h2>
 
         {{ govukRadios({
           idPrefix: "minor-creditor-bank-account-type",

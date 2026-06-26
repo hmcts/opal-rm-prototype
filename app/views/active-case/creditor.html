@@ -172,24 +172,82 @@
           </div>
         </div>
 
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-two-thirds">
-
-            {% if account.restricted %}
+        {% if account.restricted %}
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
               {{ mojAlert({
                 variant: "warning",
                 text: "Applicant's personal information should not be shared."
               }) }}
-            {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
 
             {{ govukSummaryList({
               card: {
                 title: { text: "Applicant details" },
                 actions: {
-                  items: [{ href: "/active-case/creditor/" + accountId + "/applicant/edit", text: "Change", visuallyHiddenText: "applicant details" }]
+                  items: [
+                    {
+                      href: "/active-case/creditor/" + accountId + "/applicant/edit#applicant-details-section",
+                      text: "Change",
+                      visuallyHiddenText: "applicant details"
+                    }
+                  ]
                 }
               },
-              rows: applicantRows
+              rows: applicantDetailsRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Contact details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/creditor/" + accountId + "/applicant/edit#applicant-contact-details-section",
+                      text: "Change",
+                      visuallyHiddenText: "contact details"
+                    }
+                  ]
+                }
+              },
+              rows: applicantContactRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Bank details" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/creditor/" + accountId + "/applicant/edit#applicant-bank-details-section",
+                      text: "Change",
+                      visuallyHiddenText: "bank details"
+                    }
+                  ]
+                }
+              },
+              rows: applicantBankRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Restrictions" },
+                actions: {
+                  items: [
+                    {
+                      href: "/active-case/creditor/" + accountId + "/applicant/edit#applicant-restrictions-section",
+                      text: "Change",
+                      visuallyHiddenText: "restrictions"
+                    }
+                  ]
+                }
+              },
+              rows: applicantRestrictionsRows
             }) }}
 
           </div>
@@ -222,10 +280,20 @@
               card: {
                 title: { text: "Minor creditor details" },
                 actions: {
-                  items: [{ href: "/active-case/creditor/" + accountId + "/creditor/edit", text: "Change", visuallyHiddenText: "minor creditor details" }]
+                  items: [{ href: "/active-case/creditor/" + accountId + "/creditor/edit#minor-creditor-details-section", text: "Change", visuallyHiddenText: "minor creditor details" }]
                 }
               },
-              rows: creditorRows
+              rows: creditorDetailsRows
+            }) }}
+
+            {{ govukSummaryList({
+              card: {
+                title: { text: "Bank details" },
+                actions: {
+                  items: [{ href: "/active-case/creditor/" + accountId + "/creditor/edit#minor-creditor-bank-details-section", text: "Change", visuallyHiddenText: "bank details" }]
+                }
+              },
+              rows: creditorBankRows
             }) }}
 
           </div>
