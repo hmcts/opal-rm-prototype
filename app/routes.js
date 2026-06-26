@@ -32,6 +32,7 @@ const caseReviewDecisionsKey = 'case-review-decisions'
 const reviewCasesSuccessMessageKey = 'review-cases-success-message'
 const allRejectedCasesSuccessMessageKey = 'all-rejected-cases-success-message'
 const prototypeCurrentUserName = 'David Watts'
+const EMPTY_VALUE_TEXT = '—'
 
 router.get('/prototype-admin/clear-data', (req, res) => {
   return res.render('manage-prototype/clear-data')
@@ -1704,7 +1705,7 @@ function formatDateLong(dateString) {
   dateString = getSingleValue(dateString)
 
   if (!hasValue(dateString)) {
-    return '-'
+    return EMPTY_VALUE_TEXT
   }
 
   const parts = dateString.split('/')
@@ -1735,14 +1736,14 @@ function formatDateLong(dateString) {
 }
 
 function formatTextValue(value) {
-  return hasValue(value) ? value : '–'
+  return hasValue(value) ? value : EMPTY_VALUE_TEXT
 }
 
 function formatLinesHtml(lines) {
   const filteredLines = lines.filter(hasValue)
 
   if (!filteredLines.length) {
-    return '–'
+    return EMPTY_VALUE_TEXT
   }
 
   return filteredLines.map((line) => escapeHtml(line)).join('<br>')
@@ -1833,6 +1834,17 @@ function buildSummarySectionHeadingRow(headingText) {
     classes: 'rm-summary-list__section-heading rm-summary-list__section-start',
     key: {
       text: headingText
+    },
+    value: {
+      html: ''
+    }
+  }
+}
+
+function buildSummaryNoneProvidedRow() {
+  return {
+    key: {
+      html: '<span class="govuk-hint govuk-!-margin-bottom-0">None provided</span>'
     },
     value: {
       html: ''
@@ -2258,7 +2270,7 @@ function getResultingRecordSearchMatches(sessionData) {
       totalArrears: 25,
       orderedToPay: 25,
       frequency: 'Monthly',
-      comments: '-'
+      comments: EMPTY_VALUE_TEXT
     },
     {
       id: 'record-2',
@@ -2279,7 +2291,7 @@ function getResultingRecordSearchMatches(sessionData) {
       totalArrears: 120,
       orderedToPay: 25,
       frequency: 'Monthly',
-      comments: '-'
+      comments: EMPTY_VALUE_TEXT
     },
     {
       id: 'record-3',
@@ -2300,7 +2312,7 @@ function getResultingRecordSearchMatches(sessionData) {
       totalArrears: 47.32,
       orderedToPay: 15,
       frequency: 'Weekly',
-      comments: '-'
+      comments: EMPTY_VALUE_TEXT
     }
   ]
 
@@ -2376,7 +2388,7 @@ function getResultingEnglandAndWalesSessions(sessionData) {
     sessions.unshift({
       court: sessionData['hearing-court'] || 'Court not provided',
       date: sessionData['hearing-date'] || '',
-      courtroom: sessionData['hearing-courtroom-number'] || '-',
+      courtroom: sessionData['hearing-courtroom-number'] || EMPTY_VALUE_TEXT,
       recordCount: 1
     })
   }
@@ -2706,6 +2718,7 @@ function normaliseResultResponse(resultCode, response, index) {
       type === 'text' || type === 'textarea'
         ? getResultFieldMaxLength(response.type, response.max)
         : undefined,
+    characterCount: Boolean(response.characterCount),
     minSelections,
     maxSelections,
     hint: cleanWorkbookText(response.hint),
@@ -3737,7 +3750,7 @@ function getCheckCaseOrderTermCards(sessionData) {
 function getOrderTermHubCards(sessionData) {
   return getRecordedOrderTerms(sessionData).map((orderTerm) => ({
     title: `${orderTerm.code} - ${orderTerm.title}`,
-    rows: getOrderTermReviewRows(orderTerm, sessionData).slice(1).filter((row) => row.value.text !== '-'),
+    rows: getOrderTermReviewRows(orderTerm, sessionData).slice(1).filter((row) => row.value.text !== EMPTY_VALUE_TEXT),
     creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, sessionData),
     changeHref: `/create-a-case/order-term/${orderTerm.index}/change`,
     removeHref: `/create-a-case/order-term/${orderTerm.index}/delete`
@@ -3802,7 +3815,11 @@ function getAlternativeOrderTermWording(sessionData) {
   return getDefinitionWording(definition, getEffectiveAlternativeOrderResponses(sessionData, definition))
 }
 
-function getAlternativeOrderTermResponseItems(sessionData) {
+function shouldShowOrderTermPaymentFrequencyAtTop(definition) {
+  return Boolean(definition && definition.code !== 'MCHILD' && findFrequencyField(definition))
+}
+
+function getAlternativeOrderTermResponseItems(sessionData, options = {}) {
   const definition = getResultDefinition(sessionData['alternative-order-term-code'], 'orders')
   const values = getEffectiveAlternativeOrderResponses(sessionData, definition)
   const errors = sessionData['alternative-order-term-errors'] || {}
@@ -3826,12 +3843,25 @@ function getAlternativeOrderTermResponseItems(sessionData) {
         field.type === 'radios' || field.type === 'checkboxes' || field.type === 'autocomplete'
           ? getResultFieldOptionItems(field, values[field.id] || (field.type === 'checkboxes' ? [] : ''))
           : undefined,
+      useCharacterCount: Boolean(field.characterCount),
       errorMessage: errors[field.id]
         ? {
           text: errors[field.id]
         }
       : undefined
     }))
+
+  if (options.preserveDefinitionOrder) {
+    return editableFields.map((field) => ({
+      ...field,
+      showPaymentFrequencyAfter:
+        Boolean(options.showPaymentFrequencyAfterAmount) && isOrderTermAmountField(field)
+    }))
+  }
+
+  if (definition.code === 'MLUMP') {
+    return editableFields
+  }
 
   const usesMchildTemplate = definition.code === 'MCHILD'
 
@@ -4082,7 +4112,7 @@ function getCentralAuthorityPaymentDetailsHtml(sessionData) {
     return 'Cheque'
   }
 
-  return '-'
+  return EMPTY_VALUE_TEXT
 }
 
 function getCentralAuthorityCardRows(sessionData) {
@@ -4124,7 +4154,7 @@ function getInterestAppliesLabel(value) {
     no: 'No'
   }
 
-  return labels[value] || '-'
+  return labels[value] || EMPTY_VALUE_TEXT
 }
 
 function getIndexationTypeLabel(value) {
@@ -4135,7 +4165,7 @@ function getIndexationTypeLabel(value) {
     'no-indexation': 'None'
   }
 
-  return labels[value] || '-'
+  return labels[value] || EMPTY_VALUE_TEXT
 }
 
 function getTermsBeneficiaryDraft(sessionData) {
@@ -4380,7 +4410,7 @@ function getTermsReviewGroups(sessionData) {
         text:
           term.expiryType === 'expires-on-date'
             ? formatDateForReview(term.expiryDate)
-            : '–'
+            : EMPTY_VALUE_TEXT
       },
       {
         text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see case comment or notes' : 'None'
@@ -4435,7 +4465,7 @@ function getTermsReviewRow(term) {
       text:
         term.expiryType === 'expires-on-date'
           ? formatDateForReview(term.expiryDate)
-          : '-'
+            : EMPTY_VALUE_TEXT
     },
     {
       text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see case comment or notes' : 'None'
@@ -4740,7 +4770,7 @@ function getCheckCaseDetailsViewData(sessionData) {
       buildSummaryRow('How will payments be managed?', {
         'payments-via-court': 'Payments via the court',
         'direct-payments': 'Direct payments to creditors'
-      }[sessionData['order-managing-payments']] || '-')
+      }[sessionData['order-managing-payments']] || EMPTY_VALUE_TEXT)
     ],
     caseCommentsRows: [
       buildSummaryRow('Comment', sessionData['case-comment']),
@@ -4783,16 +4813,17 @@ function getFailedPublishingCheckCaseViewData() {
           buildSummaryRow('Expiry date', '22 August 2035'),
           buildSummaryRow('Expiry terms', 'Yes - see case comment or notes'),
           buildSummaryRow('Arrears', '£100.00'),
-          buildSummaryRow('Child’s name', 'Sofia Nowak (Age: 10)'),
+          buildSummaryRow('Child’s name', 'Sofia Nowak'),
+          buildSummaryRow('Child’s date of birth', '22 August 2015 (Age: 10)'),
           buildSummaryRow('Creditor', 'Anna Nowak')
         ]
       }
     ],
     interestAndIndexationRows: [
-      buildSummaryRow('Interest', 'Yes / No / –'),
+      buildSummaryRow('Interest', `Yes / No / ${EMPTY_VALUE_TEXT}`),
       buildSummaryRow(
         'Indexation',
-        'Retail Price Index (RPI) / Consumer Price Index (CPI) / Other indexation / None / –'
+        `Retail Price Index (RPI) / Consumer Price Index (CPI) / Other indexation / None / ${EMPTY_VALUE_TEXT}`
       )
     ],
     managingPaymentsRows: [
@@ -5361,16 +5392,16 @@ function ensureApprovedAccountsForReviewCase(caseEntry) {
 
     return {
       href: `/active-case/creditor/${accountId}`,
-      label: `${accountNumber} – ${name}`
+      label: `${accountNumber} — ${name}`
     }
   })
 
   return {
-    respondentAccountLabel: `${respondentAccountNumber} – ${getCasePartyName(caseData, 'respondent')}`,
+    respondentAccountLabel: `${respondentAccountNumber} — ${getCasePartyName(caseData, 'respondent')}`,
     respondentAccountHref: `/active-case/${ids.respondent}`,
     applicantAccount: {
       href: `/active-case/creditor/${ids.applicant}`,
-      label: `${applicantAccountNumber} – ${getCasePartyName(caseData, 'applicant')}`
+      label: `${applicantAccountNumber} — ${getCasePartyName(caseData, 'applicant')}`
     },
     minorCreditorAccounts: minorCreditorAccountRows
   }
@@ -5385,16 +5416,16 @@ function getGeneratedApprovedCaseAccounts(row) {
   const minorCreditorAccountsForRecord = activeRecord
     ? activeRecord.mc.map((minorCreditor) => ({
         href: `/active-case/creditor/${minorCreditor.id}`,
-        label: `${accountRef(minorCreditor.id, 'MC')} – ${minorCreditor.ln}, ${minorCreditor.fn}`
+        label: `${accountRef(minorCreditor.id, 'MC')} — ${minorCreditor.ln}, ${minorCreditor.fn}`
       }))
     : []
 
   return {
-    respondentAccountLabel: row.respondentAccountLabel || `${respondentAccountNumber} – ${row.respondent}`,
+    respondentAccountLabel: row.respondentAccountLabel || `${respondentAccountNumber} — ${row.respondent}`,
     respondentAccountHref: row.respondentAccountHref || row.activeHref || `/active-case/${respondentAccountId}`,
     applicantAccount: row.applicantAccount || {
       href: `/active-case/creditor/${applicantAccountId}`,
-      label: `${applicantAccountNumber} – ${row.applicant}`
+      label: `${applicantAccountNumber} — ${row.applicant}`
     },
     minorCreditorAccounts: row.minorCreditorAccounts || minorCreditorAccountsForRecord
   }
@@ -5975,6 +6006,7 @@ router.use('/create-a-case', (req, res, next) => {
 router.get('/create-a-case', (req, res) => {
   delete getCreateACaseData(req)['case-type']
   delete getCreateACaseData(req)['applicant-type-remo-in']
+  delete getCreateACaseData(req)['has-order']
   delete getCreateACaseData(req)['submitted-case-id']
   return res.render('create-a-case/index')
 })
@@ -5997,7 +6029,7 @@ router.post('/create-a-case', (req, res, next) => {
   delete getCreateACaseData(req)['applicant-type-remo-in']
   delete getCreateACaseData(req)['applicant-type-remo-out']
 
-  getCreateACaseData(req)['has-order'] = 'yes'
+  getCreateACaseData(req)['has-order'] = getSingleValue(req.body['has-order']) || 'yes'
 
   return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
 })
@@ -6446,7 +6478,7 @@ router.get('/create-a-case/order-term/:index/delete', (req, res, next) => {
   return res.render('create-a-case/remove-order-term', {
     orderTermCard: {
       title: `${selectedTerm.code} - ${selectedTerm.title}`,
-      rows: getOrderTermReviewRows(selectedTerm, getCreateACaseData(req)).slice(1).filter((row) => row.value.text !== '-')
+      rows: getOrderTermReviewRows(selectedTerm, getCreateACaseData(req)).slice(1).filter((row) => row.value.text !== EMPTY_VALUE_TEXT)
     },
     formAction: `/create-a-case/order-term/${index}/delete`
   })
@@ -6468,7 +6500,7 @@ router.post('/create-a-case/order-term/:index/delete', (req, res, next) => {
   getCreateACaseData(req)['entered-order-terms'] = recordedTerms.map(
     ({ index: _index, ...term }) => term
   )
-  setCreateACaseSuccessMessage(req, 'Order terms removed')
+  setCreateACaseSuccessMessage(req, 'Order terms removed.')
 
   if (String(getCreateACaseData(req)['alternative-edit-order-term-index']) === String(index)) {
     delete getCreateACaseData(req)['alternative-edit-order-term-index']
@@ -6502,7 +6534,7 @@ router.get('/create-a-case/order-term-details', (req, res) => {
     requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
     resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
     paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(getCreateACaseData(req))),
-    showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
+    showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
     responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
     errorSummary: null
   })
@@ -6546,7 +6578,7 @@ router.post('/create-a-case/order-term-details', (req, res, next) => {
       requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
       resultWording: getAlternativeOrderTermWording(getCreateACaseData(req)),
       paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(getCreateACaseData(req))),
-      showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
+      showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
       responseItems: getAlternativeOrderTermResponseItems(getCreateACaseData(req)),
       errorSummary: buildErrorSummary(errors)
     })
@@ -6711,7 +6743,7 @@ router.post('/create-a-case/order-term-creditor/remove-minor-creditor', (req, re
     delete pendingOrderTerm.creditor
     delete pendingOrderTerm.creditorLabel
   }
-  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed.')
   return redirectWithSessionSave(req, res, next, '/create-a-case/order-term-creditor')
 })
 
@@ -7172,7 +7204,7 @@ router.post('/create-a-case/minor-creditors/:index/remove', (req, res, next) => 
   const creditors = getMinorCreditors(getCreateACaseData(req))
   creditors.splice(index, 1)
   getCreateACaseData(req)['minor-creditors'] = creditors
-  setCreateACaseSuccessMessage(req, 'Minor creditor removed')
+  setCreateACaseSuccessMessage(req, 'Minor creditor removed.')
 
   return redirectWithSessionSave(
     req,
@@ -7296,7 +7328,7 @@ router.post('/create-a-case/terms-per-beneficiary/:index/remove', (req, res, nex
   const terms = getTermsPerBeneficiary(getCreateACaseData(req))
   terms.splice(index, 1)
   getCreateACaseData(req)['terms-per-beneficiary'] = terms
-  setCreateACaseSuccessMessage(req, 'Order terms removed')
+  setCreateACaseSuccessMessage(req, 'Order terms removed.')
 
   return redirectWithSessionSave(
     req,
@@ -7600,15 +7632,15 @@ router.get('/review-results/:index', (req, res) => {
         },
         {
           key: { text: 'Magistrate 1' },
-          value: { text: '-' }
+          value: { text: EMPTY_VALUE_TEXT }
         },
         {
           key: { text: 'Magistrate 2' },
-          value: { text: '-' }
+          value: { text: EMPTY_VALUE_TEXT }
         },
         {
           key: { text: 'Magistrate 3' },
-          value: { text: '-' }
+          value: { text: EMPTY_VALUE_TEXT }
         },
         {
           key: { text: 'Legal advisor' },
@@ -7659,13 +7691,13 @@ router.get('/review-results/:index', (req, res) => {
       ],
       caseCommentsRows: [
         { key: { text: 'Comment' }, value: { text: 'No further directions.' } },
-        { key: { text: 'Account note' }, value: { text: '-' } }
+        { key: { text: 'Account note' }, value: { text: EMPTY_VALUE_TEXT } }
       ],
       sessionRows: [
         { key: { text: 'Judge' }, value: { text: 'DJ Green' } },
-        { key: { text: 'Magistrate 1' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 2' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 3' }, value: { text: '-' } },
+        { key: { text: 'Magistrate 1' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 2' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 3' }, value: { text: EMPTY_VALUE_TEXT } },
         { key: { text: 'Legal advisor' }, value: { text: 'L Morris' } },
         { key: { text: 'Session start time' }, value: { text: '2:00pm' } },
         { key: { text: 'Session end time' }, value: { text: '2:40pm' } }
@@ -7706,13 +7738,13 @@ router.get('/review-results/:index', (req, res) => {
       ],
       caseCommentsRows: [
         { key: { text: 'Comment' }, value: { text: 'Awaiting updated financial statement.' } },
-        { key: { text: 'Account note' }, value: { text: '-' } }
+        { key: { text: 'Account note' }, value: { text: EMPTY_VALUE_TEXT } }
       ],
       sessionRows: [
         { key: { text: 'Judge' }, value: { text: 'HHJ Carter' } },
-        { key: { text: 'Magistrate 1' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 2' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 3' }, value: { text: '-' } },
+        { key: { text: 'Magistrate 1' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 2' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 3' }, value: { text: EMPTY_VALUE_TEXT } },
         { key: { text: 'Legal advisor' }, value: { text: 'J Brown' } },
         { key: { text: 'Session start time' }, value: { text: '9:45am' } },
         { key: { text: 'Session end time' }, value: { text: '10:20am' } }
@@ -7837,9 +7869,9 @@ router.get('/check-results/:index', (req, res) => {
       ],
       sessionRows: [
         { key: { text: 'Judge' }, value: { text: 'HHJ Williams' } },
-        { key: { text: 'Magistrate 1' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 2' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 3' }, value: { text: '-' } },
+        { key: { text: 'Magistrate 1' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 2' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 3' }, value: { text: EMPTY_VALUE_TEXT } },
         { key: { text: 'Legal advisor' }, value: { text: 'A Patel' } },
         { key: { text: 'Session start time' }, value: { text: '10:30am' } },
         { key: { text: 'Session end time' }, value: { text: '11:15am' } }
@@ -7881,13 +7913,13 @@ router.get('/check-results/:index', (req, res) => {
       ],
       caseCommentsRows: [
         { key: { text: 'Comment' }, value: { text: 'No further directions.' } },
-        { key: { text: 'Account note' }, value: { text: '-' } }
+        { key: { text: 'Account note' }, value: { text: EMPTY_VALUE_TEXT } }
       ],
       sessionRows: [
         { key: { text: 'Judge' }, value: { text: 'DJ Green' } },
-        { key: { text: 'Magistrate 1' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 2' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 3' }, value: { text: '-' } },
+        { key: { text: 'Magistrate 1' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 2' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 3' }, value: { text: EMPTY_VALUE_TEXT } },
         { key: { text: 'Legal advisor' }, value: { text: 'L Morris' } },
         { key: { text: 'Session start time' }, value: { text: '2:00pm' } },
         { key: { text: 'Session end time' }, value: { text: '2:40pm' } }
@@ -7929,13 +7961,13 @@ router.get('/check-results/:index', (req, res) => {
       ],
       caseCommentsRows: [
         { key: { text: 'Comment' }, value: { text: 'Awaiting updated financial statement.' } },
-        { key: { text: 'Account note' }, value: { text: '-' } }
+        { key: { text: 'Account note' }, value: { text: EMPTY_VALUE_TEXT } }
       ],
       sessionRows: [
         { key: { text: 'Judge' }, value: { text: 'HHJ Carter' } },
-        { key: { text: 'Magistrate 1' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 2' }, value: { text: '-' } },
-        { key: { text: 'Magistrate 3' }, value: { text: '-' } },
+        { key: { text: 'Magistrate 1' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 2' }, value: { text: EMPTY_VALUE_TEXT } },
+        { key: { text: 'Magistrate 3' }, value: { text: EMPTY_VALUE_TEXT } },
         { key: { text: 'Legal advisor' }, value: { text: 'J Brown' } },
         { key: { text: 'Session start time' }, value: { text: '9:45am' } },
         { key: { text: 'Session end time' }, value: { text: '10:20am' } }
@@ -7959,8 +7991,9 @@ function getCreateCasesBaseRows() {
     { id: 1, status: 'in-review', applicant: 'HORVATH, Katarina', respondent: 'NOVOTNY, Matej', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: 'Today', createdSort: 0 },
     { id: 4, status: 'rejected', applicant: 'PETROVA, Irina', respondent: 'DIMITROV, Nikolai', caseType: 'REMO Out', submittedBy: 'joe.bloggs', created: '3 days ago', createdSort: -3, rejected: '1 day ago', rejectedSort: -1 },
     { id: 3, status: 'rejected', applicant: 'KOVACS, Eszter', respondent: 'BALOGH, Janos', caseType: 'REMO In', submittedBy: 'emily.davis', created: '2 days ago', createdSort: -2, rejected: '2 days ago', rejectedSort: -2 },
-    { id: 6, status: 'approved', applicant: 'YILMAZ, Elif', respondent: 'DEMIR, Cem', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: `${accountRef(6, 'RP')} – DEMIR, Cem`, respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: `${accountRef(61, 'AP')} – YILMAZ, Elif` }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: `${accountRef(63, 'MC')} – DEMIR, Leyla` }] },
-    { id: 5, status: 'approved', applicant: 'POPA, Alina', respondent: 'POPA, Andrei', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: `${accountRef(5, 'RP')} – POPA, Andrei`, respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: `${accountRef(51, 'AP')} – POPA, Alina` }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: `${accountRef(52, 'MC')} – POPA, Mira` }] },
+    { id: 8, status: 'approved', applicant: 'CARTER, Helen', respondent: 'CARTER, James', caseType: 'REMO Out', submittedBy: 'david.watts', created: 'Today', createdSort: 0, approved: 'Today', approvedSort: 0, respondentAccountLabel: `${accountRef(8, 'RP')} — CARTER, James`, respondentAccountHref: '/active-case/8', applicantAccount: { href: '/active-case/creditor/81', label: `${accountRef(81, 'AP')} — CARTER, Helen` }, minorCreditorAccounts: [] },
+    { id: 6, status: 'approved', applicant: 'YILMAZ, Elif', respondent: 'DEMIR, Cem', caseType: 'REMO Out', submittedBy: 'emily.davis', created: '4 days ago', createdSort: -4, approved: '1 day ago', approvedSort: -1, respondentAccountLabel: `${accountRef(6, 'RP')} — DEMIR, Cem`, respondentAccountHref: '/active-case/6', applicantAccount: { href: '/active-case/creditor/61', label: `${accountRef(61, 'AP')} — YILMAZ, Elif` }, minorCreditorAccounts: [{ href: '/active-case/creditor/63', label: `${accountRef(63, 'MC')} — DEMIR, Leyla` }] },
+    { id: 5, status: 'approved', applicant: 'POPA, Alina', respondent: 'POPA, Andrei', caseType: 'REMO In', submittedBy: 'david.watts', created: '5 days ago', createdSort: -5, approved: '2 days ago', approvedSort: -2, respondentAccountLabel: `${accountRef(5, 'RP')} — POPA, Andrei`, respondentAccountHref: '/active-case/5', applicantAccount: { href: '/active-case/creditor/51', label: `${accountRef(51, 'AP')} — POPA, Alina` }, minorCreditorAccounts: [{ href: '/active-case/creditor/52', label: `${accountRef(52, 'MC')} — POPA, Mira` }] },
     { id: 7, status: 'deleted', applicant: 'RUSU, Mihai', respondent: 'RUSU, Ioana', caseType: 'REMO In', submittedBy: 'joe.bloggs', created: '7 days ago', createdSort: -7, deleted: 'Today', deletedSort: 0 }
   ]
 }
@@ -8002,7 +8035,7 @@ router.get('/create-cases', (req, res) => {
     const respondentAccountLabel = row.respondentAccountLabel || row.respondent
     const applicantHtml = row.applicantAccount
       ? buildAccountHtml(row.applicantAccount)
-      : row.applicant ? escapeHtml(row.applicant) : '–'
+      : row.applicant ? escapeHtml(row.applicant) : EMPTY_VALUE_TEXT
     const minorCreditorHtml = (row.minorCreditorAccounts || [])
       .map(buildAccountHtml)
       .join('<br>')
@@ -8015,7 +8048,7 @@ router.get('/create-cases', (req, res) => {
         text: respondentAccountLabel.replace(/\s+[–-]\s+/, ' ')
       },
       { html: applicantHtml },
-      { html: minorCreditorHtml || '–' },
+      { html: minorCreditorHtml || EMPTY_VALUE_TEXT },
       { text: row.caseType },
       { text: row.approved, sortValue: row.approvedSort }
     ]
@@ -8256,7 +8289,7 @@ router.get('/create-cases/:index', (req, res) => {
               { text: '£400.00' },
               { text: 'Anna Nowak' },
               { text: '12 January 2027' },
-              { text: '-' },
+              { text: EMPTY_VALUE_TEXT },
               { text: 'Active' }
             ]
           ]
@@ -8342,7 +8375,7 @@ router.get('/create-cases/:index', (req, res) => {
         'indexation-type': 'rpi',
         'order-managing-payments': 'payments-via-court',
         'case-comment': 'Final draft order awaiting validation',
-        'case-notes': '-'
+        'case-notes': EMPTY_VALUE_TEXT
       },
       reviewHistory: [
         {
@@ -8384,8 +8417,8 @@ router.get('/create-cases/:index', (req, res) => {
               { text: 'Monthly' },
               { text: '£120.00' },
               { text: 'Katarina Horvath' },
-              { text: '-' },
-              { text: '-' },
+              { text: EMPTY_VALUE_TEXT },
+              { text: EMPTY_VALUE_TEXT },
               { text: 'Active' }
             ]
           ]
@@ -8419,6 +8452,8 @@ router.get('/create-cases/:index', (req, res) => {
         'applicant-address-line-3': 'Berkshire',
         'applicant-postal-or-zip-code': 'RG1 2AB',
         'applicant-country': 'united-kingdom',
+        'applicant-restrict-personal-information': 'yes',
+        'applicant-restriction-reason': 'There is a domestic violence case between the applicant and respondent.',
         'respondent-title': 'Mr',
         'respondent-first-names': 'Marek',
         'respondent-last-name': 'Kowalski',
@@ -8457,7 +8492,7 @@ router.get('/create-cases/:index', (req, res) => {
         'indexation-type': 'no-indexation',
         'order-managing-payments': 'payments-via-court',
         'case-comment': 'Awaiting updated financial statement.',
-        'case-notes': '-'
+        'case-notes': EMPTY_VALUE_TEXT
       },
       reviewHistory: [
         {
@@ -8633,7 +8668,7 @@ router.post('/create-cases/:index/review', (req, res, next) => {
       ensureApprovedAccountsForReviewCase(approvedCase)
     }
 
-    req.session.data[reviewCasesSuccessMessageKey] = 'Account approved'
+    req.session.data[reviewCasesSuccessMessageKey] = 'Account approved.'
     return redirectWithSessionSave(req, res, next, '/review-cases')
   }
 
@@ -8793,6 +8828,121 @@ const activeCases = {
       children: ['Leyla DEMIR (Age 15)']
     },
     comment: 'No recent issues. Case active. Next review due September 2026.'
+  },
+  8: {
+    accountNumber: accountRef(8, 'RP'),
+    caseReference: '08000427N',
+    respondentName: 'Mr James CARTER',
+    applicantName: 'Mrs Helen CARTER',
+    caseType: 'REMO Out',
+    remoReference: '2026/REMO/08000427',
+    businessUnit: 'Reading',
+    dateOfLastMovement: '26 June 2026',
+    dateArrearsUpdated: '26 June 2026',
+    balance: '£0.00',
+    arrears: '£0.00',
+    centralAuthority: null,
+    respondent: {
+      name: 'Mr James CARTER',
+      title: 'Mr',
+      firstNames: 'James',
+      lastName: 'CARTER',
+      dateOfBirth: '12 February 1981',
+      nationalInsuranceNumber: 'JK 12 34 56 C',
+      otherPersonalInformation: null,
+      mainEmail: 'james.carter@example.com',
+      otherEmail: null,
+      mainTelephone: '07700 900808',
+      otherTelephone: null,
+      address: ['24 King Street', 'Reading', 'Berkshire', 'RG1 2HE', 'United Kingdom'],
+      restricted: false,
+      restrictionReason: null,
+      thirdParty: null
+    },
+    applicant: {
+      name: 'Mrs Helen CARTER',
+      dateOfBirth: '18 July 1983 (Age 42)',
+      restricted: false,
+      accountNumber: accountRef(81, 'AP'),
+      accountHref: '/active-case/creditor/81'
+    },
+    beneficiaries: {
+      adults: ['Mrs Helen CARTER'],
+      children: ['Emily CARTER (Age 11)', 'Oliver CARTER (Age 8)']
+    },
+    orders: {
+      details: {
+        applicationCode: 'HC07003',
+        applicationLabel: 'HC07003 Applications for a Final Order to be made',
+        court: '',
+        dateOrderMade: '',
+        dateArrearsLastUpdated: '26/06/2026',
+        paymentFrequency: 'yearly'
+      },
+      terms: [
+        buildActiveCaseOrderTerm(
+          'MAT',
+          {
+            'result-mat-amount': '0.01',
+            'result-mat-frequency': 'yearly',
+            'result-mat-expiry': '',
+            'result-mat-arrears': '0',
+            'result-mat-creditor': 'Helen Carter',
+            'result-mat-respondent': 'James Carter',
+            'result-mat-payment': 'payable through the Court',
+            'result-mat-commencement': ''
+          },
+          'Mrs Helen CARTER',
+          {
+            dateAdded: '26/06/2026'
+          }
+        ),
+        buildActiveCaseOrderTerm(
+          'MCHILD',
+          {
+            'result-mchild-amount': '0.01',
+            'result-mchild-frequency': 'yearly',
+            'result-mchild-expiry': '',
+            'result-mchild-arrears': '0',
+            'result-mchild-beneficiary': 'Emily Carter',
+            'result-mchild-child-dob': '14/09/2014',
+            'result-mchild-respondent': 'James Carter',
+            'result-mchild-payment': 'payable through the Court',
+            'result-mchild-commencement': ''
+          },
+          'Mrs Helen CARTER',
+          {
+            dateAdded: '26/06/2026'
+          }
+        ),
+        buildActiveCaseOrderTerm(
+          'MCHILD',
+          {
+            'result-mchild-amount': '0.01',
+            'result-mchild-frequency': 'yearly',
+            'result-mchild-expiry': '',
+            'result-mchild-arrears': '0',
+            'result-mchild-beneficiary': 'Oliver Carter',
+            'result-mchild-child-dob': '03/11/2017',
+            'result-mchild-respondent': 'James Carter',
+            'result-mchild-payment': 'payable through the Court',
+            'result-mchild-commencement': ''
+          },
+          'Mrs Helen CARTER',
+          {
+            dateAdded: '26/06/2026'
+          }
+        )
+      ],
+      interestAndIndexation: {
+        'interest-applies': 'no',
+        'indexation-type': 'no-indexation'
+      },
+      managingPayments: {
+        'order-managing-payments': 'payments-via-court'
+      }
+    },
+    comment: 'Sample case with applicant as creditor on all order terms.'
   }
 }
 
@@ -8992,6 +9142,27 @@ const minorCreditorAccounts = {
     sortCode: '60-16-13',
     bankAccountNumber: '31926819',
     paymentReference: 'REF-06387-LD'
+  },
+  81: {
+    type: 'applicant',
+    accountNumber: accountRef(81, 'AP'),
+    caseReference: '08000427N',
+    name: 'Mrs Helen CARTER',
+    title: 'Mrs',
+    firstNames: 'Helen',
+    lastName: 'CARTER',
+    awaitingPayout: '£0.00',
+    businessUnit: 'Reading',
+    dateOfBirth: '18 July 1983 (Age 42)',
+    address: ['18 Castle Hill', 'Reading', 'Berkshire', 'RG1 7RH', 'United Kingdom'],
+    mainEmail: 'helen.carter@example.com',
+    otherEmail: null,
+    mainTelephone: '07700 900809',
+    otherTelephone: null,
+    respondentAccountHref: '/active-case/8',
+    respondentAccountNumber: accountRef(8, 'RP'),
+    respondentName: 'Mr James CARTER',
+    restricted: false
   }
 }
 
@@ -9069,6 +9240,37 @@ function getThirdPartyFormFieldsFromAccount(thirdParty, prefix) {
     [`${prefix}-third-party-reference`]: thirdParty ? thirdParty.reference || '' : '',
     ...getAddressFormFields(thirdParty ? thirdParty.address : [], `${prefix}-third-party`)
   }
+}
+
+function getRespondentEmployerFormFields(employer) {
+  const addressFields = getAddressFormFields(employer ? employer.address : [], 'respondent-employer')
+
+  return {
+    'respondent-add-employer-details': employer ? 'yes' : null,
+    'respondent-employer-name': employer ? employer.name || '' : '',
+    'respondent-employee-reference': employer ? employer.reference || '' : '',
+    'respondent-employer-email-address': employer ? employer.email || '' : '',
+    'respondent-employer-telephone-number': employer ? employer.telephone || '' : '',
+    'respondent-employer-address-line-1': addressFields['respondent-employer-address-line-1'],
+    'respondent-employer-address-line-2': addressFields['respondent-employer-address-line-2'],
+    'respondent-employer-address-line-3': addressFields['respondent-employer-address-line-3'],
+    'respondent-employer-address-line-4': addressFields['respondent-employer-address-line-4'],
+    'respondent-employer-address-line-5': addressFields['respondent-employer-address-line-5'],
+    'respondent-employer-postcode': addressFields['respondent-employer-postal-or-zip-code'],
+    'respondent-employer-country': addressFields['respondent-employer-country']
+  }
+}
+
+function getRespondentEmployerAddressFromBody(body) {
+  return [
+    body['respondent-employer-address-line-1'],
+    body['respondent-employer-address-line-2'],
+    body['respondent-employer-address-line-3'],
+    body['respondent-employer-address-line-4'],
+    body['respondent-employer-address-line-5'],
+    body['respondent-employer-postcode'],
+    body['respondent-employer-country'] ? getCountryLabel(body['respondent-employer-country']) : ''
+  ].filter((value) => value && value.trim())
 }
 
 function getThirdPartyRowsFromAccount(thirdParty, party) {
@@ -9253,20 +9455,56 @@ function updateMinorCreditorAccountFromForm(account, body) {
 }
 
 function getMinorCreditorRowsFromAccount(account) {
+  return [
+    ...getMinorCreditorAccountDetailsRows(account),
+    ...getMinorCreditorAccountBankRows(account)
+  ]
+}
+
+function getMinorCreditorAccountDetailsRows(account) {
   const creditor = getMinorCreditorFormDataFromAccount(account)
-  const nameRows = creditor.creditorType === 'organisation'
-    ? [buildSummaryRow('Organisation name', creditor.organisationName)]
-    : [
-        buildSummaryRow('Title', creditor.title),
-        buildSummaryRow('First names', creditor.firstNames),
-        buildSummaryRow('Last name', normaliseLastName(creditor.lastName))
-      ]
+  const name = creditor.creditorType === 'organisation'
+    ? creditor.organisationName
+    : [creditor.firstNames, normaliseLastName(creditor.lastName)].filter(hasValue).join(' ')
 
   return [
-    buildSummaryRow('Creditor type', creditor.creditorType === 'organisation' ? 'Organisation' : 'Individual'),
-    ...nameRows,
-    ...getMinorCreditorSummaryRows(creditor)
-  ]
+    buildSummaryRow('Name', name),
+    buildSummaryHtmlRow('Address', getMinorCreditorAddressHtml(creditor))
+  ].filter(Boolean)
+}
+
+function getMinorCreditorAccountBankRows(account) {
+  const creditor = getMinorCreditorFormDataFromAccount(account)
+  const rows = []
+
+  if (creditor.bankAccountType === 'uk-bank-account') {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'UK bank account'),
+      buildSummaryRow('Name on account', creditor.ukNameOnAccount),
+      buildSummaryRow('Sort code', creditor.ukSortCode),
+      buildSummaryRow('Account number', creditor.ukAccountNumber),
+      buildSummaryRow('Payment reference', creditor.ukPaymentReference)
+    )
+  } else if (creditor.bankAccountType === 'non-uk-bank-account') {
+    rows.push(
+      buildSummaryRow('Type of bank account', 'Non-UK bank account'),
+      buildSummaryRow('Name on account', creditor.nonUkNameOnAccount),
+      buildSummaryRow('BIC or SWIFT code', creditor.nonUkBicOrSwiftCode),
+      buildSummaryRow('IBAN', creditor.nonUkIban),
+      buildSummaryRow('Payment reference', creditor.nonUkPaymentReference)
+    )
+    addSummaryRowIfHasValue(rows, 'Bank name', creditor.nonUkBankName)
+    addSummaryRowIfHasValue(
+      rows,
+      'Branch code or sort code',
+      creditor.nonUkBranchOfficeOrSortCode
+    )
+    addSummaryRowIfHasValue(rows, 'Account number', creditor.nonUkAccountNumber)
+  } else {
+    rows.push(buildSummaryRow('Type of bank account', 'None'))
+  }
+
+  return rows
 }
 
 const centralAuthorityFieldNames = [
@@ -9361,7 +9599,69 @@ function updateActiveCaseCentralAuthority(activeCase, body, options = {}) {
   }
 }
 
-function getActiveCaseRespondentRows(respondent) {
+function hasActiveCaseEmployerDetails(employer) {
+  return Boolean(employer && (
+    hasValue(employer.name) ||
+    hasValue(employer.reference) ||
+    hasValue(employer.email) ||
+    hasValue(employer.telephone) ||
+    (Array.isArray(employer.address) && employer.address.some(hasValue))
+  ))
+}
+
+function hasActiveCaseThirdPartyDetails(thirdParty) {
+  return Boolean(thirdParty && (
+    hasValue(thirdParty.name) ||
+    hasValue(thirdParty.relationship) ||
+    hasValue(thirdParty.reference) ||
+    (Array.isArray(thirdParty.address) && thirdParty.address.some(hasValue))
+  ))
+}
+
+function getActiveCaseRespondentEmployerRows(respondent) {
+  const rows = [
+    buildSummarySectionHeadingRow('Employer details')
+  ]
+  const employer = respondent.employer
+
+  if (!hasActiveCaseEmployerDetails(employer)) {
+    rows.push(buildSummaryNoneProvidedRow())
+    return rows
+  }
+
+  rows.push(
+    buildSummaryRow('Employer name', employer.name),
+    buildSummaryRow('Employer reference', employer.reference),
+    buildSummaryRow('Employer email address', employer.email),
+    buildSummaryRow('Employer telephone number', employer.telephone),
+    buildSummaryHtmlRow('Employer address', formatLinesHtml(employer.address || []))
+  )
+
+  return rows
+}
+
+function getActiveCaseRespondentThirdPartyRows(respondent) {
+  const rows = [
+    buildSummarySectionHeadingRow('Third party details')
+  ]
+  const thirdParty = respondent.thirdParty
+
+  if (!hasActiveCaseThirdPartyDetails(thirdParty)) {
+    rows.push(buildSummaryNoneProvidedRow())
+    return rows
+  }
+
+  rows.push(
+    buildSummaryRow('Third party name', thirdParty.name),
+    buildSummaryRow('Relationship to respondent', thirdParty.relationship),
+    buildSummaryRow('Reference', thirdParty.reference),
+    buildSummaryHtmlRow('Address', formatLinesHtml(thirdParty.address || []))
+  )
+
+  return rows
+}
+
+function getActiveCaseRespondentDetailsRows(respondent) {
   const rows = [
     buildSummaryRow('Title', respondent.title),
     buildSummaryRow('First names', respondent.firstNames),
@@ -9375,7 +9675,16 @@ function getActiveCaseRespondentRows(respondent) {
           ? respondent.otherPersonalInformation.split('\n')
           : []
       )
-    ),
+    )
+  ]
+
+  rows.push(...getActiveCaseRespondentEmployerRows(respondent))
+
+  return rows
+}
+
+function getActiveCaseRespondentContactRows(respondent) {
+  const rows = [
     buildSummaryRow('Main email address', respondent.mainEmail),
     buildSummaryRow('Other email address', respondent.otherEmail),
     buildSummaryRow('Main telephone number', respondent.mainTelephone),
@@ -9383,23 +9692,24 @@ function getActiveCaseRespondentRows(respondent) {
     buildSummaryHtmlRow("Respondent's address", formatLinesHtml(respondent.address || []))
   ]
 
-  if (respondent.thirdParty) {
-    const tp = respondent.thirdParty
+  rows.push(...getActiveCaseRespondentThirdPartyRows(respondent))
+
+  return rows
+}
+
+function getActiveCaseRespondentRestrictionsRows(respondent) {
+  const rows = [
+    buildSummaryRow('Restrict personal information', respondent.restricted ? 'Yes' : 'No')
+  ]
+
+  if (respondent.restricted && hasValue(respondent.restrictionReason)) {
     rows.push(
-      buildSummarySectionHeadingRow('Third party details'),
-      buildSummaryRow('Third party name', tp.name),
-      buildSummaryRow('Relationship to respondent', tp.relationship),
-      buildSummaryRow('Reference', tp.reference),
-      buildSummaryHtmlRow('Address', formatLinesHtml(tp.address || []))
+      buildSummaryHtmlRow(
+        'Reason for restriction',
+        formatLinesHtml(String(respondent.restrictionReason).split('\n'))
+      )
     )
   }
-
-  rows.push(
-    ...getRestrictedPersonalInformationRows(
-      respondent.restricted,
-      respondent.restrictionReason
-    )
-  )
 
   return rows
 }
@@ -10159,13 +10469,11 @@ function getActiveCaseOrderTermHistoryCell(orderTerm, column, activeCase, caseId
 
   const definition = getResultDefinition(orderTerm?.code, 'orders')
   const field = definition?.responses?.find((response) => response.id === column.key)
-  const frequencyField = definition?.responses?.find(isOrderTermFrequencyField)
-  const frequencyValue = frequencyField ? orderTerm?.responses?.[frequencyField.id] : ''
   const value = orderTerm?.responses?.[column.key]
   const displayValue = field?.type === 'date'
     ? formatDateForReview(value)
     : field && isOrderTermAmountField(field)
-      ? formatOrderTermAmountWithFrequency(value, frequencyValue)
+      ? formatOrderTermAmountForSummary(value)
       : getActiveCaseOrderTermDisplay(field, value)
 
   return {
@@ -10222,8 +10530,8 @@ function getActiveCaseInterestAndIndexationRows(activeCase) {
   }
 
   return [
-    buildSummaryRow('Interest', interestLabels[interestAndIndexation['interest-applies']] || '-'),
-    buildSummaryRow('Indexation', indexationLabels[interestAndIndexation['indexation-type']] || '-')
+    buildSummaryRow('Interest', interestLabels[interestAndIndexation['interest-applies']] || EMPTY_VALUE_TEXT),
+    buildSummaryRow('Indexation', indexationLabels[interestAndIndexation['indexation-type']] || EMPTY_VALUE_TEXT)
   ]
 }
 
@@ -10237,7 +10545,7 @@ function getActiveCaseManagingPaymentsRows(activeCase) {
   return [
     buildSummaryRow(
       'Payment arrangement',
-      paymentLabels[managingPayments['order-managing-payments']] || '-'
+      paymentLabels[managingPayments['order-managing-payments']] || EMPTY_VALUE_TEXT
     )
   ]
 }
@@ -10330,7 +10638,9 @@ router.get('/active-case/:id', (req, res) => {
     activeCase,
     caseId: id,
     tab,
-    respondentRows: getActiveCaseRespondentRows(activeCase.respondent),
+    respondentDetailsRows: getActiveCaseRespondentDetailsRows(activeCase.respondent),
+    respondentContactRows: getActiveCaseRespondentContactRows(activeCase.respondent),
+    respondentRestrictionsRows: getActiveCaseRespondentRestrictionsRows(activeCase.respondent),
     centralAuthorityRows: getActiveCaseCentralAuthorityRows(activeCase),
     orderDetailsRows: getActiveCaseOrderDetailsRows(activeCase),
     orderTermCards: getActiveCaseOrders(activeCase).terms.map((orderTerm, index) =>
@@ -10555,7 +10865,7 @@ router.get('/active-case/:id/order-term/add/details', (req, res) => {
     requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
     resultWording: getAlternativeOrderTermWording(sessionData),
     paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
-    showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
+    showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
     responseItems: getAlternativeOrderTermResponseItems(sessionData),
     errorSummary: null
   })
@@ -10604,7 +10914,7 @@ router.post('/active-case/:id/order-term/add/details', (req, res, next) => {
       requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
       resultWording: getAlternativeOrderTermWording(renderedSessionData),
       paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(renderedSessionData)),
-      showPaymentFrequencyAtTop: orderTermDefinition.code !== 'MCHILD',
+      showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
       responseItems: getAlternativeOrderTermResponseItems(renderedSessionData),
       errorSummary: buildErrorSummary(errors)
     })
@@ -10842,7 +11152,7 @@ router.post('/active-case/:id/order-term/add/creditor/remove-minor-creditor', (r
     delete state.pendingOrderTerm.creditorLabel
   }
 
-  setActiveCaseOrderTermAddSuccessMessage(req, id, 'Minor creditor removed')
+  setActiveCaseOrderTermAddSuccessMessage(req, id, 'Minor creditor removed.')
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/add/creditor`)
 })
@@ -10947,11 +11257,13 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const orderTermDefinition = getResultDefinition(orderTerm.code, 'orders')
   const sessionData = {
     'alternative-order-term-code': orderTerm.code,
     'alternative-current-order-term-responses': orderTerm.responses || {},
     'order-payment-frequency': getActiveCaseOrders(activeCase).details.paymentFrequency || 'monthly'
   }
+  const useMatOrderTermEditLayout = orderTermDefinition?.code === 'MAT'
 
   return res.render('create-a-case/order-term-details', {
     accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
@@ -10965,8 +11277,18 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
     requiresCreditor: true,
     resultWording: orderTerm.wording || '',
     paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
-    showPaymentFrequencyAtTop: orderTerm.code !== 'MCHILD',
-    responseItems: getAlternativeOrderTermResponseItems(sessionData),
+    showPaymentFrequencyAtTop: useMatOrderTermEditLayout
+      ? false
+      : shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
+    responseItems: getAlternativeOrderTermResponseItems(
+      sessionData,
+      useMatOrderTermEditLayout
+        ? {
+            preserveDefinitionOrder: true,
+            showPaymentFrequencyAfterAmount: true
+          }
+        : {}
+    ),
     errorSummary: null
   })
 })
@@ -10999,6 +11321,7 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
     'alternative-order-term-errors': errors,
     'order-payment-frequency': sharedFrequency
   }
+  const useMatOrderTermEditLayout = orderTermDefinition?.code === 'MAT'
 
   if (Object.keys(errors).length) {
     return res.render('create-a-case/order-term-details', {
@@ -11013,8 +11336,18 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
       requiresCreditor: true,
       resultWording: orderTerm.wording || '',
       paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
-      showPaymentFrequencyAtTop: orderTerm.code !== 'MCHILD',
-      responseItems: getAlternativeOrderTermResponseItems(sessionData),
+      showPaymentFrequencyAtTop: useMatOrderTermEditLayout
+        ? false
+        : shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
+      responseItems: getAlternativeOrderTermResponseItems(
+        sessionData,
+        useMatOrderTermEditLayout
+          ? {
+              preserveDefinitionOrder: true,
+              showPaymentFrequencyAfterAmount: true
+            }
+          : {}
+      ),
       errorSummary: buildErrorSummary(errors)
     })
   }
@@ -11367,6 +11700,7 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
     'respondent-main-telephone-number': r.mainTelephone || '',
     'respondent-other-telephone-number': r.otherTelephone || '',
     ...getAddressFormFields(r.address, 'respondent'),
+    ...getRespondentEmployerFormFields(r.employer),
     'respondent-send-correspondence-to-third-party': r.thirdParty ? 'yes' : null,
     'respondent-third-party-name-or-organisation': r.thirdParty ? r.thirdParty.name || '' : '',
     'respondent-third-party-relationship': r.thirdParty ? r.thirdParty.relationship || '' : '',
@@ -11419,6 +11753,18 @@ router.post('/active-case/:id/respondent/edit', (req, res, next) => {
   respondent.restrictionReason = respondent.restricted
     ? req.body['respondent-restriction-reason'] || null
     : null
+
+  if (isChecked(req.body['respondent-add-employer-details'])) {
+    respondent.employer = {
+      name: req.body['respondent-employer-name'] || '',
+      reference: req.body['respondent-employee-reference'] || '',
+      email: req.body['respondent-employer-email-address'] || '',
+      telephone: req.body['respondent-employer-telephone-number'] || '',
+      address: getRespondentEmployerAddressFromBody(req.body)
+    }
+  } else {
+    respondent.employer = null
+  }
 
   if (isChecked(req.body['respondent-send-correspondence-to-third-party'])) {
     respondent.thirdParty = {
@@ -11670,7 +12016,7 @@ router.post('/active-case/creditor/:id/creditor/edit', (req, res, next) => {
   }
 
   updateMinorCreditorAccountFromForm(account, req.body)
-  setActiveCaseSuccessMessage(req, '/active-case/creditor/' + id, 'Minor creditor details updated')
+  setActiveCaseSuccessMessage(req, '/active-case/creditor/' + id, 'Creditor details updated.')
 
   return redirectWithSessionSave(req, res, next, '/active-case/creditor/' + id + '?tab=creditor')
 })
@@ -11890,7 +12236,7 @@ router.get('/resulting/case-details', (req, res) => {
   return res.render('resulting/case-details', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     caseTypeLabel:
-      caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || '-',
+      caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || EMPTY_VALUE_TEXT,
     hearingDetailsText: getResultingHearingDetailsText(req.session.data),
     partyDetailsItems: getResultingPartyDetailsItems(req.session.data),
     resultsItems: getResultingResultsItems(req.session.data),
@@ -11907,7 +12253,7 @@ router.post('/resulting/case-details', (req, res, next) => {
     return res.render('resulting/case-details', {
       accountContextLabel: getResultingAccountContextLabel(req.session.data),
       caseTypeLabel:
-        caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || '-',
+        caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || EMPTY_VALUE_TEXT,
       hearingDetailsText: getResultingHearingDetailsText(req.session.data),
       partyDetailsItems: getResultingPartyDetailsItems(req.session.data),
       resultsItems: getResultingResultsItems(req.session.data),
@@ -12333,7 +12679,7 @@ router.get('/resulting/check-your-answers', (req, res) => {
   return res.render('resulting/check-your-answers', {
     accountContextLabel: getResultingAccountContextLabel(req.session.data),
     caseTypeLabel:
-      caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || '-',
+      caseTypeLabels[req.session.data['case-type']] || req.session.data['case-type'] || EMPTY_VALUE_TEXT,
     hearingDetailsText: getResultingHearingDetailsText(req.session.data),
     applicantRows: getApplicantSummaryRows(req.session.data),
     respondentRows: getRespondentSummaryRows(req.session.data),
@@ -12369,7 +12715,7 @@ router.get('/resulting/submitted', (req, res) => {
   })
 })
 
-function buildApplicantAccountRows(account) {
+function getApplicantAccountDetailsRows(account) {
   const rows = []
   if (account.title) rows.push(buildSummaryRow('Title', account.title))
   rows.push(buildSummaryRow('First names', account.firstNames))
@@ -12380,29 +12726,46 @@ function buildApplicantAccountRows(account) {
     })
   }
   rows.push(buildSummaryRow('Date of birth', account.dateOfBirth))
+
+  return rows.filter(Boolean)
+}
+
+function getApplicantAccountThirdPartyRows(account) {
+  const rows = [
+    buildSummarySectionHeadingRow('Third party details')
+  ]
+  const thirdParty = account.thirdParty
+
+  if (!hasActiveCaseThirdPartyDetails(thirdParty)) {
+    rows.push(buildSummaryNoneProvidedRow())
+    return rows
+  }
+
+  rows.push(
+    buildSummaryRow('Third party name', thirdParty.name),
+    buildSummaryRow('Relationship to applicant', thirdParty.relationship),
+    buildSummaryRow('Reference', thirdParty.reference),
+    buildSummaryHtmlRow('Address', formatLinesHtml(thirdParty.address || []))
+  )
+
+  return rows
+}
+
+function getApplicantAccountContactRows(account) {
+  const rows = []
   rows.push(buildSummaryRow('Main email address', account.mainEmail))
   rows.push(buildSummaryRow('Other email address', account.otherEmail))
   rows.push(buildSummaryRow('Main telephone number', account.mainTelephone))
   rows.push(buildSummaryRow('Other telephone number', account.otherTelephone))
   rows.push(buildSummaryHtmlRow("Applicant's address", formatLinesHtml(account.address || [])))
 
-  rows.push(...getThirdPartyRowsFromAccount(account.thirdParty, 'applicant'))
+  rows.push(...getApplicantAccountThirdPartyRows(account))
 
-  rows.push(...getApplicantAccountBankRows(account))
-
-  rows.push(
-    ...getRestrictedPersonalInformationRows(
-      account.restricted,
-      account.restrictionReason
-    )
-  )
   return rows.filter(Boolean)
 }
 
 function getApplicantAccountBankRows(account) {
-  const rows = [
-    buildSummarySectionHeadingRow('Bank details')
-  ]
+  const rows = []
 
   if (account.paymentMethod === 'BACS' || account.sortCode || account.bankAccountNumber) {
     rows.push(
@@ -12424,7 +12787,24 @@ function getApplicantAccountBankRows(account) {
     addSummaryRowIfHasValue(rows, 'Branch code or sort code', account.branchOfficeOrSortCode)
     addSummaryRowIfHasValue(rows, 'Account number', account.nonUkAccountNumber)
   } else {
-    rows.push(buildSummaryRow('Type of bank account', 'None entered'))
+    rows.push(buildSummaryRow('Type of bank account', 'None or not applicable'))
+  }
+
+  return rows
+}
+
+function getApplicantAccountRestrictionsRows(account) {
+  const rows = [
+    buildSummaryRow('Restrict personal information', account.restricted ? 'Yes' : 'No')
+  ]
+
+  if (account.restricted && hasValue(account.restrictionReason)) {
+    rows.push(
+      buildSummaryHtmlRow(
+        'Restriction reason',
+        formatLinesHtml(String(account.restrictionReason).split('\n'))
+      )
+    )
   }
 
   return rows
@@ -12439,13 +12819,16 @@ router.get('/active-case/creditor/:id', (req, res) => {
   }
 
   const tab = req.query.tab || 'at-a-glance'
-  const applicantRows = buildApplicantAccountRows(account)
   return res.render('active-case/creditor', {
     account,
     accountId: id,
     tab,
-    applicantRows,
-    creditorRows: getMinorCreditorRowsFromAccount(account),
+    applicantDetailsRows: getApplicantAccountDetailsRows(account),
+    applicantContactRows: getApplicantAccountContactRows(account),
+    applicantBankRows: getApplicantAccountBankRows(account),
+    applicantRestrictionsRows: getApplicantAccountRestrictionsRows(account),
+    creditorDetailsRows: getMinorCreditorAccountDetailsRows(account),
+    creditorBankRows: getMinorCreditorAccountBankRows(account),
     historyRows: getAccountHistoryRows(account),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
@@ -12569,9 +12952,11 @@ function normaliseDateSearchText(value) {
   return normaliseSearchText(trimmed)
 }
 
-function getSearchViewData(formValues = {}) {
+function getSearchViewData(formValues = {}, errors = {}) {
   return {
     formValues,
+    errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
     majorCreditorItems: getMajorCreditorAutocompleteItems(formValues['major-creditor'] || '')
   }
 }
@@ -12603,6 +12988,12 @@ const searchData = [
     r: { ln: 'DEMIR', fn: 'Cem', ti: 'Mr', dob: '8 June 1970 (Age 55)', ni: 'CD 11 22 33 B', a1: '22 Victoria Street', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 3HQ', email: 'cem.demir@example.com', tel: '07700 900456', restr: true },
     a: { id: 61, ln: 'YILMAZ', fn: 'Elif', ti: 'Mrs', dob: '14 August 1972 (Age 53)', payout: '£180.00', a1: '8 Meadow Lane', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 7RR', email: 'elif.yilmaz@example.com', tel: '07700 900456', restr: true },
     mc: [{ id: 63, ln: 'DEMIR', fn: 'Leyla', dob: '12 May 2011 (Age 15)', payout: '£95.00' }] },
+
+  { id: 8, caseRef: '08000427N', remoRef: '2026/REMO/08000427',
+    status: 'Active', bu: 'Reading', arrears: '£0.00', ct: 'REMO Out', dolm: '26 June 2026',
+    r: { ln: 'CARTER', fn: 'James', ti: 'Mr', dob: '12 February 1981 (Age 45)', ni: 'JK 12 34 56 C', a1: '24 King Street', city: 'Reading', cy: 'Berkshire', pc: 'RG1 2HE', email: 'james.carter@example.com', tel: '07700 900808', restr: false },
+    a: { id: 81, ln: 'CARTER', fn: 'Helen', ti: 'Mrs', dob: '18 July 1983 (Age 42)', payout: '£0.00', a1: '18 Castle Hill', city: 'Reading', cy: 'Berkshire', pc: 'RG1 7RH', email: 'helen.carter@example.com', tel: '07700 900809', restr: false },
+    mc: [] },
 
   { id: 10, caseRef: '10000101S', remoRef: '2014/REMO/10000101',
     status: 'Active', bu: 'Reading', arrears: '£240.00', ct: 'REMO In', dolm: '5 May 2026',
@@ -12999,7 +13390,7 @@ function mapSearchRows(results) {
       const mcRef = accountRef(mc.id, 'MC')
       return buildSearchAccountHtml(`/active-case/creditor/${mc.id}`, mcRef, `${mc.ln}, ${mc.fn}`)
     })
-    const minorCreditorHtml = minorCreditorLinks.length ? minorCreditorLinks.join('<br>') : '–'
+    const minorCreditorHtml = minorCreditorLinks.length ? minorCreditorLinks.join('<br>') : EMPTY_VALUE_TEXT
 
     return [
       { html: buildSearchAccountHtml(`/active-case/${c.id}`, rRef, rLabel), text: rRef },
@@ -13016,8 +13407,9 @@ router.get('/search', (req, res) => {
 })
 
 router.post('/search', (req, res, next) => {
-  const b = req.body
+  const b = req.body || {}
   const get = (k) => (b[k] || '').trim()
+  const renderSearchWithErrors = (errors) => res.status(400).render('search/index', getSearchViewData(b, errors))
 
   const accountNumber = get('account-number')
   const referenceNumber = get('reference-number')
@@ -13047,7 +13439,17 @@ router.post('/search', (req, res, next) => {
   const hasAdvancedSearchFieldsOtherThanMajorCreditor = !!(rLn || rFn || rDob || rA1 || rPc || aLn || aFn || aDob || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc)
 
   if (hasQuick && hasAdv) return res.redirect('/search/conflicting-criteria')
-  if (!hasQuick && !hasAdv) return res.redirect('/search')
+  if (!hasQuick && !hasAdv) {
+    return renderSearchWithErrors({
+      'account-number': buildFieldError('Enter account number')
+    })
+  }
+
+  if (accountNumber && !/^\d{8}[A-Za-z]?$/.test(accountNumber)) {
+    return renderSearchWithErrors({
+      'account-number': buildFieldError('Enter account number in the correct format such as 12345678 or 12345678A')
+    })
+  }
 
   if (majorCreditor && !hasAdvancedSearchFieldsOtherThanMajorCreditor) {
     const account = getMajorCreditorAccountByCode(majorCreditor)
@@ -13073,7 +13475,7 @@ router.post('/search', (req, res, next) => {
     minorCompany: mcCo, minorCompanyExact: b['minor-creditor-company-name-exact'],
     minorCompanyAddress: mcCoA1, minorCompanyPostcode: mcCoPc,
     majorCreditor,
-    activeOnly
+    activeOnly: hasAdv ? activeOnly : false
   })
 
   if (results.length === 0) return res.redirect('/search/no-results')

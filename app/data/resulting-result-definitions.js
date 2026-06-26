@@ -174,14 +174,14 @@ const rawResultDefinitions = {
   MLUMP: {
     supportsOrders: true,
     requiresCreditor: true,
-    title: 'Lump sum order',
+    title: 'Lump Sum Payment',
     category: 'FINAL',
     wordingTemplate:
       'Order for payment by {Respondent} to {Creditor} {Payment} for {Reason}.\nThe sum of £ {Amount} to be paid on or before {Expiry}.',
     responses: [
       {
         name: 'Amount',
-        prompt: 'Amount of order',
+        prompt: 'Amount',
         type: 'decimal',
         mandatory: 'Yes'
       },
@@ -209,17 +209,16 @@ const rawResultDefinitions = {
       },
       {
         name: 'Reason',
-        prompt: 'Reason for order',
-        type: 'text-1000',
+        prompt: 'Reason for payment',
+        type: 'text-250',
         mandatory: 'Yes',
-        ordersHidden: true
+        characterCount: true
       },
       {
         name: 'Due',
-        prompt: 'Cost due by date',
+        prompt: 'Date payment due by',
         type: 'date',
-        mandatory: 'Yes',
-        ordersHidden: true
+        mandatory: 'Yes'
       }
     ]
   },

@@ -33,12 +33,14 @@
 - Any table with more than 25 rows must be paginated.
 - Use the MOJ pagination component for paginated tables.
 - Keep pagination state simple and prototype-friendly, usually with query-string page numbers or route-level pagination data.
+- Dates in tables should be in the format DD MMM YYYY
 
 ## Logic and data rules
 - Any conditional logic can be handled in the JavaScript layer for the prototype.
 - Do not add a backend, database, ORM, API layer, or persistent storage unless the user explicitly asks for it.
 - Use session data and route-level logic only as far as needed to demonstrate the prototype flow.
 - Keep data handling simple and easy to delete or reshape as the prototype evolves.
+- Reference the written specifications for the application that reside here: https://centralgovernmentcgi.atlassian.net/wiki/spaces/LGR/folder/4678713345?atlOrigin=eyJpIjoiNjAxOWIwZDk2NzFiNDFlZjliY2EzZTJkMWZkNGUxMWMiLCJwIjoiYyJ9 but do not make any changes without first asking.
 
 ## Removal and deletion journeys
 - Any time a user journey removes or deletes something, display a success message on the next screen after the user confirms the removal or deletion.
@@ -56,6 +58,11 @@
 - Do not default to `npm start` for local work unless the user explicitly asks for it; the Prototype Kit warns that `npm run dev` is the correct local development command.
 - When the server starts successfully, expect the prototype at `http://localhost:3000` and the manage page at `http://localhost:3000/manage-prototype`.
 - After starting the server, confirm it is responding before proceeding with further manual checks.
+
+## Writing specifications
+- Include references and links to design system components.
+- Create placeholders for screenshots, and in the tables include columns for ARIA tags and field-specific error messages where applicable.
+- Create a separate section for page-specific error messages
 
 ## Design system references
 - GOV.UK Design System: https://design-system.service.gov.uk/

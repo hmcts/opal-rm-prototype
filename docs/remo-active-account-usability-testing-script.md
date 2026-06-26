@@ -245,6 +245,78 @@ The participant can:
 - Did the result page provide enough context about the linked case?
 - What else would you expect to see on a major creditor account?
 
+## Task 5: Complete Penny Account Order Details And Add Lump Sum Terms
+
+### Participant Task
+
+Find the active account for James Carter.
+
+The account was set up as a penny account because the court paperwork was not available at the time. The paperwork has now arrived. Update the draft order details and existing order terms with the missing information, then add the lump sum order terms.
+
+### Search Criteria
+
+Use one of these:
+
+- Respondent last name: `CARTER`
+- Respondent first names: `James`
+- Respondent account number: `26000008R`
+
+Expected account:
+
+- Respondent account: `26000008R`
+- Name: `CARTER, James`
+- Case type: `REMO Out`
+- Applicant: `CARTER, Helen`
+
+### Sample Data To Enter
+
+Order details:
+
+- Court that made the order: `Reading Family Court`
+- Date the order was made: `22/06/2026`
+- Payment frequency: `Monthly`
+
+Existing order terms:
+
+- MAT amount: `250.00`
+- MCHILD amount for Emily Carter: `175.00`
+- MCHILD amount for Oliver Carter: `175.00`
+- Payment arrangement: keep as `payable through the Court`
+- Respondent: keep as `James Carter`
+- Creditor: keep as `Helen Carter`
+- Child dates of birth: keep the existing values
+
+New lump sum order terms:
+
+- Order term: `MLUMP - Lump Sum Payment`
+- Amount: `1200.00`
+- Creditor: `Helen Carter`
+- Respondent: `James Carter`
+- Payment arrangement: `payable through the Court`
+- Reason for payment: `Lump sum ordered by the court to clear costs owed to the applicant.`
+- Date payment due by: `31/07/2026`
+
+### Success Criteria
+
+The participant can:
+
+- Find the respondent account from Search.
+- Recognise that the current order values are draft penny amounts.
+- Find where to change the court, order date, and payment frequency.
+- Update the existing MAT and MCHILD order terms from penny values to the court paperwork values.
+- Find and use Add order terms.
+- Select and add MLUMP lump sum order terms.
+- Review the order terms before adding them.
+- Recognise whether the updated and added order terms have been saved.
+
+### Moderator Prompts
+
+- Was it clear that the penny amounts needed changing rather than deleting?
+- Where did you expect to update the payment frequency?
+- Was Add order terms easy to find from the Orders tab?
+- Did MLUMP make sense as a label for the lump sum payment?
+- Did the review page give you enough confidence before adding the lump sum order terms?
+
 ## Wrap-Up Questions
 
 - Which task felt easiest?
@@ -271,5 +343,7 @@ Task 2 notes:
 Task 3 notes:
 
 Task 4 notes:
+
+Task 5 notes:
 
 Overall observations:
