@@ -46,9 +46,6 @@
       {% endset %}
 
       {% set thirdPartyHtml %}
-        <h2 class="govuk-heading-m govuk-!-margin-bottom-2" id="respondent-third-party-details-section">Third party details</h2>
-        <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence</p>
-
         {{ govukInput({
           id: "respondent-third-party-name-or-organisation",
           name: "respondent-third-party-name-or-organisation",
@@ -180,8 +177,6 @@
       {% endset %}
 
       {% set employerDetailsHtml %}
-        <h2 class="govuk-heading-m govuk-!-margin-bottom-4" id="respondent-employer-details-section">Employer details</h2>
-
         {{ govukInput({
           id: "respondent-employer-name",
           name: "respondent-employer-name",
@@ -401,21 +396,6 @@
           value: data["respondent-other-personal-information"]
         }) }}
 
-        {{ govukCheckboxes({
-          idPrefix: "respondent-add-employer-details",
-          name: "respondent-add-employer-details",
-          items: [
-            {
-              value: "yes",
-              text: "Add employer details",
-              checked: data["respondent-add-employer-details"] == "yes",
-              conditional: {
-                html: employerDetailsHtml
-              }
-            }
-          ]
-        }) }}
-
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <h2 class="govuk-heading-m" id="respondent-contact-details-section">Contact details</h2>
@@ -552,6 +532,11 @@
           errorMessage: formErrors["respondent-country"]
         }) }}
 
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-2" id="respondent-third-party-details-section">Third party details</h2>
+        <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence</p>
+
         {{ govukCheckboxes({
           idPrefix: "respondent-send-correspondence-to-third-party",
           name: "respondent-send-correspondence-to-third-party",
@@ -563,6 +548,25 @@
               checked: data["respondent-send-correspondence-to-third-party"] == "yes",
               conditional: {
                 html: thirdPartyHtml
+              }
+            }
+          ]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-4" id="respondent-employer-details-section">Employer details</h2>
+
+        {{ govukCheckboxes({
+          idPrefix: "respondent-add-employer-details",
+          name: "respondent-add-employer-details",
+          items: [
+            {
+              value: "yes",
+              text: "Add employer details",
+              checked: data["respondent-add-employer-details"] == "yes",
+              conditional: {
+                html: employerDetailsHtml
               }
             }
           ]
