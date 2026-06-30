@@ -48,9 +48,6 @@
       {% endset %}
 
       {% set thirdPartyHtml %}
-        <h2 class="govuk-heading-m govuk-!-margin-bottom-2" id="applicant-third-party-details-section">Third party details</h2>
-        <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence</p>
-
         {{ govukInput({
           id: "applicant-third-party-name-or-organisation",
           name: "applicant-third-party-name-or-organisation",
@@ -559,6 +556,11 @@
         }) }}
 
         {% if not isOrganisationApplicant %}
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+          <h2 class="govuk-heading-m govuk-!-margin-bottom-2" id="applicant-third-party-details-section">Third party details</h2>
+          <p class="govuk-body govuk-!-margin-bottom-4">You can add a different address for correspondence</p>
+
           {{ govukCheckboxes({
             idPrefix: "applicant-send-correspondence-to-third-party",
             name: "applicant-send-correspondence-to-third-party",
@@ -574,9 +576,10 @@
               }
             ]
           }) }}
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        {% else %}
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
         {% endif %}
-
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <h2 class="govuk-heading-m" id="applicant-bank-details-section">Bank details</h2>
 

@@ -1890,7 +1890,7 @@ function hasThirdPartyCorrespondenceDetails(sessionData, party) {
 function getRestrictedPersonalInformationRows(isRestricted, restrictionReason) {
   const rows = [
     buildSummarySectionHeadingRow('Restrictions'),
-    buildSummaryRow('Restricted personal information', isRestricted ? 'Yes' : 'No')
+    buildSummaryRow('Restrict personal information', isRestricted ? 'Yes' : 'No')
   ]
 
   if (isRestricted && hasValue(restrictionReason)) {
@@ -3341,8 +3341,9 @@ function parseDateInput(dateString) {
   return { kind: 'valid', date }
 }
 
-function validateAlternativeOrderDetails(body, caseType) {
+function validateAlternativeOrderDetails(body, caseType, options = {}) {
   const errors = {}
+  const orderMadeFieldsOptional = options.orderMadeFieldsOptional === true
   const selectedApplicationCode = String(
     getSingleValue(body['order-application-code']) || ''
   )
@@ -3356,7 +3357,10 @@ function validateAlternativeOrderDetails(body, caseType) {
     errors['order-application-code'] = buildFieldError('Select an application code from the list')
   }
 
-  if (!hasValue(getSingleValue(body['order-court-that-made-the-order']))) {
+  if (
+    !orderMadeFieldsOptional &&
+    !hasValue(getSingleValue(body['order-court-that-made-the-order']))
+  ) {
     errors['order-court-that-made-the-order'] = buildFieldError('Enter the court that made the order')
   }
 
@@ -3366,11 +3370,11 @@ function validateAlternativeOrderDetails(body, caseType) {
 
   const orderMadeDate = parseDateInput(body['order-date-order-made'])
 
-  if (orderMadeDate.kind === 'missing') {
+  if (orderMadeDate.kind === 'missing' && !orderMadeFieldsOptional) {
     errors['order-date-order-made'] = buildFieldError('Enter the date order made')
   } else if (orderMadeDate.kind === 'invalid') {
     errors['order-date-order-made'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
-  } else {
+  } else if (orderMadeDate.kind === 'valid') {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -3970,6 +3974,70 @@ function getApplicantSummaryRows(sessionData) {
   return rows
 }
 
+function getApplicantCheckCaseDetailsRows(sessionData) {
+  const contactRows = [
+    buildSummarySectionHeadingRow('Contact details'),
+    buildSummaryRow('Main email address', sessionData['applicant-main-email-address']),
+    buildSummaryRow('Other email address', sessionData['applicant-other-email-address']),
+    buildSummaryRow(
+      'Main telephone number',
+      sessionData['applicant-main-telephone-number']
+    ),
+    buildSummaryRow(
+      'Other telephone number',
+      sessionData['applicant-other-telephone-number']
+    ),
+    buildSummarySectionHeadingRow('Address'),
+    buildSummaryHtmlRow(
+      'Address',
+      formatLinesHtml([
+        sessionData['applicant-address-line-1'],
+        sessionData['applicant-address-line-2'],
+        sessionData['applicant-address-line-3'],
+        sessionData['applicant-address-line-4'],
+        sessionData['applicant-address-line-5'],
+        sessionData['applicant-postal-or-zip-code'],
+        getCountryLabel(sessionData['applicant-country'])
+      ])
+    )
+  ]
+
+  if (sessionData['applicant-type'] === 'organisation') {
+    return [
+      buildSummaryRow('Organisation name', sessionData['applicant-organisation-name']),
+      buildSummaryRow(
+        'Foreign authority reference',
+        sessionData['applicant-foreign-authority-reference']
+      ),
+      ...contactRows,
+      ...getApplicantBankSummaryRows(sessionData)
+    ]
+  }
+
+  const rows = [
+    buildSummaryRow('Title', getTitleLabel(sessionData['applicant-title'])),
+    buildSummaryRow('First names', sessionData['applicant-first-names']),
+    buildSummaryRow('Last name', normaliseLastName(sessionData['applicant-last-name'])),
+    buildSummaryRow('Date of birth', formatDateLong(sessionData['applicant-date-of-birth'])),
+    ...contactRows
+  ]
+
+  if (hasThirdPartyCorrespondenceDetails(sessionData, 'applicant')) {
+    rows.push(...getThirdPartySummaryRows(sessionData, 'applicant'))
+  }
+
+  rows.push(...getApplicantBankSummaryRows(sessionData))
+  rows.push(
+    ...getRestrictedPersonalInformationRows(
+      sessionData['applicant-restrict-personal-information'] === true ||
+        isChecked(sessionData['applicant-restrict-personal-information']),
+      sessionData['applicant-restriction-reason']
+    )
+  )
+
+  return rows
+}
+
 function getRespondentSummaryRows(sessionData) {
   const rows = [
     buildSummaryRow('Title', getTitleLabel(sessionData['respondent-title'])),
@@ -4040,6 +4108,92 @@ function getRespondentSummaryRows(sessionData) {
 
   if (hasThirdPartyCorrespondenceDetails(sessionData, 'respondent')) {
     rows.push(...getThirdPartySummaryRows(sessionData, 'respondent'))
+  }
+
+  rows.push(
+    ...getRestrictedPersonalInformationRows(
+      sessionData['respondent-restrict-personal-information'] === true ||
+        isChecked(sessionData['respondent-restrict-personal-information']),
+      sessionData['respondent-restriction-reason']
+    )
+  )
+
+  return rows
+}
+
+function getRespondentCheckCaseDetailsRows(sessionData) {
+  const rows = [
+    buildSummaryRow('Title', getTitleLabel(sessionData['respondent-title'])),
+    buildSummaryRow('First names', sessionData['respondent-first-names']),
+    buildSummaryRow('Last name', normaliseLastName(sessionData['respondent-last-name'])),
+    buildSummaryRow(
+      'Date of birth',
+      formatDateLong(sessionData['respondent-date-of-birth'])
+    ),
+    buildSummaryRow(
+      'UK National Insurance number',
+      sessionData['respondent-national-insurance-number']
+    ),
+    buildSummaryHtmlRow(
+      'Other personal information',
+      formatLinesHtml(
+        hasValue(sessionData['respondent-other-personal-information'])
+          ? sessionData['respondent-other-personal-information'].split('\n')
+          : []
+      )
+    ),
+    buildSummarySectionHeadingRow('Contact details'),
+    buildSummaryRow('Main email address', sessionData['respondent-main-email-address']),
+    buildSummaryRow('Other email address', sessionData['respondent-other-email-address']),
+    buildSummaryRow(
+      'Main telephone number',
+      sessionData['respondent-main-telephone-number']
+    ),
+    buildSummaryRow(
+      'Other telephone number',
+      sessionData['respondent-other-telephone-number']
+    ),
+    buildSummarySectionHeadingRow('Address'),
+    buildSummaryHtmlRow(
+      'Address',
+      formatLinesHtml([
+        sessionData['respondent-address-line-1'],
+        sessionData['respondent-address-line-2'],
+        sessionData['respondent-address-line-3'],
+        sessionData['respondent-address-line-4'],
+        sessionData['respondent-address-line-5'],
+        sessionData['respondent-postal-or-zip-code'],
+        getCountryLabel(sessionData['respondent-country'])
+      ])
+    )
+  ]
+
+  if (hasThirdPartyCorrespondenceDetails(sessionData, 'respondent')) {
+    rows.push(...getThirdPartySummaryRows(sessionData, 'respondent'))
+  }
+
+  if (sessionData['respondent-add-employer-details']) {
+    rows.push(
+      buildSummarySectionHeadingRow('Employer details'),
+      buildSummaryRow('Employer name', sessionData['respondent-employer-name']),
+      buildSummaryRow('Employee reference', sessionData['respondent-employee-reference']),
+      buildSummaryRow('Employer email address', sessionData['respondent-employer-email-address']),
+      buildSummaryRow(
+        'Employer telephone number',
+        sessionData['respondent-employer-telephone-number']
+      ),
+      buildSummaryHtmlRow(
+        'Employer address',
+        formatLinesHtml([
+          sessionData['respondent-employer-address-line-1'],
+          sessionData['respondent-employer-address-line-2'],
+          sessionData['respondent-employer-address-line-3'],
+          sessionData['respondent-employer-address-line-4'],
+          sessionData['respondent-employer-address-line-5'],
+          sessionData['respondent-employer-postcode']
+        ])
+      )
+    )
   }
 
   rows.push(
@@ -4748,8 +4902,8 @@ function getCheckCaseDetailsViewData(sessionData) {
     showApplicantType: !hasImplicitIndividualApplicantType(sessionData),
     isApplicationJourney: isApplicationJourney(sessionData),
     isRemoOutCase: isRemoOutCase(sessionData),
-    applicantRows: getApplicantSummaryRows(sessionData),
-    respondentRows: getRespondentSummaryRows(sessionData),
+    applicantRows: getApplicantCheckCaseDetailsRows(sessionData),
+    respondentRows: getRespondentCheckCaseDetailsRows(sessionData),
     centralAuthorityRows: [
       buildSummaryRow('REMO reference', sessionData['central-authority-remo-reference']),
       buildSummaryRow("Central authority's reference", sessionData['central-authority-reference']),
@@ -9130,6 +9284,9 @@ const minorCreditorAccounts = {
     accountNumber: accountRef(63, 'MC'),
     caseReference: '06000387W',
     name: 'Ms Leyla DEMIR',
+    title: 'Ms',
+    firstNames: 'Leyla',
+    lastName: 'DEMIR',
     awaitingPayout: '£95.00',
     businessUnit: 'Bury St. Edmunds',
     address: ['22 River Walk', 'Norwich', 'Norfolk', 'NR1 1HD', 'United Kingdom'],
@@ -9501,7 +9658,7 @@ function getMinorCreditorAccountBankRows(account) {
     )
     addSummaryRowIfHasValue(rows, 'Account number', creditor.nonUkAccountNumber)
   } else {
-    rows.push(buildSummaryRow('Type of bank account', 'None'))
+    rows.push(buildSummaryNoneProvidedRow())
   }
 
   return rows
@@ -9619,50 +9776,38 @@ function hasActiveCaseThirdPartyDetails(thirdParty) {
 }
 
 function getActiveCaseRespondentEmployerRows(respondent) {
-  const rows = [
-    buildSummarySectionHeadingRow('Employer details')
-  ]
   const employer = respondent.employer
 
   if (!hasActiveCaseEmployerDetails(employer)) {
-    rows.push(buildSummaryNoneProvidedRow())
-    return rows
+    return [buildSummaryNoneProvidedRow()]
   }
 
-  rows.push(
+  return [
     buildSummaryRow('Employer name', employer.name),
     buildSummaryRow('Employer reference', employer.reference),
     buildSummaryRow('Employer email address', employer.email),
     buildSummaryRow('Employer telephone number', employer.telephone),
     buildSummaryHtmlRow('Employer address', formatLinesHtml(employer.address || []))
-  )
-
-  return rows
+  ]
 }
 
 function getActiveCaseRespondentThirdPartyRows(respondent) {
-  const rows = [
-    buildSummarySectionHeadingRow('Third party details')
-  ]
   const thirdParty = respondent.thirdParty
 
   if (!hasActiveCaseThirdPartyDetails(thirdParty)) {
-    rows.push(buildSummaryNoneProvidedRow())
-    return rows
+    return [buildSummaryNoneProvidedRow()]
   }
 
-  rows.push(
+  return [
     buildSummaryRow('Third party name', thirdParty.name),
     buildSummaryRow('Relationship to respondent', thirdParty.relationship),
     buildSummaryRow('Reference', thirdParty.reference),
     buildSummaryHtmlRow('Address', formatLinesHtml(thirdParty.address || []))
-  )
-
-  return rows
+  ]
 }
 
 function getActiveCaseRespondentDetailsRows(respondent) {
-  const rows = [
+  return [
     buildSummaryRow('Title', respondent.title),
     buildSummaryRow('First names', respondent.firstNames),
     buildSummaryRow('Last name', normaliseLastName(respondent.lastName)),
@@ -9677,24 +9822,16 @@ function getActiveCaseRespondentDetailsRows(respondent) {
       )
     )
   ]
-
-  rows.push(...getActiveCaseRespondentEmployerRows(respondent))
-
-  return rows
 }
 
 function getActiveCaseRespondentContactRows(respondent) {
-  const rows = [
+  return [
     buildSummaryRow('Main email address', respondent.mainEmail),
     buildSummaryRow('Other email address', respondent.otherEmail),
     buildSummaryRow('Main telephone number', respondent.mainTelephone),
     buildSummaryRow('Other telephone number', respondent.otherTelephone),
     buildSummaryHtmlRow("Respondent's address", formatLinesHtml(respondent.address || []))
   ]
-
-  rows.push(...getActiveCaseRespondentThirdPartyRows(respondent))
-
-  return rows
 }
 
 function getActiveCaseRespondentRestrictionsRows(respondent) {
@@ -10640,6 +10777,8 @@ router.get('/active-case/:id', (req, res) => {
     tab,
     respondentDetailsRows: getActiveCaseRespondentDetailsRows(activeCase.respondent),
     respondentContactRows: getActiveCaseRespondentContactRows(activeCase.respondent),
+    respondentEmployerRows: getActiveCaseRespondentEmployerRows(activeCase.respondent),
+    respondentThirdPartyRows: getActiveCaseRespondentThirdPartyRows(activeCase.respondent),
     respondentRestrictionsRows: getActiveCaseRespondentRestrictionsRows(activeCase.respondent),
     centralAuthorityRows: getActiveCaseCentralAuthorityRows(activeCase),
     orderDetailsRows: getActiveCaseOrderDetailsRows(activeCase),
@@ -10716,6 +10855,7 @@ router.get('/active-case/:id/order-details', (req, res) => {
     accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
     formAction: `/active-case/${id}/order-details`,
     cancelHref: `/active-case/${id}?tab=orders`,
+    orderMadeFieldsOptional: true,
     primaryButtonText: 'Save changes',
     applicationItems: getApplicationOptionItems(orders.details.applicationCode, caseType),
     applicationLookupJson: getApplicationLookupJson(caseType),
@@ -10739,7 +10879,9 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
   )
     .trim()
     .toUpperCase()
-  const errors = validateAlternativeOrderDetails(req.body, caseType)
+  const errors = validateAlternativeOrderDetails(req.body, caseType, {
+    orderMadeFieldsOptional: true
+  })
 
   if (Object.keys(errors).length > 0) {
     Object.assign(res.locals.data, req.body)
@@ -10748,7 +10890,8 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
       accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
       formAction: `/active-case/${id}/order-details`,
       cancelHref: `/active-case/${id}?tab=orders`,
-      primaryButtonText: 'Return to case details',
+      orderMadeFieldsOptional: true,
+      primaryButtonText: 'Save changes',
       applicationItems: getApplicationOptionItems(selectedApplicationCode, caseType),
       applicationLookupJson: getApplicationLookupJson(caseType),
       errors,
@@ -12731,37 +12874,28 @@ function getApplicantAccountDetailsRows(account) {
 }
 
 function getApplicantAccountThirdPartyRows(account) {
-  const rows = [
-    buildSummarySectionHeadingRow('Third party details')
-  ]
   const thirdParty = account.thirdParty
 
   if (!hasActiveCaseThirdPartyDetails(thirdParty)) {
-    rows.push(buildSummaryNoneProvidedRow())
-    return rows
+    return [buildSummaryNoneProvidedRow()]
   }
 
-  rows.push(
+  return [
     buildSummaryRow('Third party name', thirdParty.name),
     buildSummaryRow('Relationship to applicant', thirdParty.relationship),
     buildSummaryRow('Reference', thirdParty.reference),
     buildSummaryHtmlRow('Address', formatLinesHtml(thirdParty.address || []))
-  )
-
-  return rows
+  ]
 }
 
 function getApplicantAccountContactRows(account) {
-  const rows = []
-  rows.push(buildSummaryRow('Main email address', account.mainEmail))
-  rows.push(buildSummaryRow('Other email address', account.otherEmail))
-  rows.push(buildSummaryRow('Main telephone number', account.mainTelephone))
-  rows.push(buildSummaryRow('Other telephone number', account.otherTelephone))
-  rows.push(buildSummaryHtmlRow("Applicant's address", formatLinesHtml(account.address || [])))
-
-  rows.push(...getApplicantAccountThirdPartyRows(account))
-
-  return rows.filter(Boolean)
+  return [
+    buildSummaryRow('Main email address', account.mainEmail),
+    buildSummaryRow('Other email address', account.otherEmail),
+    buildSummaryRow('Main telephone number', account.mainTelephone),
+    buildSummaryRow('Other telephone number', account.otherTelephone),
+    buildSummaryHtmlRow("Applicant's address", formatLinesHtml(account.address || []))
+  ].filter(Boolean)
 }
 
 function getApplicantAccountBankRows(account) {
@@ -12825,6 +12959,7 @@ router.get('/active-case/creditor/:id', (req, res) => {
     tab,
     applicantDetailsRows: getApplicantAccountDetailsRows(account),
     applicantContactRows: getApplicantAccountContactRows(account),
+    applicantThirdPartyRows: getApplicantAccountThirdPartyRows(account),
     applicantBankRows: getApplicantAccountBankRows(account),
     applicantRestrictionsRows: getApplicantAccountRestrictionsRows(account),
     creditorDetailsRows: getMinorCreditorAccountDetailsRows(account),

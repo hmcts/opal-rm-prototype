@@ -13,6 +13,10 @@
 
 {% block content %}
   {% set formErrors = errors or {} %}
+  {% set orderMadeFieldOptionalSuffix = "" %}
+  {% if orderMadeFieldsOptional %}
+    {% set orderMadeFieldOptionalSuffix = " (optional)" %}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {% if accountContextLabel %}
@@ -47,7 +51,7 @@
           id: "order-court-that-made-the-order",
           name: "order-court-that-made-the-order",
           label: {
-            text: "Court that made the order",
+            text: "Court that made the order" + orderMadeFieldOptionalSuffix,
             classes: "govuk-label--s"
           },
           classes: "govuk-input--width-20",
@@ -59,7 +63,7 @@
           id: "order-date-order-made",
           name: "order-date-order-made",
           label: {
-            text: "Date order made",
+            text: "Date order made" + orderMadeFieldOptionalSuffix,
             classes: "govuk-label--s"
           },
           value: data["order-date-order-made"],
