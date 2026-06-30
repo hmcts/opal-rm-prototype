@@ -3136,9 +3136,23 @@ function isFieldValueChecked(value) {
   return hasValue(value) && value !== '_unchecked'
 }
 
+function isExpiryTermsField(field) {
+  return [field.name, field.prompt]
+    .filter(hasValue)
+    .some((candidate) => normaliseComparableText(candidate) === 'expiry terms')
+}
+
+function getExpiryTermsSummaryValue(value) {
+  return isFieldValueChecked(value) ? 'Yes - see notes' : 'None'
+}
+
+function getOrderTermSummaryLabel(field) {
+  return isExpiryTermsField(field) ? 'Expiry terms' : field.prompt
+}
+
 function getResultValueForSummary(field, value) {
-  if (normaliseComparableText(field.name || field.prompt) === 'expiry terms') {
-    return isFieldValueChecked(value) ? 'Yes - see case comment or notes' : 'None'
+  if (isExpiryTermsField(field)) {
+    return getExpiryTermsSummaryValue(value)
   }
 
   if (Array.isArray(value)) {
@@ -3696,7 +3710,7 @@ function getOrderTermReviewRows(orderTerm, sessionData) {
         ? formatOrderTermAmountWithFrequency(value, frequencyValue)
         : getResultValueForSummary(field, value)
 
-      rows.push(buildSummaryRow(field.prompt, displayValue))
+      rows.push(buildSummaryRow(getOrderTermSummaryLabel(field), displayValue))
     })
   }
 
@@ -4567,7 +4581,7 @@ function getTermsReviewGroups(sessionData) {
             : EMPTY_VALUE_TEXT
       },
       {
-        text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see case comment or notes' : 'None'
+        text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see notes' : 'None'
       },
       {
         text: 'Active'
@@ -4622,7 +4636,7 @@ function getTermsReviewRow(term) {
             : EMPTY_VALUE_TEXT
     },
     {
-      text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see case comment or notes' : 'None'
+      text: term.hasAdditionalTermsAfterExpiry === 'yes' ? 'Yes - see notes' : 'None'
     },
     {
       text: 'Active'
@@ -4965,7 +4979,7 @@ function getFailedPublishingCheckCaseViewData() {
         rows: [
           buildSummaryRow('Amount', formatOrderTermAmountWithFrequency('250', 'monthly')),
           buildSummaryRow('Expiry date', '22 August 2035'),
-          buildSummaryRow('Expiry terms', 'Yes - see case comment or notes'),
+          buildSummaryRow('Expiry terms', 'Yes - see notes'),
           buildSummaryRow('Arrears', '£100.00'),
           buildSummaryRow('Child’s name', 'Sofia Nowak'),
           buildSummaryRow('Child’s date of birth', '22 August 2015 (Age: 10)'),
@@ -10174,11 +10188,8 @@ function formatActiveCaseOrderCurrency(value) {
 }
 
 function getActiveCaseOrderTermDisplay(field, value) {
-  if (
-    normaliseComparableText(field.name || field.prompt) === 'expiry terms' ||
-    normaliseComparableText(field.prompt) === 'expiry terms'
-  ) {
-    return isFieldValueChecked(value) ? "Expires on last day of child's education." : 'None'
+  if (isExpiryTermsField(field)) {
+    return getExpiryTermsSummaryValue(value)
   }
 
   if (field.type === 'currency') {
@@ -10432,7 +10443,7 @@ function getActiveCaseOrderTermRows(orderTerm, activeCase, caseId) {
         : getActiveCaseOrderTermDisplay(field, value)
 
       if (hasValue(displayValue)) {
-        rows.push(buildSummaryRow(field.prompt, displayValue))
+        rows.push(buildSummaryRow(getOrderTermSummaryLabel(field), displayValue))
       }
     })
   }
@@ -10741,7 +10752,7 @@ function getActiveCaseOrderTermAddReviewRows(orderTerm, activeCase, caseId) {
         ? formatOrderTermAmountWithFrequency(value, frequencyValue)
         : getResultValueForSummary(field, value)
 
-      rows.push(buildSummaryRow(field.prompt, displayValue))
+      rows.push(buildSummaryRow(getOrderTermSummaryLabel(field), displayValue))
     })
   }
 
