@@ -1,0 +1,1219 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Beginner-friendly setup and working guide for the Opal RM prototype">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>REMO Active Account Usability Testing Script - Opal RM Prototype Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#remo-active-account-usability-testing-script" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Opal RM Prototype Docs" class="md-header__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Opal RM Prototype Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              REMO Active Account Usability Testing Script
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Opal RM Prototype Docs" class="md-nav__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Opal RM Prototype Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../windows-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../macbook-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git-and-github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git and GitHub Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-codex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Codex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github-pages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Pages Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#session-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warm-Up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-edit-respondent-details-authority-arrears-date-and-comment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Edit Respondent Details, Authority, Arrears Date, And Comment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task 1: Edit Respondent Details, Authority, Arrears Date, And Comment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#participant-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Participant Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-data-to-enter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Data To Enter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moderator-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moderator Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-edit-applicant-address-and-add-third-party-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Edit Applicant Address And Add Third Party Address
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task 2: Edit Applicant Address And Add Third Party Address">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#participant-task_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Participant Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-criteria_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-data-to-enter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Data To Enter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moderator-prompts_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moderator Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-change-minor-creditor-name-and-add-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Change Minor Creditor Name And Add Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task 3: Change Minor Creditor Name And Add Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#participant-task_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Participant Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-criteria_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-data-to-enter_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Data To Enter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moderator-prompts_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moderator Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-view-major-creditor-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: View Major Creditor Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task 4: View Major Creditor Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#participant-task_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Participant Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-criteria_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-to-observe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What To Observe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moderator-prompts_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moderator Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-complete-penny-account-order-details-and-add-lump-sum-terms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Complete Penny Account Order Details And Add Lump Sum Terms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task 5: Complete Penny Account Order Details And Add Lump Sum Terms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#participant-task_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Participant Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-criteria_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-data-to-enter_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Data To Enter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moderator-prompts_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moderator Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrap-up-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrap-Up Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes Template
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="remo-active-account-usability-testing-script">REMO Active Account Usability Testing Script<a class="headerlink" href="#remo-active-account-usability-testing-script" title="Permanent link">&para;</a></h1>
+<h2 id="session-setup">Session Setup<a class="headerlink" href="#session-setup" title="Permanent link">&para;</a></h2>
+<p>Prototype URL: <code>http://localhost:3050</code></p>
+<p>Start each task from the Search page unless the participant is already on a relevant account page. Ask the participant to think aloud. Do not explain the navigation unless they are blocked and ask for help.</p>
+<p>Use the sample data in this script only when the participant needs to enter new or changed information. The search criteria are chosen from records that exist in the prototype.</p>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>Thank you for taking part. We are testing the prototype, not you. Some things may not work as you expect, and that is useful for us to learn.</p>
+<p>Please say what you are thinking as you work through each task. For example, what you are looking for, what you expect to happen, and anything that feels unclear.</p>
+<h2 id="warm-up">Warm-Up<a class="headerlink" href="#warm-up" title="Permanent link">&para;</a></h2>
+<p>Before we start the tasks, please take a moment to look at the Search page.</p>
+<p>Prompts:</p>
+<ul>
+<li>What would you do first if you needed to find an account?</li>
+<li>Is anything unclear on this page?</li>
+</ul>
+<h2 id="task-1-edit-respondent-details-authority-arrears-date-and-comment">Task 1: Edit Respondent Details, Authority, Arrears Date, And Comment<a class="headerlink" href="#task-1-edit-respondent-details-authority-arrears-date-and-comment" title="Permanent link">&para;</a></h2>
+<h3 id="participant-task">Participant Task<a class="headerlink" href="#participant-task" title="Permanent link">&para;</a></h3>
+<p>Find the active account for Cem Demir.</p>
+<p>On the respondent account, update the third party correspondence address. Then change the central authority, update the date arrears were last updated, and add a comment to the file.</p>
+<h3 id="search-criteria">Search Criteria<a class="headerlink" href="#search-criteria" title="Permanent link">&para;</a></h3>
+<p>Use one of these:</p>
+<ul>
+<li>Respondent last name: <code>DEMIR</code></li>
+<li>Respondent first names: <code>Cem</code></li>
+<li>Account number: <code>26000060C</code></li>
+</ul>
+<p>Expected account:</p>
+<ul>
+<li>Respondent account: <code>26000060C</code></li>
+<li>Name: <code>DEMIR, Cem</code></li>
+<li>Case type: <code>REMO Out</code></li>
+</ul>
+<h3 id="sample-data-to-enter">Sample Data To Enter<a class="headerlink" href="#sample-data-to-enter" title="Permanent link">&para;</a></h3>
+<p>Third party correspondence address:</p>
+<ul>
+<li>Name or organisation: keep as <code>Demir &amp; Partners Solicitors</code></li>
+<li>Relationship: keep as <code>Solicitor</code></li>
+<li>Reference: keep as <code>CD/2024/001</code></li>
+<li>Address line 1: <code>Level 2</code></li>
+<li>Address line 2: <code>14 West Street</code></li>
+<li>Address line 3: <code>Brighton</code></li>
+<li>Address line 4: <code>East Sussex</code></li>
+<li>Postal or zip code: <code>BN1 2RE</code></li>
+<li>Country: <code>United Kingdom</code></li>
+</ul>
+<p>Central authority:</p>
+<ul>
+<li>Select central authority: <code>Central Authority - Australia</code></li>
+<li>Central authority reference: <code>AUS-CSA-2026-387</code></li>
+</ul>
+<p>Order details:</p>
+<ul>
+<li>Date arrears last updated: <code>15/06/2026</code></li>
+</ul>
+<p>Comment:</p>
+<p><code>Third party correspondence address updated. Central authority changed following new information from Australia. Arrears date updated from latest schedule.</code></p>
+<h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
+<p>The participant can:</p>
+<ul>
+<li>Find the respondent account from Search.</li>
+<li>Locate where respondent third party details are edited.</li>
+<li>Locate where authority details are edited.</li>
+<li>Locate order details and update the arrears date.</li>
+<li>Add or change the account comment.</li>
+<li>Recognise whether each change has been saved.</li>
+</ul>
+<h3 id="moderator-prompts">Moderator Prompts<a class="headerlink" href="#moderator-prompts" title="Permanent link">&para;</a></h3>
+<ul>
+<li>What made you choose that tab or link?</li>
+<li>Was it clear whether this was respondent, applicant, or order information?</li>
+<li>Did the success message reassure you that the change was saved?</li>
+</ul>
+<h2 id="task-2-edit-applicant-address-and-add-third-party-address">Task 2: Edit Applicant Address And Add Third Party Address<a class="headerlink" href="#task-2-edit-applicant-address-and-add-third-party-address" title="Permanent link">&para;</a></h2>
+<h3 id="participant-task_1">Participant Task<a class="headerlink" href="#participant-task_1" title="Permanent link">&para;</a></h3>
+<p>Find the active account for Alina Popa. Open the applicant account. Change the applicant address and add a third party correspondence address.</p>
+<h3 id="search-criteria_1">Search Criteria<a class="headerlink" href="#search-criteria_1" title="Permanent link">&para;</a></h3>
+<p>Use one of these:</p>
+<ul>
+<li>Applicant last name: <code>POPA</code></li>
+<li>Applicant first names: <code>Alina</code></li>
+<li>Applicant account number: <code>26000511A</code></li>
+</ul>
+<p>Expected account:</p>
+<ul>
+<li>Applicant account: <code>26000511A</code></li>
+<li>Name: <code>POPA, Alina</code></li>
+<li>Linked respondent: <code>POPA, Andrei</code></li>
+</ul>
+<h3 id="sample-data-to-enter_1">Sample Data To Enter<a class="headerlink" href="#sample-data-to-enter_1" title="Permanent link">&para;</a></h3>
+<p>Applicant address:</p>
+<ul>
+<li>Address line 1: <code>22 Willow Court</code></li>
+<li>Address line 2: <code>Newbury</code></li>
+<li>Address line 3: <code>Berkshire</code></li>
+<li>Postal or zip code: <code>RG14 5QP</code></li>
+<li>Country: <code>United Kingdom</code></li>
+</ul>
+<p>Third party correspondence address:</p>
+<ul>
+<li>Select that correspondence should be sent to a third party.</li>
+<li>Name or organisation: <code>West Berkshire Family Law</code></li>
+<li>Relationship: <code>Solicitor</code></li>
+<li>Reference: <code>AP/POPA/2026</code></li>
+<li>Address line 1: <code>3 Market Place</code></li>
+<li>Address line 2: <code>Newbury</code></li>
+<li>Address line 3: <code>Berkshire</code></li>
+<li>Postal or zip code: <code>RG14 5AA</code></li>
+<li>Country: <code>United Kingdom</code></li>
+</ul>
+<h3 id="success-criteria_1">Success Criteria<a class="headerlink" href="#success-criteria_1" title="Permanent link">&para;</a></h3>
+<p>The participant can:</p>
+<ul>
+<li>Find the applicant account from Search.</li>
+<li>Understand that the applicant account opens separately from the respondent account.</li>
+<li>Find the applicant edit journey.</li>
+<li>Update the applicant address.</li>
+<li>Add third party correspondence details.</li>
+<li>Save and return to the applicant account.</li>
+</ul>
+<h3 id="moderator-prompts_1">Moderator Prompts<a class="headerlink" href="#moderator-prompts_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Did you expect the applicant account to open in a new tab?</li>
+<li>Was it clear where to edit applicant details?</li>
+<li>Was the third party correspondence section easy to find?</li>
+</ul>
+<h2 id="task-3-change-minor-creditor-name-and-add-note">Task 3: Change Minor Creditor Name And Add Note<a class="headerlink" href="#task-3-change-minor-creditor-name-and-add-note" title="Permanent link">&para;</a></h2>
+<h3 id="participant-task_2">Participant Task<a class="headerlink" href="#participant-task_2" title="Permanent link">&para;</a></h3>
+<p>Find the active account for the minor creditor Mira Popa. Change the minor creditor name and add a note explaining why the name has changed.</p>
+<h3 id="search-criteria_2">Search Criteria<a class="headerlink" href="#search-criteria_2" title="Permanent link">&para;</a></h3>
+<p>Use one of these:</p>
+<ul>
+<li>Minor creditor last name: <code>POPA</code></li>
+<li>Minor creditor first names: <code>Mira</code></li>
+<li>Minor creditor account number: <code>26000522C</code></li>
+</ul>
+<p>Expected account:</p>
+<ul>
+<li>Minor creditor account: <code>26000522C</code></li>
+<li>Name: <code>POPA, Mira</code></li>
+<li>Linked respondent: <code>POPA, Andrei</code></li>
+</ul>
+<h3 id="sample-data-to-enter_2">Sample Data To Enter<a class="headerlink" href="#sample-data-to-enter_2" title="Permanent link">&para;</a></h3>
+<p>Minor creditor name:</p>
+<ul>
+<li>First names: <code>Mira Elena</code></li>
+<li>Last name: <code>POPA</code></li>
+</ul>
+<p>Account note:</p>
+<p><code>Minor creditor first names updated to match updated birth certificate provided by the applicant.</code></p>
+<h3 id="success-criteria_2">Success Criteria<a class="headerlink" href="#success-criteria_2" title="Permanent link">&para;</a></h3>
+<p>The participant can:</p>
+<ul>
+<li>Find a minor creditor using Search.</li>
+<li>Identify that they are on a minor creditor account.</li>
+<li>Find where to edit creditor details.</li>
+<li>Change the name.</li>
+<li>Add an account note.</li>
+<li>Check that the note is available in history and notes.</li>
+</ul>
+<h3 id="moderator-prompts_2">Moderator Prompts<a class="headerlink" href="#moderator-prompts_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Was it clear this was a minor creditor rather than the applicant or respondent?</li>
+<li>Did you know where to add the reason for the name change?</li>
+<li>Did the history and notes area behave as expected?</li>
+</ul>
+<h2 id="task-4-view-major-creditor-details">Task 4: View Major Creditor Details<a class="headerlink" href="#task-4-view-major-creditor-details" title="Permanent link">&para;</a></h2>
+<h3 id="participant-task_3">Participant Task<a class="headerlink" href="#participant-task_3" title="Permanent link">&para;</a></h3>
+<p>Find and view the details for the major creditor linked to the Demir case.</p>
+<h3 id="search-criteria_3">Search Criteria<a class="headerlink" href="#search-criteria_3" title="Permanent link">&para;</a></h3>
+<p>Use:</p>
+<ul>
+<li>Major creditor: <code>Central Authority - Australia</code></li>
+</ul>
+<p>Expected account:</p>
+<ul>
+<li>Major creditor account: <code>26000623R</code></li>
+<li>Name: <code>Australian Child Support Agency</code></li>
+<li>Case reference: <code>06000387W</code></li>
+</ul>
+<h3 id="what-to-observe">What To Observe<a class="headerlink" href="#what-to-observe" title="Permanent link">&para;</a></h3>
+<p>Ask the participant to tell you:</p>
+<ul>
+<li>The major creditor name.</li>
+<li>The address shown.</li>
+<li>Whether BACS details have been provided.</li>
+<li>The amount awaiting payout.</li>
+</ul>
+<p>Expected details:</p>
+<ul>
+<li>Name: <code>Australian Child Support Agency</code></li>
+<li>Address: <code>Level 3, Centrepoint Tower, Sydney, NSW 2000, Australia</code></li>
+<li>BACS details: <code>PROVIDED</code></li>
+<li>Awaiting payout: <code>£180.00</code></li>
+</ul>
+<h3 id="success-criteria_3">Success Criteria<a class="headerlink" href="#success-criteria_3" title="Permanent link">&para;</a></h3>
+<p>The participant can:</p>
+<ul>
+<li>Find the major creditor search field.</li>
+<li>Search using the major creditor criterion.</li>
+<li>Recognise they have landed on a major creditor account.</li>
+<li>Find the main details and payout status.</li>
+</ul>
+<h3 id="moderator-prompts_3">Moderator Prompts<a class="headerlink" href="#moderator-prompts_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Was it obvious how to search for a major creditor?</li>
+<li>Did the result page provide enough context about the linked case?</li>
+<li>What else would you expect to see on a major creditor account?</li>
+</ul>
+<h2 id="task-5-complete-penny-account-order-details-and-add-lump-sum-terms">Task 5: Complete Penny Account Order Details And Add Lump Sum Terms<a class="headerlink" href="#task-5-complete-penny-account-order-details-and-add-lump-sum-terms" title="Permanent link">&para;</a></h2>
+<h3 id="participant-task_4">Participant Task<a class="headerlink" href="#participant-task_4" title="Permanent link">&para;</a></h3>
+<p>Find the active account for James Carter.</p>
+<p>The account was set up as a penny account because the court paperwork was not available at the time. The paperwork has now arrived. Update the draft order details and existing order terms with the missing information, then add the lump sum order terms.</p>
+<h3 id="search-criteria_4">Search Criteria<a class="headerlink" href="#search-criteria_4" title="Permanent link">&para;</a></h3>
+<p>Use one of these:</p>
+<ul>
+<li>Respondent last name: <code>CARTER</code></li>
+<li>Respondent first names: <code>James</code></li>
+<li>Respondent account number: <code>26000008R</code></li>
+</ul>
+<p>Expected account:</p>
+<ul>
+<li>Respondent account: <code>26000008R</code></li>
+<li>Name: <code>CARTER, James</code></li>
+<li>Case type: <code>REMO Out</code></li>
+<li>Applicant: <code>CARTER, Helen</code></li>
+</ul>
+<h3 id="sample-data-to-enter_3">Sample Data To Enter<a class="headerlink" href="#sample-data-to-enter_3" title="Permanent link">&para;</a></h3>
+<p>Order details:</p>
+<ul>
+<li>Court that made the order: <code>Reading Family Court</code></li>
+<li>Date the order was made: <code>22/06/2026</code></li>
+<li>Payment frequency: <code>Monthly</code></li>
+</ul>
+<p>Existing order terms:</p>
+<ul>
+<li>MAT amount: <code>250.00</code></li>
+<li>MCHILD amount for Emily Carter: <code>175.00</code></li>
+<li>MCHILD amount for Oliver Carter: <code>175.00</code></li>
+<li>Payment arrangement: keep as <code>payable through the Court</code></li>
+<li>Respondent: keep as <code>James Carter</code></li>
+<li>Creditor: keep as <code>Helen Carter</code></li>
+<li>Child dates of birth: keep the existing values</li>
+</ul>
+<p>New lump sum order terms:</p>
+<ul>
+<li>Order term: <code>MLUMP - Lump Sum Payment</code></li>
+<li>Amount: <code>1200.00</code></li>
+<li>Creditor: <code>Helen Carter</code></li>
+<li>Respondent: <code>James Carter</code></li>
+<li>Payment arrangement: <code>payable through the Court</code></li>
+<li>Reason for payment: <code>Lump sum ordered by the court to clear costs owed to the applicant.</code></li>
+<li>Date payment due by: <code>31/07/2026</code></li>
+</ul>
+<h3 id="success-criteria_4">Success Criteria<a class="headerlink" href="#success-criteria_4" title="Permanent link">&para;</a></h3>
+<p>The participant can:</p>
+<ul>
+<li>Find the respondent account from Search.</li>
+<li>Recognise that the current order values are draft penny amounts.</li>
+<li>Find where to change the court, order date, and payment frequency.</li>
+<li>Update the existing MAT and MCHILD order terms from penny values to the court paperwork values.</li>
+<li>Find and use Add order terms.</li>
+<li>Select and add MLUMP lump sum order terms.</li>
+<li>Review the order terms before adding them.</li>
+<li>Recognise whether the updated and added order terms have been saved.</li>
+</ul>
+<h3 id="moderator-prompts_4">Moderator Prompts<a class="headerlink" href="#moderator-prompts_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Was it clear that the penny amounts needed changing rather than deleting?</li>
+<li>Where did you expect to update the payment frequency?</li>
+<li>Was Add order terms easy to find from the Orders tab?</li>
+<li>Did MLUMP make sense as a label for the lump sum payment?</li>
+<li>Did the review page give you enough confidence before adding the lump sum order terms?</li>
+</ul>
+<h2 id="wrap-up-questions">Wrap-Up Questions<a class="headerlink" href="#wrap-up-questions" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Which task felt easiest?</li>
+<li>Which task felt hardest?</li>
+<li>Were any labels or tabs unclear?</li>
+<li>Did opening account numbers in new tabs help or get in the way?</li>
+<li>Was it clear when you were editing respondent, applicant, minor creditor, order, authority, or comment information?</li>
+<li>What would you change before this was tested with more users?</li>
+</ul>
+<h2 id="notes-template">Notes Template<a class="headerlink" href="#notes-template" title="Permanent link">&para;</a></h2>
+<p>Participant:</p>
+<p>Date:</p>
+<p>Moderator:</p>
+<p>Prototype version or branch:</p>
+<p>Task 1 notes:</p>
+<p>Task 2 notes:</p>
+<p>Task 3 notes:</p>
+<p>Task 4 notes:</p>
+<p>Task 5 notes:</p>
+<p>Overall observations:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
