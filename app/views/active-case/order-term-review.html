@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageTitle %}
@@ -25,9 +26,15 @@
       {% set showOrderTermCardActions = true %}
       {% include "create-a-case/_order-term-summary-card.html" %}
 
+      {% if showApplyCreditorToAllInset %}
+        {{ govukInsetText({
+          text: "The creditor will also be applied to all existing order terms."
+        }) }}
+      {% endif %}
+
       <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         <div class="govuk-button-group">
           {{ govukButton({
             text: primaryButtonText or "Save changes"

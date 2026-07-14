@@ -31,7 +31,7 @@
         }) }}
       {% endif %}
 
-      <form method="post" action="{{ formAction or '/create-a-case/order-details' }}">
+      <form method="post" action="{{ formAction or '/create-a-case/order-details' }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         <h2 class="govuk-heading-m">Application</h2>
 
         {{ xGovukAutocomplete({

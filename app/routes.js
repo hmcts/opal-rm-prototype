@@ -673,10 +673,10 @@ function buildCreateDataScenarios() {
               wording:
                 'Order for payment by Oleksandr Melnyk to Marta Kowalski payable through the Court for the benefit of the Complainant.\nThe sum of £ 400.00 to be paid every month from 10 January 2026 until 10 January 2028.',
               responses: {
-                'result-mat-amount': '400',
+                'result-mat-amount': '400.00',
                 'result-mat-frequency': 'monthly',
                 'result-mat-expiry': '10/01/2028',
-                'result-mat-arrears': '200',
+                'result-mat-arrears': '200.00',
                 'result-mat-creditor': 'Marta Kowalski',
                 'result-mat-respondent': 'Oleksandr Melnyk',
                 'result-mat-payment': 'payable through the Court',
@@ -693,10 +693,10 @@ function buildCreateDataScenarios() {
               wording:
                 'Order for payment by Oleksandr Melnyk to Marta Kowalski payable through the Court for the benefit of the Complainant.\nThe sum of £ 250.00 to be paid every month from 10 January 2026 until 22 August 2035.',
               responses: {
-                'result-mchild-amount': '250',
+                'result-mchild-amount': '250.00',
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '22/08/2035',
-                'result-mchild-arrears': '100',
+                'result-mchild-arrears': '100.00',
                 'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Zofia Melnyk',
                 'result-mchild-child-dob': '22/08/2017',
@@ -793,10 +793,10 @@ function buildCreateDataScenarios() {
               wording:
                 'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 325.00 to be paid every month from 14 February 2026 until 14 February 2027.',
               responses: {
-                'result-mat-amount': '325',
+                'result-mat-amount': '325.00',
                 'result-mat-frequency': 'monthly',
                 'result-mat-expiry': '14/02/2027',
-                'result-mat-arrears': '150',
+                'result-mat-arrears': '150.00',
                 'result-mat-creditor': 'Anna Nowak',
                 'result-mat-respondent': 'Piotr Nowak',
                 'result-mat-payment': 'payable through the Court',
@@ -813,10 +813,10 @@ function buildCreateDataScenarios() {
               wording:
                 'Order for payment by Piotr Nowak to Anna Nowak payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 15 March 2034.',
               responses: {
-                'result-mchild-amount': '220',
+                'result-mchild-amount': '220.00',
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '15/03/2034',
-                'result-mchild-arrears': '80',
+                'result-mchild-arrears': '80.00',
                 'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Sofia Nowak',
                 'result-mchild-child-dob': '15/03/2016',
@@ -835,10 +835,10 @@ function buildCreateDataScenarios() {
               wording:
                 'Order for payment by Piotr Nowak to Katarzyna Kowalczyk payable through the Court for the benefit of the Complainant.\nThe sum of £ 220.00 to be paid every month from 14 February 2026 until 22 September 2036.',
               responses: {
-                'result-mchild-amount': '220',
+                'result-mchild-amount': '220.00',
                 'result-mchild-frequency': 'monthly',
                 'result-mchild-expiry': '22/09/2036',
-                'result-mchild-arrears': '80',
+                'result-mchild-arrears': '80.00',
                 'result-mchild-education': ['Additional terms affect order expiry'],
                 'result-mchild-beneficiary': 'Michal Nowak',
                 'result-mchild-child-dob': '22/09/2018',
@@ -1389,6 +1389,63 @@ function buildMinorCreditor(body) {
       body['minor-creditor-non-uk-branch-office-or-sort-code'] || '',
     nonUkAccountNumber: body['minor-creditor-non-uk-account-number'] || ''
   }
+}
+
+function validateMinorCreditor(body) {
+  const errors = {}
+  const creditorType = getSingleValue(body['minor-creditor-type']) || ''
+  const bankAccountType = getSingleValue(body['minor-creditor-bank-account-type']) || ''
+
+  if (!hasValue(creditorType)) {
+    errors['minor-creditor-type'] = buildFieldError('Select creditor type')
+  } else if (creditorType === 'individual') {
+    if (!hasValue(getSingleValue(body['minor-creditor-first-names']))) {
+      errors['minor-creditor-first-names'] = buildFieldError('Enter first names')
+    }
+    if (!hasValue(getSingleValue(body['minor-creditor-last-name']))) {
+      errors['minor-creditor-last-name'] = buildFieldError('Enter last name')
+    }
+  } else if (creditorType === 'organisation') {
+    if (!hasValue(getSingleValue(body['minor-creditor-organisation-name']))) {
+      errors['minor-creditor-organisation-name'] = buildFieldError('Enter organisation name')
+    }
+  }
+
+  if (!hasValue(getSingleValue(body['minor-creditor-address-line-1']))) {
+    errors['minor-creditor-address-line-1'] = buildFieldError('Enter address line 1')
+  }
+
+  if (!hasValue(bankAccountType)) {
+    errors['minor-creditor-bank-account-type'] = buildFieldError('Select bank account type')
+  } else if (bankAccountType === 'uk-bank-account') {
+    if (!hasValue(getSingleValue(body['minor-creditor-uk-name-on-account']))) {
+      errors['minor-creditor-uk-name-on-account'] = buildFieldError('Enter name on account')
+    }
+    if (!hasValue(getSingleValue(body['minor-creditor-uk-sort-code']))) {
+      errors['minor-creditor-uk-sort-code'] = buildFieldError('Enter sort code')
+    } else if (!/^\d{6}$/.test(String(getSingleValue(body['minor-creditor-uk-sort-code']) || '').replace(/\s+/g, ''))) {
+      errors['minor-creditor-uk-sort-code'] = buildFieldError('Sort code must be 6 digits')
+    }
+    if (!hasValue(getSingleValue(body['minor-creditor-uk-account-number']))) {
+      errors['minor-creditor-uk-account-number'] = buildFieldError('Enter account number')
+    } else if (!/^\d{6,8}$/.test(String(getSingleValue(body['minor-creditor-uk-account-number']) || '').replace(/\s+/g, ''))) {
+      errors['minor-creditor-uk-account-number'] = buildFieldError('Account number must be between 6 and 8 digits')
+    }
+  } else if (bankAccountType === 'non-uk-bank-account') {
+    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-name-on-account']))) {
+      errors['minor-creditor-non-uk-name-on-account'] = buildFieldError('Enter name on account')
+    }
+    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-bic-or-swift-code']))) {
+      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError('Enter BIC or SWIFT code')
+    } else if (!/^[A-Za-z0-9]{8,11}$/.test(String(getSingleValue(body['minor-creditor-non-uk-bic-or-swift-code']) || '').replace(/\s+/g, ''))) {
+      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError('BIC or SWIFT code must be between 8 and 11 characters')
+    }
+    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-iban']))) {
+      errors['minor-creditor-non-uk-iban'] = buildFieldError('Enter IBAN')
+    }
+  }
+
+  return errors
 }
 
 function escapeHtml(value) {
@@ -3355,6 +3412,64 @@ function parseDateInput(dateString) {
   return { kind: 'valid', date }
 }
 
+function parseStrictDateInput(dateString) {
+  const value = String(getSingleValue(dateString) || '').trim()
+
+  if (!value) {
+    return { kind: 'missing' }
+  }
+
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    return { kind: 'format' }
+  }
+
+  const parsed = parseDateInput(value)
+  return parsed.kind === 'valid' ? parsed : { kind: 'invalid' }
+}
+
+function isFutureDate(date) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return date > today
+}
+
+function isDecimalValue(value) {
+  return /^\d+\.\d{2}$/.test(String(value || '').trim())
+}
+
+function getResultRequiredMessage(field) {
+  const fieldName = normaliseComparableText(field.name || field.prompt)
+
+  if (fieldName === 'amount' || fieldName === 'arrears' || field.type === 'currency') {
+    return 'Enter an amount'
+  }
+
+  if (field.type === 'date') {
+    return `Enter ${field.prompt.toLowerCase()}`
+  }
+
+  return `${field.prompt} is required`
+}
+
+function getResultDateError(field, dateResult) {
+  const fieldName = normaliseComparableText(field.name || field.prompt)
+  const label = fieldName === 'child dob' ? 'Date of birth' : field.prompt
+
+  if (dateResult.kind === 'format') {
+    return `${label} must be in the format DD/MM/YYYY`
+  }
+
+  if (dateResult.kind === 'invalid') {
+    return `Enter a valid ${label.toLowerCase()}`
+  }
+
+  if (dateResult.kind === 'valid' && fieldName === 'child dob' && isFutureDate(dateResult.date)) {
+    return 'Date of birth must be in the past'
+  }
+
+  return ''
+}
+
 function validateAlternativeOrderDetails(body, caseType, options = {}) {
   const errors = {}
   const orderMadeFieldsOptional = options.orderMadeFieldsOptional === true
@@ -3393,7 +3508,7 @@ function validateAlternativeOrderDetails(body, caseType, options = {}) {
     today.setHours(0, 0, 0, 0)
 
     if (orderMadeDate.date > today) {
-      errors['order-date-order-made'] = buildFieldError('Future dates are invalid')
+      errors['order-date-order-made'] = buildFieldError('Date cannot be in the future')
     }
   }
 
@@ -3408,7 +3523,7 @@ function validateAlternativeOrderDetails(body, caseType, options = {}) {
     today.setHours(0, 0, 0, 0)
 
     if (arrearsLastUpdatedDate.date > today) {
-      errors['order-date-arrears-last-updated'] = buildFieldError('Future dates are invalid')
+      errors['order-date-arrears-last-updated'] = buildFieldError('Date cannot be in the future')
     }
   }
 
@@ -3534,11 +3649,43 @@ function validateResultResponses(resultDefinition, body) {
     }
 
     if (field.required && !hasValue(value)) {
-      errors[field.id] = `${field.prompt} is required`
+      errors[field.id] = getResultRequiredMessage(field)
+      return
+    }
+
+    if (field.type === 'currency' && hasValue(value)) {
+      if (!/^\d+(\.\d+)?$/.test(String(value).trim())) {
+        errors[field.id] = 'Enter only numbers'
+        return
+      }
+
+      if (!isDecimalValue(value)) {
+        errors[field.id] = 'Enter amount as 2 decimal places, such as 100.99'
+      }
+
+      return
+    }
+
+    if (field.type === 'date' && hasValue(value)) {
+      const dateResult = parseStrictDateInput(value)
+      const dateError = getResultDateError(field, dateResult)
+
+      if (dateError) {
+        errors[field.id] = dateError
+      }
+
       return
     }
 
     if ((field.type === 'text' || field.type === 'textarea') && hasValue(value)) {
+      if (
+        normaliseComparableText(field.name || field.prompt) === 'beneficiary' &&
+        !/^[A-Za-z0-9 '\-]+$/.test(String(value).trim())
+      ) {
+        errors[field.id] = 'Child’s name must only include letters a to z, numbers, hyphens, spaces and apostrophes'
+        return
+      }
+
       if (field.minLength && value.trim().length < field.minLength) {
         errors[field.id] = `${field.prompt} must be at least ${field.minLength} characters`
       }
@@ -5770,10 +5917,10 @@ function getBaseRejectedDraftOrderEntry(id) {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '175',
+              'result-mat-amount': '175.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '',
-              'result-mat-arrears': '175',
+              'result-mat-arrears': '175.00',
               'result-mat-creditor': 'Eszter Kovacs',
               'result-mat-respondent': 'Janos Balogh',
               'result-mat-payment': 'payable through the Court',
@@ -5846,10 +5993,10 @@ function getBaseRejectedDraftOrderEntry(id) {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '210',
+              'result-mat-amount': '210.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '',
-              'result-mat-arrears': '210',
+              'result-mat-arrears': '210.00',
               'result-mat-creditor': 'Irina Petrova',
               'result-mat-respondent': 'Nikolai Dimitrov',
               'result-mat-payment': 'payable through the Court',
@@ -5962,10 +6109,10 @@ function getBaseFailedDraftOrderEntry(id) {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '400',
+              'result-mat-amount': '400.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '10/01/2028',
-              'result-mat-arrears': '200',
+              'result-mat-arrears': '200.00',
               'result-mat-creditor': 'Anna Nowak',
               'result-mat-respondent': 'Piotr Nowak',
               'result-mat-payment': 'payable through the Court',
@@ -5980,11 +6127,11 @@ function getBaseFailedDraftOrderEntry(id) {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mchild-amount': '250',
+              'result-mchild-amount': '250.00',
               'result-mchild-frequency': 'monthly',
               'result-mchild-expiry': '22/08/2035',
               'result-mchild-education': ['Additional terms affect order expiry'],
-              'result-mchild-arrears': '100',
+              'result-mchild-arrears': '100.00',
               'result-mchild-beneficiary': 'Sofia Nowak',
               'result-mchild-child-dob': '22/08/2015',
               'result-mchild-respondent': 'Piotr Nowak',
@@ -6595,7 +6742,7 @@ router.post('/create-a-case/select-order-term', (req, res, next) => {
 
     return res.render('create-a-case/add-order-term', {
       resultItems: getResultOptionItems('', 'orders'),
-      selectionError: 'Select an order term from the list.'
+      selectionError: 'Select an order'
     })
   }
 
@@ -8361,10 +8508,10 @@ router.get('/create-cases/:index', (req, res) => {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '400',
+              'result-mat-amount': '400.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '12/01/2027',
-              'result-mat-arrears': '400',
+              'result-mat-arrears': '400.00',
               'result-mat-creditor': 'Anna Nowak',
               'result-mat-respondent': 'Piotr Nowak',
               'result-mat-payment': 'payable through the Court',
@@ -8379,10 +8526,10 @@ router.get('/create-cases/:index', (req, res) => {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mchild-amount': '250',
+              'result-mchild-amount': '250.00',
               'result-mchild-frequency': 'monthly',
               'result-mchild-expiry': '30/04/2026',
-              'result-mchild-arrears': '0',
+              'result-mchild-arrears': '0.00',
               'result-mchild-education': ['Additional terms affect order expiry'],
               'result-mchild-beneficiary': 'Agnieszka Kowalska',
               'result-mchild-child-dob': '30/04/2010',
@@ -8526,10 +8673,10 @@ router.get('/create-cases/:index', (req, res) => {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '120',
+              'result-mat-amount': '120.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '',
-              'result-mat-arrears': '120',
+              'result-mat-arrears': '120.00',
               'result-mat-creditor': 'Katarina Horvath',
               'result-mat-respondent': 'Matej Novotny',
               'result-mat-payment': 'payable through the Court',
@@ -8643,10 +8790,10 @@ router.get('/create-cases/:index', (req, res) => {
             category: 'FINAL',
             categoryLabel: 'Final',
             responses: {
-              'result-mat-amount': '180',
+              'result-mat-amount': '180.00',
               'result-mat-frequency': 'monthly',
               'result-mat-expiry': '',
-              'result-mat-arrears': '180',
+              'result-mat-arrears': '180.00',
               'result-mat-creditor': 'Ewa Kowalski',
               'result-mat-respondent': 'Marek Kowalski',
               'result-mat-payment': 'payable through the Court',
@@ -8712,10 +8859,10 @@ router.get('/create-cases/:index', (req, res) => {
           category: 'FINAL',
           categoryLabel: 'Final',
           responses: {
-            'result-mat-amount': '95',
+            'result-mat-amount': '95.00',
             'result-mat-frequency': 'monthly',
             'result-mat-expiry': '',
-            'result-mat-arrears': '0',
+            'result-mat-arrears': '0.00',
             'result-mat-creditor': 'Mihai Rusu',
             'result-mat-respondent': 'Ioana Rusu',
             'result-mat-payment': 'payable through the Court',
@@ -9054,7 +9201,7 @@ const activeCases = {
             'result-mat-amount': '0.01',
             'result-mat-frequency': 'yearly',
             'result-mat-expiry': '',
-            'result-mat-arrears': '0',
+            'result-mat-arrears': '0.00',
             'result-mat-creditor': 'Helen Carter',
             'result-mat-respondent': 'James Carter',
             'result-mat-payment': 'payable through the Court',
@@ -9071,7 +9218,7 @@ const activeCases = {
             'result-mchild-amount': '0.01',
             'result-mchild-frequency': 'yearly',
             'result-mchild-expiry': '',
-            'result-mchild-arrears': '0',
+            'result-mchild-arrears': '0.00',
             'result-mchild-beneficiary': 'Emily Carter',
             'result-mchild-child-dob': '14/09/2014',
             'result-mchild-respondent': 'James Carter',
@@ -9089,7 +9236,7 @@ const activeCases = {
             'result-mchild-amount': '0.01',
             'result-mchild-frequency': 'yearly',
             'result-mchild-expiry': '',
-            'result-mchild-arrears': '0',
+            'result-mchild-arrears': '0.00',
             'result-mchild-beneficiary': 'Oliver Carter',
             'result-mchild-child-dob': '03/11/2017',
             'result-mchild-respondent': 'James Carter',
@@ -9954,10 +10101,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
     buildActiveCaseOrderTerm(
       'MAT',
       {
-        'result-mat-amount': '300',
+        'result-mat-amount': '300.00',
         'result-mat-frequency': 'monthly',
         'result-mat-expiry': '15/01/2024',
-        'result-mat-arrears': '2800'
+        'result-mat-arrears': '2800.00'
       },
       applicantName,
       {
@@ -9967,10 +10114,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
     buildActiveCaseOrderTerm(
       'MAT',
       {
-        'result-mat-amount': '420',
+        'result-mat-amount': '420.00',
         'result-mat-frequency': 'monthly',
         'result-mat-expiry': '14/07/2026',
-        'result-mat-arrears': '1600'
+        'result-mat-arrears': '1600.00'
       },
       applicantName,
       {
@@ -9984,10 +10131,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
     buildActiveCaseOrderTerm(
       'MCHILD',
       {
-        'result-mchild-amount': '180',
+        'result-mchild-amount': '180.00',
         'result-mchild-frequency': 'monthly',
         'result-mchild-expiry': '22/09/2036',
-        'result-mchild-arrears': '320',
+        'result-mchild-arrears': '320.00',
         'result-mchild-beneficiary': secondChildName,
         'result-mchild-child-dob': '22/09/2018'
       },
@@ -9999,10 +10146,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
     buildActiveCaseOrderTerm(
       'MCHILD',
       {
-        'result-mchild-amount': '280',
+        'result-mchild-amount': '280.00',
         'result-mchild-frequency': 'monthly',
         'result-mchild-expiry': '22/09/2036',
-        'result-mchild-arrears': '250',
+        'result-mchild-arrears': '250.00',
         'result-mchild-beneficiary': secondChildName,
         'result-mchild-child-dob': '22/09/2018'
       },
@@ -10029,10 +10176,10 @@ function buildDefaultActiveCaseOrders(activeCase) {
       buildActiveCaseOrderTerm(
         'MAT',
         {
-          'result-mat-amount': '500',
+          'result-mat-amount': '500.00',
           'result-mat-frequency': 'monthly',
           'result-mat-expiry': '16/04/2028',
-          'result-mat-arrears': '1000'
+          'result-mat-arrears': '1000.00'
         },
         applicantName,
         {
@@ -10043,11 +10190,11 @@ function buildDefaultActiveCaseOrders(activeCase) {
       buildActiveCaseOrderTerm(
         'MCHILD',
         {
-          'result-mchild-amount': '350',
+          'result-mchild-amount': '350.00',
           'result-mchild-frequency': 'monthly',
           'result-mchild-expiry': '15/03/2034',
           'result-mchild-education': ['Additional terms affect order expiry'],
-          'result-mchild-arrears': '750',
+          'result-mchild-arrears': '750.00',
           'result-mchild-beneficiary': firstChildName,
           'result-mchild-child-dob': '15/03/2016'
         },
@@ -10059,11 +10206,11 @@ function buildDefaultActiveCaseOrders(activeCase) {
       buildActiveCaseOrderTerm(
         'MCHILD',
         {
-          'result-mchild-amount': '400',
+          'result-mchild-amount': '400.00',
           'result-mchild-frequency': 'monthly',
           'result-mchild-expiry': '22/09/2036',
           'result-mchild-education': ['Additional terms affect order expiry'],
-          'result-mchild-arrears': '800',
+          'result-mchild-arrears': '800.00',
           'result-mchild-beneficiary': secondChildName,
           'result-mchild-child-dob': '22/09/2018'
         },
@@ -10143,6 +10290,44 @@ function getActiveCaseOrderTermAddState(req, caseId) {
 
 function clearActiveCaseOrderTermAddState(req) {
   delete req.session.data['active-case-add-order-term']
+}
+
+function getActiveCaseOrderTermAmendSnapshotState(req) {
+  if (!req.session.data['active-case-amend-order-term-snapshots']) {
+    req.session.data['active-case-amend-order-term-snapshots'] = {}
+  }
+
+  return req.session.data['active-case-amend-order-term-snapshots']
+}
+
+function getActiveCaseOrderTermSnapshotKey(caseId, termIndex) {
+  return `${caseId}:${termIndex}`
+}
+
+function storeActiveCaseOrderTermSnapshot(req, caseId, termIndex, orderTerm) {
+  const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
+  const key = getActiveCaseOrderTermSnapshotKey(caseId, termIndex)
+
+  if (!snapshots[key]) {
+    snapshots[key] = JSON.parse(JSON.stringify(orderTerm))
+  }
+}
+
+function restoreActiveCaseOrderTermSnapshot(req, activeCase, caseId, termIndex) {
+  const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
+  const key = getActiveCaseOrderTermSnapshotKey(caseId, termIndex)
+  const snapshot = snapshots[key]
+
+  if (snapshot && getActiveCaseOrders(activeCase).terms[termIndex]) {
+    getActiveCaseOrders(activeCase).terms[termIndex] = snapshot
+  }
+
+  delete snapshots[key]
+}
+
+function clearActiveCaseOrderTermSnapshot(req, caseId, termIndex) {
+  const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
+  delete snapshots[getActiveCaseOrderTermSnapshotKey(caseId, termIndex)]
 }
 
 function consumeActiveCaseOrderTermAddSuccessMessage(req, caseId) {
@@ -10729,6 +10914,102 @@ function getActiveCaseOrderTermCreditorItems(activeCase, caseId, selectedCredito
   }))
 }
 
+function getActiveCaseOrderTermCreditorViewData(activeCase, caseId, options = {}) {
+  const pendingMinorCreditor = options.pendingMinorCreditor || null
+  const selectedCreditor = options.selectedCreditor || ''
+  const normalisedSelectedCreditor = selectedCreditor.startsWith('major-creditor-')
+    ? 'major-creditor'
+    : selectedCreditor
+  const majorCreditorCode = options.majorCreditorCode || (
+    selectedCreditor.startsWith('major-creditor-')
+      ? selectedCreditor.replace('major-creditor-', '')
+      : ''
+  )
+
+  return {
+    accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, caseId),
+    backHref: options.backHref,
+    formAction: options.formAction,
+    cancelHref: options.cancelHref,
+    successMessage: options.successMessage,
+    pendingMinorCreditor,
+    pendingMinorCreditorCard: pendingMinorCreditor
+      ? {
+          title: getMinorCreditorName(pendingMinorCreditor, 0),
+          rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+        }
+      : null,
+    addMinorCreditorHref: options.addMinorCreditorHref,
+    removeMinorCreditorHref: options.removeMinorCreditorHref,
+    applicantItem: {
+      value: 'applicant',
+      text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
+      checked: normalisedSelectedCreditor === 'applicant'
+    },
+    existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(
+      activeCase,
+      caseId,
+      normalisedSelectedCreditor
+    ),
+    selectedCreditor: normalisedSelectedCreditor,
+    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
+    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
+    selectionError: options.selectionError || null,
+    errors: options.errors || {},
+    errorSummary: options.errors ? buildErrorSummary(options.errors) : null,
+    applyCreditorToAll: options.applyCreditorToAll === true,
+    routeGuard: true,
+    routeGuardActive: options.routeGuardActive !== false
+  }
+}
+
+function applyActiveOrderTermCreditor(targetOrderTerm, sourceOrderTerm) {
+  targetOrderTerm.creditor = sourceOrderTerm.creditor
+  targetOrderTerm.creditorLabel = sourceOrderTerm.creditorLabel
+
+  if (sourceOrderTerm.minorCreditorData) {
+    targetOrderTerm.minorCreditorData = {
+      ...sourceOrderTerm.minorCreditorData
+    }
+  } else {
+    delete targetOrderTerm.minorCreditorData
+  }
+}
+
+function applyCreditorToAllActiveOrderTerms(activeCase, sourceOrderTerm) {
+  if (!sourceOrderTerm?.applyCreditorToAll) {
+    return
+  }
+
+  getActiveCaseOrders(activeCase).terms.forEach((orderTerm) => {
+    applyActiveOrderTermCreditor(orderTerm, sourceOrderTerm)
+  })
+}
+
+function validateInterestAndIndexation(body) {
+  const errors = {}
+
+  if (!hasValue(getSingleValue(body['interest-applies']))) {
+    errors['interest-applies'] = buildFieldError('Select whether interest applies')
+  }
+
+  if (!hasValue(getSingleValue(body['indexation-type']))) {
+    errors['indexation-type'] = buildFieldError('Select what type of indexation applies')
+  }
+
+  return errors
+}
+
+function validateManagingPayments(body) {
+  const errors = {}
+
+  if (!hasValue(getSingleValue(body['order-managing-payments']))) {
+    errors['order-managing-payments'] = buildFieldError('Select payment arrangement')
+  }
+
+  return errors
+}
+
 function getActiveCaseOrderTermAddReviewRows(orderTerm, activeCase, caseId) {
   const orderTermDefinition = getResultDefinition(orderTerm?.code, 'orders')
   const rows = [
@@ -10865,15 +11146,16 @@ router.get('/active-case/:id/order-details', (req, res) => {
   return res.render('create-a-case/order-details', {
     accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
     formAction: `/active-case/${id}/order-details`,
-    cancelHref: `/active-case/${id}?tab=orders`,
+    cancelHref: `/active-case/${id}/order-details/cancel`,
     orderMadeFieldsOptional: true,
     primaryButtonText: 'Save changes',
     applicationItems: getApplicationOptionItems(orders.details.applicationCode, caseType),
-    applicationLookupJson: getApplicationLookupJson(caseType),
-    errors: {},
-    errorSummary: null,
-    paymentFrequencyItems: getPaymentFrequencyItems(orders.details.paymentFrequency || 'monthly')
-  })
+	    applicationLookupJson: getApplicationLookupJson(caseType),
+	    errors: {},
+	    errorSummary: null,
+	    routeGuard: true,
+	    paymentFrequencyItems: getPaymentFrequencyItems(orders.details.paymentFrequency || 'monthly')
+	  })
 })
 
 router.post('/active-case/:id/order-details', (req, res, next) => {
@@ -10900,14 +11182,15 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
     return res.render('create-a-case/order-details', {
       accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
       formAction: `/active-case/${id}/order-details`,
-      cancelHref: `/active-case/${id}?tab=orders`,
+      cancelHref: `/active-case/${id}/order-details/cancel`,
       orderMadeFieldsOptional: true,
       primaryButtonText: 'Save changes',
       applicationItems: getApplicationOptionItems(selectedApplicationCode, caseType),
-      applicationLookupJson: getApplicationLookupJson(caseType),
-      errors,
-      errorSummary: buildErrorSummary(errors),
-      paymentFrequencyItems: getPaymentFrequencyItems(
+	      applicationLookupJson: getApplicationLookupJson(caseType),
+	      errors,
+	      errorSummary: buildErrorSummary(errors),
+	      routeGuard: true,
+	      paymentFrequencyItems: getPaymentFrequencyItems(
         getSingleValue(req.body['order-payment-frequency']) || ''
       )
     })
@@ -10936,6 +11219,16 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
 
+router.get('/active-case/:id/order-details/cancel', (req, res) => {
+  const id = Number(req.params.id)
+  return res.redirect(`/active-case/${id}?tab=orders`)
+})
+
+router.post('/active-case/:id/order-details/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
 router.get('/active-case/:id/order-term/add', (req, res) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
@@ -10950,10 +11243,11 @@ router.get('/active-case/:id/order-term/add', (req, res) => {
   return res.render('create-a-case/add-order-term', {
     accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, id),
     showBackLink: false,
-    formAction: `/active-case/${id}/order-term/add`,
-    cancelHref: `/active-case/${id}?tab=orders`,
-    resultItems: getResultOptionItems('', 'orders')
-  })
+	    formAction: `/active-case/${id}/order-term/add`,
+	    cancelHref: `/active-case/${id}/order-term/add/cancel`,
+	    resultItems: getResultOptionItems('', 'orders'),
+	    routeGuard: true
+	  })
 })
 
 router.post('/active-case/:id/order-term/add', (req, res, next) => {
@@ -10975,10 +11269,11 @@ router.post('/active-case/:id/order-term/add', (req, res, next) => {
       accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, id),
       showBackLink: false,
       formAction: `/active-case/${id}/order-term/add`,
-      cancelHref: `/active-case/${id}?tab=orders`,
-      resultItems: getResultOptionItems('', 'orders'),
-      selectionError: 'Select an order term from the list.'
-    })
+	      cancelHref: `/active-case/${id}/order-term/add/cancel`,
+	      resultItems: getResultOptionItems('', 'orders'),
+	      selectionError: 'Select an order',
+	      routeGuard: true
+	    })
   }
 
   const state = getActiveCaseOrderTermAddState(req, id)
@@ -11019,10 +11314,12 @@ router.get('/active-case/:id/order-term/add/details', (req, res) => {
     requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
     resultWording: getAlternativeOrderTermWording(sessionData),
     paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(sessionData)),
-    showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
-    responseItems: getAlternativeOrderTermResponseItems(sessionData),
-    errorSummary: null
-  })
+	    showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
+	    responseItems: getAlternativeOrderTermResponseItems(sessionData),
+	    errorSummary: null,
+	    routeGuard: true,
+	    routeGuardActive: true
+	  })
 })
 
 router.post('/active-case/:id/order-term/add/details', (req, res, next) => {
@@ -11068,10 +11365,12 @@ router.post('/active-case/:id/order-term/add/details', (req, res, next) => {
       requiresCreditor: orderTermDefinition.nextStep === 'create-creditor',
       resultWording: getAlternativeOrderTermWording(renderedSessionData),
       paymentFrequencyLabel: getFrequencyLabel(getSharedOrderPaymentFrequency(renderedSessionData)),
-      showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
-      responseItems: getAlternativeOrderTermResponseItems(renderedSessionData),
-      errorSummary: buildErrorSummary(errors)
-    })
+	      showPaymentFrequencyAtTop: shouldShowOrderTermPaymentFrequencyAtTop(orderTermDefinition),
+	      responseItems: getAlternativeOrderTermResponseItems(renderedSessionData),
+	      errorSummary: buildErrorSummary(errors),
+	      routeGuard: true,
+	      routeGuardActive: true
+	    })
   }
 
   delete state.errors
@@ -11115,30 +11414,21 @@ router.get('/active-case/:id/order-term/add/creditor', (req, res) => {
     ? rawCreditor.replace('major-creditor-', '')
     : (state.selectedMajorCreditor || '')
 
-  return res.render('create-a-case/order-term-creditor', {
-    accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, id),
-    backHref: `/active-case/${id}/order-term/add/details`,
-    formAction: `/active-case/${id}/order-term/add/creditor`,
-    cancelHref: `/active-case/${id}/order-term/add/cancel`,
-    successMessage: consumeActiveCaseOrderTermAddSuccessMessage(req, id),
-    pendingMinorCreditor: state.pendingMinorCreditor || pendingOrderTerm.minorCreditorData || null,
-    pendingMinorCreditorCard: state.pendingMinorCreditor || pendingOrderTerm.minorCreditorData
-      ? {
-          title: getMinorCreditorName(state.pendingMinorCreditor || pendingOrderTerm.minorCreditorData, 0),
-          rows: getMinorCreditorSummaryRows(state.pendingMinorCreditor || pendingOrderTerm.minorCreditorData)
-        }
-      : null,
-    applicantItem: {
-      value: 'applicant',
-      text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
-      checked: selectedCreditor === 'applicant'
-    },
-    existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, id, selectedCreditor),
-    selectedCreditor,
-    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
-    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
-    selectionError: null
-  })
+  return res.render(
+    'create-a-case/order-term-creditor',
+    getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+      backHref: `/active-case/${id}/order-term/add/details`,
+      formAction: `/active-case/${id}/order-term/add/creditor`,
+      cancelHref: `/active-case/${id}/order-term/add/cancel`,
+      successMessage: consumeActiveCaseOrderTermAddSuccessMessage(req, id),
+      pendingMinorCreditor: state.pendingMinorCreditor || pendingOrderTerm.minorCreditorData || null,
+      addMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
+      removeMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/remove-minor-creditor`,
+      selectedCreditor,
+      majorCreditorCode,
+      applyCreditorToAll: pendingOrderTerm.applyCreditorToAll === true
+    })
+  )
 })
 
 router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
@@ -11158,6 +11448,8 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
 
   const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
   const pendingMinorCreditor = state.pendingMinorCreditor || null
+  const applyCreditorToAll = isChecked(req.body['apply-creditor-to-all-order-terms'])
+  pendingOrderTerm.applyCreditorToAll = applyCreditorToAll
 
   if (selectedCreditor === 'add-new-minor-creditor') {
     return redirectWithSessionSave(
@@ -11169,24 +11461,24 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
   }
 
   if (!selectedCreditor && !pendingMinorCreditor) {
-    return res.render('create-a-case/order-term-creditor', {
-      accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, id),
-      backHref: `/active-case/${id}/order-term/add/details`,
-      formAction: `/active-case/${id}/order-term/add/creditor`,
-      cancelHref: `/active-case/${id}/order-term/add/cancel`,
-      pendingMinorCreditor: null,
-      pendingMinorCreditorCard: null,
-      applicantItem: {
-        value: 'applicant',
-        text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
-        checked: false
-      },
-      existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, id, ''),
-      selectedCreditor: '',
-      majorCreditorItems: getMajorCreditorItems(''),
-      majorCreditorValue: '',
-      selectionError: 'Select a creditor.'
-    })
+    const errors = {
+      'alternative-order-term-creditor': buildFieldError('Select a creditor')
+    }
+
+    return res.render(
+      'create-a-case/order-term-creditor',
+      getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+        backHref: `/active-case/${id}/order-term/add/details`,
+        formAction: `/active-case/${id}/order-term/add/creditor`,
+        cancelHref: `/active-case/${id}/order-term/add/cancel`,
+        pendingMinorCreditor: null,
+        addMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
+        removeMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/remove-minor-creditor`,
+        selectedCreditor: '',
+        errors,
+        applyCreditorToAll
+      })
+    )
   }
 
   let finalCreditorValue = selectedCreditor
@@ -11199,6 +11491,29 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
     minorCreditorData = pendingMinorCreditor
   } else if (selectedCreditor === 'major-creditor') {
     const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
+
+    if (!hasValue(selectedMajorCode)) {
+      const errors = {
+        'alternative-major-creditor-code': buildFieldError('Select major creditor name')
+      }
+
+      return res.render(
+        'create-a-case/order-term-creditor',
+        getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+          backHref: `/active-case/${id}/order-term/add/details`,
+          formAction: `/active-case/${id}/order-term/add/creditor`,
+          cancelHref: `/active-case/${id}/order-term/add/cancel`,
+          pendingMinorCreditor: null,
+          addMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
+          removeMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/remove-minor-creditor`,
+          selectedCreditor,
+          majorCreditorCode: selectedMajorCode,
+          errors,
+          applyCreditorToAll
+        })
+      )
+    }
+
     finalCreditorValue = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
     creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
     state.selectedMajorCreditor = selectedMajorCode
@@ -11213,7 +11528,8 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
   state.pendingOrderTerm = {
     ...pendingOrderTerm,
     creditor: finalCreditorValue,
-    creditorLabel
+    creditorLabel,
+    applyCreditorToAll
   }
 
   if (minorCreditorData) {
@@ -11245,9 +11561,10 @@ router.get('/active-case/:id/order-term/add/creditor/add-minor-creditor', (req, 
   return res.render('create-a-case/minor-creditor-details', {
     creditor,
     countryItems: getCountrySelectItems(creditor.country || ''),
-    formAction: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
-    cancelHref: `/active-case/${id}/order-term/add/creditor`
-  })
+	    formAction: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
+	    cancelHref: `/active-case/${id}/order-term/add/creditor`,
+	    routeGuard: true
+	  })
 })
 
 router.post('/active-case/:id/order-term/add/creditor/add-minor-creditor', (req, res, next) => {
@@ -11259,7 +11576,22 @@ router.post('/active-case/:id/order-term/add/creditor/add-minor-creditor', (req,
   }
 
   const state = getActiveCaseOrderTermAddState(req, id)
-  state.pendingMinorCreditor = buildMinorCreditor(req.body)
+  const creditor = buildMinorCreditor(req.body)
+  const errors = validateMinorCreditor(req.body)
+
+  if (Object.keys(errors).length) {
+    return res.render('create-a-case/minor-creditor-details', {
+      creditor,
+      countryItems: getCountrySelectItems(creditor.country || ''),
+      formAction: `/active-case/${id}/order-term/add/creditor/add-minor-creditor`,
+      cancelHref: `/active-case/${id}/order-term/add/creditor`,
+      errors,
+      errorSummary: buildErrorSummary(errors),
+      routeGuard: true
+    })
+  }
+
+  state.pendingMinorCreditor = creditor
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/add/creditor`)
 })
@@ -11337,9 +11669,12 @@ router.get('/active-case/:id/order-term/add/review', (req, res) => {
       : `/active-case/${id}/order-term/add/details`,
     formAction: `/active-case/${id}/order-term/add/review`,
     cancelHref: `/active-case/${id}/order-term/add/cancel`,
-    primaryButtonText: 'Add order terms',
-    orderTermCard: getActiveCaseOrderTermAddReviewCard(orderTerm, activeCase, id)
-  })
+	    primaryButtonText: 'Submit',
+	    orderTermCard: getActiveCaseOrderTermAddReviewCard(orderTerm, activeCase, id),
+	    showApplyCreditorToAllInset: orderTerm.applyCreditorToAll === true,
+	    routeGuard: true,
+	    routeGuardActive: true
+	  })
 })
 
 router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
@@ -11367,6 +11702,7 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
     previousTerms: orderTerm.previousTerms || []
   }
 
+  applyCreditorToAllActiveOrderTerms(activeCase, completedOrderTerm)
   getActiveCaseOrders(activeCase).terms.push(completedOrderTerm)
   ensureActiveCaseMinorCreditorAccount(completedOrderTerm, activeCase, id)
   clearActiveCaseOrderTermAddState(req)
@@ -11376,6 +11712,12 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
 })
 
 router.get('/active-case/:id/order-term/add/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  clearActiveCaseOrderTermAddState(req)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.post('/active-case/:id/order-term/add/cancel', (req, res, next) => {
   const id = Number(req.params.id)
   clearActiveCaseOrderTermAddState(req)
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
@@ -11411,6 +11753,8 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  storeActiveCaseOrderTermSnapshot(req, id, termIndex, orderTerm)
+
   const orderTermDefinition = getResultDefinition(orderTerm.code, 'orders')
   const sessionData = {
     'alternative-order-term-code': orderTerm.code,
@@ -11424,7 +11768,7 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
     showBackLink: false,
     backHref: `/active-case/${id}?tab=orders`,
     formAction: `/active-case/${id}/order-term/${termIndex}/change`,
-    cancelHref: `/active-case/${id}?tab=orders`,
+    cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
     resultCode: orderTerm.code,
     resultTitle: orderTerm.title,
     resultCategory: orderTerm.categoryLabel,
@@ -11442,9 +11786,11 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
             showPaymentFrequencyAfterAmount: true
           }
         : {}
-    ),
-    errorSummary: null
-  })
+	    ),
+	    errorSummary: null,
+	    routeGuard: true,
+	    routeGuardActive: true
+	  })
 })
 
 router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
@@ -11483,7 +11829,7 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
       showBackLink: false,
       backHref: `/active-case/${id}?tab=orders`,
       formAction: `/active-case/${id}/order-term/${termIndex}/change`,
-      cancelHref: `/active-case/${id}?tab=orders`,
+      cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
       resultCode: orderTerm.code,
       resultTitle: orderTerm.title,
       resultCategory: orderTerm.categoryLabel,
@@ -11501,9 +11847,11 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
               showPaymentFrequencyAfterAmount: true
             }
           : {}
-      ),
-      errorSummary: buildErrorSummary(errors)
-    })
+	      ),
+	      errorSummary: buildErrorSummary(errors),
+	      routeGuard: true,
+	      routeGuardActive: true
+	    })
   }
 
   orderTerm.responses = values
@@ -11541,24 +11889,22 @@ router.get('/active-case/:id/order-term/:index/creditor', (req, res) => {
     ? selectedCreditor.replace('major-creditor-', '')
     : ''
 
-  return res.render('create-a-case/order-term-creditor', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
-    backHref: `/active-case/${id}/order-term/${termIndex}/change`,
-    formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
-    cancelHref: `/active-case/${id}?tab=orders`,
-    pendingMinorCreditor: null,
-    pendingMinorCreditorCard: null,
-    applicantItem: {
-      value: 'applicant',
-      text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
-      checked: selectedCreditor === 'applicant'
-    },
-    existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, id, selectedCreditor),
-    selectedCreditor: selectedCreditor.startsWith('major-creditor-') ? 'major-creditor' : selectedCreditor,
-    majorCreditorItems: getMajorCreditorItems(majorCreditorCode),
-    majorCreditorValue: getMajorCreditorLabel(majorCreditorCode) || '',
-    selectionError: null
-  })
+  return res.render(
+    'create-a-case/order-term-creditor',
+    getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+      backHref: `/active-case/${id}/order-term/${termIndex}/change`,
+      formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
+      cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+      pendingMinorCreditor: orderTerm.pendingMinorCreditor || (
+        selectedCreditor === 'new-minor-creditor' ? orderTerm.minorCreditorData : null
+      ),
+      addMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`,
+      removeMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/remove-minor-creditor`,
+      selectedCreditor,
+      majorCreditorCode,
+      applyCreditorToAll: orderTerm.applyCreditorToAll === true
+    })
+  )
 })
 
 router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
@@ -11572,32 +11918,73 @@ router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
   }
 
   const selectedCreditor = getSingleValue(req.body['alternative-order-term-creditor']) || ''
+  const applyCreditorToAll = isChecked(req.body['apply-creditor-to-all-order-terms'])
+  const pendingMinorCreditor = orderTerm.pendingMinorCreditor || null
 
-  if (!selectedCreditor || selectedCreditor === 'add-new-minor-creditor') {
-    return res.render('create-a-case/order-term-creditor', {
-      accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
-      backHref: `/active-case/${id}/order-term/${termIndex}/change`,
-      formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
-      cancelHref: `/active-case/${id}?tab=orders`,
-      pendingMinorCreditor: null,
-      pendingMinorCreditorCard: null,
-      applicantItem: {
-        value: 'applicant',
-        text: `${activeCase.applicantName || activeCase.applicant?.name} (Applicant)`,
-        checked: selectedCreditor === 'applicant'
-      },
-      existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(activeCase, id, selectedCreditor),
-      selectedCreditor,
-      majorCreditorItems: getMajorCreditorItems(''),
-      majorCreditorValue: '',
-      selectionError: 'Select a creditor.'
-    })
+  orderTerm.applyCreditorToAll = applyCreditorToAll
+
+  if (selectedCreditor === 'add-new-minor-creditor') {
+    return redirectWithSessionSave(
+      req,
+      res,
+      next,
+      `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`
+    )
   }
 
-  if (selectedCreditor === 'major-creditor') {
+  if (!selectedCreditor && !pendingMinorCreditor) {
+    const errors = {
+      'alternative-order-term-creditor': buildFieldError('Select a creditor')
+    }
+
+    return res.render(
+      'create-a-case/order-term-creditor',
+      getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+        backHref: `/active-case/${id}/order-term/${termIndex}/change`,
+        formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
+        cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+        pendingMinorCreditor: null,
+        addMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`,
+        removeMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/remove-minor-creditor`,
+        selectedCreditor: '',
+        errors,
+        applyCreditorToAll
+      })
+    )
+  }
+
+  if (selectedCreditor === 'new-minor-creditor' && pendingMinorCreditor) {
+    orderTerm.creditor = 'new-minor-creditor'
+    orderTerm.creditorLabel = getMinorCreditorName(pendingMinorCreditor, 0)
+    orderTerm.minorCreditorData = pendingMinorCreditor
+  } else if (selectedCreditor === 'major-creditor') {
     const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
+
+    if (!hasValue(selectedMajorCode)) {
+      const errors = {
+        'alternative-major-creditor-code': buildFieldError('Select major creditor name')
+      }
+
+      return res.render(
+        'create-a-case/order-term-creditor',
+        getActiveCaseOrderTermCreditorViewData(activeCase, id, {
+          backHref: `/active-case/${id}/order-term/${termIndex}/change`,
+          formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
+          cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+          pendingMinorCreditor: null,
+          addMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`,
+          removeMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/remove-minor-creditor`,
+          selectedCreditor,
+          majorCreditorCode: selectedMajorCode,
+          errors,
+          applyCreditorToAll
+        })
+      )
+    }
+
     orderTerm.creditor = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
     orderTerm.creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
+    delete orderTerm.minorCreditorData
   } else if (selectedCreditor === 'applicant') {
     orderTerm.creditor = 'applicant'
     orderTerm.creditorLabel = getActiveCaseOrderTermCreditorLabel(
@@ -11613,12 +12000,108 @@ router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
     delete orderTerm.minorCreditorData
   }
 
+  delete orderTerm.pendingMinorCreditor
+
   return redirectWithSessionSave(
     req,
     res,
     next,
     `/active-case/${id}/order-term/${termIndex}/review`
   )
+})
+
+router.get('/active-case/:id/order-term/:index/creditor/add-minor-creditor', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const creditor = orderTerm.pendingMinorCreditor || orderTerm.minorCreditorData || {}
+
+  return res.render('create-a-case/minor-creditor-details', {
+    creditor,
+	    countryItems: getCountrySelectItems(creditor.country || ''),
+	    formAction: `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`,
+	    cancelHref: `/active-case/${id}/order-term/${termIndex}/creditor`,
+	    routeGuard: true
+	  })
+})
+
+router.post('/active-case/:id/order-term/:index/creditor/add-minor-creditor', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const creditor = buildMinorCreditor(req.body)
+  const errors = validateMinorCreditor(req.body)
+
+  if (Object.keys(errors).length) {
+    return res.render('create-a-case/minor-creditor-details', {
+      creditor,
+      countryItems: getCountrySelectItems(creditor.country || ''),
+      formAction: `/active-case/${id}/order-term/${termIndex}/creditor/add-minor-creditor`,
+      cancelHref: `/active-case/${id}/order-term/${termIndex}/creditor`,
+      errors,
+      errorSummary: buildErrorSummary(errors),
+      routeGuard: true
+    })
+  }
+
+  orderTerm.pendingMinorCreditor = creditor
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/${termIndex}/creditor`)
+})
+
+router.get('/active-case/:id/order-term/:index/creditor/remove-minor-creditor', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+  const pendingMinorCreditor = orderTerm?.pendingMinorCreditor || orderTerm?.minorCreditorData || null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  if (!pendingMinorCreditor) {
+    return res.redirect(`/active-case/${id}/order-term/${termIndex}/creditor`)
+  }
+
+  return res.render('create-a-case/remove-minor-creditor', {
+    minorCreditorCard: {
+      title: getMinorCreditorName(pendingMinorCreditor, 0),
+      rows: getMinorCreditorSummaryRows(pendingMinorCreditor)
+    },
+    formAction: `/active-case/${id}/order-term/${termIndex}/creditor/remove-minor-creditor`,
+    cancelHref: `/active-case/${id}/order-term/${termIndex}/creditor`
+  })
+})
+
+router.post('/active-case/:id/order-term/:index/creditor/remove-minor-creditor', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (!activeCase || !orderTerm) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  delete orderTerm.pendingMinorCreditor
+  delete orderTerm.minorCreditorData
+  delete orderTerm.creditor
+  delete orderTerm.creditorLabel
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/${termIndex}/creditor`)
 })
 
 router.get('/active-case/:id/order-term/:index/review', (req, res) => {
@@ -11635,13 +12118,16 @@ router.get('/active-case/:id/order-term/:index/review', (req, res) => {
     accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
     backHref: `/active-case/${id}/order-term/${termIndex}/creditor`,
     formAction: `/active-case/${id}/order-term/${termIndex}/review`,
-    cancelHref: `/active-case/${id}?tab=orders`,
+    cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
     orderTermCard: {
       title: `${orderTerm.code} - ${orderTerm.title}`,
       rows: getActiveCaseOrderTermRows(orderTerm, activeCase, id),
       creditorDetailsRows: getOrderTermMinorCreditorDetailsRows(orderTerm, {}),
       changeHref: `/active-case/${id}/order-term/${termIndex}/change`
-    }
+    },
+    showApplyCreditorToAllInset: orderTerm.applyCreditorToAll === true,
+    routeGuard: true,
+    routeGuardActive: true
   })
 })
 
@@ -11654,7 +12140,37 @@ router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  applyCreditorToAllActiveOrderTerms(activeCase, orderTerm)
+  delete orderTerm.applyCreditorToAll
+  delete orderTerm.pendingMinorCreditor
+  clearActiveCaseOrderTermSnapshot(req, id, Number(req.params.index))
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order terms updated.')
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/order-term/:index/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (activeCase && orderTerm) {
+    restoreActiveCaseOrderTermSnapshot(req, activeCase, id, termIndex)
+  }
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.post('/active-case/:id/order-term/:index/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
+
+  if (activeCase && orderTerm) {
+    restoreActiveCaseOrderTermSnapshot(req, activeCase, id, termIndex)
+  }
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
@@ -11672,10 +12188,11 @@ router.get('/active-case/:id/interest-and-indexation', (req, res) => {
 
   return res.render('create-a-case/interest-and-indexation', {
     formAction: `/active-case/${id}/interest-and-indexation`,
-    cancelHref: `/active-case/${id}?tab=orders`,
-    primaryButtonText: 'Save changes',
-    indexationLegendText: 'Does any indexation apply?'
-  })
+	    cancelHref: `/active-case/${id}/interest-and-indexation/cancel`,
+	    primaryButtonText: 'Save changes',
+	    indexationLegendText: 'Does any indexation apply?',
+	    routeGuard: true
+	  })
 })
 
 router.post('/active-case/:id/interest-and-indexation', (req, res, next) => {
@@ -11686,12 +12203,38 @@ router.post('/active-case/:id/interest-and-indexation', (req, res, next) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const errors = validateInterestAndIndexation(req.body)
+
+  if (Object.keys(errors).length) {
+    Object.assign(res.locals.data, req.body)
+
+    return res.render('create-a-case/interest-and-indexation', {
+      formAction: `/active-case/${id}/interest-and-indexation`,
+      cancelHref: `/active-case/${id}/interest-and-indexation/cancel`,
+      primaryButtonText: 'Save changes',
+	      indexationLegendText: 'Does any indexation apply?',
+	      errors,
+	      errorSummary: buildErrorSummary(errors),
+	      routeGuard: true
+	    })
+  }
+
   getActiveCaseOrders(activeCase).interestAndIndexation = {
     'interest-applies': getSingleValue(req.body['interest-applies']) || '',
     'indexation-type': getSingleValue(req.body['indexation-type']) || ''
   }
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Interest and indexation updated.')
 
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/interest-and-indexation/cancel', (req, res) => {
+  const id = Number(req.params.id)
+  return res.redirect(`/active-case/${id}?tab=orders`)
+})
+
+router.post('/active-case/:id/interest-and-indexation/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
 
@@ -11708,10 +12251,11 @@ router.get('/active-case/:id/managing-payments', (req, res) => {
 
   return res.render('create-a-case/managing-payments', {
     formAction: `/active-case/${id}/managing-payments`,
-    cancelHref: `/active-case/${id}?tab=orders`,
-    primaryButtonText: 'Save changes',
-    paymentLegendText: 'Payment arrangement'
-  })
+	    cancelHref: `/active-case/${id}/managing-payments/cancel`,
+	    primaryButtonText: 'Save changes',
+	    paymentLegendText: 'Payment arrangement',
+	    routeGuard: true
+	  })
 })
 
 router.post('/active-case/:id/managing-payments', (req, res, next) => {
@@ -11722,11 +12266,37 @@ router.post('/active-case/:id/managing-payments', (req, res, next) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const errors = validateManagingPayments(req.body)
+
+  if (Object.keys(errors).length) {
+    Object.assign(res.locals.data, req.body)
+
+    return res.render('create-a-case/managing-payments', {
+      formAction: `/active-case/${id}/managing-payments`,
+      cancelHref: `/active-case/${id}/managing-payments/cancel`,
+      primaryButtonText: 'Save changes',
+	      paymentLegendText: 'Payment arrangement',
+	      errors,
+	      errorSummary: buildErrorSummary(errors),
+	      routeGuard: true
+	    })
+  }
+
   getActiveCaseOrders(activeCase).managingPayments = {
     'order-managing-payments': getSingleValue(req.body['order-managing-payments']) || ''
   }
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Managing payments updated.')
 
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+router.get('/active-case/:id/managing-payments/cancel', (req, res) => {
+  const id = Number(req.params.id)
+  return res.redirect(`/active-case/${id}?tab=orders`)
+})
+
+router.post('/active-case/:id/managing-payments/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
 

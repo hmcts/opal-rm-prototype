@@ -36,7 +36,7 @@
         }) }}
       {% endif %}
 
-      <form method="post" action="{{ formAction or '/create-a-case/order-term-details' }}">
+      <form method="post" action="{{ formAction or '/create-a-case/order-term-details' }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         {% if paymentFrequencyLabel and showPaymentFrequencyAtTop !== false %}
           <h2 class="govuk-heading-m">Payments</h2>
 
