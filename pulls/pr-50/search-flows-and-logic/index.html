@@ -1,0 +1,1031 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Beginner-friendly setup and working guide for the Opal RM prototype">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Search flows and logic - Opal RM Prototype Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#search-flows-and-logic" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Opal RM Prototype Docs" class="md-header__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Opal RM Prototype Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Search flows and logic
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Opal RM Prototype Docs" class="md-nav__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Opal RM Prototype Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../windows-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../macbook-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git-and-github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git and GitHub Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-codex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Codex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github-pages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Pages Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screen Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simple-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Search
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simple Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#visible-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visible criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-server-side-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported server-side criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simple-search-matching-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple search matching rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Search
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#respondent-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Respondent fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#applicant-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Applicant fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minor-creditor-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minor creditor fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#major-creditor-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Major creditor field
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#normalisation-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normalisation Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-and-exception-screens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error And Exception Screens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prototype-data-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prototype Data Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="search-flows-and-logic">Search flows and logic<a class="headerlink" href="#search-flows-and-logic" title="Permanent link">&para;</a></h1>
+<p>This page documents the Search journey in the prototype for functional specification work. It covers the user flows, search criteria, matching rules, result handling, and prototype-specific notes for simple search and advanced search.</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<p>The Search journey lets a user find cases and accounts, then open the relevant respondent, applicant, minor creditor, or major creditor account.</p>
+<p>Search is available from <code>/search</code> and is shown as the active Search item in the service navigation.</p>
+<p>The current prototype uses in-memory prototype data. It does not call a backend, database, or external search service.</p>
+<h2 id="screen-flow">Screen Flow<a class="headerlink" href="#screen-flow" title="Permanent link">&para;</a></h2>
+<pre><code class="language-mermaid">flowchart TD
+  A[&quot;Search page&quot;] --&gt; B[&quot;User enters simple search criteria&quot;]
+  A --&gt; C[&quot;User opens advanced search and enters advanced criteria&quot;]
+  B --&gt; D[&quot;Submit search&quot;]
+  C --&gt; D
+  D --&gt; E{&quot;Simple and advanced criteria both entered?&quot;}
+  E --&gt;|Yes| F[&quot;Conflicting criteria screen&quot;]
+  E --&gt;|No| G{&quot;No searchable criteria entered?&quot;}
+  G --&gt;|Yes| A
+  G --&gt;|No| H{&quot;Major creditor only?&quot;}
+  H --&gt;|Yes| I{&quot;Major creditor account found?&quot;}
+  I --&gt;|Yes| J[&quot;Major creditor account page&quot;]
+  I --&gt;|No| K[&quot;No results screen&quot;]
+  H --&gt;|No| L[&quot;Run case and account search&quot;]
+  L --&gt; M{&quot;Number of matches&quot;}
+  M --&gt;|0| K
+  M --&gt;|More than 100| N[&quot;Too many results screen&quot;]
+  M --&gt;|1 to 100| O[&quot;Search results page&quot;]
+  O --&gt; P[&quot;Open respondent, applicant, or minor creditor account&quot;]
+</code></pre>
+<h2 id="search-page">Search Page<a class="headerlink" href="#search-page" title="Permanent link">&para;</a></h2>
+<p>The main search page is titled "Search for cases and accounts".</p>
+<p>Simple search is shown first. Advanced search is hidden in a GOV.UK details component labelled "or use advanced search". Advanced search uses tabs for:</p>
+<ul>
+<li>Respondents</li>
+<li>Applicants</li>
+<li>Minor creditors</li>
+<li>Major creditors</li>
+</ul>
+<p>There is also an "Active accounts only" checkbox in the advanced search section. It is checked by default in the interface.</p>
+<h2 id="simple-search">Simple Search<a class="headerlink" href="#simple-search" title="Permanent link">&para;</a></h2>
+<h3 id="visible-criteria">Visible criteria<a class="headerlink" href="#visible-criteria" title="Permanent link">&para;</a></h3>
+<p>The visible simple search field is:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Account number</td>
+<td>Find a case by respondent, applicant, minor creditor, or major creditor account number.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="supported-server-side-criteria">Supported server-side criteria<a class="headerlink" href="#supported-server-side-criteria" title="Permanent link">&para;</a></h3>
+<p>The route also supports a <code>reference-number</code> field, although that field is not currently visible on the search page template. The conflict screen describes this as "a reference or case number".</p>
+<p>If the reference number field is posted, it searches against:</p>
+<ul>
+<li>REMO reference</li>
+<li>case reference</li>
+</ul>
+<h3 id="simple-search-matching-rules">Simple search matching rules<a class="headerlink" href="#simple-search-matching-rules" title="Permanent link">&para;</a></h3>
+<p>Account number search:</p>
+<ul>
+<li>must match an account number exactly after normalising spaces and hyphens</li>
+<li>checks respondent account numbers, applicant account numbers, minor creditor account numbers, and major creditor account numbers</li>
+<li>uses account prefixes generated by the prototype:</li>
+<li><code>RP</code> for respondent accounts</li>
+<li><code>AP</code> for applicant accounts</li>
+<li><code>MC</code> for minor creditor accounts</li>
+<li><code>MA</code> for major creditor accounts</li>
+</ul>
+<p>Reference number search:</p>
+<ul>
+<li>matches against the REMO reference or case reference</li>
+<li>is case-insensitive</li>
+<li>ignores spaces and hyphens</li>
+<li>supports partial matching</li>
+</ul>
+<h2 id="advanced-search">Advanced Search<a class="headerlink" href="#advanced-search" title="Permanent link">&para;</a></h2>
+<p>Advanced search lets the user search using respondent, applicant, minor creditor, or major creditor details.</p>
+<h3 id="respondent-fields">Respondent fields<a class="headerlink" href="#respondent-fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Matching rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Last name</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>First names</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>Date of birth</td>
+<td>Exact date match after normalisation</td>
+</tr>
+<tr>
+<td>Postal or zip code</td>
+<td>Partial compact match, ignoring spaces and hyphens</td>
+</tr>
+</tbody>
+</table>
+<h3 id="applicant-fields">Applicant fields<a class="headerlink" href="#applicant-fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Matching rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Last name</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>First names</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>Date of birth</td>
+<td>Exact date match after normalisation</td>
+</tr>
+<tr>
+<td>Postal or zip code</td>
+<td>Partial compact match, ignoring spaces and hyphens</td>
+</tr>
+</tbody>
+</table>
+<h3 id="minor-creditor-fields">Minor creditor fields<a class="headerlink" href="#minor-creditor-fields" title="Permanent link">&para;</a></h3>
+<p>The minor creditor tab has a radio choice for "Individual" or "Company".</p>
+<p>Individual fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Matching rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Last name</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>First names</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>Postal or zip code</td>
+<td>Partial compact match, ignoring spaces and hyphens</td>
+</tr>
+</tbody>
+</table>
+<p>Company fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Matching rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Company name</td>
+<td>Case-insensitive partial match</td>
+</tr>
+<tr>
+<td>Postal or zip code</td>
+<td>Partial compact match, ignoring spaces and hyphens</td>
+</tr>
+</tbody>
+</table>
+<p>For a minor creditor search, the case must have at least one minor creditor that matches all the minor creditor criteria entered.</p>
+<h3 id="major-creditor-field">Major creditor field<a class="headerlink" href="#major-creditor-field" title="Permanent link">&para;</a></h3>
+<p>The major creditor tab uses an autocomplete control with central authority options, for example "Central Authority - Australia".</p>
+<p>If a major creditor is the only advanced search criterion:</p>
+<ul>
+<li>the prototype looks for a major creditor account with that major creditor code</li>
+<li>if found, the user is taken directly to the major creditor account page</li>
+<li>if not found, the user is taken to the no results screen</li>
+</ul>
+<p>If a major creditor is combined with other advanced search criteria:</p>
+<ul>
+<li>it acts as another filter</li>
+<li>the case must match the other advanced criteria and have a major creditor account with the selected major creditor code</li>
+</ul>
+<h2 id="combining-criteria">Combining Criteria<a class="headerlink" href="#combining-criteria" title="Permanent link">&para;</a></h2>
+<p>The user must search using either simple search criteria or advanced search criteria, not both.</p>
+<p>If the user enters both:</p>
+<ul>
+<li>an account number or reference number, and</li>
+<li>any respondent, applicant, minor creditor, or major creditor field</li>
+</ul>
+<p>they are shown the conflicting criteria screen.</p>
+<p>Within advanced search, criteria are combined using "and" logic:</p>
+<ul>
+<li>if respondent fields are entered, all entered respondent fields must match</li>
+<li>if applicant fields are entered, all entered applicant fields must match</li>
+<li>if minor creditor fields are entered, one minor creditor on the case must match all entered minor creditor fields</li>
+<li>if a major creditor is selected with other criteria, the case must also have that major creditor</li>
+<li>if "Active accounts only" is selected, the case status must be <code>Active</code></li>
+</ul>
+<p>The active accounts checkbox does not count as a searchable criterion on its own. If it is the only selected option and no search fields are entered, the user is returned to the search page.</p>
+<h2 id="normalisation-rules">Normalisation Rules<a class="headerlink" href="#normalisation-rules" title="Permanent link">&para;</a></h2>
+<p>Before matching, the prototype normalises some values:</p>
+<table>
+<thead>
+<tr>
+<th>Value type</th>
+<th>Normalisation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>General text</td>
+<td>Trimmed and converted to lowercase</td>
+</tr>
+<tr>
+<td>Compact text, such as account numbers and postcodes</td>
+<td>Trimmed, lowercased, and spaces and hyphens removed</td>
+</tr>
+<tr>
+<td>Dates</td>
+<td>Normalised to <code>DD/MM/YYYY</code> where possible</td>
+</tr>
+</tbody>
+</table>
+<p>Accepted date formats include:</p>
+<ul>
+<li><code>YYYY-MM-DD</code></li>
+<li><code>D/M/YYYY</code> or <code>DD/MM/YYYY</code></li>
+<li>written dates such as <code>15 March 1975</code></li>
+</ul>
+<p>Dates must match exactly after normalisation.</p>
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p>If the search returns no matches, the user is shown the no results screen.</p>
+<p>If the search returns more than 100 matches, the user is shown the too many results screen and asked to narrow the search.</p>
+<p>If the search returns between 1 and 100 matches:</p>
+<ul>
+<li>the matching rows are stored in session data</li>
+<li>the user is redirected to the search results page</li>
+<li>the results table shows:</li>
+<li>respondent account</li>
+<li>applicant account</li>
+<li>minor creditor accounts</li>
+<li>status</li>
+<li>arrears</li>
+<li>respondent, applicant, and minor creditor account numbers are links to their account pages</li>
+<li>if there are more than 25 results, MOJ pagination is shown</li>
+<li>each results page shows 25 results</li>
+</ul>
+<h2 id="error-and-exception-screens">Error And Exception Screens<a class="headerlink" href="#error-and-exception-screens" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Destination</th>
+<th>User-facing message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple and advanced criteria are both entered</td>
+<td><code>/search/conflicting-criteria</code></td>
+<td>"You cannot search using a quick search field and advanced search fields at the same time"</td>
+</tr>
+<tr>
+<td>No matching results</td>
+<td><code>/search/no-results</code></td>
+<td>"There are no matching results."</td>
+</tr>
+<tr>
+<td>More than 100 matching results</td>
+<td><code>/search/too-many-results</code></td>
+<td>"There are more than 100 results. Narrow your search to see fewer results."</td>
+</tr>
+<tr>
+<td>No criteria entered</td>
+<td><code>/search</code></td>
+<td>The user is returned to the search page.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="prototype-data-notes">Prototype Data Notes<a class="headerlink" href="#prototype-data-notes" title="Permanent link">&para;</a></h2>
+<p>Search runs against the compact <code>searchData</code> list in <code>app/routes.js</code>. That data is also used to populate respondent and creditor account records for the account pages.</p>
+<p>The current prototype data includes:</p>
+<ul>
+<li>respondent accounts</li>
+<li>applicant accounts</li>
+<li>minor creditor accounts</li>
+<li>one major creditor account for <code>Central Authority - Australia</code></li>
+</ul>
+<p>The minor creditor company search path exists in the route logic, but the current compact search data contains individual minor creditor records rather than company minor creditor records. Unless company minor creditor data is added, company searches are likely to return no results.</p>
+<p>The route reads address line 1 fields for respondent, applicant, and minor creditor searches, but those address line 1 fields are not currently displayed on the search page. The visible address-related fields are postal or zip code fields.</p>
+<h2 id="implementation-references">Implementation References<a class="headerlink" href="#implementation-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Search page template: <code>app/views/search/index.html</code></li>
+<li>Search results template: <code>app/views/search/results.html</code></li>
+<li>Search exception templates: <code>app/views/search/conflicting-criteria.html</code>, <code>app/views/search/no-results.html</code>, <code>app/views/search/too-many-results.html</code></li>
+<li>Search route and matching logic: <code>app/routes.js</code>, search section from <code>// -- Search</code></li>
+<li>Major creditor autocomplete options: <code>majorCreditorOptions</code> in <code>app/routes.js</code></li>
+<li>Major creditor prototype account data: <code>majorCreditorAccounts</code> in <code>app/routes.js</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
