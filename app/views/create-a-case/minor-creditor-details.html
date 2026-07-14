@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 
@@ -12,6 +13,7 @@
 {% block content %}
   {% set backHref = backHref or "javascript:window.history.back()" %}
   {% set submitButtonText = submitButtonText or "Save details" %}
+  {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
@@ -24,6 +26,13 @@
       {% endif %}
 
       <h1 class="govuk-heading-l" id="minor-creditor-details-section">Minor creditor details</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
 
       {% set individualHtml %}
         {{ govukInput({
@@ -48,6 +57,7 @@
             text: "Include their middle names"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-first-names"],
           value: creditor.firstNames
         }) }}
 
@@ -59,6 +69,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-last-name"],
           value: creditor.lastName
         }) }}
       {% endset %}
@@ -72,6 +83,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-organisation-name"],
           value: creditor.organisationName
         }) }}
       {% endset %}
@@ -87,6 +99,7 @@
           classes: "govuk-!-width-two-thirds",
           autocomplete: "name",
           spellcheck: false,
+          errorMessage: formErrors["minor-creditor-uk-name-on-account"],
           value: creditor.ukNameOnAccount
         }) }}
 
@@ -103,6 +116,7 @@
           classes: "govuk-input--width-5 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
           spellcheck: false,
+          errorMessage: formErrors["minor-creditor-uk-sort-code"],
           value: creditor.ukSortCode
         }) }}
 
@@ -119,6 +133,7 @@
           classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
           inputmode: "numeric",
           spellcheck: false,
+          errorMessage: formErrors["minor-creditor-uk-account-number"],
           value: creditor.ukAccountNumber
         }) }}
 
@@ -130,6 +145,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-uk-payment-reference"],
           value: creditor.ukPaymentReference
         }) }}
       {% endset %}
@@ -143,6 +159,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-non-uk-name-on-account"],
           value: creditor.nonUkNameOnAccount
         }) }}
 
@@ -158,6 +175,7 @@
           },
           classes: "govuk-input--width-10 govuk-input--extra-letter-spacing",
           spellcheck: false,
+          errorMessage: formErrors["minor-creditor-non-uk-bic-or-swift-code"],
           value: creditor.nonUkBicOrSwiftCode
         }) }}
 
@@ -170,6 +188,7 @@
           },
           classes: "govuk-input--extra-letter-spacing",
           spellcheck: false,
+          errorMessage: formErrors["minor-creditor-non-uk-iban"],
           value: creditor.nonUkIban
         }) }}
 
@@ -181,6 +200,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-non-uk-payment-reference"],
           value: creditor.nonUkPaymentReference
         }) }}
 
@@ -195,6 +215,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-non-uk-bank-name"],
           value: creditor.nonUkBankName
         }) }}
 
@@ -206,6 +227,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-non-uk-branch-office-or-sort-code"],
           value: creditor.nonUkBranchOfficeOrSortCode
         }) }}
 
@@ -217,11 +239,12 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-non-uk-account-number"],
           value: creditor.nonUkAccountNumber
         }) }}
       {% endset %}
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         {{ govukRadios({
           idPrefix: "minor-creditor-type",
           name: "minor-creditor-type",
@@ -231,6 +254,7 @@
               classes: "govuk-fieldset__legend--s"
             }
           },
+          errorMessage: formErrors["minor-creditor-type"],
           items: [
             {
               value: "individual",
@@ -263,6 +287,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-address-line-1"],
           value: creditor.addressLine1
         }) }}
 
@@ -274,6 +299,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-address-line-2"],
           value: creditor.addressLine2
         }) }}
 
@@ -285,6 +311,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-address-line-3"],
           value: creditor.addressLine3
         }) }}
 
@@ -296,6 +323,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-address-line-4"],
           value: creditor.addressLine4
         }) }}
 
@@ -307,6 +335,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-!-width-two-thirds",
+          errorMessage: formErrors["minor-creditor-address-line-5"],
           value: creditor.addressLine5
         }) }}
 
@@ -318,6 +347,7 @@
             classes: "govuk-label--s"
           },
           classes: "govuk-input--width-10",
+          errorMessage: formErrors["minor-creditor-postcode"],
           value: creditor.postcode
         }) }}
 
@@ -334,6 +364,7 @@
               classes: "govuk-visually-hidden"
             }
           },
+          errorMessage: formErrors["minor-creditor-bank-account-type"],
           items: [
             {
               value: "uk-bank-account",

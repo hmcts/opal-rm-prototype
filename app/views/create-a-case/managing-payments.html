@@ -1,6 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 
 {% block pageTitle %}
@@ -8,11 +9,19 @@
 {% endblock %}
 
 {% block content %}
+  {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Managing payments</h1>
 
-      <form method="post" action="{{ formAction or '/create-a-case/managing-payments' }}">
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      <form method="post" action="{{ formAction or '/create-a-case/managing-payments' }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         {{ govukRadios({
           idPrefix: "order-managing-payments",
           name: "order-managing-payments",
@@ -22,6 +31,7 @@
               classes: "govuk-fieldset__legend--s"
             }
           },
+          errorMessage: formErrors["order-managing-payments"],
           items: [
             {
               value: "payments-via-court",

@@ -3,6 +3,7 @@
 {% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
@@ -13,6 +14,16 @@
 {% endblock %}
 
 {% block content %}
+  {% set formErrors = errors or {} %}
+  {% set displayedErrorSummary = errorSummary %}
+  {% if not displayedErrorSummary and selectionError %}
+    {% set displayedErrorSummary = [
+      {
+        text: selectionError,
+        href: "#alternative-order-term-creditor"
+      }
+    ] %}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {% if showBackLink !== false %}
@@ -30,22 +41,17 @@
         }) }}
       {% endif %}
 
-      {% if selectionError %}
+      {% if displayedErrorSummary %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
-          errorList: [
-            {
-              text: selectionError,
-              href: "#alternative-order-term-creditor"
-            }
-          ]
+          errorList: displayedErrorSummary
         }) }}
       {% endif %}
 
       <span class="govuk-caption-l">{{ accountContextLabel or "Order terms" }}</span>
       <h1 class="govuk-heading-l">Creditor</h1>
 
-      <form method="post" action="{{ formAction or '/create-a-case/order-term-creditor' }}">
+      <form method="post" action="{{ formAction or '/create-a-case/order-term-creditor' }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
 
         {% if pendingMinorCreditor %}
 
@@ -83,6 +89,7 @@
                 classes: "govuk-label--s"
               },
               value: majorCreditorValue,
+              errorMessage: formErrors["alternative-major-creditor-code"],
               items: majorCreditorItems
             }) }}
           {% endset %}
@@ -90,6 +97,8 @@
           {% set selectionErrorMessage = undefined %}
           {% if selectionError %}
             {% set selectionErrorMessage = { text: selectionError } %}
+          {% elif formErrors["alternative-order-term-creditor"] %}
+            {% set selectionErrorMessage = formErrors["alternative-order-term-creditor"] %}
           {% endif %}
 
           {% set trailingItems = [
@@ -117,6 +126,18 @@
           }) }}
 
         {% endif %}
+
+        {{ govukCheckboxes({
+          idPrefix: "apply-creditor-to-all-order-terms",
+          name: "apply-creditor-to-all-order-terms",
+          items: [
+            {
+              value: "yes",
+              text: "Use this creditor for all order terms",
+              checked: applyCreditorToAll
+            }
+          ]
+        }) }}
 
         <div class="govuk-button-group">
           {{ govukButton({

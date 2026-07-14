@@ -116,4 +116,68 @@ window.GOVUKPrototypeKit.documentReady(() => {
     $details.addEventListener('toggle', updateSummaryText)
     updateSummaryText()
   })
+
+  document.querySelectorAll('[data-module="rm-route-guard"]').forEach(function ($form) {
+    var isSubmitting = false
+    var isLeavingAfterConfirmation = false
+    var isDirty = $form.getAttribute('data-route-guard-active') === 'true'
+    var leaveMessage = 'Are you sure you want to leave this page? Any changes will be lost.'
+
+    function getFormSnapshot () {
+      return Array.prototype.slice.call($form.elements)
+        .filter(function ($field) {
+          return $field.name && !$field.disabled && $field.type !== 'hidden'
+        })
+        .map(function ($field) {
+          if ($field.type === 'checkbox' || $field.type === 'radio') {
+            return $field.name + ':' + $field.value + ':' + $field.checked
+          }
+
+          return $field.name + ':' + $field.value
+        })
+        .join('|')
+    }
+
+    var initialSnapshot = getFormSnapshot()
+
+    function updateDirtyState () {
+      isDirty = $form.getAttribute('data-route-guard-active') === 'true' ||
+        getFormSnapshot() !== initialSnapshot
+    }
+
+    $form.addEventListener('input', updateDirtyState)
+    $form.addEventListener('change', updateDirtyState)
+    $form.addEventListener('submit', function () {
+      isSubmitting = true
+    })
+
+    $form.querySelectorAll('a[href]').forEach(function ($link) {
+      $link.addEventListener('click', function (event) {
+        updateDirtyState()
+
+        if (!isDirty) {
+          return
+        }
+
+        if (!window.confirm(leaveMessage)) {
+          event.preventDefault()
+          return
+        }
+
+        isLeavingAfterConfirmation = true
+      })
+    })
+
+    window.addEventListener('beforeunload', function (event) {
+      updateDirtyState()
+
+      if (!isDirty || isSubmitting || isLeavingAfterConfirmation) {
+        return undefined
+      }
+
+      event.preventDefault()
+      event.returnValue = leaveMessage
+      return leaveMessage
+    })
+  })
 })

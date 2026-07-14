@@ -45,7 +45,7 @@
         } %}
       {% endif %}
 
-      <form method="post" action="{{ formAction or '/create-a-case/select-order-term' }}">
+      <form method="post" action="{{ formAction or '/create-a-case/select-order-term' }}"{% if routeGuard %} data-module="rm-route-guard"{% if routeGuardActive %} data-route-guard-active="true"{% endif %}{% endif %}>
         {{ xGovukAutocomplete({
           id: "alternative-order-term-code",
           name: "alternative-order-term-code",
