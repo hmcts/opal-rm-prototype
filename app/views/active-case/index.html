@@ -79,7 +79,7 @@
           { text: "At a glance", href: "/active-case/" + caseId, active: tab === 'at-a-glance' },
           { text: "Respondent", href: "/active-case/" + caseId + "?tab=respondent", active: tab === 'respondent' },
           { text: "Authority", href: "/active-case/" + caseId + "?tab=authority", active: tab === 'authority' },
-          { text: "Applications", href: "#" },
+          { text: "Hearings", href: "/active-case/" + caseId + "?tab=hearings", active: tab === 'hearings' },
           { text: "Orders", href: "/active-case/" + caseId + "?tab=orders", active: tab === 'orders' },
           { text: "Enforcement", href: "#" },
           { text: "History and notes", href: "/active-case/" + caseId + "?tab=history-and-notes", active: tab === 'history-and-notes' }
@@ -239,6 +239,10 @@
       {% elif tab === 'orders' %}
 
         {% include "active-case/_orders.html" %}
+
+      {% elif tab === 'hearings' %}
+
+        {% include "active-case/_hearings.html" %}
 
       {% else %}
 

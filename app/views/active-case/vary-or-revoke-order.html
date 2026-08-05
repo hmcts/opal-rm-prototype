@@ -1,0 +1,152 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  Application to vary or revoke an order - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set formErrors = errors or {} %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: backHref }) }}
+
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Application to vary or revoke an order</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary
+        }) }}
+      {% endif %}
+
+      <form method="post" action="{{ formAction }}">
+        <h2 class="govuk-heading-m">Application details</h2>
+
+        {{ govukRadios({
+          idPrefix: "vary-order-applying-party",
+          name: "vary-order-applying-party",
+          fieldset: {
+            legend: {
+              text: "Who is applying for the variation?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: applyingPartyItems,
+          errorMessage: formErrors["vary-order-applying-party"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-application-date",
+          name: "vary-order-application-date",
+          label: { text: "Date of application", classes: "govuk-label--s" },
+          value: formValues["vary-order-application-date"],
+          errorMessage: formErrors["vary-order-application-date"]
+        }) }}
+
+        {{ govukCharacterCount({
+          name: "vary-order-application-reason",
+          id: "vary-order-application-reason",
+          maxlength: 1000,
+          label: { text: "Reason for the application", classes: "govuk-label--s" },
+          rows: 5,
+          value: formValues["vary-order-application-reason"],
+          errorMessage: formErrors["vary-order-application-reason"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        <h2 class="govuk-heading-m">Hearing details</h2>
+
+        {{ govukInput({
+          id: "vary-order-hearing-court",
+          name: "vary-order-hearing-court",
+          label: { text: "Court", classes: "govuk-label--s" },
+          value: formValues["vary-order-hearing-court"],
+          errorMessage: formErrors["vary-order-hearing-court"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-hearing-date",
+          name: "vary-order-hearing-date",
+          label: { text: "Hearing date", classes: "govuk-label--s" },
+          value: formValues["vary-order-hearing-date"],
+          errorMessage: formErrors["vary-order-hearing-date"]
+        }) }}
+
+        <div
+          data-module="rm-hearing-date-check"
+          data-date-input-id="vary-order-hearing-date"
+          aria-live="polite"
+          {% if not hearingDateInPast %}hidden{% endif %}>
+          {{ govukInsetText({
+            classes: "rm-hearing-date-inset govuk-!-margin-top-0",
+            html: '<p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Hearing date in the past</p><p class="govuk-body govuk-!-margin-bottom-0">You can continue with this date or change it</p>'
+          }) }}
+        </div>
+
+        {{ govukCharacterCount({
+          name: "vary-order-hearing-grounds",
+          id: "vary-order-hearing-grounds",
+          maxlength: 1000,
+          label: { text: "Grounds for hearing", classes: "govuk-label--s" },
+          rows: 5,
+          value: formValues["vary-order-hearing-grounds"],
+          errorMessage: formErrors["vary-order-hearing-grounds"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        <h2 class="govuk-heading-m">Current order terms</h2>
+
+        {{ govukCharacterCount({
+          name: "vary-order-current-terms",
+          id: "vary-order-current-terms",
+          maxlength: 1400,
+          label: { text: "Current terms", classes: "govuk-label--s" },
+          rows: 5,
+          value: formValues["vary-order-current-terms"],
+          errorMessage: formErrors["vary-order-current-terms"]
+        }) }}
+
+        {{ govukInput({
+          id: "vary-order-order-court",
+          name: "vary-order-order-court",
+          label: { text: "Court that made the order", classes: "govuk-label--s" },
+          value: formValues["vary-order-order-court"],
+          errorMessage: formErrors["vary-order-order-court"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-order-date",
+          name: "vary-order-order-date",
+          label: { text: "Date the order was made", classes: "govuk-label--s" },
+          value: formValues["vary-order-order-date"],
+          errorMessage: formErrors["vary-order-order-date"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-last-varied-date",
+          name: "vary-order-last-varied-date",
+          label: { text: "Date the order was last varied (optional)", classes: "govuk-label--s" },
+          value: formValues["vary-order-last-varied-date"],
+          errorMessage: formErrors["vary-order-last-varied-date"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Continue" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

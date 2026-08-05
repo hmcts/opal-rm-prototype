@@ -875,7 +875,7 @@ function buildCreateDataScenarios() {
       sessionData: {
         ...buildBaseSessionData(),
         'resulting-search-mode': 'record-number',
-        'resulting-selected-record-id': '26000022U',
+        'resulting-selected-record-id': '26000022G',
         'case-type': 'remo-in',
         'applicant-type': 'individual',
         'applicant-title': 'Ms',
@@ -2309,7 +2309,7 @@ function getResultingRecordSearchMatches(sessionData) {
   const matches = [
     {
       id: 'record-1',
-      accountNumber: sessionData['resulting-record-number'] || '26000022U',
+      accountNumber: sessionData['resulting-record-number'] || '26000022G',
       respondentName: respondentName || 'Mr Marek Kowalski',
       applicantName: applicantName || 'Ms Ewa Kowalska',
       balance: 0,
@@ -2320,9 +2320,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: sessionData['hearing-start-time'] || '10:00',
       courtVenue: sharedVenue,
       courtroom: sessionData['hearing-courtroom-number'] || '2',
-      respondentAccountNumber: '26000025T',
+      respondentAccountNumber: '26000025S',
       respondentAddressLines: ['24 High Street', 'Twyford', 'Berkshire', 'RG10 9RT'],
-      applicantAccountNumber: '26000026A',
+      applicantAccountNumber: '26000026W',
       applicantAddressLines: ['84 REDA', 'GDANSKA', 'POLAND'],
       totalArrears: 25,
       orderedToPay: 25,
@@ -2331,7 +2331,7 @@ function getResultingRecordSearchMatches(sessionData) {
     },
     {
       id: 'record-2',
-      accountNumber: '26000023Q',
+      accountNumber: '26000023K',
       respondentName: 'Mr Matej Novotny',
       applicantName: 'Ms Katarina Horvath',
       balance: 120,
@@ -2341,9 +2341,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: '11:00',
       courtVenue: 'Bury St Edmunds Magistrates Court',
       courtroom: '4',
-      respondentAccountNumber: '26000027B',
+      respondentAccountNumber: '26000027D',
       respondentAddressLines: ['99 High Street', 'Bury St Edmunds', 'IP33 1AA'],
-      applicantAccountNumber: '26000028C',
+      applicantAccountNumber: '26000028H',
       applicantAddressLines: ['14 Market Street', 'Reading', 'RG1 1AA'],
       totalArrears: 120,
       orderedToPay: 25,
@@ -2352,7 +2352,7 @@ function getResultingRecordSearchMatches(sessionData) {
     },
     {
       id: 'record-3',
-      accountNumber: '26000024M',
+      accountNumber: '26000024O',
       respondentName: 'Mr Nikolai Dimitrov',
       applicantName: 'Ms Irina Petrova',
       balance: 47.32,
@@ -2362,9 +2362,9 @@ function getResultingRecordSearchMatches(sessionData) {
       hearingTime: '14:00',
       courtVenue: 'Bury St Edmunds Magistrates Court',
       courtroom: '1',
-      respondentAccountNumber: '26000029D',
+      respondentAccountNumber: '26000029L',
       respondentAddressLines: ['11 Church Road', 'Cambridge', 'CB1 2XY'],
-      applicantAccountNumber: '26000030E',
+      applicantAccountNumber: '26000030W',
       applicantAddressLines: ['1 Oak Avenue', 'Warsaw', 'Poland'],
       totalArrears: 47.32,
       orderedToPay: 15,
@@ -11054,6 +11054,358 @@ function getActiveCaseOrderTermAddReviewCard(orderTerm, activeCase, caseId) {
   }
 }
 
+const activeCaseVaryOrderDraftsKey = 'active-case-vary-order-drafts'
+const activeCaseVaryOrderApplicationsKey = 'active-case-vary-order-applications'
+const activeCaseVaryOrderApplicationHistoryKey = 'active-case-vary-order-application-history'
+
+const activeCaseVaryOrderFields = [
+  'vary-order-applying-party',
+  'vary-order-application-date',
+  'vary-order-application-reason',
+  'vary-order-hearing-court',
+  'vary-order-hearing-date',
+  'vary-order-hearing-grounds',
+  'vary-order-current-terms',
+  'vary-order-order-court',
+  'vary-order-order-date',
+  'vary-order-last-varied-date'
+]
+
+function getActiveCaseVaryOrderStore(req, key) {
+  if (!req.session.data[key]) {
+    req.session.data[key] = {}
+  }
+
+  return req.session.data[key]
+}
+
+function getActiveCaseVaryOrderDraft(req, caseId) {
+  return getActiveCaseVaryOrderStore(req, activeCaseVaryOrderDraftsKey)[caseId]
+}
+
+function setActiveCaseVaryOrderDraft(req, caseId, draft) {
+  getActiveCaseVaryOrderStore(req, activeCaseVaryOrderDraftsKey)[caseId] = draft
+}
+
+function clearActiveCaseVaryOrderDraft(req, caseId) {
+  delete getActiveCaseVaryOrderStore(req, activeCaseVaryOrderDraftsKey)[caseId]
+}
+
+function getActiveCaseVaryOrderApplication(req, caseId) {
+  return getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationsKey)[caseId]
+}
+
+function setActiveCaseVaryOrderApplication(req, caseId, application) {
+  getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationsKey)[caseId] = application
+}
+
+function getActiveCaseVaryOrderApplicationHistory(req, caseId) {
+  const history = getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationHistoryKey)
+
+  if (!history[caseId]) {
+    history[caseId] = []
+  }
+
+  return history[caseId]
+}
+
+function getActiveCaseVaryOrderFormValues(body = {}) {
+  return activeCaseVaryOrderFields.reduce((values, field) => {
+    values[field] = String(getSingleValue(body[field]) || '').trim()
+    return values
+  }, {})
+}
+
+function getActiveCaseVaryOrderApplicant(activeCase, applyingParty) {
+  if (applyingParty === 'respondent') {
+    return { role: 'Respondent', name: activeCase.respondentName }
+  }
+
+  return { role: 'Applicant', name: activeCase.applicantName || activeCase.applicant?.name }
+}
+
+function getActiveCaseVaryOrderPartyItems(activeCase, selectedValue) {
+  return [
+    {
+      value: 'applicant',
+      text: activeCase.applicantName || activeCase.applicant?.name,
+      checked: selectedValue === 'applicant'
+    },
+    {
+      value: 'respondent',
+      text: activeCase.respondentName,
+      checked: selectedValue === 'respondent'
+    }
+  ]
+}
+
+function addActiveCaseVaryOrderDateError(errors, values, field, label, options = {}) {
+  const dateResult = parseDateInput(values[field])
+
+  if (dateResult.kind === 'missing' && options.optional) {
+    return
+  }
+
+  if (dateResult.kind === 'missing') {
+    errors[field] = buildFieldError(`Enter ${label.toLowerCase()}`)
+  } else if (dateResult.kind === 'invalid') {
+    errors[field] = buildFieldError(`Enter a real ${label.toLowerCase()} in the format DD/MM/YYYY`)
+  } else if (options.futureNotAllowed && isFutureDate(dateResult.date)) {
+    errors[field] = buildFieldError(`${label} cannot be in the future`)
+  }
+}
+
+function validateActiveCaseVaryOrder(values) {
+  const errors = {}
+
+  if (!['applicant', 'respondent'].includes(values['vary-order-applying-party'])) {
+    errors['vary-order-applying-party'] = buildFieldError('Select who is applying for the variation')
+  }
+
+  addActiveCaseVaryOrderDateError(
+    errors,
+    values,
+    'vary-order-application-date',
+    'Date of application',
+    { futureNotAllowed: true }
+  )
+
+  if (!values['vary-order-application-reason']) {
+    errors['vary-order-application-reason'] = buildFieldError('Enter the reason for the application')
+  } else if (values['vary-order-application-reason'].length > 1000) {
+    errors['vary-order-application-reason'] = buildFieldError('Reason for the application must be 1,000 characters or fewer')
+  }
+
+  if (!values['vary-order-hearing-court']) {
+    errors['vary-order-hearing-court'] = buildFieldError('Enter the court')
+  }
+
+  addActiveCaseVaryOrderDateError(errors, values, 'vary-order-hearing-date', 'Hearing date')
+
+  if (!values['vary-order-hearing-grounds']) {
+    errors['vary-order-hearing-grounds'] = buildFieldError('Enter the grounds for hearing')
+  } else if (values['vary-order-hearing-grounds'].length > 1000) {
+    errors['vary-order-hearing-grounds'] = buildFieldError('Grounds for hearing must be 1,000 characters or fewer')
+  }
+
+  if (!values['vary-order-current-terms']) {
+    errors['vary-order-current-terms'] = buildFieldError('Enter the current terms')
+  } else if (values['vary-order-current-terms'].length > 1400) {
+    errors['vary-order-current-terms'] = buildFieldError('Current terms must be 1,400 characters or fewer')
+  }
+
+  if (!values['vary-order-order-court']) {
+    errors['vary-order-order-court'] = buildFieldError('Enter the court that made the order')
+  }
+
+  addActiveCaseVaryOrderDateError(
+    errors,
+    values,
+    'vary-order-order-date',
+    'Date the order was made',
+    { futureNotAllowed: true }
+  )
+  addActiveCaseVaryOrderDateError(
+    errors,
+    values,
+    'vary-order-last-varied-date',
+    'Date the order was last varied',
+    { optional: true, futureNotAllowed: true }
+  )
+
+  return errors
+}
+
+function isActiveCaseVaryOrderHearingDateInPast(values) {
+  const dateResult = parseDateInput(values['vary-order-hearing-date'])
+
+  if (dateResult.kind !== 'valid') {
+    return false
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return dateResult.date < today
+}
+
+function getActiveCaseVaryOrderErrorSummary(errors) {
+  return Object.entries(errors).map(([field, error]) => ({
+    text: error.text,
+    href: `#${field}`
+  }))
+}
+
+function getActiveCaseVaryOrderReviewRows(activeCase, application) {
+  const applicant = getActiveCaseVaryOrderApplicant(
+    activeCase,
+    application['vary-order-applying-party']
+  )
+
+  return [
+    buildSummaryRow('Application made by', applicant.name),
+    buildSummaryRow('Date of application', formatDateLong(application['vary-order-application-date'])),
+    buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
+    buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
+    buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
+    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds']),
+    buildSummaryRow('Current order terms', application['vary-order-current-terms']),
+    buildSummaryRow('Court that made the order', application['vary-order-order-court']),
+    buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
+    buildSummaryRow(
+      'Date the order was last varied',
+      application['vary-order-last-varied-date']
+        ? formatDateLong(application['vary-order-last-varied-date'])
+        : EMPTY_VALUE_TEXT
+    )
+  ]
+}
+
+function getActiveCaseVaryOrderHearingRows(activeCase, application) {
+  if (!application) {
+    return []
+  }
+
+  const applicant = getActiveCaseVaryOrderApplicant(
+    activeCase,
+    application['vary-order-applying-party']
+  )
+
+  return [
+    buildSummaryRow('Hearing status', 'Pending'),
+    buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
+    buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
+    buildSummaryRow('Application made by', applicant.name),
+    buildSummaryRow('Date application received', formatDateLong(application['vary-order-application-date'])),
+    buildSummaryRow('Reason for complaint', application['vary-order-application-reason']),
+    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds']),
+    buildSummaryRow('Current order terms', application['vary-order-current-terms']),
+    buildSummaryRow('Court that made the order', application['vary-order-order-court']),
+    buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
+    buildSummaryRow(
+      'Date the order was last varied',
+      application['vary-order-last-varied-date']
+        ? formatDateLong(application['vary-order-last-varied-date'])
+        : EMPTY_VALUE_TEXT
+    )
+  ]
+}
+
+function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues, errors = {}) {
+  return res.render('active-case/vary-or-revoke-order', {
+    activeCase,
+    formAction: `/active-case/${caseId}/vary-or-revoke-order`,
+    backHref: `/active-case/${caseId}?tab=orders`,
+    cancelHref: `/active-case/${caseId}/vary-or-revoke-order/cancel`,
+    formValues,
+    applyingPartyItems: getActiveCaseVaryOrderPartyItems(
+      activeCase,
+      formValues['vary-order-applying-party']
+    ),
+    errors,
+    errorSummary: Object.keys(errors).length
+      ? getActiveCaseVaryOrderErrorSummary(errors)
+      : null,
+    hearingDateInPast: isActiveCaseVaryOrderHearingDateInPast(formValues)
+  })
+}
+
+router.get('/active-case/:id/vary-or-revoke-order', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const formValues = getActiveCaseVaryOrderDraft(req, id) ||
+    getActiveCaseVaryOrderApplication(req, id) ||
+    getActiveCaseVaryOrderFormValues()
+
+  return renderActiveCaseVaryOrderForm(req, res, activeCase, id, formValues)
+})
+
+router.post('/active-case/:id/vary-or-revoke-order', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  const formValues = getActiveCaseVaryOrderFormValues(req.body)
+  const errors = validateActiveCaseVaryOrder(formValues)
+  setActiveCaseVaryOrderDraft(req, id, formValues)
+
+  if (Object.keys(errors).length) {
+    return renderActiveCaseVaryOrderForm(req, res, activeCase, id, formValues, errors)
+  }
+
+  return redirectWithSessionSave(
+    req,
+    res,
+    next,
+    `/active-case/${id}/vary-or-revoke-order/check`
+  )
+})
+
+router.get('/active-case/:id/vary-or-revoke-order/check', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const application = getActiveCaseVaryOrderDraft(req, id)
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  if (!application) {
+    return res.redirect(`/active-case/${id}/vary-or-revoke-order`)
+  }
+
+  return res.render('active-case/check-vary-or-revoke-order', {
+    activeCase,
+    summaryRows: getActiveCaseVaryOrderReviewRows(activeCase, application),
+    changeHref: `/active-case/${id}/vary-or-revoke-order`,
+    formAction: `/active-case/${id}/vary-or-revoke-order/check`,
+    cancelHref: `/active-case/${id}/vary-or-revoke-order/cancel`
+  })
+})
+
+router.post('/active-case/:id/vary-or-revoke-order/check', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  const application = getActiveCaseVaryOrderDraft(req, id)
+
+  if (!activeCase) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+
+  if (!application) {
+    return res.redirect(`/active-case/${id}/vary-or-revoke-order`)
+  }
+
+  const existingApplication = getActiveCaseVaryOrderApplication(req, id)
+
+  if (existingApplication) {
+    getActiveCaseVaryOrderApplicationHistory(req, id).unshift(existingApplication)
+  }
+
+  setActiveCaseVaryOrderApplication(req, id, application)
+  clearActiveCaseVaryOrderDraft(req, id)
+  setActiveCaseSuccessMessage(
+    req,
+    `/active-case/${id}`,
+    existingApplication ? 'Application updated.' : 'Application created.'
+  )
+
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=hearings`)
+})
+
+router.get('/active-case/:id/vary-or-revoke-order/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  clearActiveCaseVaryOrderDraft(req, id)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
 router.get('/active-case/:id', (req, res) => {
   const id = Number(req.params.id)
   const tab = req.query.tab || 'at-a-glance'
@@ -11062,6 +11414,9 @@ router.get('/active-case/:id', (req, res) => {
   if (!activeCase) {
     return res.redirect('/create-cases?tab=approved')
   }
+
+  const varyOrderApplication = getActiveCaseVaryOrderApplication(req, id)
+  const previousVaryOrderApplications = getActiveCaseVaryOrderApplicationHistory(req, id)
 
   return res.render('active-case/index', {
     activeCase,
@@ -11079,6 +11434,11 @@ router.get('/active-case/:id', (req, res) => {
     ),
     interestAndIndexationRows: getActiveCaseInterestAndIndexationRows(activeCase),
     managingPaymentsRows: getActiveCaseManagingPaymentsRows(activeCase),
+    varyOrderApplication,
+    varyOrderApplicationRows: getActiveCaseVaryOrderHearingRows(activeCase, varyOrderApplication),
+    previousVaryOrderApplicationRows: previousVaryOrderApplications.map(application =>
+      getActiveCaseVaryOrderHearingRows(activeCase, application)
+    ),
     historyRows: getAccountHistoryRows(activeCase),
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
@@ -12855,7 +13215,7 @@ router.post('/resulting/record-number', (req, res, next) => {
   req.session.data['resulting-record-number'] =
     getSingleValue(req.body['resulting-record-number-search']) ||
     req.session.data['resulting-record-number'] ||
-    '26000022U'
+    '26000022G'
 
   req.session.data['resulting-record-search-last-name'] =
     getSingleValue(req.body['resulting-record-search-last-name']) || ''
@@ -14079,7 +14439,6 @@ function performSearch(params) {
 }
 
 function accountRef(id, prefix) {
-  const accountLetters = ['U', 'M', 'Q', 'T', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'N', 'P', 'R', 'S', 'V', 'W', 'X', 'Y', 'Z']
   const prefixOffsets = {
     RP: 0,
     AP: 1,
@@ -14088,9 +14447,32 @@ function accountRef(id, prefix) {
   }
   const offset = prefixOffsets[prefix] || 0
   const numericPart = 26000000 + (Number(id) * 10) + offset
-  const letter = accountLetters[(Number(id) + offset) % accountLetters.length]
+  const letter = getAccountCheckLetter(numericPart)
 
   return `${String(numericPart).padStart(8, '0')}${letter}`
+}
+
+function getAccountCheckLetter(accountNumber) {
+  const digits = String(accountNumber).padStart(8, '0').split('').map(Number)
+  const weightedTotal =
+    (digits[0] * 5) -
+    digits[1] -
+    (digits[2] * 4) -
+    (digits[3] * 2) -
+    (digits[4] * 7) -
+    (digits[5] * 5) -
+    digits[6] -
+    (digits[7] * 4)
+  const remainder = ((weightedTotal % 23) + 23) % 23
+  const checkValue = (23 - remainder) % 23
+
+  return String.fromCharCode(checkValue + 65)
+}
+
+function isValidAccountNumber(accountNumber) {
+  const match = String(accountNumber).match(/^(\d{8})([A-Za-z])$/)
+
+  return Boolean(match && match[2].toUpperCase() === getAccountCheckLetter(match[1]))
 }
 
 function mapSearchRows(results) {
@@ -14161,9 +14543,15 @@ router.post('/search', (req, res, next) => {
     })
   }
 
-  if (accountNumber && !/^\d{8}[A-Za-z]?$/.test(accountNumber)) {
+  if (accountNumber && !/^\d{8}[A-Za-z]$/.test(accountNumber)) {
     return renderSearchWithErrors({
-      'account-number': buildFieldError('Enter account number in the correct format such as 12345678 or 12345678A')
+      'account-number': buildFieldError('Enter an account number in the correct format, for example 26000001A')
+    })
+  }
+
+  if (accountNumber && !isValidAccountNumber(accountNumber)) {
+    return renderSearchWithErrors({
+      'account-number': buildFieldError('Enter a valid account number')
     })
   }
 
