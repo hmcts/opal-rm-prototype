@@ -11116,6 +11116,16 @@ function getActiveCaseVaryOrderFormValues(body = {}) {
   }, {})
 }
 
+function getActiveCaseVaryOrderDefaultFormValues(activeCase) {
+  const orderDetails = getActiveCaseOrders(activeCase).details
+
+  return {
+    ...getActiveCaseVaryOrderFormValues(),
+    'vary-order-order-court': orderDetails.court || '',
+    'vary-order-order-date': orderDetails.dateOrderMade || ''
+  }
+}
+
 function getActiveCaseVaryOrderApplicant(activeCase, applyingParty) {
   if (applyingParty === 'respondent') {
     return { role: 'Respondent', name: activeCase.respondentName }
@@ -11245,9 +11255,6 @@ function getActiveCaseVaryOrderReviewRows(activeCase, application) {
     buildSummaryRow('Application made by', applicant.name),
     buildSummaryRow('Date of application', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
-    buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
-    buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
-    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds']),
     buildSummaryRow('Current order terms', application['vary-order-current-terms']),
     buildSummaryRow('Court that made the order', application['vary-order-order-court']),
     buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
@@ -11256,7 +11263,10 @@ function getActiveCaseVaryOrderReviewRows(activeCase, application) {
       application['vary-order-last-varied-date']
         ? formatDateLong(application['vary-order-last-varied-date'])
         : EMPTY_VALUE_TEXT
-    )
+    ),
+    buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
+    buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
+    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds'])
   ]
 }
 
@@ -11274,10 +11284,10 @@ function getActiveCaseVaryOrderHearingRows(activeCase, application) {
     buildSummaryRow('Hearing status', 'Pending'),
     buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
     buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
+    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds']),
     buildSummaryRow('Application made by', applicant.name),
     buildSummaryRow('Date application received', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for complaint', application['vary-order-application-reason']),
-    buildSummaryRow('Grounds for hearing', application['vary-order-hearing-grounds']),
     buildSummaryRow('Current order terms', application['vary-order-current-terms']),
     buildSummaryRow('Court that made the order', application['vary-order-order-court']),
     buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
@@ -11319,7 +11329,7 @@ router.get('/active-case/:id/vary-or-revoke-order', (req, res) => {
 
   const formValues = getActiveCaseVaryOrderDraft(req, id) ||
     getActiveCaseVaryOrderApplication(req, id) ||
-    getActiveCaseVaryOrderFormValues()
+    getActiveCaseVaryOrderDefaultFormValues(activeCase)
 
   return renderActiveCaseVaryOrderForm(req, res, activeCase, id, formValues)
 })

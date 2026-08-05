@@ -64,6 +64,43 @@
         }) }}
 
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        <h2 class="govuk-heading-m">Current order terms</h2>
+
+        {{ govukCharacterCount({
+          name: "vary-order-current-terms",
+          id: "vary-order-current-terms",
+          maxlength: 1400,
+          label: { text: "Current terms", classes: "govuk-label--s" },
+          rows: 5,
+          value: formValues["vary-order-current-terms"],
+          errorMessage: formErrors["vary-order-current-terms"]
+        }) }}
+
+        {{ govukInput({
+          id: "vary-order-order-court",
+          name: "vary-order-order-court",
+          label: { text: "Court that made the order", classes: "govuk-label--s" },
+          value: formValues["vary-order-order-court"],
+          errorMessage: formErrors["vary-order-order-court"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-order-date",
+          name: "vary-order-order-date",
+          label: { text: "Date the order was made", classes: "govuk-label--s" },
+          value: formValues["vary-order-order-date"],
+          errorMessage: formErrors["vary-order-order-date"]
+        }) }}
+
+        {{ mojDatePicker({
+          id: "vary-order-last-varied-date",
+          name: "vary-order-last-varied-date",
+          label: { text: "Date the order was last varied (optional)", classes: "govuk-label--s" },
+          value: formValues["vary-order-last-varied-date"],
+          errorMessage: formErrors["vary-order-last-varied-date"]
+        }) }}
+
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
         <h2 class="govuk-heading-m">Hearing details</h2>
 
         {{ govukInput({
@@ -102,45 +139,6 @@
           value: formValues["vary-order-hearing-grounds"],
           errorMessage: formErrors["vary-order-hearing-grounds"]
         }) }}
-
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
-        <h2 class="govuk-heading-m">Current order terms</h2>
-
-        {{ govukCharacterCount({
-          name: "vary-order-current-terms",
-          id: "vary-order-current-terms",
-          maxlength: 1400,
-          label: { text: "Current terms", classes: "govuk-label--s" },
-          rows: 5,
-          value: formValues["vary-order-current-terms"],
-          errorMessage: formErrors["vary-order-current-terms"]
-        }) }}
-
-        {{ govukInput({
-          id: "vary-order-order-court",
-          name: "vary-order-order-court",
-          label: { text: "Court that made the order", classes: "govuk-label--s" },
-          value: formValues["vary-order-order-court"],
-          errorMessage: formErrors["vary-order-order-court"]
-        }) }}
-
-        {{ mojDatePicker({
-          id: "vary-order-order-date",
-          name: "vary-order-order-date",
-          label: { text: "Date the order was made", classes: "govuk-label--s" },
-          value: formValues["vary-order-order-date"],
-          errorMessage: formErrors["vary-order-order-date"]
-        }) }}
-
-        {{ mojDatePicker({
-          id: "vary-order-last-varied-date",
-          name: "vary-order-last-varied-date",
-          label: { text: "Date the order was last varied (optional)", classes: "govuk-label--s" },
-          value: formValues["vary-order-last-varied-date"],
-          errorMessage: formErrors["vary-order-last-varied-date"]
-        }) }}
-
-        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
