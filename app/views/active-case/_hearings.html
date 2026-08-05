@@ -1,0 +1,67 @@
+{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Hearings</h2>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% if varyOrderApplication %}
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Application to vary or revoke an order" },
+          actions: {
+            items: [
+              {
+                href: "/active-case/" + caseId + "/vary-or-revoke-order",
+                text: "Change",
+                visuallyHiddenText: "application to vary or revoke an order"
+              }
+            ]
+          }
+        },
+        rows: varyOrderApplicationRows
+      }) }}
+    {% else %}
+      <p class="govuk-body">There are no hearings for this account.</p>
+    {% endif %}
+
+    {% set previousHearingsHtml %}
+      {% if previousVaryOrderApplicationRows.length %}
+        {% for previousHearingRows in previousVaryOrderApplicationRows %}
+          {{ govukSummaryList({
+            card: {
+              title: { text: "Application to vary or revoke an order" }
+            },
+            rows: previousHearingRows
+          }) }}
+        {% endfor %}
+      {% else %}
+        <p class="govuk-body">There are no previous hearings for this account.</p>
+      {% endif %}
+    {% endset %}
+
+    {{ govukAccordion({
+      id: "previous-hearings-" + caseId,
+      headingLevel: 3,
+      attributes: {
+        "data-suppress-show-all-sections": "true"
+      },
+      items: [
+        {
+          heading: { text: "Previous hearings" },
+          content: { html: previousHearingsHtml }
+        }
+      ]
+    }) }}
+  </div>
+
+  <div class="govuk-grid-column-one-third">
+    <aside class="govuk-prototype-kit-common-templates-related-items" role="complementary">
+      <h2 class="govuk-heading-m">Actions</h2>
+    </aside>
+  </div>
+</div>

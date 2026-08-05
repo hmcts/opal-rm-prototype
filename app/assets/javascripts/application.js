@@ -180,4 +180,52 @@ window.GOVUKPrototypeKit.documentReady(() => {
       return leaveMessage
     })
   })
+
+  document.querySelectorAll('[data-module="rm-hearing-date-check"]').forEach(function ($inset) {
+    var inputId = $inset.getAttribute('data-date-input-id')
+    var $dateInput = inputId && document.getElementById(inputId)
+
+    if (!$dateInput) {
+      return
+    }
+
+    function parseDate (value) {
+      var match = String(value || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+
+      if (!match) {
+        return null
+      }
+
+      var day = Number(match[1])
+      var month = Number(match[2])
+      var year = Number(match[3])
+      var date = new Date(year, month - 1, day)
+
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+        return null
+      }
+
+      return date
+    }
+
+    function updateHearingDateInset () {
+      var hearingDate = parseDate($dateInput.value)
+      var today = new Date()
+
+      today.setHours(0, 0, 0, 0)
+      $inset.hidden = !hearingDate || hearingDate >= today
+    }
+
+    $dateInput.addEventListener('input', updateHearingDateInset)
+    $dateInput.addEventListener('change', updateHearingDateInset)
+    updateHearingDateInset()
+  })
+
+  document.querySelectorAll('[data-suppress-show-all-sections="true"]').forEach(function ($accordion) {
+    var $showAllControls = $accordion.querySelector('.govuk-accordion__controls')
+
+    if ($showAllControls) {
+      $showAllControls.remove()
+    }
+  })
 })
