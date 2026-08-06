@@ -6344,7 +6344,7 @@ router.post('/create-a-case', (req, res, next) => {
   delete getCreateACaseData(req)['applicant-type-remo-in']
   delete getCreateACaseData(req)['applicant-type-remo-out']
 
-  getCreateACaseData(req)['has-order'] = getSingleValue(req.body['has-order']) || 'yes'
+  getCreateACaseData(req)['has-order'] = 'yes'
 
   return redirectWithSessionSave(req, res, next, '/create-a-case/case-details')
 })
@@ -11066,8 +11066,6 @@ const activeCaseVaryOrderFields = [
   'vary-order-hearing-date',
   'vary-order-hearing-grounds',
   'vary-order-current-terms',
-  'vary-order-order-court',
-  'vary-order-order-date',
   'vary-order-last-varied-date'
 ]
 
@@ -11116,16 +11114,6 @@ function getActiveCaseVaryOrderFormValues(body = {}) {
   }, {})
 }
 
-function getActiveCaseVaryOrderDefaultFormValues(activeCase) {
-  const orderDetails = getActiveCaseOrders(activeCase).details
-
-  return {
-    ...getActiveCaseVaryOrderFormValues(),
-    'vary-order-order-court': orderDetails.court || '',
-    'vary-order-order-date': orderDetails.dateOrderMade || ''
-  }
-}
-
 function getActiveCaseVaryOrderApplicant(activeCase, applyingParty) {
   if (applyingParty === 'respondent') {
     return { role: 'Respondent', name: activeCase.respondentName }
@@ -11147,6 +11135,16 @@ function getActiveCaseVaryOrderPartyItems(activeCase, selectedValue) {
       checked: selectedValue === 'respondent'
     }
   ]
+}
+
+function getActiveCaseVaryOrderHearingCourtItems(selectedValue) {
+  const courtNames = [...englandAndWalesCourts]
+
+  if (hasValue(selectedValue) && !courtNames.includes(selectedValue)) {
+    courtNames.push(selectedValue)
+  }
+
+  return courtNames.map((court) => ({ text: court }))
 }
 
 function addActiveCaseVaryOrderDateError(errors, values, field, label, options = {}) {
@@ -11204,17 +11202,6 @@ function validateActiveCaseVaryOrder(values) {
     errors['vary-order-current-terms'] = buildFieldError('Current terms must be 1,400 characters or fewer')
   }
 
-  if (!values['vary-order-order-court']) {
-    errors['vary-order-order-court'] = buildFieldError('Enter the court that made the order')
-  }
-
-  addActiveCaseVaryOrderDateError(
-    errors,
-    values,
-    'vary-order-order-date',
-    'Date the order was made',
-    { futureNotAllowed: true }
-  )
   addActiveCaseVaryOrderDateError(
     errors,
     values,
@@ -11256,8 +11243,6 @@ function getActiveCaseVaryOrderReviewRows(activeCase, application) {
     buildSummaryRow('Date of application', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
     buildSummaryRow('Current order terms', application['vary-order-current-terms']),
-    buildSummaryRow('Court that made the order', application['vary-order-order-court']),
-    buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
     buildSummaryRow(
       'Date the order was last varied',
       application['vary-order-last-varied-date']
@@ -11289,8 +11274,6 @@ function getActiveCaseVaryOrderHearingRows(activeCase, application) {
     buildSummaryRow('Date application received', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for complaint', application['vary-order-application-reason']),
     buildSummaryRow('Current order terms', application['vary-order-current-terms']),
-    buildSummaryRow('Court that made the order', application['vary-order-order-court']),
-    buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-order-date'])),
     buildSummaryRow(
       'Date the order was last varied',
       application['vary-order-last-varied-date']
@@ -11311,6 +11294,9 @@ function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues,
       activeCase,
       formValues['vary-order-applying-party']
     ),
+    hearingCourtItems: getActiveCaseVaryOrderHearingCourtItems(
+      formValues['vary-order-hearing-court']
+    ),
     errors,
     errorSummary: Object.keys(errors).length
       ? getActiveCaseVaryOrderErrorSummary(errors)
@@ -11329,7 +11315,7 @@ router.get('/active-case/:id/vary-or-revoke-order', (req, res) => {
 
   const formValues = getActiveCaseVaryOrderDraft(req, id) ||
     getActiveCaseVaryOrderApplication(req, id) ||
-    getActiveCaseVaryOrderDefaultFormValues(activeCase)
+    getActiveCaseVaryOrderFormValues()
 
   return renderActiveCaseVaryOrderForm(req, res, activeCase, id, formValues)
 })

@@ -5,9 +5,9 @@
 {% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}
   Application to vary or revoke an order - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
@@ -76,22 +76,6 @@
           errorMessage: formErrors["vary-order-current-terms"]
         }) }}
 
-        {{ govukInput({
-          id: "vary-order-order-court",
-          name: "vary-order-order-court",
-          label: { text: "Court that made the order", classes: "govuk-label--s" },
-          value: formValues["vary-order-order-court"],
-          errorMessage: formErrors["vary-order-order-court"]
-        }) }}
-
-        {{ mojDatePicker({
-          id: "vary-order-order-date",
-          name: "vary-order-order-date",
-          label: { text: "Date the order was made", classes: "govuk-label--s" },
-          value: formValues["vary-order-order-date"],
-          errorMessage: formErrors["vary-order-order-date"]
-        }) }}
-
         {{ mojDatePicker({
           id: "vary-order-last-varied-date",
           name: "vary-order-last-varied-date",
@@ -103,12 +87,15 @@
         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
         <h2 class="govuk-heading-m">Hearing details</h2>
 
-        {{ govukInput({
+        {{ xGovukAutocomplete({
           id: "vary-order-hearing-court",
           name: "vary-order-hearing-court",
           label: { text: "Court", classes: "govuk-label--s" },
+          hint: { text: "Start typing to see matching courts." },
+          classes: "govuk-!-width-two-thirds",
           value: formValues["vary-order-hearing-court"],
-          errorMessage: formErrors["vary-order-hearing-court"]
+          errorMessage: formErrors["vary-order-hearing-court"],
+          items: hearingCourtItems
         }) }}
 
         {{ mojDatePicker({
