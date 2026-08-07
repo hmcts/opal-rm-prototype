@@ -1809,7 +1809,7 @@ function formatDateForReview(dateString) {
   }
 
   return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
+    day: '2-digit',
     month: 'short',
     year: 'numeric'
   }).format(date)
@@ -1843,7 +1843,7 @@ function formatDateLong(dateString) {
   }
 
   return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
+    day: '2-digit',
     month: 'long',
     year: 'numeric'
   }).format(date)
@@ -5296,7 +5296,7 @@ function getCaseReviewDecisions(req) {
 function getReviewWorkflowTimestamp() {
   const now = new Date()
   const date = new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
+    day: '2-digit',
     month: 'long',
     year: 'numeric'
   }).format(now)
@@ -6369,10 +6369,22 @@ router.use('/create-a-case', (req, res, next) => {
     Object.entries(req.body).forEach(([key, value]) => {
       alternativeData[key] = value
     })
+
+    // Save submitted answers before validation renders an error page. This keeps
+    // the journey state (including the selected case type) available when the
+    // user corrects an error and submits the form again.
+    return req.session.save((err) => {
+      if (err) {
+        return next(err)
+      }
+
+      res.locals.data = alternativeData
+      return next()
+    })
   }
 
   res.locals.data = alternativeData
-  next()
+  return next()
 })
 
 router.get('/create-a-case', (req, res) => {
@@ -9341,7 +9353,7 @@ function consumeActiveCaseSuccessMessage(req) {
 
 function getHistoryDateToday() {
   return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
+    day: '2-digit',
     month: 'short',
     year: 'numeric'
   }).format(new Date())
