@@ -16,7 +16,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: docs-pages-${{ github.event.pull_request.number || github.ref_name }}
+  # Every run writes to the same gh-pages branch, so they must share one lock.
+  group: docs-pages
   cancel-in-progress: true
 
 jobs:
@@ -27,6 +28,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
+          submodules: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
