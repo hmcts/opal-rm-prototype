@@ -1173,6 +1173,63 @@ const englandAndWalesCourts = [
   'Davids County Court'
 ]
 
+// Family-court venues used when listing a hearing for an application to vary
+// or revoke an order. These names match the HMCTS Find a Court or Tribunal
+// service and are deliberately separate from the general court list above.
+const englandAndWalesFamilyCourts = [
+  'Barnet Civil and Family Courts Centre',
+  'Barrow-in-Furness County Court and Family Court',
+  'Bath Law Courts (Civil, Family and Magistrates)',
+  'Bedford County Court and Family Court',
+  'Birmingham Civil and Family Justice Centre',
+  'Blackburn Family Court',
+  'Blackwood Civil and Family Court',
+  'Boston County Court and Family Court',
+  'Brentford County and Family Court',
+  'Bristol Civil and Family Justice Centre',
+  'Bromley County Court and Family Court',
+  'Cambridge County Court and Family Court',
+  'Cardiff Civil and Family Justice Centre',
+  'Carmarthen County Court and Family Court',
+  'Central Family Court',
+  'Chester Civil and Family Justice Centre',
+  'Clerkenwell and Shoreditch County Court and Family Court',
+  'Croydon County Court and Family Court',
+  'Darlington County Court and Family Court',
+  'Dartford County Court and Family Court',
+  'Durham County Court and Family Court',
+  'East London Family Court',
+  'Edmonton County Court and Family Court',
+  'Gateshead County Court and Family Court',
+  'Gloucester and Cheltenham County and Family Court',
+  'Guildford County Court and Family Court',
+  'Haverfordwest County Court and Family Court',
+  'High Wycombe County Court and Family Court',
+  'Ipswich County Court and Family Hearing Centre',
+  'Leicester County Court and Family Court',
+  'Liverpool Civil and Family Court',
+  'Manchester Civil Justice Centre (Civil and Family Courts)',
+  'Medway County Court and Family Court',
+  'Newcastle Civil & Family Courts and Tribunals Centre',
+  'Newport (South Wales) County Court and Family Court',
+  'Northampton Crown, County and Family Court',
+  'Nottingham County Court and Family Court',
+  'Pontypridd County Court and Family Court',
+  'Reading County Court and Family Court',
+  'Romford County Court and Family Court',
+  'Sheffield Designated Family Court',
+  'Southend County Court and Family Court',
+  'Taunton Crown, County and Family Court',
+  'Telford County Court and Family Court',
+  'Walsall County and Family Court',
+  'Wakefield Civil and Family Justice Centre',
+  'Wandsworth County Court and Family Court',
+  'Watford County Court and Family Court',
+  'West London Family Court',
+  'Wrexham County and Family Court',
+  'York County Court and Family Court'
+]
+
 const resultingEnglandAndWalesSessions = [
   {
     court: 'Davids Magistrates Court',
@@ -10481,6 +10538,15 @@ function getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId) {
       : orderTerm?.creditorLabel || ''
   }
 
+  if (creditor.startsWith('order-term-minor-creditor-')) {
+    const termIndex = Number(creditor.replace('order-term-minor-creditor-', ''))
+    const existingOrderTerm = getActiveCaseOrders(activeCase).terms[termIndex]
+
+    if (existingOrderTerm?.minorCreditorData) {
+      return getMinorCreditorName(existingOrderTerm.minorCreditorData, 0)
+    }
+  }
+
   if (creditor.startsWith('minor-creditor-')) {
     const index = Number(creditor.replace('minor-creditor-', ''))
     const minorCreditorAccountsForCase = caseId ? getActiveCaseMinorCreditorAccounts(caseId) : []
@@ -10906,20 +10972,48 @@ function setManagingPaymentsFormData(req, res, managingPayments) {
   Object.assign(res.locals.data, managingPayments)
 }
 
-function getActiveCaseOrderTermCreditorItems(activeCase, caseId, selectedCreditor) {
-  return getActiveCaseMinorCreditorAccounts(caseId).map((account, index) => ({
-    value: `minor-creditor-${index}`,
-    text: account.name,
-    checked: selectedCreditor === `minor-creditor-${index}`
-  }))
+function getActiveCaseOrderTermCreditorItems(activeCase, selectedCreditor) {
+  const seenCreditorNames = new Set()
+
+  return getActiveCaseOrders(activeCase).terms.reduce((items, orderTerm, termIndex) => {
+    if (!orderTerm.minorCreditorData) {
+      return items
+    }
+
+    const creditorName = getMinorCreditorName(orderTerm.minorCreditorData, 0)
+    const normalisedName = normaliseCreditorAccountName(creditorName)
+
+    if (!hasValue(creditorName) || seenCreditorNames.has(normalisedName)) {
+      return items
+    }
+
+    seenCreditorNames.add(normalisedName)
+    items.push({
+      value: `order-term-minor-creditor-${termIndex}`,
+      text: `${creditorName} (Minor creditor)`,
+      checked: selectedCreditor === `order-term-minor-creditor-${termIndex}`
+    })
+
+    return items
+  }, [])
 }
 
 function getActiveCaseOrderTermCreditorViewData(activeCase, caseId, options = {}) {
   const pendingMinorCreditor = options.pendingMinorCreditor || null
   const selectedCreditor = options.selectedCreditor || ''
-  const normalisedSelectedCreditor = selectedCreditor.startsWith('major-creditor-')
+  let normalisedSelectedCreditor = selectedCreditor.startsWith('major-creditor-')
     ? 'major-creditor'
     : selectedCreditor
+
+  const existingMinorCreditorTermIndex = getActiveCaseOrders(activeCase).terms.findIndex(
+    (orderTerm) =>
+      orderTerm.creditor === selectedCreditor &&
+      orderTerm.minorCreditorData
+  )
+
+  if (existingMinorCreditorTermIndex !== -1) {
+    normalisedSelectedCreditor = `order-term-minor-creditor-${existingMinorCreditorTermIndex}`
+  }
   const majorCreditorCode = options.majorCreditorCode || (
     selectedCreditor.startsWith('major-creditor-')
       ? selectedCreditor.replace('major-creditor-', '')
@@ -10948,7 +11042,6 @@ function getActiveCaseOrderTermCreditorViewData(activeCase, caseId, options = {}
     },
     existingMinorCreditorItems: getActiveCaseOrderTermCreditorItems(
       activeCase,
-      caseId,
       normalisedSelectedCreditor
     ),
     selectedCreditor: normalisedSelectedCreditor,
@@ -11138,7 +11231,7 @@ function getActiveCaseVaryOrderPartyItems(activeCase, selectedValue) {
 }
 
 function getActiveCaseVaryOrderHearingCourtItems(selectedValue) {
-  const courtNames = [...englandAndWalesCourts]
+  const courtNames = [...englandAndWalesFamilyCourts]
 
   if (hasValue(selectedValue) && !courtNames.includes(selectedValue)) {
     courtNames.push(selectedValue)
@@ -11284,6 +11377,8 @@ function getActiveCaseVaryOrderHearingRows(activeCase, application) {
 }
 
 function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues, errors = {}) {
+  const orderDetails = getActiveCaseOrders(activeCase).details
+
   return res.render('active-case/vary-or-revoke-order', {
     activeCase,
     formAction: `/active-case/${caseId}/vary-or-revoke-order`,
@@ -11297,6 +11392,10 @@ function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues,
     hearingCourtItems: getActiveCaseVaryOrderHearingCourtItems(
       formValues['vary-order-hearing-court']
     ),
+    orderDetails: {
+      court: orderDetails.court || '',
+      dateOrderMade: orderDetails.dateOrderMade || ''
+    },
     errors,
     errorSummary: Object.keys(errors).length
       ? getActiveCaseVaryOrderErrorSummary(errors)
@@ -11873,6 +11972,15 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
     finalCreditorValue = selectedMajorCode ? `major-creditor-${selectedMajorCode}` : 'major-creditor'
     creditorLabel = getMajorCreditorLabel(selectedMajorCode) || 'Major creditor'
     state.selectedMajorCreditor = selectedMajorCode
+  } else if (selectedCreditor.startsWith('order-term-minor-creditor-')) {
+    const termIndex = Number(selectedCreditor.replace('order-term-minor-creditor-', ''))
+    const existingOrderTerm = getActiveCaseOrders(activeCase).terms[termIndex]
+    minorCreditorData = existingOrderTerm?.minorCreditorData
+      ? { ...existingOrderTerm.minorCreditorData }
+      : null
+    creditorLabel = minorCreditorData
+      ? getMinorCreditorName(minorCreditorData, 0)
+      : ''
   } else {
     const draftOrderTerm = {
       ...pendingOrderTerm,
@@ -12349,6 +12457,15 @@ router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
       id
     )
     delete orderTerm.minorCreditorData
+  } else if (selectedCreditor.startsWith('order-term-minor-creditor-')) {
+    const sourceTermIndex = Number(selectedCreditor.replace('order-term-minor-creditor-', ''))
+    const existingOrderTerm = getActiveCaseOrders(activeCase).terms[sourceTermIndex]
+
+    if (existingOrderTerm?.minorCreditorData) {
+      orderTerm.creditor = selectedCreditor
+      orderTerm.creditorLabel = getMinorCreditorName(existingOrderTerm.minorCreditorData, 0)
+      orderTerm.minorCreditorData = { ...existingOrderTerm.minorCreditorData }
+    }
   } else if (selectedCreditor.startsWith('minor-creditor-')) {
     const childIndex = Number(selectedCreditor.replace('minor-creditor-', ''))
     orderTerm.creditor = selectedCreditor
