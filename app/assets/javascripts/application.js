@@ -121,7 +121,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
     var isSubmitting = false
     var isLeavingAfterConfirmation = false
     var isDirty = $form.getAttribute('data-route-guard-active') === 'true'
-    var leaveMessage = 'Are you sure you want to leave this page? Any changes will be lost.'
+    var leaveMessage = 'Warning: Are you sure you want to leave this page? Any information you entered will be lost.'
 
     function getFormSnapshot () {
       return Array.prototype.slice.call($form.elements)
@@ -151,7 +151,17 @@ window.GOVUKPrototypeKit.documentReady(() => {
       isSubmitting = true
     })
 
-    $form.querySelectorAll('a[href]').forEach(function ($link) {
+    var guardedLinks = Array.prototype.slice.call($form.querySelectorAll('a[href]'))
+
+    if ($form.id) {
+      guardedLinks = guardedLinks.concat(
+        Array.prototype.slice.call(
+          document.querySelectorAll('[data-route-guard-link="' + $form.id + '"]')
+        )
+      )
+    }
+
+    guardedLinks.forEach(function ($link) {
       $link.addEventListener('click', function (event) {
         updateDirtyState()
 

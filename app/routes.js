@@ -6489,7 +6489,8 @@ router.get('/create-a-case/applicant-details', (req, res) => {
   }
 
   return res.render('create-a-case/applicant-details', {
-    applicantAge: getAgeFromDateString(getCreateACaseData(req)['applicant-date-of-birth'])
+    applicantAge: getAgeFromDateString(getCreateACaseData(req)['applicant-date-of-birth']),
+    routeGuard: true
   })
 })
 
@@ -6503,7 +6504,8 @@ router.post('/create-a-case/applicant-details', (req, res, next) => {
       data: buildApplicantDetailsViewData(getCreateACaseData(req), req.body),
       applicantAge: getAgeFromDateString(req.body['applicant-date-of-birth']),
       errors,
-      errorSummary: buildErrorSummary(errors)
+      errorSummary: buildErrorSummary(errors),
+      routeGuard: true
     })
   }
 
@@ -6539,7 +6541,9 @@ router.get('/create-a-case/respondent-details', (req, res) => {
     return res.redirect('/create-a-case')
   }
 
-  return res.render('create-a-case/respondent-details')
+  return res.render('create-a-case/respondent-details', {
+    routeGuard: true
+  })
 })
 
 router.post('/create-a-case/respondent-details', (req, res, next) => {
@@ -6551,7 +6555,8 @@ router.post('/create-a-case/respondent-details', (req, res, next) => {
     return res.render('create-a-case/respondent-details', {
       data: buildRespondentDetailsViewData(getCreateACaseData(req), req.body),
       errors,
-      errorSummary: buildErrorSummary(errors)
+      errorSummary: buildErrorSummary(errors),
+      routeGuard: true
     })
   }
 
@@ -6592,7 +6597,8 @@ router.get('/create-a-case/central-authority-details', (req, res) => {
 
   return res.render('create-a-case/central-authority-details', {
     hasCentralAuthorityManualDetails: hasCentralAuthorityManualDetails(getCreateACaseData(req)),
-    centralAuthorityCardRows: getCentralAuthorityCardRows(getCreateACaseData(req))
+    centralAuthorityCardRows: getCentralAuthorityCardRows(getCreateACaseData(req)),
+    routeGuard: true
   })
 })
 
@@ -11342,11 +11348,14 @@ function getActiveCaseVaryOrderReviewRows(activeCase, application) {
     activeCase,
     application['vary-order-applying-party']
   )
+  const orderDetails = getActiveCaseOrders(activeCase).details
 
   return [
     buildSummaryRow('Application made by', applicant.name),
     buildSummaryRow('Date of application', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
+    buildSummaryRow('Court that made the order', orderDetails.court),
+    buildSummaryRow('Date the order was made', formatDateLong(orderDetails.dateOrderMade)),
     buildSummaryRow('Current order terms', application['vary-order-current-terms']),
     buildSummaryRow(
       'Date the order was last varied',
