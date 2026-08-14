@@ -16,11 +16,16 @@
   {% set removeHref = removeHref or "/create-a-case/central-authority-details/remove" %}
   {% set backHref = backHref or "/create-a-case/case-details" %}
   {% set cancelHref = cancelHref or "/create-a-case/case-details" %}
+  {% set backLinkAttributes = {} %}
+  {% if routeGuard %}
+    {% set backLinkAttributes = { "data-route-guard-link": "case-creation-details-form" } %}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({
         text: "Back",
-        href: backHref
+        href: backHref,
+        attributes: backLinkAttributes
       }) }}
 
       {% if accountContextLabel %}
@@ -29,7 +34,7 @@
 
       <h1 class="govuk-heading-l">Central authority details</h1>
 
-      <form method="post" action="{{ formAction }}">
+      <form id="case-creation-details-form" method="post" action="{{ formAction }}"{% if routeGuard %} data-module="rm-route-guard"{% endif %}>
         <h2 class="govuk-heading-s">Authority references</h2>
 
         {{ govukInput({
@@ -141,4 +146,3 @@
     </div>
   </div>
 {% endblock %}
-
