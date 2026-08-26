@@ -100,6 +100,7 @@
                 classes: "govuk-label--s"
               },
               value: field.value,
+              leadingZeros: true,
               errorMessage: field.errorMessage
             }) }}
 
@@ -227,7 +228,7 @@
             text: primaryButtonText or "Continue"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/select-order-term' }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/select-order-term' }}">Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
         </div>
       </form>
     </div>

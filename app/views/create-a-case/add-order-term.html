@@ -64,7 +64,7 @@
             text: "Continue"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/case-details' }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/case-details' }}">Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
         </div>
       </form>
     </div>

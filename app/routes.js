@@ -1454,51 +1454,82 @@ function validateMinorCreditor(body) {
   const bankAccountType = getSingleValue(body['minor-creditor-bank-account-type']) || ''
 
   if (!hasValue(creditorType)) {
-    errors['minor-creditor-type'] = buildFieldError('Select creditor type')
+    errors['minor-creditor-type'] = buildFieldError('Select minor creditor type')
   } else if (creditorType === 'individual') {
     if (!hasValue(getSingleValue(body['minor-creditor-first-names']))) {
-      errors['minor-creditor-first-names'] = buildFieldError('Enter first names')
+      errors['minor-creditor-first-names'] = buildFieldError('Enter minor creditor first name(s)')
     }
     if (!hasValue(getSingleValue(body['minor-creditor-last-name']))) {
-      errors['minor-creditor-last-name'] = buildFieldError('Enter last name')
+      errors['minor-creditor-last-name'] = buildFieldError('Enter minor creditor last name')
     }
   } else if (creditorType === 'organisation') {
     if (!hasValue(getSingleValue(body['minor-creditor-organisation-name']))) {
-      errors['minor-creditor-organisation-name'] = buildFieldError('Enter organisation name')
+      errors['minor-creditor-organisation-name'] = buildFieldError('Enter minor creditor organisation name')
     }
   }
 
   if (!hasValue(getSingleValue(body['minor-creditor-address-line-1']))) {
-    errors['minor-creditor-address-line-1'] = buildFieldError('Enter address line 1')
+    errors['minor-creditor-address-line-1'] = buildFieldError('Enter an address')
   }
 
   if (!hasValue(bankAccountType)) {
-    errors['minor-creditor-bank-account-type'] = buildFieldError('Select bank account type')
+    errors['minor-creditor-bank-account-type'] = buildFieldError('Select an option')
   } else if (bankAccountType === 'uk-bank-account') {
     if (!hasValue(getSingleValue(body['minor-creditor-uk-name-on-account']))) {
       errors['minor-creditor-uk-name-on-account'] = buildFieldError('Enter name on account')
     }
+    const ukSortCode = String(getSingleValue(body['minor-creditor-uk-sort-code']) || '').trim()
+
+    if (/^[0-9]{2}-[0-9]{2}-[0-9]{2}$/.test(ukSortCode)) {
+      body['minor-creditor-uk-sort-code'] = ukSortCode.replace(/-/g, '')
+    }
+
     if (!hasValue(getSingleValue(body['minor-creditor-uk-sort-code']))) {
       errors['minor-creditor-uk-sort-code'] = buildFieldError('Enter sort code')
-    } else if (!/^\d{6}$/.test(String(getSingleValue(body['minor-creditor-uk-sort-code']) || '').replace(/\s+/g, ''))) {
-      errors['minor-creditor-uk-sort-code'] = buildFieldError('Sort code must be 6 digits')
+    } else if (!/^[0-9-]+$/.test(ukSortCode)) {
+      errors['minor-creditor-uk-sort-code'] = buildFieldError('Enter correct sort code')
+    } else if (ukSortCode.replace(/-/g, '').length !== 6) {
+      errors['minor-creditor-uk-sort-code'] = buildFieldError('Sort code must only contain 6 numbers')
+    } else if (!/^\d{6}$/.test(ukSortCode) && !/^\d{2}-\d{2}-\d{2}$/.test(ukSortCode)) {
+      errors['minor-creditor-uk-sort-code'] = buildFieldError('Enter correct sort code')
     }
     if (!hasValue(getSingleValue(body['minor-creditor-uk-account-number']))) {
       errors['minor-creditor-uk-account-number'] = buildFieldError('Enter account number')
     } else if (!/^\d{6,8}$/.test(String(getSingleValue(body['minor-creditor-uk-account-number']) || '').replace(/\s+/g, ''))) {
       errors['minor-creditor-uk-account-number'] = buildFieldError('Account number must be between 6 and 8 digits')
     }
+    if (!hasValue(getSingleValue(body['minor-creditor-uk-payment-reference']))) {
+      errors['minor-creditor-uk-payment-reference'] = buildFieldError(
+        'Enter UK bank account payment reference'
+      )
+    }
   } else if (bankAccountType === 'non-uk-bank-account') {
+    const bicOrSwiftCode = getSingleValue(body['minor-creditor-non-uk-bic-or-swift-code']) || ''
+    const iban = getSingleValue(body['minor-creditor-non-uk-iban']) || ''
+    const branchOfficeOrSortCode = String(
+      getSingleValue(body['minor-creditor-non-uk-branch-office-or-sort-code']) || ''
+    ).trim()
+
     if (!hasValue(getSingleValue(body['minor-creditor-non-uk-name-on-account']))) {
       errors['minor-creditor-non-uk-name-on-account'] = buildFieldError('Enter name on account')
     }
-    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-bic-or-swift-code']))) {
-      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError('Enter BIC or SWIFT code')
-    } else if (!/^[A-Za-z0-9]{8,11}$/.test(String(getSingleValue(body['minor-creditor-non-uk-bic-or-swift-code']) || '').replace(/\s+/g, ''))) {
-      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError('BIC or SWIFT code must be between 8 and 11 characters')
+    if (!hasValue(bicOrSwiftCode) && !hasValue(iban)) {
+      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError(
+        'Enter either BIC or SWIFT code or IBAN number'
+      )
+    } else if (hasValue(bicOrSwiftCode) && !/^[A-Za-z0-9]{8,11}$/.test(String(bicOrSwiftCode).replace(/\s+/g, ''))) {
+      errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError(
+        'Enter correct BIC or SWIFT code or IBAN number'
+      )
     }
-    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-iban']))) {
-      errors['minor-creditor-non-uk-iban'] = buildFieldError('Enter IBAN')
+    if (hasValue(branchOfficeOrSortCode) && !/^\d+$/.test(branchOfficeOrSortCode)) {
+      errors['minor-creditor-non-uk-branch-office-or-sort-code'] = buildFieldError(
+        'Enter correct branch or sort code'
+      )
+    } else if (branchOfficeOrSortCode.length > 12) {
+      errors['minor-creditor-non-uk-branch-office-or-sort-code'] = buildFieldError(
+        'Branch or sort code must be 12 numbers or fewer'
+      )
     }
   }
 
@@ -1572,6 +1603,9 @@ function addMinorCreditorBankRows(rows, creditor) {
       buildSummaryRow('Payment reference', creditor.ukPaymentReference)
     )
   } else if (creditor.bankAccountType === 'non-uk-bank-account') {
+    const hasNonUkBankIdentifier =
+      hasValue(creditor.nonUkBicOrSwiftCode) || hasValue(creditor.nonUkIban)
+
     rows.push(
       buildSummaryRow('Type of bank account', 'Non-UK bank account'),
       buildSummaryRow('Name on account', creditor.nonUkNameOnAccount),
@@ -1579,13 +1613,16 @@ function addMinorCreditorBankRows(rows, creditor) {
       buildSummaryRow('IBAN', creditor.nonUkIban),
       buildSummaryRow('Payment reference', creditor.nonUkPaymentReference)
     )
-    addSummaryRowIfHasValue(rows, 'Bank name', creditor.nonUkBankName)
-    addSummaryRowIfHasValue(
-      rows,
-      'Branch code or sort code',
-      creditor.nonUkBranchOfficeOrSortCode
-    )
-    addSummaryRowIfHasValue(rows, 'Account number', creditor.nonUkAccountNumber)
+
+    if (!hasNonUkBankIdentifier) {
+      addSummaryRowIfHasValue(rows, 'Bank name', creditor.nonUkBankName)
+      addSummaryRowIfHasValue(
+        rows,
+        'Branch code or sort code',
+        creditor.nonUkBranchOfficeOrSortCode
+      )
+      addSummaryRowIfHasValue(rows, 'Account number', creditor.nonUkAccountNumber)
+    }
   } else {
     rows.push(buildSummaryRow('Type of bank account', 'None entered'))
   }
@@ -3491,7 +3528,7 @@ function isFutureDate(date) {
 }
 
 function isDecimalValue(value) {
-  return /^\d+\.\d{2}$/.test(String(value || '').trim())
+  return /^\d+(\.\d{2})?$/.test(String(value || '').trim())
 }
 
 function getResultRequiredMessage(field) {
@@ -3717,7 +3754,7 @@ function validateResultResponses(resultDefinition, body) {
       }
 
       if (!isDecimalValue(value)) {
-        errors[field.id] = 'Enter amount as 2 decimal places, such as 100.99'
+        errors[field.id] = 'Enter an amount as a whole number or 2 decimal places, such as 100 or 100.99'
       }
 
       return
@@ -10405,6 +10442,41 @@ function clearActiveCaseOrderTermSnapshot(req, caseId, termIndex) {
   delete snapshots[getActiveCaseOrderTermSnapshotKey(caseId, termIndex)]
 }
 
+function hasActiveCaseOrderTermCreditorOrAmountChanged(previousOrderTerm, orderTerm) {
+  if (!previousOrderTerm || !orderTerm) {
+    return false
+  }
+
+  const creditorChanged =
+    previousOrderTerm.creditor !== orderTerm.creditor ||
+    previousOrderTerm.creditorLabel !== orderTerm.creditorLabel ||
+    JSON.stringify(previousOrderTerm.minorCreditorData || null) !==
+      JSON.stringify(orderTerm.minorCreditorData || null)
+
+  if (creditorChanged) {
+    return true
+  }
+
+  const definition = getResultDefinition(orderTerm.code, 'orders')
+
+  return (definition?.responses || [])
+    .filter(isOrderTermAmountField)
+    .some((field) => previousOrderTerm.responses?.[field.id] !== orderTerm.responses?.[field.id])
+}
+
+function retainPreviousActiveCaseOrderTerm(previousOrderTerm, orderTerm) {
+  const previousTerm = {
+    ...previousOrderTerm,
+    previousTerms: []
+  }
+
+  orderTerm.previousTerms = [
+    ...(previousOrderTerm.previousTerms || []),
+    previousTerm
+  ]
+  orderTerm.dateAdded = getCurrentDateString()
+}
+
 function consumeActiveCaseOrderTermAddSuccessMessage(req, caseId) {
   const state = getActiveCaseOrderTermAddState(req, caseId)
   const message = state.successMessage || null
@@ -10415,6 +10487,21 @@ function consumeActiveCaseOrderTermAddSuccessMessage(req, caseId) {
 function setActiveCaseOrderTermAddSuccessMessage(req, caseId, message) {
   const state = getActiveCaseOrderTermAddState(req, caseId)
   state.successMessage = message
+}
+
+function getActiveCaseOrderTermAmendSuccessMessageKey(caseId, termIndex) {
+  return `active-case-order-term-amend-success-message-${caseId}-${termIndex}`
+}
+
+function consumeActiveCaseOrderTermAmendSuccessMessage(req, caseId, termIndex) {
+  const key = getActiveCaseOrderTermAmendSuccessMessageKey(caseId, termIndex)
+  const message = req.session.data[key] || null
+  delete req.session.data[key]
+  return message
+}
+
+function setActiveCaseOrderTermAmendSuccessMessage(req, caseId, termIndex, message) {
+  req.session.data[getActiveCaseOrderTermAmendSuccessMessageKey(caseId, termIndex)] = message
 }
 
 function getActiveCaseOrderTermAddSessionData(activeCase, state) {
@@ -11043,6 +11130,7 @@ function getActiveCaseOrderTermCreditorViewData(activeCase, caseId, options = {}
     backHref: options.backHref,
     formAction: options.formAction,
     cancelHref: options.cancelHref,
+    cancelVisuallyHiddenText: options.cancelVisuallyHiddenText || 'and return to Orders tab',
     successMessage: options.successMessage,
     pendingMinorCreditor,
     pendingMinorCreditorCard: pendingMinorCreditor
@@ -11248,14 +11336,8 @@ function getActiveCaseVaryOrderPartyItems(activeCase, selectedValue) {
   ]
 }
 
-function getActiveCaseVaryOrderHearingCourtItems(selectedValue) {
-  const courtNames = [...englandAndWalesFamilyCourts]
-
-  if (hasValue(selectedValue) && !courtNames.includes(selectedValue)) {
-    courtNames.push(selectedValue)
-  }
-
-  return courtNames.map((court) => ({ text: court }))
+function getActiveCaseVaryOrderHearingCourtItems() {
+  return englandAndWalesFamilyCourts.map((court) => ({ text: court }))
 }
 
 function addActiveCaseVaryOrderDateError(errors, values, field, label, options = {}) {
@@ -11268,9 +11350,11 @@ function addActiveCaseVaryOrderDateError(errors, values, field, label, options =
   if (dateResult.kind === 'missing') {
     errors[field] = buildFieldError(`Enter ${label.toLowerCase()}`)
   } else if (dateResult.kind === 'invalid') {
-    errors[field] = buildFieldError(`Enter a real ${label.toLowerCase()} in the format DD/MM/YYYY`)
+    errors[field] = buildFieldError(
+      options.invalidMessage || `Enter a real ${label.toLowerCase()} in the format DD/MM/YYYY`
+    )
   } else if (options.futureNotAllowed && isFutureDate(dateResult.date)) {
-    errors[field] = buildFieldError(`${label} cannot be in the future`)
+    errors[field] = buildFieldError('Date must be in the past')
   }
 }
 
@@ -11286,17 +11370,20 @@ function validateActiveCaseVaryOrder(values) {
     values,
     'vary-order-application-date',
     'Date of application',
-    { futureNotAllowed: true }
+    {
+      futureNotAllowed: true,
+      invalidMessage: 'Enter a real application date in the format DD/MM/YYYY'
+    }
   )
 
   if (!values['vary-order-application-reason']) {
-    errors['vary-order-application-reason'] = buildFieldError('Enter the reason for the application')
+    errors['vary-order-application-reason'] = buildFieldError('Enter reason for the application')
   } else if (values['vary-order-application-reason'].length > 1000) {
     errors['vary-order-application-reason'] = buildFieldError('Reason for the application must be 1,000 characters or fewer')
   }
 
-  if (!values['vary-order-hearing-court']) {
-    errors['vary-order-hearing-court'] = buildFieldError('Enter the court')
+  if (!englandAndWalesFamilyCourts.includes(values['vary-order-hearing-court'])) {
+    errors['vary-order-hearing-court'] = buildFieldError('Select a court')
   }
 
   addActiveCaseVaryOrderDateError(errors, values, 'vary-order-hearing-date', 'Hearing date')
@@ -11308,7 +11395,7 @@ function validateActiveCaseVaryOrder(values) {
   }
 
   if (!values['vary-order-current-terms']) {
-    errors['vary-order-current-terms'] = buildFieldError('Enter the current terms')
+    errors['vary-order-current-terms'] = buildFieldError('Enter current terms')
   } else if (values['vary-order-current-terms'].length > 1400) {
     errors['vary-order-current-terms'] = buildFieldError('Current terms must be 1,400 characters or fewer')
   }
@@ -11318,7 +11405,11 @@ function validateActiveCaseVaryOrder(values) {
     values,
     'vary-order-last-varied-date',
     'Date the order was last varied',
-    { optional: true, futureNotAllowed: true }
+    {
+      optional: true,
+      futureNotAllowed: true,
+      invalidMessage: 'Enter a real order date in the format DD/MM/YYYY'
+    }
   )
 
   return errors
@@ -11410,9 +11501,7 @@ function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues,
       activeCase,
       formValues['vary-order-applying-party']
     ),
-    hearingCourtItems: getActiveCaseVaryOrderHearingCourtItems(
-      formValues['vary-order-hearing-court']
-    ),
+    hearingCourtItems: getActiveCaseVaryOrderHearingCourtItems(),
     orderDetails: {
       court: orderDetails.court || '',
       dateOrderMade: orderDetails.dateOrderMade || ''
@@ -11421,7 +11510,8 @@ function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues,
     errorSummary: Object.keys(errors).length
       ? getActiveCaseVaryOrderErrorSummary(errors)
       : null,
-    hearingDateInPast: isActiveCaseVaryOrderHearingDateInPast(formValues)
+    hearingDateInPast: isActiveCaseVaryOrderHearingDateInPast(formValues),
+    latestAllowedDate: getCurrentDateString()
   })
 }
 
@@ -11721,6 +11811,7 @@ router.get('/active-case/:id/order-term/add', (req, res) => {
     showBackLink: false,
 	    formAction: `/active-case/${id}/order-term/add`,
 	    cancelHref: `/active-case/${id}/order-term/add/cancel`,
+	    cancelVisuallyHiddenText: 'and return to Orders tab',
 	    resultItems: getResultOptionItems('', 'orders'),
 	    routeGuard: true
 	  })
@@ -11746,6 +11837,7 @@ router.post('/active-case/:id/order-term/add', (req, res, next) => {
       showBackLink: false,
       formAction: `/active-case/${id}/order-term/add`,
 	      cancelHref: `/active-case/${id}/order-term/add/cancel`,
+	      cancelVisuallyHiddenText: 'and return to Orders tab',
 	      resultItems: getResultOptionItems('', 'orders'),
 	      selectionError: 'Select an order',
 	      routeGuard: true
@@ -11784,6 +11876,7 @@ router.get('/active-case/:id/order-term/add/details', (req, res) => {
     backHref: `/active-case/${id}/order-term/add`,
     formAction: `/active-case/${id}/order-term/add/details`,
     cancelHref: `/active-case/${id}/order-term/add/cancel`,
+    cancelVisuallyHiddenText: 'and return to Orders tab',
     resultCode: orderTermDefinition.code,
     resultTitle: orderTermDefinition.title,
     resultCategory: getResultCategoryLabel(orderTermDefinition.category),
@@ -11794,7 +11887,7 @@ router.get('/active-case/:id/order-term/add/details', (req, res) => {
 	    responseItems: getAlternativeOrderTermResponseItems(sessionData),
 	    errorSummary: null,
 	    routeGuard: true,
-	    routeGuardActive: true
+	    routeGuardActive: false
 	  })
 })
 
@@ -11835,6 +11928,7 @@ router.post('/active-case/:id/order-term/add/details', (req, res, next) => {
       backHref: `/active-case/${id}/order-term/add`,
       formAction: `/active-case/${id}/order-term/add/details`,
       cancelHref: `/active-case/${id}/order-term/add/cancel`,
+      cancelVisuallyHiddenText: 'and return to Orders tab',
       resultCode: orderTermDefinition.code,
       resultTitle: orderTermDefinition.title,
       resultCategory: getResultCategoryLabel(orderTermDefinition.category),
@@ -11902,7 +11996,8 @@ router.get('/active-case/:id/order-term/add/creditor', (req, res) => {
       removeMinorCreditorHref: `/active-case/${id}/order-term/add/creditor/remove-minor-creditor`,
       selectedCreditor,
       majorCreditorCode,
-      applyCreditorToAll: pendingOrderTerm.applyCreditorToAll === true
+      applyCreditorToAll: pendingOrderTerm.applyCreditorToAll === true,
+      routeGuardActive: false
     })
   )
 })
@@ -11968,7 +12063,7 @@ router.post('/active-case/:id/order-term/add/creditor', (req, res, next) => {
   } else if (selectedCreditor === 'major-creditor') {
     const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
 
-    if (!hasValue(selectedMajorCode)) {
+    if (!majorCreditorOptions.some((creditor) => creditor.value === selectedMajorCode)) {
       const errors = {
         'alternative-major-creditor-code': buildFieldError('Select major creditor name')
       }
@@ -12149,13 +12244,15 @@ router.get('/active-case/:id/order-term/add/review', (req, res) => {
 
   return res.render('active-case/order-term-review', {
     accountContextLabel: getActiveCaseOrderTermAddCaption(activeCase, id),
-    backHref: orderTerm.nextStep === 'create-creditor'
-      ? `/active-case/${id}/order-term/add/creditor`
-      : `/active-case/${id}/order-term/add/details`,
+    showBackLink: false,
+    pageHeading: 'Check order terms',
     formAction: `/active-case/${id}/order-term/add/review`,
     cancelHref: `/active-case/${id}/order-term/add/cancel`,
 	    primaryButtonText: 'Submit',
-	    orderTermCard: getActiveCaseOrderTermAddReviewCard(orderTerm, activeCase, id),
+	    orderTermCard: {
+	      ...getActiveCaseOrderTermAddReviewCard(orderTerm, activeCase, id),
+	      changeHref: `/active-case/${id}/order-term/add`
+	    },
 	    showApplyCreditorToAllInset: orderTerm.applyCreditorToAll === true,
 	    routeGuard: true,
 	    routeGuardActive: true
@@ -12191,7 +12288,7 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
   getActiveCaseOrders(activeCase).terms.push(completedOrderTerm)
   ensureActiveCaseMinorCreditorAccount(completedOrderTerm, activeCase, id)
   clearActiveCaseOrderTermAddState(req)
-  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order terms added.')
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order term added.')
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
@@ -12254,6 +12351,7 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
     backHref: `/active-case/${id}?tab=orders`,
     formAction: `/active-case/${id}/order-term/${termIndex}/change`,
     cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+    cancelVisuallyHiddenText: 'and return to Orders tab',
     resultCode: orderTerm.code,
     resultTitle: orderTerm.title,
     resultCategory: orderTerm.categoryLabel,
@@ -12274,7 +12372,7 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
 	    ),
 	    errorSummary: null,
 	    routeGuard: true,
-	    routeGuardActive: true
+	    routeGuardActive: false
 	  })
 })
 
@@ -12315,6 +12413,7 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
       backHref: `/active-case/${id}?tab=orders`,
       formAction: `/active-case/${id}/order-term/${termIndex}/change`,
       cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+      cancelVisuallyHiddenText: 'and return to Orders tab',
       resultCode: orderTerm.code,
       resultTitle: orderTerm.title,
       resultCategory: orderTerm.categoryLabel,
@@ -12380,6 +12479,7 @@ router.get('/active-case/:id/order-term/:index/creditor', (req, res) => {
       backHref: `/active-case/${id}/order-term/${termIndex}/change`,
       formAction: `/active-case/${id}/order-term/${termIndex}/creditor`,
       cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
+      successMessage: consumeActiveCaseOrderTermAmendSuccessMessage(req, id, termIndex),
       pendingMinorCreditor: orderTerm.pendingMinorCreditor || (
         selectedCreditor === 'new-minor-creditor' ? orderTerm.minorCreditorData : null
       ),
@@ -12387,7 +12487,8 @@ router.get('/active-case/:id/order-term/:index/creditor', (req, res) => {
       removeMinorCreditorHref: `/active-case/${id}/order-term/${termIndex}/creditor/remove-minor-creditor`,
       selectedCreditor,
       majorCreditorCode,
-      applyCreditorToAll: orderTerm.applyCreditorToAll === true
+      applyCreditorToAll: orderTerm.applyCreditorToAll === true,
+      routeGuardActive: false
     })
   )
 })
@@ -12445,7 +12546,7 @@ router.post('/active-case/:id/order-term/:index/creditor', (req, res, next) => {
   } else if (selectedCreditor === 'major-creditor') {
     const selectedMajorCode = getSingleValue(req.body['alternative-major-creditor-code']) || ''
 
-    if (!hasValue(selectedMajorCode)) {
+    if (!majorCreditorOptions.some((creditor) => creditor.value === selectedMajorCode)) {
       const errors = {
         'alternative-major-creditor-code': buildFieldError('Select major creditor name')
       }
@@ -12595,6 +12696,8 @@ router.post('/active-case/:id/order-term/:index/creditor/remove-minor-creditor',
   delete orderTerm.creditor
   delete orderTerm.creditorLabel
 
+  setActiveCaseOrderTermAmendSuccessMessage(req, id, termIndex, 'Minor creditor removed.')
+
   return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/${termIndex}/creditor`)
 })
 
@@ -12628,17 +12731,25 @@ router.get('/active-case/:id/order-term/:index/review', (req, res) => {
 router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
-  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[Number(req.params.index)] : null
+  const termIndex = Number(req.params.index)
+  const orderTerm = activeCase ? getActiveCaseOrders(activeCase).terms[termIndex] : null
 
   if (!activeCase || !orderTerm) {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
+  const previousOrderTerm = snapshots[getActiveCaseOrderTermSnapshotKey(id, termIndex)]
+
+  if (hasActiveCaseOrderTermCreditorOrAmountChanged(previousOrderTerm, orderTerm)) {
+    retainPreviousActiveCaseOrderTerm(previousOrderTerm, orderTerm)
+  }
+
   applyCreditorToAllActiveOrderTerms(activeCase, orderTerm)
   delete orderTerm.applyCreditorToAll
   delete orderTerm.pendingMinorCreditor
-  clearActiveCaseOrderTermSnapshot(req, id, Number(req.params.index))
-  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order terms updated.')
+  clearActiveCaseOrderTermSnapshot(req, id, termIndex)
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Order term amended.')
 
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
 })
