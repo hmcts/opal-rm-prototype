@@ -31,7 +31,7 @@
 
       <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}" data-module="rm-route-guard" data-route-guard-active="true">
         <div class="govuk-button-group">
           {{ govukButton({ text: "Submit" }) }}
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>

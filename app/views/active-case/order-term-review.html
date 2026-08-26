@@ -6,21 +6,23 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageTitle %}
-  Order terms - {{ serviceName }} - GOV.UK Prototype Kit
+  {{ pageHeading or "Order terms" }} - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({
-        text: "Back",
-        href: backHref
-      }) }}
+      {% if showBackLink !== false %}
+        {{ govukBackLink({
+          text: "Back",
+          href: backHref
+        }) }}
+      {% endif %}
 
       {% if accountContextLabel %}
         <span class="govuk-caption-l">{{ accountContextLabel }}</span>
       {% endif %}
-      <h1 class="govuk-heading-l">Order terms</h1>
+      <h1 class="govuk-heading-l">{{ pageHeading or "Order terms" }}</h1>
 
       {% set orderTermCard = orderTermCard %}
       {% set showOrderTermCardActions = true %}
@@ -40,7 +42,7 @@
             text: primaryButtonText or "Save changes"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel<span class="govuk-visually-hidden"> and return to Orders tab</span></a>
         </div>
       </form>
     </div>

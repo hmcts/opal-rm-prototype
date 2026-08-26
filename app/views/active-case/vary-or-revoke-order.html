@@ -17,7 +17,11 @@
   {% set formErrors = errors or {} %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: backHref }) }}
+      {{ govukBackLink({
+        text: "Back",
+        href: backHref,
+        attributes: { "data-route-guard-link": "vary-or-revoke-order-form" }
+      }) }}
 
       <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
       <h1 class="govuk-heading-l">Application to vary or revoke an order</h1>
@@ -29,7 +33,7 @@
         }) }}
       {% endif %}
 
-      <form method="post" action="{{ formAction }}">
+      <form id="vary-or-revoke-order-form" method="post" action="{{ formAction }}" data-module="rm-route-guard">
         <h2 class="govuk-heading-m">Application details</h2>
 
         {{ govukRadios({
@@ -50,6 +54,7 @@
           name: "vary-order-application-date",
           label: { text: "Date of application", classes: "govuk-label--s" },
           value: formValues["vary-order-application-date"],
+          maxDate: latestAllowedDate,
           errorMessage: formErrors["vary-order-application-date"]
         }) }}
 
@@ -87,6 +92,7 @@
           name: "vary-order-last-varied-date",
           label: { text: "Date the order was last varied (optional)", classes: "govuk-label--s" },
           value: formValues["vary-order-last-varied-date"],
+          maxDate: latestAllowedDate,
           errorMessage: formErrors["vary-order-last-varied-date"]
         }) }}
 
@@ -134,7 +140,7 @@
 
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel<span class="govuk-visually-hidden"> application to vary or revoke an order</span></a>
         </div>
       </form>
     </div>

@@ -29,10 +29,9 @@
       </form>
 
       <p class="govuk-body">
-        <a class="govuk-link" href="{{ cancelHref or '/create-a-case/minor-creditors' }}">No - cancel</a>
+        <a class="govuk-link" href="{{ cancelHref or '/create-a-case/minor-creditors' }}">No - cancel<span class="govuk-visually-hidden"> removal of minor creditor</span></a>
       </p>
     </div>
   </div>
 {% endblock %}
-
 
