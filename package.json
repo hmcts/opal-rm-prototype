@@ -8,7 +8,7 @@
     "@govuk-prototype-kit/common-templates": "3.0.0",
     "govuk-prototype-components": "npm:@x-govuk/govuk-prototype-components@^6.0.0",
     "govuk-frontend": "6.1.0",
-    "govuk-prototype-kit": "13.19.1",
+    "govuk-prototype-kit": "13.20.1",
     "moj-frontend": "npm:@ministryofjustice/frontend@^9.0.0"
   },
   "devDependencies": {
