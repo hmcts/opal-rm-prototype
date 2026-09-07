@@ -9202,7 +9202,13 @@ const activeCases = {
       adults: ['Mrs Alina POPA'],
       children: ['Mira POPA (Age 12)', 'Luca POPA (Age 8)']
     },
-    comment: 'Standard maintenance case. Payments maintained on time. No recent enforcement action.'
+    comment: 'Standard maintenance case. Payments maintained on time. No recent enforcement action.',
+    enforcementAction: {
+      type: 'Enforcement Summons (MSUMM)',
+      hearingStatus: 'Pending',
+      court: 'Reading County Court and Family Court',
+      hearingDate: '14 February 2025'
+    }
   },
   6: {
     accountNumber: accountRef(6, 'RP'),
@@ -9441,6 +9447,7 @@ function getAccountHistoryRows(account) {
   }))
 
   return [
+    ...(account.enforcementHistory || []),
     ...noteRows,
     ...getSampleHistoryRows()
   ].sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
@@ -11610,6 +11617,163 @@ router.get('/active-case/:id/vary-or-revoke-order/cancel', (req, res, next) => {
   const id = Number(req.params.id)
   clearActiveCaseVaryOrderDraft(req, id)
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
+const activeCaseEnforcementDraftsKey = 'active-case-enforcement-drafts'
+
+function getActiveCaseEnforcementDrafts(req) {
+  if (!req.session.data[activeCaseEnforcementDraftsKey]) req.session.data[activeCaseEnforcementDraftsKey] = {}
+  return req.session.data[activeCaseEnforcementDraftsKey]
+}
+
+function getActiveCaseEnforcementValues(body = {}) {
+  return ['enforcement-action-type', 'enforcement-court', 'enforcement-hearing-venue', 'enforcement-hearing-date', 'enforcement-hearing-time', 'enforcement-reason'].reduce((values, field) => {
+    values[field] = String(getSingleValue(body[field]) || '').trim()
+    return values
+  }, {})
+}
+
+function getActiveCaseEnforcementActionValues(enforcementAction) {
+  const hearingDate = new Date(enforcementAction.hearingDate)
+  const formattedHearingDate = Number.isNaN(hearingDate.getTime())
+    ? ''
+    : `${String(hearingDate.getDate()).padStart(2, '0')}/${String(hearingDate.getMonth() + 1).padStart(2, '0')}/${hearingDate.getFullYear()}`
+
+  return {
+    'enforcement-action-type': 'msumm',
+    'enforcement-court': enforcementAction.court || '',
+    'enforcement-hearing-venue': enforcementAction.hearingVenue || '',
+    'enforcement-hearing-date': formattedHearingDate,
+    'enforcement-hearing-time': enforcementAction.hearingTime || '',
+    'enforcement-reason': enforcementAction.reason || ''
+  }
+}
+
+function getActiveCaseEnforcementErrorSummary(errors) {
+  return Object.entries(errors).map(([field, error]) => ({ text: error.text, href: `#${field}` }))
+}
+
+function renderActiveCaseEnforcementAction(req, res, activeCase, caseId, stage, formValues, errors = {}) {
+  return res.render('active-case/enforcement-action', {
+    activeCase,
+    caseId,
+    stage,
+    pageHeading: stage === 'select' ? 'Add enforcement action' : 'Enforcement Summons (MSUMM)',
+    formAction: stage === 'select'
+      ? `/active-case/${caseId}/enforcement/add`
+      : stage === 'change'
+        ? `/active-case/${caseId}/enforcement/change`
+        : `/active-case/${caseId}/enforcement/msumm`,
+    backHref: stage === 'details' ? `/active-case/${caseId}/enforcement/add` : `/active-case/${caseId}?tab=enforcement`,
+    cancelHref: `/active-case/${caseId}?tab=enforcement`,
+    courtItems: [
+      { value: '', text: '' },
+      ...englandAndWalesFamilyCourts.map((court) => ({ value: court, text: court, selected: formValues['enforcement-court'] === court }))
+    ],
+    formValues,
+    errors,
+    errorSummary: Object.keys(errors).length ? getActiveCaseEnforcementErrorSummary(errors) : null
+  })
+}
+
+router.get('/active-case/:id/enforcement/add', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (activeCase.enforcementAction) {
+    return res.render('active-case/cannot-add-enforcement', { activeCase, backHref: `/active-case/${id}?tab=enforcement` })
+  }
+  return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'select', getActiveCaseEnforcementDrafts(req)[id] || getActiveCaseEnforcementValues())
+})
+
+router.post('/active-case/:id/enforcement/add', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  const values = getActiveCaseEnforcementValues(req.body)
+  getActiveCaseEnforcementDrafts(req)[id] = values
+  if (values['enforcement-action-type'] !== 'msumm') {
+    return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'select', values, {
+      'enforcement-action-type': buildFieldError('Select an enforcement action')
+    })
+  }
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}/enforcement/msumm`)
+})
+
+router.get('/active-case/:id/enforcement/msumm', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  const values = getActiveCaseEnforcementDrafts(req)[id]
+  if (!values || values['enforcement-action-type'] !== 'msumm') return res.redirect(`/active-case/${id}/enforcement/add`)
+  return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'details', values)
+})
+
+router.post('/active-case/:id/enforcement/msumm', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  const values = { ...(getActiveCaseEnforcementDrafts(req)[id] || {}), ...getActiveCaseEnforcementValues(req.body) }
+  const errors = {}
+  if (!englandAndWalesFamilyCourts.includes(values['enforcement-court'])) errors['enforcement-court'] = buildFieldError('Select a court')
+  addActiveCaseVaryOrderDateError(errors, values, 'enforcement-hearing-date', 'Date of hearing')
+  if (values['enforcement-hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['enforcement-hearing-time'])) errors['enforcement-hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
+  if (values['enforcement-reason'].length > 1000) errors['enforcement-reason'] = buildFieldError('Reason must be 1,000 characters or fewer')
+  getActiveCaseEnforcementDrafts(req)[id] = values
+  if (Object.keys(errors).length) return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'details', values, errors)
+  activeCase.enforcementAction = {
+    type: 'Enforcement Summons (MSUMM)',
+    hearingStatus: 'Pending',
+    court: values['enforcement-court'],
+    hearingDate: formatDateLong(values['enforcement-hearing-date']),
+    hearingVenue: values['enforcement-hearing-venue'],
+    hearingTime: values['enforcement-hearing-time'],
+    reason: values['enforcement-reason']
+  }
+  activeCase.enforcementHistory = activeCase.enforcementHistory || []
+  activeCase.enforcementHistory.unshift({
+    date: getHistoryDateToday(), sortValue: Date.now(), user: 'Sarah Davis', type: 'Enforcement actions',
+    details: `MSUMM | Hearing: ${activeCase.enforcementAction.hearingDate} - ${activeCase.enforcementAction.court}${values['enforcement-reason'] ? `\n${values['enforcement-reason']}` : ''}`
+  })
+  delete getActiveCaseEnforcementDrafts(req)[id]
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Enforcement action added.')
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=enforcement`)
+})
+
+router.get('/active-case/:id/enforcement/change', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (!activeCase.enforcementAction) return res.redirect(`/active-case/${id}?tab=enforcement`)
+  return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'change', getActiveCaseEnforcementActionValues(activeCase.enforcementAction))
+})
+
+router.post('/active-case/:id/enforcement/change', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  if (!activeCase.enforcementAction) return res.redirect(`/active-case/${id}?tab=enforcement`)
+  const values = getActiveCaseEnforcementValues(req.body)
+  const errors = {}
+  if (!englandAndWalesFamilyCourts.includes(values['enforcement-court'])) errors['enforcement-court'] = buildFieldError('Select a court')
+  addActiveCaseVaryOrderDateError(errors, values, 'enforcement-hearing-date', 'Date of hearing')
+  if (values['enforcement-hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['enforcement-hearing-time'])) errors['enforcement-hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
+  if (values['enforcement-reason'].length > 1000) errors['enforcement-reason'] = buildFieldError('Reason must be 1,000 characters or fewer')
+  if (Object.keys(errors).length) return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'change', values, errors)
+
+  activeCase.enforcementAction = {
+    ...activeCase.enforcementAction,
+    court: values['enforcement-court'],
+    hearingDate: formatDateLong(values['enforcement-hearing-date']),
+    hearingVenue: values['enforcement-hearing-venue'],
+    hearingTime: values['enforcement-hearing-time'],
+    reason: values['enforcement-reason']
+  }
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Enforcement action changed.')
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=enforcement`)
 })
 
 router.get('/active-case/:id', (req, res) => {

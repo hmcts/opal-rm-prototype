@@ -1,0 +1,54 @@
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Enforcement</h2>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% if activeCase.enforcementAction %}
+      {% set enforcementActionTag %}
+        {{ govukTag({ text: activeCase.enforcementAction.type, classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
+      {% endset %}
+
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Last enforcement action" },
+          actions: {
+            items: [
+              {
+                href: "/active-case/" + caseId + "/enforcement/change",
+                text: "Change",
+                visuallyHiddenText: "last enforcement action details"
+              }
+            ]
+          }
+        },
+        rows: [
+          { key: { text: "Enforcement action" }, value: { html: enforcementActionTag } },
+          { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason or "—" } },
+          { key: { text: "Hearing status" }, value: { text: activeCase.enforcementAction.hearingStatus or "Pending" } },
+          { key: { text: "Hearing court" }, value: { text: activeCase.enforcementAction.court or "—" } },
+          { key: { text: "Hearing venue" }, value: { text: activeCase.enforcementAction.hearingVenue or "—" } },
+          { key: { text: "Hearing date" }, value: { text: activeCase.enforcementAction.hearingDate or "—" } },
+          { key: { text: "Hearing time" }, value: { text: activeCase.enforcementAction.hearingTime or "—" } }
+        ]
+      }) }}
+    {% else %}
+      <p class="govuk-body">No current enforcement.</p>
+    {% endif %}
+  </div>
+
+  <div class="govuk-grid-column-one-third">
+    <aside class="govuk-prototype-kit-common-templates-related-items" role="complementary">
+      <h2 class="govuk-heading-m">Actions</h2>
+      <nav>
+        <ul class="govuk-list">
+          <li><a class="govuk-link" href="/active-case/{{ caseId }}/enforcement/add">Add enforcement action</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+</div>
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}

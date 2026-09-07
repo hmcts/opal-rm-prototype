@@ -1,0 +1,104 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% block pageTitle %}
+  {{ pageHeading }} - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set formErrors = errors or {} %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if stage === 'details' or stage === 'change' %}
+        {{ govukBackLink({ text: "Back", href: backHref }) }}
+      {% endif %}
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">{{ pageHeading }}</h1>
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+
+      <form method="post" action="{{ formAction }}">
+        {% if stage === 'select' %}
+          {{ govukSelect({
+            id: "enforcement-action-type",
+            name: "enforcement-action-type",
+            label: { text: "Select an enforcement action", classes: "govuk-label--m" },
+            items: [
+              { value: "", text: "" },
+              { value: "msumm", text: "Enforcement Summons (MSUMM)", selected: formValues["enforcement-action-type"] === "msumm" }
+            ],
+            errorMessage: formErrors["enforcement-action-type"]
+          }) }}
+          <div class="govuk-button-group">
+            {{ govukButton({ text: "Continue" }) }}
+            <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          </div>
+        {% else %}
+          {{ govukSelect({
+            id: "enforcement-court",
+            name: "enforcement-court",
+            label: { text: "Court", classes: "govuk-label--s" },
+            classes: "govuk-!-width-two-thirds",
+            items: courtItems,
+            errorMessage: formErrors["enforcement-court"]
+          }) }}
+
+          {{ govukInput({
+            id: "enforcement-hearing-venue",
+            name: "enforcement-hearing-venue",
+            label: { text: "Hearing venue (optional)", classes: "govuk-label--s" },
+            classes: "govuk-!-width-two-thirds",
+            value: formValues["enforcement-hearing-venue"],
+            errorMessage: formErrors["enforcement-hearing-venue"]
+          }) }}
+
+          {{ mojDatePicker({
+            id: "enforcement-hearing-date",
+            name: "enforcement-hearing-date",
+            label: { text: "Date of hearing", classes: "govuk-label--s" },
+            hint: { text: "For example, 31/01/2023" },
+            value: formValues["enforcement-hearing-date"],
+            errorMessage: formErrors["enforcement-hearing-date"]
+          }) }}
+
+          {{ govukInput({
+            id: "enforcement-hearing-time",
+            name: "enforcement-hearing-time",
+            label: { text: "Hearing time (optional)", classes: "govuk-label--s" },
+            hint: { text: "Use the 24-hour clock. For example, 02:30 or 14:30 and midnight is 00:00" },
+            classes: "govuk-input--width-5",
+            value: formValues["enforcement-hearing-time"],
+            errorMessage: formErrors["enforcement-hearing-time"]
+          }) }}
+
+          {{ govukTextarea({
+            id: "enforcement-reason",
+            name: "enforcement-reason",
+            label: { text: "Reason (optional)", classes: "govuk-label--s" },
+            rows: 5,
+            value: formValues["enforcement-reason"],
+            errorMessage: formErrors["enforcement-reason"]
+          }) }}
+
+          <div class="govuk-button-group">
+            {% if stage === 'change' %}
+              {{ govukButton({ text: "Save changes" }) }}
+            {% else %}
+              {{ govukButton({ text: "Add enforcement action" }) }}
+            {% endif %}
+            <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+{% endblock %}

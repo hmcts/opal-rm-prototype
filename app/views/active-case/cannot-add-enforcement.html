@@ -1,0 +1,17 @@
+{% extends "layouts/main.html" %}
+
+{% block pageTitle %}
+  You cannot add an enforcement action - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">You cannot add an enforcement action</h1>
+      <p class="govuk-body">You cannot add an enforcement action to an account that has a last enforcement action of:</p>
+      <p class="govuk-body govuk-!-font-weight-bold">{{ activeCase.enforcementAction.type }}</p>
+      <p class="govuk-body"><a class="govuk-link" href="{{ backHref }}">Go back</a></p>
+    </div>
+  </div>
+{% endblock %}
