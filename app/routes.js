@@ -1513,6 +1513,11 @@ function validateMinorCreditor(body) {
     if (!hasValue(getSingleValue(body['minor-creditor-non-uk-name-on-account']))) {
       errors['minor-creditor-non-uk-name-on-account'] = buildFieldError('Enter name on account')
     }
+    if (!hasValue(getSingleValue(body['minor-creditor-non-uk-payment-reference']))) {
+      errors['minor-creditor-non-uk-payment-reference'] = buildFieldError(
+        'Enter non-UK bank account payment reference'
+      )
+    }
     if (!hasValue(bicOrSwiftCode) && !hasValue(iban)) {
       errors['minor-creditor-non-uk-bic-or-swift-code'] = buildFieldError(
         'Enter either BIC or SWIFT code or IBAN number'
@@ -6749,6 +6754,7 @@ router.get('/create-a-case/order-details', (req, res) => {
     applicationLookupJson: getApplicationLookupJson(caseType),
     errors: {},
     errorSummary: null,
+    latestAllowedDate: getCurrentDateString(),
     paymentFrequencyItems: getPaymentFrequencyItems(
       getCreateACaseData(req)['order-payment-frequency']
     ),
@@ -6787,6 +6793,7 @@ router.post('/create-a-case/order-details', (req, res, next) => {
       applicationLookupJson: getApplicationLookupJson(getCreateACaseData(req)['case-type']),
       errors,
       errorSummary: buildErrorSummary(errors),
+      latestAllowedDate: getCurrentDateString(),
       paymentFrequencyItems: getPaymentFrequencyItems(
         getSingleValue(req.body['order-payment-frequency']) || ''
       ),
@@ -11880,9 +11887,10 @@ router.get('/active-case/:id/order-details', (req, res) => {
     orderMadeFieldsOptional: true,
     primaryButtonText: 'Save changes',
     applicationItems: getApplicationOptionItems(orders.details.applicationCode, caseType),
-	    applicationLookupJson: getApplicationLookupJson(caseType),
+    applicationLookupJson: getApplicationLookupJson(caseType),
 	    errors: {},
 	    errorSummary: null,
+	    latestAllowedDate: getCurrentDateString(),
 	    routeGuard: true,
 	    paymentFrequencyItems: getPaymentFrequencyItems(orders.details.paymentFrequency || 'monthly')
 	  })
@@ -11919,6 +11927,7 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
 	      applicationLookupJson: getApplicationLookupJson(caseType),
 	      errors,
 	      errorSummary: buildErrorSummary(errors),
+	      latestAllowedDate: getCurrentDateString(),
 	      routeGuard: true,
 	      paymentFrequencyItems: getPaymentFrequencyItems(
         getSingleValue(req.body['order-payment-frequency']) || ''
