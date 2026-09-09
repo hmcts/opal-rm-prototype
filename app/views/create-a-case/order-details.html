@@ -67,6 +67,7 @@
             classes: "govuk-label--s"
           },
           value: data["order-date-order-made"],
+          maxDate: latestAllowedDate,
           errorMessage: formErrors["order-date-order-made"]
         }) }}
 
@@ -96,6 +97,7 @@
             classes: "govuk-label--s"
           },
           value: data["order-date-arrears-last-updated"],
+          maxDate: latestAllowedDate,
           errorMessage: formErrors["order-date-arrears-last-updated"]
         }) }}
 
