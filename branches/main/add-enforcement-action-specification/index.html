@@ -1,0 +1,988 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Beginner-friendly setup and working guide for the Opal RM prototype">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Add enforcement action journey - Opal RM Prototype Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#add-enforcement-action-journey" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Opal RM Prototype Docs" class="md-header__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Opal RM Prototype Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Add enforcement action journey
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Opal RM Prototype Docs" class="md-nav__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Opal RM Prototype Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../windows-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../macbook-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git-and-github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git and GitHub Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-codex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Codex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github-pages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Pages Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose and scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-system-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-system references
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#journey-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Journey overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entry-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-1-select-an-enforcement-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page 1: Select an enforcement action
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Page 1: Select an enforcement action">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-2-enforcement-summons-msumm-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page 2: Enforcement Summons (MSUMM) details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Page 2: Enforcement Summons (MSUMM) details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hearing-date-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hearing date warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navigation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-3-check-enforcement-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page 3: Check enforcement details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Page 3: Check enforcement details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-submission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On submission
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enforcement-tab-after-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enforcement tab after creation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#active-court-case-banner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active court-case banner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cannot-add-enforcement-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cannot-add enforcement action
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-specific-error-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific error messages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prototype-implementation-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prototype implementation references
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="add-enforcement-action-journey">Add enforcement action journey<a class="headerlink" href="#add-enforcement-action-journey" title="Permanent link">&para;</a></h1>
+<h2 id="purpose-and-scope">Purpose and scope<a class="headerlink" href="#purpose-and-scope" title="Permanent link">&para;</a></h2>
+<p>This specification describes the prototype journey for adding an enforcement action to a <strong>respondent account</strong>. It currently supports one enforcement action type: Enforcement Summons (MSUMM).</p>
+<p>The journey begins on the Enforcement tab. The at-a-glance Enforcement status panel communicates the account status but does not provide the add-action link.</p>
+<p>This is a prototype specification. The action and its audit history are held in session data for the duration of the prototype session; they are not persisted to a backend service.</p>
+<h2 id="design-system-references">Design-system references<a class="headerlink" href="#design-system-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://design-system.service.gov.uk/components/select/">GOV.UK select</a></li>
+<li><a href="https://design-system.service.gov.uk/components/textarea/">GOV.UK textarea</a></li>
+<li><a href="https://design-system.service.gov.uk/components/text-input/">GOV.UK text input</a></li>
+<li><a href="https://design-system.service.gov.uk/components/error-message/">GOV.UK error message and validation</a></li>
+<li><a href="https://design-system.service.gov.uk/patterns/check-answers/">GOV.UK summary list and summary card</a></li>
+<li><a href="https://design-system.service.gov.uk/components/inset-text/">GOV.UK inset text</a></li>
+<li><a href="https://design-patterns.service.justice.gov.uk/components/date-picker/">MOJ date picker</a></li>
+<li><a href="https://design-patterns.service.justice.gov.uk/components/autocomplete/">MOJ autocomplete</a></li>
+<li><a href="https://design-patterns.service.justice.gov.uk/components/alert/">MOJ alert</a></li>
+</ul>
+<p>The source design is the Add enforcement action journey in <a href="https://www.figma.com/design/RPjAMYkSNtrw2S995IuwbW/RM---Cases?node-id=3956-158181">Figma</a>.</p>
+<h2 id="journey-overview">Journey overview<a class="headerlink" href="#journey-overview" title="Permanent link">&para;</a></h2>
+<pre><code class="language-mermaid">flowchart TD
+  A[Respondent account: Enforcement tab] --&gt; B{Current enforcement action?}
+  B --&gt;|No| C[Add enforcement action]
+  B --&gt;|Yes| D[Cannot add enforcement action]
+  C --&gt; E{MSUMM selected?}
+  E --&gt;|No| C
+  E --&gt;|Yes| F[Enforcement Summons (MSUMM) details]
+  F --&gt; G{Valid fields?}
+  G --&gt;|No| F
+  G --&gt;|Yes| H[Check enforcement details]
+  H --&gt;|Change| F
+  H --&gt;|Submit| I[Create action with Scheduled hearing]
+  I --&gt; J[Enforcement tab with success message]
+</code></pre>
+<h2 id="entry-rules">Entry rules<a class="headerlink" href="#entry-rules" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The journey is available from the <strong>Actions</strong> panel on the Enforcement tab.</li>
+<li>The action link is labelled <strong>Add enforcement action</strong>.</li>
+<li>The journey is for respondent accounts only.</li>
+<li>Only one current enforcement action can exist on an account in the prototype.</li>
+<li>If a current enforcement action exists, the user is shown the cannot-add screen instead of a new action form.</li>
+<li>Direct navigation to an unknown account returns the user to the approved cases list.</li>
+</ul>
+<h2 id="page-1-select-an-enforcement-action">Page 1: Select an enforcement action<a class="headerlink" href="#page-1-select-an-enforcement-action" title="Permanent link">&para;</a></h2>
+<p><strong>Route:</strong> <code>GET /active-case/:id/enforcement/add</code><br />
+<strong>Page title and H1:</strong> Add enforcement action</p>
+<p><strong>Screenshot placeholder:</strong> <em>Add enforcement action — select action type.</em></p>
+<p>The user selects an enforcement action and chooses Continue. The only available option is Enforcement Summons (MSUMM).</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enforcement action type</td>
+<td>GOV.UK select. Blank by default. The only available action is <code>Enforcement Summons (MSUMM)</code> with value <code>msumm</code>. Required.</td>
+<td>Visible label is programmatically associated with the select. Native select semantics are used; no additional ARIA is required.</td>
+<td><code>Select an enforcement action</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Continue:</strong> saves the draft selection and opens the MSUMM details page.</li>
+<li><strong>Cancel:</strong> returns to the Enforcement tab.</li>
+<li>There is no back link on this page.</li>
+</ul>
+<h2 id="page-2-enforcement-summons-msumm-details">Page 2: Enforcement Summons (MSUMM) details<a class="headerlink" href="#page-2-enforcement-summons-msumm-details" title="Permanent link">&para;</a></h2>
+<p><strong>Route:</strong> <code>GET /active-case/:id/enforcement/msumm</code><br />
+<strong>Page title and H1:</strong> Enforcement Summons (MSUMM)</p>
+<p><strong>Screenshot placeholder:</strong> <em>Enforcement Summons (MSUMM) — hearing details and past-date warning.</em></p>
+<p>The account number and respondent name are shown as a caption. The page has a Back link to the action-type selection page.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reason</td>
+<td>GOV.UK textarea. Optional. Maximum 1,000 characters.</td>
+<td>Visible label is associated with the textarea.</td>
+<td><code>Reason must be 1,000 characters or fewer</code></td>
+</tr>
+<tr>
+<td>Court</td>
+<td>MOJ autocomplete populated from the England and Wales family court list. Required. Display width is two-thirds.</td>
+<td>Visible label is associated with the autocomplete input. The autocomplete provides its standard combobox semantics and keyboard behaviour.</td>
+<td><code>Select a court</code></td>
+</tr>
+<tr>
+<td>Hearing venue</td>
+<td>GOV.UK text input. Optional. Display width is two-thirds.</td>
+<td>Visible label is associated with the input.</td>
+<td>None.</td>
+</tr>
+<tr>
+<td>Hearing date</td>
+<td>MOJ date picker. Required. Accepts a real date in <code>DD/MM/YYYY</code> format. Dates in the past and future can be selected or entered.</td>
+<td>Visible label is associated with the date input. The past-date warning is a polite live region (<code>role="status"</code>, <code>aria-live="polite"</code>).</td>
+<td><code>Enter hearing date</code>; <code>Enter a real hearing date in the format DD/MM/YYYY</code></td>
+</tr>
+<tr>
+<td>Hearing time</td>
+<td>GOV.UK text input. Optional. Must use 24-hour <code>HH:MM</code> format if entered; <code>00:00</code> represents midnight.</td>
+<td>Visible label and hint are associated with the input.</td>
+<td><code>Enter a hearing time in the format HH:MM</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="hearing-date-warning">Hearing date warning<a class="headerlink" href="#hearing-date-warning" title="Permanent link">&para;</a></h3>
+<p>When a valid hearing date earlier than today is entered or selected, show the warning immediately below the date picker:</p>
+<blockquote>
+<p><strong>Hearing date in the past</strong><br />
+You can continue with this date or change it</p>
+</blockquote>
+<p>The warning:</p>
+<ul>
+<li>uses the GOV.UK inset text component with the approved custom visual treatment: MOJ orange left border and light grey background</li>
+<li>is hidden when the date is today, future, blank or invalid</li>
+<li>does not prevent the user continuing</li>
+<li>is announced politely to screen-reader users when it appears</li>
+</ul>
+<h3 id="navigation_1">Navigation<a class="headerlink" href="#navigation_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Back:</strong> returns to the action-type selection page.</li>
+<li><strong>Continue:</strong> validates the form, saves all entered values in the draft, and opens Check enforcement details.</li>
+<li><strong>Cancel:</strong> returns to the Enforcement tab and does not create an action.</li>
+</ul>
+<h2 id="page-3-check-enforcement-details">Page 3: Check enforcement details<a class="headerlink" href="#page-3-check-enforcement-details" title="Permanent link">&para;</a></h2>
+<p><strong>Route:</strong> <code>GET /active-case/:id/enforcement/check</code><br />
+<strong>Page title and H1:</strong> Check enforcement details</p>
+<p><strong>Screenshot placeholder:</strong> <em>Check enforcement details — Enforcement action summary card.</em></p>
+<p>The page displays an <strong>Enforcement action</strong> summary card containing:</p>
+<ul>
+<li>Enforcement action: Enforcement Summons (MSUMM), shown as a blue tag</li>
+<li>Reason</li>
+<li>Hearing court</li>
+<li>Hearing venue</li>
+<li>Hearing date in long date format</li>
+<li>Hearing time</li>
+</ul>
+<p>The card has a <strong>Change</strong> link that returns to the populated MSUMM details page. The link must not be blocked by a leave-page warning because the check page contains no editable, unsaved data.</p>
+<h3 id="navigation_2">Navigation<a class="headerlink" href="#navigation_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Change:</strong> returns to the MSUMM details form with the draft values preserved.</li>
+<li><strong>Submit:</strong> creates the enforcement action.</li>
+<li><strong>Cancel:</strong> returns to the Enforcement tab and does not create an action.</li>
+</ul>
+<h2 id="on-submission">On submission<a class="headerlink" href="#on-submission" title="Permanent link">&para;</a></h2>
+<p>On successful submission:</p>
+<ol>
+<li>Create the enforcement action with:</li>
+<li>type: <code>Enforcement Summons (MSUMM)</code></li>
+<li>hearing status: <code>Scheduled</code></li>
+<li>the reason, court, venue, hearing date and hearing time entered by the user</li>
+<li>Add an Enforcement actions item to account history. It includes the MSUMM type, hearing date, court and, where supplied, the reason.</li>
+<li>Clear the enforcement-action draft.</li>
+<li>Redirect to the Enforcement tab.</li>
+<li>Show a dismissible MOJ success alert: <code>Enforcement action added.</code></li>
+</ol>
+<p><strong>Screenshot placeholder:</strong> <em>Enforcement tab after successful creation, with success alert and action summary card.</em></p>
+<h2 id="enforcement-tab-after-creation">Enforcement tab after creation<a class="headerlink" href="#enforcement-tab-after-creation" title="Permanent link">&para;</a></h2>
+<p>The Enforcement tab shows a summary card headed <strong>Last enforcement action</strong>. Its action is labelled <strong>Manage hearings</strong>; the future Manage hearings journey will define its destination and behaviour.</p>
+<p>The card displays:</p>
+<ul>
+<li>Enforcement action tag</li>
+<li>Reason</li>
+<li>Hearing status tag</li>
+<li>Hearing court</li>
+<li>Hearing venue</li>
+<li>Hearing date</li>
+<li>Hearing time</li>
+</ul>
+<p>Hearing status tags are:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Tag treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scheduled</td>
+<td>Grey GOV.UK tag</td>
+</tr>
+<tr>
+<td>Result pending</td>
+<td>Yellow GOV.UK tag</td>
+</tr>
+<tr>
+<td>Resulted</td>
+<td>Default light-blue GOV.UK tag</td>
+</tr>
+</tbody>
+</table>
+<h2 id="active-court-case-banner">Active court-case banner<a class="headerlink" href="#active-court-case-banner" title="Permanent link">&para;</a></h2>
+<p>Show the account-level MOJ information alert directly below any success alert, and above the account header, whenever any enforcement action or application hearing has a status of <code>Scheduled</code> or <code>Result pending</code>.</p>
+<p>The alert text is:</p>
+<blockquote>
+<p>Account has one or more active court cases.</p>
+</blockquote>
+<p>The banner is visible across the account tabs. It is not shown when every hearing is <code>Resulted</code> or when there are no active hearings.</p>
+<h2 id="cannot-add-enforcement-action">Cannot-add enforcement action<a class="headerlink" href="#cannot-add-enforcement-action" title="Permanent link">&para;</a></h2>
+<p><strong>Route:</strong> <code>GET /active-case/:id/enforcement/add</code> when a current action exists</p>
+<p><strong>Screenshot placeholder:</strong> <em>Cannot add enforcement action.</em></p>
+<p>Show this message:</p>
+<blockquote>
+<p>You cannot add an enforcement action while another enforcement action is active.</p>
+</blockquote>
+<p>Provide a Back link to the Enforcement tab. Do not create or overwrite an action.</p>
+<h2 id="page-specific-error-messages">Page-specific error messages<a class="headerlink" href="#page-specific-error-messages" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Condition</th>
+<th>Error summary and inline error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Select an enforcement action</td>
+<td>No action selected</td>
+<td><code>Select an enforcement action</code></td>
+</tr>
+<tr>
+<td>MSUMM details</td>
+<td>Court is blank or not in the court list</td>
+<td><code>Select a court</code></td>
+</tr>
+<tr>
+<td>MSUMM details</td>
+<td>Hearing date is blank</td>
+<td><code>Enter hearing date</code></td>
+</tr>
+<tr>
+<td>MSUMM details</td>
+<td>Hearing date is not a real date in <code>DD/MM/YYYY</code> format</td>
+<td><code>Enter a real hearing date in the format DD/MM/YYYY</code></td>
+</tr>
+<tr>
+<td>MSUMM details</td>
+<td>Hearing time is supplied but not in 24-hour <code>HH:MM</code> format</td>
+<td><code>Enter a hearing time in the format HH:MM</code></td>
+</tr>
+<tr>
+<td>MSUMM details</td>
+<td>Reason exceeds 1,000 characters</td>
+<td><code>Reason must be 1,000 characters or fewer</code></td>
+</tr>
+</tbody>
+</table>
+<p>A past hearing date is a warning, not an error, and must not appear in the error summary.</p>
+<h2 id="prototype-implementation-references">Prototype implementation references<a class="headerlink" href="#prototype-implementation-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Routes, validation and session draft handling: <code>app/routes.js</code></li>
+<li>Action selection and MSUMM details: <code>app/views/active-case/enforcement-action.html</code></li>
+<li>Check page: <code>app/views/active-case/check-enforcement-action.html</code></li>
+<li>Enforcement tab summary card: <code>app/views/active-case/enforcement.html</code></li>
+<li>Past-date warning behaviour: <code>app/assets/javascripts/application.js</code></li>
+<li>Past-date warning custom presentation: <code>app/assets/sass/application.scss</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
