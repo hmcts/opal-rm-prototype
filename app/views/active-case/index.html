@@ -23,6 +23,13 @@
     }) }}
   {% endif %}
 
+  {% if hasActiveCourtHearing %}
+    {{ mojAlert({
+      variant: "information",
+      title: "Account has one or more active court cases."
+    }) }}
+  {% endif %}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
@@ -302,12 +309,19 @@
               <h2 id="enforcement-status-heading" class="govuk-heading-m rm-enquiry-section-heading">Enforcement status</h2>
 
               {% if activeCase.enforcementAction %}
+                {% set hearingStatus = activeCase.enforcementAction.hearingStatus or "Scheduled" %}
+                {% set hearingStatusClasses = "" %}
+                {% if hearingStatus === "Scheduled" %}
+                  {% set hearingStatusClasses = "govuk-tag--grey" %}
+                {% elif hearingStatus === "Result pending" %}
+                  {% set hearingStatusClasses = "govuk-tag--yellow" %}
+                {% endif %}
                 {{ govukTag({
                   text: activeCase.enforcementAction.type,
                   classes: "govuk-tag--blue rm-enforcement-action-tag"
                 }) }}
                 <h3 class="govuk-heading-s govuk-!-margin-top-4 govuk-!-margin-bottom-1">Hearing status</h3>
-                <p class="govuk-body govuk-!-margin-bottom-3">{{ activeCase.enforcementAction.hearingStatus or "Pending" }}</p>
+                <p class="govuk-body govuk-!-margin-bottom-3">{{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}</p>
                 <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing court</h3>
                 <p class="govuk-body govuk-!-margin-bottom-3">{{ activeCase.enforcementAction.court }}</p>
                 <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing date</h3>

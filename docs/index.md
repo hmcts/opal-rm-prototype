@@ -23,6 +23,7 @@ If you are new to development tools, read in this order:
 ## Functional documentation
 
 - [Search flows and logic](search-flows-and-logic.md)
+- [Add enforcement action journey](add-enforcement-action-specification.md)
 
 ## What this repository is
 
