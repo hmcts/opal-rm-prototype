@@ -1,4 +1,5 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 <div class="govuk-grid-row govuk-!-margin-top-6">
   <div class="govuk-grid-column-full">
@@ -9,21 +10,35 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
     {% if varyOrderApplication %}
-      {{ govukSummaryList({
-        card: {
-          title: { text: "Application to vary or revoke an order" },
-          actions: {
-            items: [
-              {
-                href: "/active-case/" + caseId + "/vary-or-revoke-order",
-                text: "Change",
-                visuallyHiddenText: "application to vary or revoke an order"
-              }
-            ]
-          }
-        },
-        rows: varyOrderApplicationRows
-      }) }}
+      <div class="govuk-summary-card">
+        <div class="govuk-summary-card__title-wrapper">
+          <h3 class="govuk-summary-card__title">Application to vary or revoke an order</h3>
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <a class="govuk-link" href="/active-case/{{ caseId }}/vary-or-revoke-order">
+                Manage hearings
+                <span class="govuk-visually-hidden"> for application to vary or revoke an order</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="govuk-summary-card__content">
+          {{ govukSummaryList({
+            rows: varyOrderApplicationSummaryRows
+          }) }}
+
+          {% set applicationDetailsHtml %}
+            {{ govukSummaryList({
+              rows: varyOrderApplicationDetailsRows
+            }) }}
+          {% endset %}
+
+          {{ govukDetails({
+            summaryText: "Details",
+            html: applicationDetailsHtml
+          }) }}
+        </div>
+      </div>
     {% else %}
       <p class="govuk-body">There are no current applications.</p>
     {% endif %}
@@ -34,7 +49,7 @@
       <h2 class="govuk-heading-m">Actions</h2>
       <nav>
         <ul class="govuk-list">
-          <li><a href="/active-case/{{ caseId }}/vary-or-revoke-order" class="govuk-link">Application to vary or revoke an order</a></li>
+          <li><a href="/active-case/{{ caseId }}/application/add" class="govuk-link">Add an application</a></li>
         </ul>
       </nav>
     </aside>

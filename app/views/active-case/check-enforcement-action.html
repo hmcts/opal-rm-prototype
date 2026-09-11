@@ -1,0 +1,72 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block pageTitle %}
+  Check enforcement details - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
+{% endblock %}
+
+{% block content %}
+  {% set enforcementActionTag %}
+    {{ govukTag({ text: "Enforcement Summons (MSUMM)", classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
+  {% endset %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Check enforcement details</h1>
+
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Enforcement action" },
+          actions: {
+            items: [
+              {
+                href: changeHref,
+                text: "Change",
+                visuallyHiddenText: "enforcement action details"
+              }
+            ]
+          }
+        },
+        rows: [
+          {
+            key: { text: "Enforcement action" },
+            value: { html: enforcementActionTag }
+          },
+          {
+            key: { text: "Reason" },
+            value: { text: formValues["enforcement-reason"] or "—" }
+          },
+          {
+            key: { text: "Hearing court" },
+            value: { text: formValues["enforcement-court"] }
+          },
+          {
+            key: { text: "Hearing venue" },
+            value: { text: formValues["enforcement-hearing-venue"] or "—" }
+          },
+          {
+            key: { text: "Hearing date" },
+            value: { text: hearingDate }
+          },
+          {
+            key: { text: "Hearing time" },
+            value: { text: formValues["enforcement-hearing-time"] or "—" }
+          }
+        ]
+      }) }}
+
+      <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+      <form method="post" action="{{ formAction }}">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Submit" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

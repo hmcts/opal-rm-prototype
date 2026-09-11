@@ -4,9 +4,11 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}
   {{ pageHeading }} - {{ activeCase.respondentName }} - {{ serviceName }} - GOV.UK Prototype Kit
@@ -43,11 +45,25 @@
             <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
           </div>
         {% else %}
-          {{ govukSelect({
+          {{ govukTextarea({
+            id: "enforcement-reason",
+            name: "enforcement-reason",
+            label: { text: "Reason (optional)", classes: "govuk-label--s" },
+            rows: 5,
+            value: formValues["enforcement-reason"],
+            errorMessage: formErrors["enforcement-reason"]
+          }) }}
+
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+          <h2 class="govuk-heading-m">Hearing details</h2>
+
+          {{ xGovukAutocomplete({
             id: "enforcement-court",
             name: "enforcement-court",
             label: { text: "Court", classes: "govuk-label--s" },
             classes: "govuk-!-width-two-thirds",
+            value: formValues["enforcement-court"],
             items: courtItems,
             errorMessage: formErrors["enforcement-court"]
           }) }}
@@ -64,10 +80,22 @@
           {{ mojDatePicker({
             id: "enforcement-hearing-date",
             name: "enforcement-hearing-date",
-            label: { text: "Date of hearing", classes: "govuk-label--s" },
+            label: { text: "Hearing date", classes: "govuk-label--s" },
             hint: { text: "For example, 31/01/2023" },
             value: formValues["enforcement-hearing-date"],
             errorMessage: formErrors["enforcement-hearing-date"]
+          }) }}
+
+          {{ govukInsetText({
+            classes: "rm-hearing-date-inset",
+            attributes: {
+              "data-module": "rm-hearing-date-check",
+              "data-date-input-id": "enforcement-hearing-date",
+              "role": "status",
+              "aria-live": "polite",
+              "hidden": "hidden"
+            },
+            html: '<h2 class="govuk-heading-m">Hearing date in the past</h2><p class="govuk-body">You can continue with this date or change it</p>'
           }) }}
 
           {{ govukInput({
@@ -80,20 +108,13 @@
             errorMessage: formErrors["enforcement-hearing-time"]
           }) }}
 
-          {{ govukTextarea({
-            id: "enforcement-reason",
-            name: "enforcement-reason",
-            label: { text: "Reason (optional)", classes: "govuk-label--s" },
-            rows: 5,
-            value: formValues["enforcement-reason"],
-            errorMessage: formErrors["enforcement-reason"]
-          }) }}
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
           <div class="govuk-button-group">
             {% if stage === 'change' %}
               {{ govukButton({ text: "Save changes" }) }}
             {% else %}
-              {{ govukButton({ text: "Add enforcement action" }) }}
+              {{ govukButton({ text: "Continue" }) }}
             {% endif %}
             <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
           </div>

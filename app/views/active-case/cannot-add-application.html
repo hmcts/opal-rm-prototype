@@ -1,15 +1,15 @@
 {% extends "layouts/main.html" %}
 
 {% block pageTitle %}
-  You cannot add an enforcement action - {{ serviceName }} - GOV.UK Prototype Kit
+  You cannot add an application - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
-      <h1 class="govuk-heading-l">You cannot add an enforcement action</h1>
-      <p class="govuk-body govuk-!-font-weight-bold">{{ activeCase.enforcementAction.type }}</p>
+      <h1 class="govuk-heading-l">You cannot add an application</h1>
+      <p class="govuk-body govuk-!-font-weight-bold">Application to vary or revoke an order</p>
       <p class="govuk-body">{{ cannotAddReason }}</p>
       <p class="govuk-body"><a class="govuk-link" href="{{ backHref }}">Go back</a></p>
     </div>

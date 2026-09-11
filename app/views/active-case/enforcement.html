@@ -10,6 +10,16 @@
       {% set enforcementActionTag %}
         {{ govukTag({ text: activeCase.enforcementAction.type, classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
       {% endset %}
+      {% set hearingStatus = activeCase.enforcementAction.hearingStatus or "Scheduled" %}
+      {% set hearingStatusClasses = "" %}
+      {% if hearingStatus === "Scheduled" %}
+        {% set hearingStatusClasses = "govuk-tag--grey" %}
+      {% elif hearingStatus === "Result pending" %}
+        {% set hearingStatusClasses = "govuk-tag--yellow" %}
+      {% endif %}
+      {% set hearingStatusTag %}
+        {{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}
+      {% endset %}
 
       {{ govukSummaryList({
         card: {
@@ -18,8 +28,8 @@
             items: [
               {
                 href: "/active-case/" + caseId + "/enforcement/change",
-                text: "Change",
-                visuallyHiddenText: "last enforcement action details"
+                text: "Manage hearings",
+                visuallyHiddenText: "for the last enforcement action"
               }
             ]
           }
@@ -27,7 +37,7 @@
         rows: [
           { key: { text: "Enforcement action" }, value: { html: enforcementActionTag } },
           { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason or "—" } },
-          { key: { text: "Hearing status" }, value: { text: activeCase.enforcementAction.hearingStatus or "Pending" } },
+          { key: { text: "Hearing status" }, value: { html: hearingStatusTag } },
           { key: { text: "Hearing court" }, value: { text: activeCase.enforcementAction.court or "—" } },
           { key: { text: "Hearing venue" }, value: { text: activeCase.enforcementAction.hearingVenue or "—" } },
           { key: { text: "Hearing date" }, value: { text: activeCase.enforcementAction.hearingDate or "—" } },
