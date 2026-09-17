@@ -12,12 +12,12 @@
     {% if varyOrderApplication %}
       <div class="govuk-summary-card">
         <div class="govuk-summary-card__title-wrapper">
-          <h3 class="govuk-summary-card__title">Application to vary or revoke an order</h3>
+          <h3 class="govuk-summary-card__title">{{ varyOrderApplication.type or "Application to vary or revoke an order" }}</h3>
           <ul class="govuk-summary-card__actions">
             <li class="govuk-summary-card__action">
-              <a class="govuk-link" href="/active-case/{{ caseId }}/vary-or-revoke-order">
-                Manage hearings
-                <span class="govuk-visually-hidden"> for application to vary or revoke an order</span>
+              <a class="govuk-link" href="/active-case/{{ caseId }}/application/hearing">
+                Manage hearing
+                <span class="govuk-visually-hidden"> for {{ varyOrderApplication.type or "Application to vary or revoke an order" }}</span>
               </a>
             </li>
           </ul>
@@ -40,7 +40,7 @@
         </div>
       </div>
     {% else %}
-      <p class="govuk-body">There are no current applications.</p>
+      <p class="govuk-body">No current applications to show.</p>
     {% endif %}
   </div>
 
