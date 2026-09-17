@@ -11602,8 +11602,7 @@ function renderActiveCaseVaryOrderForm(req, res, activeCase, caseId, formValues,
     errors,
     errorSummary: Object.keys(errors).length
       ? getActiveCaseVaryOrderErrorSummary(errors)
-      : null,
-    latestAllowedDate: getCurrentDateString()
+      : null
   })
 }
 
@@ -11746,6 +11745,7 @@ router.post('/active-case/:id/vary-or-revoke-order/check', (req, res, next) => {
 
   setActiveCaseVaryOrderApplication(req, id, {
     ...application,
+    type: existingApplication?.type || 'Application to vary or revoke an order',
     hearingStatus: application.hearingStatus || 'Scheduled'
   })
   clearActiveCaseVaryOrderDraft(req, id)
@@ -11967,6 +11967,97 @@ router.post('/active-case/:id/enforcement/change', (req, res, next) => {
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=enforcement`)
 })
 
+// Both hearing journeys use the record's type as their visible context.
+function getManagedHearing(req) {
+  const id = Number(req.params.id)
+  const category = req.params.category
+  const activeCase = activeCases[id]
+  if (!activeCase || !['application', 'enforcement'].includes(category)) return null
+  const application = category === 'application'
+  const record = application ? getActiveCaseVaryOrderApplication(req, id) : activeCase.enforcementAction
+  if (!record) return null
+  const values = application ? record : getActiveCaseEnforcementActionValues(record)
+  const prefix = application ? 'vary-order-hearing-' : 'enforcement-hearing-'
+  return {
+    id, category, activeCase, record,
+    hearingType: record.type || 'Application to vary or revoke an order',
+    categoryLabel: application ? 'Application' : 'Enforcement',
+    formAction: `/active-case/${id}/${category}/hearing`,
+    cancelHref: `/active-case/${id}?tab=${application ? 'hearings' : 'enforcement'}`,
+    formValues: {
+      'hearing-court': values[application ? 'vary-order-hearing-court' : 'enforcement-court'] || '',
+      'hearing-venue': values[`${prefix}venue`] || '',
+      'hearing-date': values[`${prefix}date`] || '',
+      'hearing-time': values[`${prefix}time`] || ''
+    }
+  }
+}
+
+function renderManagedHearing(res, hearing, formValues = hearing.formValues, errors = {}) {
+  return res.render('active-case/manage-hearing', {
+    ...hearing, formValues, errors,
+    courtItems: getActiveCaseVaryOrderHearingCourtItems(),
+    errorSummary: getActiveCaseVaryOrderErrorSummary(errors)
+  })
+}
+
+router.get('/active-case/:id/:category/hearing', (req, res) => {
+  const hearing = getManagedHearing(req)
+  if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
+  return renderManagedHearing(res, hearing)
+})
+
+router.post('/active-case/:id/:category/hearing', (req, res, next) => {
+  const hearing = getManagedHearing(req)
+  if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
+  const values = {}
+  for (const field of ['court', 'venue', 'date', 'time']) {
+    values[`hearing-${field}`] = String(getSingleValue(req.body[`hearing-${field}`]) || '').trim()
+  }
+  const errors = {}
+  if (!englandAndWalesFamilyCourts.includes(values['hearing-court'])) {
+    errors['hearing-court'] = buildFieldError('Select a court')
+  }
+  addActiveCaseVaryOrderDateError(errors, values, 'hearing-date', 'Hearing date')
+  if (values['hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['hearing-time'])) {
+    errors['hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
+  }
+  if (Object.keys(errors).length) return renderManagedHearing(res, hearing, values, errors)
+  if (hearing.category === 'application') {
+    for (const field of ['court', 'venue', 'date', 'time']) {
+      hearing.record[`vary-order-hearing-${field}`] = values[`hearing-${field}`]
+    }
+  } else {
+    Object.assign(hearing.record, {
+      court: values['hearing-court'], hearingVenue: values['hearing-venue'],
+      hearingDate: formatDateLong(values['hearing-date']), hearingTime: values['hearing-time']
+    })
+  }
+  setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, `${hearing.categoryLabel} hearing updated.`)
+  return redirectWithSessionSave(req, res, next, hearing.cancelHref)
+})
+
+router.get('/active-case/:id/:category/hearing/delete', (req, res) => {
+  const hearing = getManagedHearing(req)
+  if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
+  return res.render('active-case/delete-hearing', hearing)
+})
+
+router.post('/active-case/:id/:category/hearing/delete', (req, res, next) => {
+  const hearing = getManagedHearing(req)
+  if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
+  if (hearing.category === 'application') {
+    delete getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationsKey)[hearing.id]
+    clearActiveCaseVaryOrderDraft(req, hearing.id)
+    clearActiveCaseApplicationType(req, hearing.id)
+  } else {
+    delete hearing.activeCase.enforcementAction
+    delete getActiveCaseEnforcementDrafts(req)[hearing.id]
+  }
+  setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, `${hearing.categoryLabel} hearing deleted.`)
+  return redirectWithSessionSave(req, res, next, hearing.cancelHref)
+})
+
 router.get('/active-case/:id', (req, res) => {
   const id = Number(req.params.id)
   const tab = req.query.tab || 'at-a-glance'
@@ -11999,8 +12090,7 @@ router.get('/active-case/:id', (req, res) => {
     varyOrderApplicationSummaryRows: getActiveCaseVaryOrderApplicationSummaryRows(activeCase, varyOrderApplication),
     varyOrderApplicationDetailsRows: getActiveCaseVaryOrderApplicationDetailsRows(varyOrderApplication),
     hasActiveCourtHearing: hasActiveCourtHearing(activeCase, [
-      varyOrderApplication,
-      ...previousVaryOrderApplications
+      varyOrderApplication
     ]),
     previousVaryOrderApplicationRows: previousVaryOrderApplications.map(application =>
       getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application)

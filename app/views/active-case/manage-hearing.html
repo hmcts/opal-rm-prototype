@@ -1,0 +1,53 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}{% if errorSummary.length %}Error: {% endif %}Manage hearing - {{ activeCase.respondentName }} - {{ serviceName }}{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary.length %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Manage hearing</h1>
+      <h2 class="govuk-heading-m">{{ hearingType }}</h2>
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ xGovukAutocomplete({
+          id: "hearing-court", name: "hearing-court",
+          label: { text: "Court", classes: "govuk-label--s" },
+          value: formValues["hearing-court"], items: courtItems,
+          errorMessage: errors["hearing-court"]
+        }) }}
+        {{ govukInput({
+          id: "hearing-venue", name: "hearing-venue",
+          label: { text: "Hearing venue (optional)", classes: "govuk-label--s" },
+          value: formValues["hearing-venue"]
+        }) }}
+        {{ mojDatePicker({
+          id: "hearing-date", name: "hearing-date",
+          label: { text: "Hearing date", classes: "govuk-label--s" },
+          hint: { text: "For example, 31/01/2023" },
+          value: formValues["hearing-date"], errorMessage: errors["hearing-date"]
+        }) }}
+        {{ govukInput({
+          id: "hearing-time", name: "hearing-time",
+          label: { text: "Hearing time (optional)", classes: "govuk-label--s" },
+          hint: { text: "Use the 24-hour clock. For example, 02:30 or 14:30 and midnight is 00:00" },
+          classes: "govuk-input--width-5", value: formValues["hearing-time"],
+          errorMessage: errors["hearing-time"]
+        }) }}
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Save changes" }) }}
+          {{ govukButton({ text: "Delete hearing", href: formAction + "/delete", classes: "govuk-button--warning" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
