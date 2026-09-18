@@ -11636,7 +11636,7 @@ router.get('/active-case/:id/application/add', (req, res) => {
     return res.render('active-case/cannot-add-application', {
       activeCase,
       backHref: `/active-case/${id}?tab=hearings`,
-      cannotAddReason: 'You cannot add an application. This account has an existing application in progress.'
+      cannotAddReason: 'This account has an existing application in progress.'
     })
   }
 
