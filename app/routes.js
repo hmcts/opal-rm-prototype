@@ -9212,7 +9212,7 @@ const activeCases = {
     comment: 'Standard maintenance case. Payments maintained on time. No recent enforcement action.',
     enforcementAction: {
       type: 'Enforcement Summons (MSUMM)',
-      hearingStatus: 'Scheduled',
+      hearingStatus: 'Result pending',
       court: 'Reading County Court and Family Court',
       hearingDate: '14 February 2025'
     }
@@ -11271,6 +11271,12 @@ const activeCaseVaryOrderDraftsKey = 'active-case-vary-order-drafts'
 const activeCaseVaryOrderApplicationsKey = 'active-case-vary-order-applications'
 const activeCaseVaryOrderApplicationHistoryKey = 'active-case-vary-order-application-history'
 const activeCaseApplicationTypesKey = 'active-case-application-types'
+const activeCaseApplicationTypeDefinitions = {
+  'vary-or-revoke-order': {
+    title: 'Application to vary or revoke an order',
+    legislation: 'Application to Vary/Revoke an Order'
+  }
+}
 
 const activeCaseVaryOrderFields = [
   'vary-order-applying-party',
@@ -11346,6 +11352,13 @@ function getActiveCaseVaryOrderFormValues(body = {}) {
 
 function getActiveCaseVaryOrderDefaultValues() {
   return getActiveCaseVaryOrderFormValues()
+}
+
+function getActiveCaseApplicationTypeItems() {
+  return Object.entries(activeCaseApplicationTypeDefinitions).map(([value, definition]) => ({
+    value,
+    text: definition.title
+  }))
 }
 
 function getActiveCaseVaryOrderApplicant(activeCase, applyingParty) {
@@ -11511,7 +11524,7 @@ function getActiveCaseVaryOrderReviewRows(activeCase, application) {
   ]
 }
 
-function getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application) {
+function getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application, caseId) {
   if (!application) {
     return []
   }
@@ -11522,16 +11535,19 @@ function getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application) {
   )
   const applicantAccount = application['vary-order-applying-party'] === 'applicant'
     ? activeCase.applicant
-    : null
+    : {
+        accountNumber: activeCase.accountNumber || activeCase.caseReference,
+        accountHref: `/active-case/${caseId}`
+      }
   const applicantValue = applicantAccount?.accountNumber && applicantAccount?.accountHref
     ? `<a class="govuk-link" href="${escapeHtml(applicantAccount.accountHref)}">${escapeHtml(applicantAccount.accountNumber)}</a><br>${escapeHtml(applicant.name)}`
     : escapeHtml(applicant.name)
 
   return [
-    buildSummaryRow('Legislation', application.legislation || '[Application legislation here]'),
+    buildSummaryRow('Legislation', application.legislation || EMPTY_VALUE_TEXT),
     buildSummaryHtmlRow('Application made by', applicantValue),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
-    buildHearingStatusSummaryRow(application.hearingStatus || 'Scheduled'),
+    buildHearingStatusSummaryRow(application.hearingStatus || 'Result pending'),
     buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
     buildSummaryRow('Hearing venue', application['vary-order-hearing-venue'] || EMPTY_VALUE_TEXT),
     buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
@@ -11545,7 +11561,7 @@ function getActiveCaseVaryOrderApplicationDetailsRows(application) {
   }
 
   return [
-    buildSummaryRow('Date application received', formatDateLong(application['vary-order-application-date'])),
+    buildSummaryRow('Date of application', formatDateLong(application['vary-order-application-date'])),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
     buildSummaryRow('Court that made the order', application['vary-order-original-court']),
     buildSummaryRow('Date the order was made', formatDateLong(application['vary-order-original-order-date'])),
@@ -11561,23 +11577,27 @@ function getActiveCaseVaryOrderApplicationDetailsRows(application) {
 }
 
 function hasActiveCourtHearing(activeCase, applications = []) {
-  const activeStatuses = ['Scheduled', 'Result pending']
+  const activeStatuses = ['Result pending', 'Validation pending']
   const hearingStatuses = [
     activeCase.enforcementAction?.hearingStatus,
     ...applications
       .filter(Boolean)
-      .map((application) => application.hearingStatus || 'Scheduled')
+      .map((application) => application.hearingStatus || 'Result pending')
   ]
 
   return hearingStatuses.some((status) => activeStatuses.includes(status))
 }
 
 function buildHearingStatusSummaryRow(status) {
-  const classes = status === 'Scheduled'
-    ? 'govuk-tag--grey'
-    : status === 'Result pending'
-      ? 'govuk-tag--yellow'
-      : ''
+  const classes = status === 'Result pending'
+    ? 'govuk-tag--yellow'
+    : status === 'Validation pending'
+      ? 'govuk-tag--orange'
+      : status === 'Result validated'
+        ? 'govuk-tag--blue'
+        : status === 'Deleted'
+          ? 'govuk-tag--grey'
+          : ''
 
   return {
     key: { text: 'Hearing status' },
@@ -11616,7 +11636,7 @@ router.get('/active-case/:id/application/add', (req, res) => {
     return res.render('active-case/cannot-add-application', {
       activeCase,
       backHref: `/active-case/${id}?tab=hearings`,
-      cannotAddReason: 'You cannot add an application while there is a current application.'
+      cannotAddReason: 'You cannot add an application. This account has an existing application in progress.'
     })
   }
 
@@ -11625,7 +11645,8 @@ router.get('/active-case/:id/application/add', (req, res) => {
     caseId: id,
     formAction: `/active-case/${id}/application/add`,
     cancelHref: `/active-case/${id}?tab=hearings`,
-    formValues: { 'application-type': getActiveCaseApplicationType(req, id) || '' }
+    formValues: { 'application-type': getActiveCaseApplicationType(req, id) || '' },
+    applicationTypeItems: getActiveCaseApplicationTypeItems()
   })
 })
 
@@ -11637,13 +11658,14 @@ router.post('/active-case/:id/application/add', (req, res, next) => {
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
   if (getActiveCaseVaryOrderApplication(req, id)) return res.redirect(`/active-case/${id}/application/add`)
 
-  if (applicationType !== 'vary-or-revoke-order') {
+  if (!activeCaseApplicationTypeDefinitions[applicationType]) {
     return res.render('active-case/select-application', {
       activeCase,
       caseId: id,
       formAction: `/active-case/${id}/application/add`,
       cancelHref: `/active-case/${id}?tab=hearings`,
       formValues: { 'application-type': applicationType },
+      applicationTypeItems: getActiveCaseApplicationTypeItems(),
       errors: { 'application-type': buildFieldError('Select an application type') },
       errorSummary: [{ text: 'Select an application type', href: '#application-type' }]
     })
@@ -11738,6 +11760,8 @@ router.post('/active-case/:id/vary-or-revoke-order/check', (req, res, next) => {
   }
 
   const existingApplication = getActiveCaseVaryOrderApplication(req, id)
+  const applicationType = getActiveCaseApplicationType(req, id)
+  const definition = activeCaseApplicationTypeDefinitions[applicationType]
 
   if (existingApplication) {
     getActiveCaseVaryOrderApplicationHistory(req, id).unshift(existingApplication)
@@ -11745,9 +11769,18 @@ router.post('/active-case/:id/vary-or-revoke-order/check', (req, res, next) => {
 
   setActiveCaseVaryOrderApplication(req, id, {
     ...application,
-    type: existingApplication?.type || 'Application to vary or revoke an order',
-    hearingStatus: application.hearingStatus || 'Scheduled'
+    type: existingApplication?.type || definition?.title || 'Application to vary or revoke an order',
+    legislation: existingApplication?.legislation || definition?.legislation || EMPTY_VALUE_TEXT,
+    hearingStatus: application.hearingStatus || 'Result pending'
   })
+  if (!existingApplication) {
+    const history = getActiveCaseVaryOrderStore(req, 'active-case-hearing-history')
+    history[id] = history[id] || []
+    history[id].unshift({
+      date: getHistoryDateToday(), sortValue: Date.now(), user: 'Sarah Davis', type: 'Application',
+      details: `MVARY | Hearing: ${application['vary-order-hearing-date']} - ${application['vary-order-hearing-court']}\n${application['vary-order-application-reason']}`
+    })
+  }
   clearActiveCaseVaryOrderDraft(req, id)
   clearActiveCaseApplicationType(req, id)
   setActiveCaseSuccessMessage(
@@ -11839,7 +11872,7 @@ router.get('/active-case/:id/enforcement/add', (req, res) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) {
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') {
     return res.render('active-case/cannot-add-enforcement', {
       activeCase,
       backHref: `/active-case/${id}?tab=enforcement`,
@@ -11853,7 +11886,7 @@ router.post('/active-case/:id/enforcement/add', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') return res.redirect(`/active-case/${id}/enforcement/add`)
   const values = getActiveCaseEnforcementValues(req.body)
   getActiveCaseEnforcementDrafts(req)[id] = values
   if (values['enforcement-action-type'] !== 'msumm') {
@@ -11868,7 +11901,7 @@ router.get('/active-case/:id/enforcement/msumm', (req, res) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') return res.redirect(`/active-case/${id}/enforcement/add`)
   const values = getActiveCaseEnforcementDrafts(req)[id]
   if (!values || values['enforcement-action-type'] !== 'msumm') return res.redirect(`/active-case/${id}/enforcement/add`)
   return renderActiveCaseEnforcementAction(req, res, activeCase, id, 'details', values)
@@ -11878,7 +11911,7 @@ router.post('/active-case/:id/enforcement/msumm', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') return res.redirect(`/active-case/${id}/enforcement/add`)
   const draft = getActiveCaseEnforcementDrafts(req)[id] || {}
   const values = {
     ...draft,
@@ -11895,7 +11928,7 @@ router.get('/active-case/:id/enforcement/check', (req, res) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') return res.redirect(`/active-case/${id}/enforcement/add`)
 
   const values = getActiveCaseEnforcementDrafts(req)[id]
   if (!values || values['enforcement-action-type'] !== 'msumm') return res.redirect(`/active-case/${id}/enforcement/add`)
@@ -11914,14 +11947,14 @@ router.post('/active-case/:id/enforcement/check', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  if (activeCase.enforcementAction) return res.redirect(`/active-case/${id}/enforcement/add`)
+  if (activeCase.enforcementAction && activeCase.enforcementAction.hearingStatus !== 'Deleted') return res.redirect(`/active-case/${id}/enforcement/add`)
 
   const values = getActiveCaseEnforcementDrafts(req)[id]
   if (!values || values['enforcement-action-type'] !== 'msumm') return res.redirect(`/active-case/${id}/enforcement/add`)
 
   activeCase.enforcementAction = {
     type: 'Enforcement Summons (MSUMM)',
-    hearingStatus: 'Scheduled',
+    hearingStatus: 'Result pending',
     court: values['enforcement-court'],
     hearingDate: formatDateLong(values['enforcement-hearing-date']),
     hearingVenue: values['enforcement-hearing-venue'],
@@ -12046,12 +12079,36 @@ router.get('/active-case/:id/:category/hearing/delete', (req, res) => {
 router.post('/active-case/:id/:category/hearing/delete', (req, res, next) => {
   const hearing = getManagedHearing(req)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
+  if (hearing.record.hearingStatus === 'Deleted') {
+    return res.redirect(hearing.cancelHref)
+  }
+  const reason = String(getSingleValue(req.body['hearing-delete-reason']) || '').trim()
+  const error = !reason
+    ? 'Enter a reason for deleting the hearing'
+    : reason.length > 1000 ? 'Reason must be 1,000 characters or fewer' : null
+  if (error) {
+    return res.render('active-case/delete-hearing', {
+      ...hearing, reason,
+      reasonError: buildFieldError(error),
+      errorSummary: [{ text: error, href: '#hearing-delete-reason' }]
+    })
+  }
+  const history = getActiveCaseVaryOrderStore(req, 'active-case-hearing-history')
+  history[hearing.id] = history[hearing.id] || []
+  const code = hearing.record.code || (hearing.category === 'application'
+    ? 'MVARY' : (hearing.record.type.match(/\(([^)]+)\)/) || [])[1] || hearing.record.type)
+  history[hearing.id].unshift({
+    date: getHistoryDateToday(), sortValue: Date.now(), user: 'Sarah Davis', type: 'Note',
+    details: `Hearing deleted - ${code} | Hearing ${hearing.formValues['hearing-date']} - ${hearing.formValues['hearing-court']}`,
+    reason
+  })
   if (hearing.category === 'application') {
     delete getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationsKey)[hearing.id]
     clearActiveCaseVaryOrderDraft(req, hearing.id)
     clearActiveCaseApplicationType(req, hearing.id)
   } else {
-    delete hearing.activeCase.enforcementAction
+    hearing.record.hearingStatus = 'Deleted'
+    hearing.record.deletionReason = reason
     delete getActiveCaseEnforcementDrafts(req)[hearing.id]
   }
   setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, `${hearing.categoryLabel} hearing deleted.`)
@@ -12069,6 +12126,13 @@ router.get('/active-case/:id', (req, res) => {
 
   const varyOrderApplication = getActiveCaseVaryOrderApplication(req, id)
   const previousVaryOrderApplications = getActiveCaseVaryOrderApplicationHistory(req, id)
+  const historyRows = [
+    ...(getActiveCaseVaryOrderStore(req, 'active-case-hearing-history')[id] || []),
+    ...getAccountHistoryRows(activeCase)
+  ].sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
+  const historyPageCount = Math.max(1, Math.ceil(historyRows.length / 25))
+  const historyPage = Math.min(historyPageCount, Math.max(1, parseInt(req.query.page, 10) || 1))
+  const historyOffset = (historyPage - 1) * 25
 
   return res.render('active-case/index', {
     activeCase,
@@ -12087,15 +12151,22 @@ router.get('/active-case/:id', (req, res) => {
     interestAndIndexationRows: getActiveCaseInterestAndIndexationRows(activeCase),
     managingPaymentsRows: getActiveCaseManagingPaymentsRows(activeCase),
     varyOrderApplication,
-    varyOrderApplicationSummaryRows: getActiveCaseVaryOrderApplicationSummaryRows(activeCase, varyOrderApplication),
+    varyOrderApplicationSummaryRows: getActiveCaseVaryOrderApplicationSummaryRows(activeCase, varyOrderApplication, id),
     varyOrderApplicationDetailsRows: getActiveCaseVaryOrderApplicationDetailsRows(varyOrderApplication),
     hasActiveCourtHearing: hasActiveCourtHearing(activeCase, [
       varyOrderApplication
     ]),
     previousVaryOrderApplicationRows: previousVaryOrderApplications.map(application =>
-      getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application)
+      getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application, id)
     ),
-    historyRows: getAccountHistoryRows(activeCase),
+    historyRows: historyRows.slice(historyOffset, historyOffset + 25),
+    historyPagination: historyPageCount > 1 ? {
+      items: Array.from({ length: historyPageCount }, (_, index) => ({
+        number: index + 1, current: index + 1 === historyPage,
+        href: `/active-case/${id}?tab=history-and-notes&page=${index + 1}`
+      })),
+      results: { from: historyOffset + 1, to: Math.min(historyOffset + 25, historyRows.length), count: historyRows.length }
+    } : null,
     successMessage: consumeActiveCaseSuccessMessage(req)
   })
 })

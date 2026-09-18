@@ -10,12 +10,16 @@
       {% set enforcementActionTag %}
         {{ govukTag({ text: activeCase.enforcementAction.type, classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
       {% endset %}
-      {% set hearingStatus = activeCase.enforcementAction.hearingStatus or "Scheduled" %}
+      {% set hearingStatus = activeCase.enforcementAction.hearingStatus or "Result pending" %}
       {% set hearingStatusClasses = "" %}
-      {% if hearingStatus === "Scheduled" %}
-        {% set hearingStatusClasses = "govuk-tag--grey" %}
-      {% elif hearingStatus === "Result pending" %}
+      {% if hearingStatus === "Result pending" %}
         {% set hearingStatusClasses = "govuk-tag--yellow" %}
+      {% elif hearingStatus === "Validation pending" %}
+        {% set hearingStatusClasses = "govuk-tag--orange" %}
+      {% elif hearingStatus === "Result validated" %}
+        {% set hearingStatusClasses = "govuk-tag--blue" %}
+      {% elif hearingStatus === "Deleted" %}
+        {% set hearingStatusClasses = "govuk-tag--grey" %}
       {% endif %}
       {% set hearingStatusTag %}
         {{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}

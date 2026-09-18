@@ -1,3 +1,4 @@
+{% from "moj/components/pagination/macro.njk" import mojPagination %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
@@ -77,11 +78,12 @@
             <td class="govuk-table__cell" data-sort-value="{{ row.sortValue or 0 }}">{{ row.date }}</td>
             <td class="govuk-table__cell">{{ row.user }}</td>
             <td class="govuk-table__cell">{{ row.type }}</td>
-            <td class="govuk-table__cell">{{ row.details | escape | replace("\n", "<br>") | safe }}</td>
+            <td class="govuk-table__cell">{{ row.details | escape | replace("\n", "<br>") | safe }}{% if row.reason %}<br><span class="govuk-hint govuk-!-margin-bottom-0">{{ row.reason }}</span>{% endif %}</td>
             <td class="govuk-table__cell govuk-table__cell--numeric">{{ row.amount or "" }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+    {% if historyPagination %}{{ mojPagination(historyPagination) }}{% endif %}
   </div>
 </div>
