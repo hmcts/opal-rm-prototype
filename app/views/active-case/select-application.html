@@ -19,15 +19,13 @@
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}" data-module="rm-route-guard">
         {{ xGovukAutocomplete({
           id: "application-type",
           name: "application-type",
           label: { text: "Select an application type", classes: "govuk-label--m" },
           value: formValues["application-type"],
-          items: [
-            { value: "vary-or-revoke-order", text: "Application to vary or revoke an order" }
-          ],
+          items: applicationTypeItems,
           errorMessage: formErrors["application-type"]
         }) }}
 
