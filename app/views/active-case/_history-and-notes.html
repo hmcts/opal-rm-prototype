@@ -78,7 +78,7 @@
             <td class="govuk-table__cell" data-sort-value="{{ row.sortValue or 0 }}">{{ row.date }}</td>
             <td class="govuk-table__cell">{{ row.user }}</td>
             <td class="govuk-table__cell">{{ row.type }}</td>
-            <td class="govuk-table__cell">{{ row.details | escape | replace("\n", "<br>") | safe }}{% if row.reason %}<br><span class="govuk-hint govuk-!-margin-bottom-0">{{ row.reason }}</span>{% endif %}</td>
+            <td class="govuk-table__cell">{% if row.detailsHtml %}{{ row.detailsHtml | safe }}{% else %}{{ row.details | escape | replace("\n", "<br>") | safe }}{% endif %}{% if row.reason %}<br><span class="govuk-hint govuk-!-margin-bottom-0">{{ row.reason }}</span>{% endif %}</td>
             <td class="govuk-table__cell govuk-table__cell--numeric">{{ row.amount or "" }}</td>
           </tr>
         {% endfor %}

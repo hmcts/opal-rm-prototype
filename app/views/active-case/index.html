@@ -317,7 +317,7 @@
                   {% set hearingStatusClasses = "govuk-tag--orange" %}
                 {% elif hearingStatus === "Result validated" %}
                   {% set hearingStatusClasses = "govuk-tag--blue" %}
-                {% elif hearingStatus === "Deleted" %}
+                {% elif hearingStatus === "Hearing deleted" %}
                   {% set hearingStatusClasses = "govuk-tag--grey" %}
                 {% endif %}
                 {{ govukTag({
@@ -326,7 +326,7 @@
                 }) }}
                 <h3 class="govuk-heading-s govuk-!-margin-top-4 govuk-!-margin-bottom-1">Hearing status</h3>
                 <p class="govuk-body govuk-!-margin-bottom-3">{{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}</p>
-                {% if hearingStatus not in ["Deleted", "Result pending", "Validation pending", "Result validated"] %}
+                {% if hearingStatus not in ["Hearing deleted", "Result pending", "Validation pending", "Result validated"] %}
                   <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing court</h3>
                   <p class="govuk-body govuk-!-margin-bottom-3">{{ activeCase.enforcementAction.court }}</p>
                   <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing date</h3>
