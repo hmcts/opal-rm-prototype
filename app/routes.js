@@ -11429,8 +11429,8 @@ function isDeletedHearingStatus(status) {
   return status === 'Hearing deleted' || status === 'Deleted'
 }
 
-function formatHistoryAmendmentDetails(attribute, oldValue, newValue) {
-  return `<strong>${escapeHtml(attribute)}</strong> | <strong>Old:</strong> ${escapeHtml(oldValue || '—')} | <strong>New:</strong> ${escapeHtml(newValue || '—')}`
+function canManageHearing(record) {
+  return (record?.hearingStatus || 'Result pending') === 'Result pending'
 }
 
 function formatHistoryHearingDate(dateString) {
@@ -11936,15 +11936,26 @@ function getActiveCaseEnforcementErrorSummary(errors) {
 
 function validateActiveCaseEnforcementAction(values) {
   const errors = {}
+  const allowedEnforcementText = /^[a-zA-Z0-9 \r\n'’\-.,()[\]!?;:/&]*$/
   if (!englandAndWalesFamilyCourts.includes(values['enforcement-court'])) {
     errors['enforcement-court'] = buildFieldError('Select a court')
   }
-  addActiveCaseVaryOrderDateError(errors, values, 'enforcement-hearing-date', 'Hearing date')
+  const hearingDate = parseDateInput(values['enforcement-hearing-date'])
+  if (hearingDate.kind === 'missing') {
+    errors['enforcement-hearing-date'] = buildFieldError('Select a hearing date')
+  } else if (hearingDate.kind === 'invalid') {
+    errors['enforcement-hearing-date'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+  }
   if (values['enforcement-hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['enforcement-hearing-time'])) {
-    errors['enforcement-hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
+    errors['enforcement-hearing-time'] = buildFieldError('Enter time using the 24-hour clock, such as 09:00')
   }
   if (values['enforcement-reason'].length > 1000) {
     errors['enforcement-reason'] = buildFieldError('Reason must be 1,000 characters or fewer')
+  } else if (!allowedEnforcementText.test(values['enforcement-reason'])) {
+    errors['enforcement-reason'] = buildFieldError('Reason must only include letters a to z, numbers, hyphens, spaces and apostrophes, and other basic punctuation marks like full stops, commas and brackets')
+  }
+  if (!allowedEnforcementText.test(values['enforcement-hearing-venue'])) {
+    errors['enforcement-hearing-venue'] = buildFieldError('Hearing venue must only include letters a to z, numbers, hyphens, spaces and apostrophes, and other basic punctuation marks like full stops, commas and brackets')
   }
   return errors
 }
@@ -11961,7 +11972,7 @@ function renderActiveCaseEnforcementAction(req, res, activeCase, caseId, stage, 
         ? `/active-case/${caseId}/enforcement/change`
         : `/active-case/${caseId}/enforcement/msumm`,
     backHref: stage === 'details' ? `/active-case/${caseId}/enforcement/add` : `/active-case/${caseId}?tab=enforcement`,
-    cancelHref: `/active-case/${caseId}?tab=enforcement`,
+    cancelHref: `/active-case/${caseId}/enforcement/cancel`,
     courtItems: englandAndWalesFamilyCourts.map((court) => ({ value: court, text: court })),
     formValues,
     errors,
@@ -11996,6 +12007,12 @@ router.post('/active-case/:id/enforcement/add', (req, res, next) => {
     })
   }
   return redirectWithSessionSave(req, res, next, `/active-case/${id}/enforcement/msumm`)
+})
+
+router.get('/active-case/:id/enforcement/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  delete getActiveCaseEnforcementDrafts(req)[id]
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=enforcement`)
 })
 
 router.get('/active-case/:id/enforcement/msumm', (req, res) => {
@@ -12040,7 +12057,7 @@ router.get('/active-case/:id/enforcement/check', (req, res) => {
     hearingDate: formatDateLong(values['enforcement-hearing-date']),
     changeHref: `/active-case/${id}/enforcement/msumm`,
     formAction: `/active-case/${id}/enforcement/check`,
-    cancelHref: `/active-case/${id}?tab=enforcement`
+    cancelHref: `/active-case/${id}/enforcement/cancel`
   })
 })
 
@@ -12064,8 +12081,8 @@ router.post('/active-case/:id/enforcement/check', (req, res, next) => {
   }
   activeCase.enforcementHistory = activeCase.enforcementHistory || []
   activeCase.enforcementHistory.unshift({
-    date: getHistoryDateToday(), sortValue: Date.now(), user: 'Sarah Davis', type: 'Enforcement actions',
-    details: `MSUMM | Hearing: ${values['enforcement-hearing-date']} - ${activeCase.enforcementAction.court} - Case: ${activeCase.caseReference}${values['enforcement-reason'] ? `\n${values['enforcement-reason']}` : ''}`
+    date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName, type: 'Enforcement actions',
+    details: `MSUMM | Hearing: ${values['enforcement-hearing-date']} - ${activeCase.enforcementAction.court}${values['enforcement-hearing-venue'] ? ` - ${values['enforcement-hearing-venue']}` : ''} - Case: ${activeCase.caseReference}${values['enforcement-reason'] ? `\n${values['enforcement-reason']}` : ''}`
   })
   delete getActiveCaseEnforcementDrafts(req)[id]
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Enforcement action added.')
@@ -12109,7 +12126,7 @@ function getManagedHearing(req) {
   if (!activeCase || !['application', 'enforcement'].includes(category)) return null
   const application = category === 'application'
   const record = application ? getActiveCaseVaryOrderApplication(req, id) : activeCase.enforcementAction
-  if (!record) return null
+  if (!record || !canManageHearing(record)) return null
   const values = application ? record : getActiveCaseEnforcementActionValues(record)
   const prefix = application ? 'vary-order-hearing-' : 'enforcement-hearing-'
   return {
@@ -12157,12 +12174,9 @@ router.post('/active-case/:id/:category/hearing', (req, res, next) => {
     errors['hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
   }
   if (Object.keys(errors).length) return renderManagedHearing(res, hearing, values, errors)
-  const amendedFields = [
-    { field: 'court', attribute: 'Hearing court' },
-    { field: 'venue', attribute: 'Hearing venue' },
-    { field: 'date', attribute: 'Hearing date' },
-    { field: 'time', attribute: 'Hearing time' }
-  ].filter(({ field }) => values[`hearing-${field}`] !== hearing.formValues[`hearing-${field}`])
+  const hasHearingChanges = ['court', 'venue', 'date', 'time'].some(
+    (field) => values[`hearing-${field}`] !== hearing.formValues[`hearing-${field}`]
+  )
   if (hearing.category === 'application') {
     for (const field of ['court', 'venue', 'date', 'time']) {
       hearing.record[`vary-order-hearing-${field}`] = values[`hearing-${field}`]
@@ -12173,16 +12187,11 @@ router.post('/active-case/:id/:category/hearing', (req, res, next) => {
       hearingDate: formatDateLong(values['hearing-date']), hearingTime: values['hearing-time']
     })
   }
-  if (amendedFields.length) {
-    const now = Date.now()
-    getActiveCaseHearingHistory(req, hearing.id).unshift(...amendedFields.map(({ field, attribute }, index) => ({
-      date: getHistoryDateToday(), sortValue: now + index, user: 'Sarah Davis', type: 'Notes',
-      detailsHtml: formatHistoryAmendmentDetails(
-        attribute,
-        hearing.formValues[`hearing-${field}`],
-        values[`hearing-${field}`]
-      )
-    })))
+  if (hasHearingChanges) {
+    getActiveCaseHearingHistory(req, hearing.id).unshift({
+      date: getHistoryDateToday(), sortValue: Date.now(), user: 'Sarah Davis', type: 'Notes',
+      details: `Hearing updated - ${hearing.hearingType} | Hearing ${values['hearing-date']} - ${values['hearing-court']}`
+    })
   }
   setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, `${hearing.categoryLabel} hearing updated.`)
   return redirectWithSessionSave(req, res, next, hearing.cancelHref)

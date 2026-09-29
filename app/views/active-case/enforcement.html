@@ -24,9 +24,11 @@
       {% set hearingStatusTag %}
         {{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}
       {% endset %}
-
-      {{ govukSummaryList({
-        card: {
+      {% set enforcementCard = {
+        title: { text: "Last enforcement action" }
+      } %}
+      {% if hearingStatus === "Result pending" %}
+        {% set enforcementCard = {
           title: { text: "Last enforcement action" },
           actions: {
             items: [
@@ -37,7 +39,11 @@
               }
             ]
           }
-        },
+        } %}
+      {% endif %}
+
+      {{ govukSummaryList({
+        card: enforcementCard,
         rows: [
           { key: { text: "Enforcement action" }, value: { html: enforcementActionTag } },
           { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason or "—" } },
@@ -49,7 +55,7 @@
         ]
       }) }}
     {% else %}
-      <p class="govuk-body">No current enforcement.</p>
+      <p class="govuk-body">No current enforcement</p>
     {% endif %}
   </div>
 

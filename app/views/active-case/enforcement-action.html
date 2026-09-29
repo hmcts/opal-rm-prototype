@@ -28,7 +28,7 @@
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}" data-module="rm-route-guard"{% if stage === 'details' %} data-route-guard-active="true"{% endif %}>
         {% if stage === 'select' %}
           {{ govukSelect({
             id: "enforcement-action-type",
@@ -42,7 +42,7 @@
           }) }}
           <div class="govuk-button-group">
             {{ govukButton({ text: "Continue" }) }}
-            <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+            <a class="govuk-link" href="{{ cancelHref }}" aria-label="Cancel adding an enforcement action">Cancel</a>
           </div>
         {% else %}
           {{ govukTextarea({
@@ -116,7 +116,7 @@
             {% else %}
               {{ govukButton({ text: "Continue" }) }}
             {% endif %}
-            <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+            <a class="govuk-link" href="{{ cancelHref }}" aria-label="Cancel and return to Enforcement tab">Cancel</a>
           </div>
         {% endif %}
       </form>

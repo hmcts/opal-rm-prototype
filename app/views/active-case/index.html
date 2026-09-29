@@ -326,14 +326,14 @@
                 }) }}
                 <h3 class="govuk-heading-s govuk-!-margin-top-4 govuk-!-margin-bottom-1">Hearing status</h3>
                 <p class="govuk-body govuk-!-margin-bottom-3">{{ govukTag({ text: hearingStatus, classes: hearingStatusClasses }) }}</p>
-                {% if hearingStatus not in ["Hearing deleted", "Result pending", "Validation pending", "Result validated"] %}
+                {% if hearingStatus === "Result pending" and activeCase.enforcementAction.type === "Enforcement Summons (MSUMM)" %}
                   <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing court</h3>
                   <p class="govuk-body govuk-!-margin-bottom-3">{{ activeCase.enforcementAction.court }}</p>
                   <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Hearing date</h3>
                   <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.enforcementAction.hearingDate }}</p>
                 {% endif %}
               {% else %}
-                <p class="govuk-body">No current enforcement action</p>
+                <p class="govuk-body">No current enforcement</p>
               {% endif %}
             </section>
 
