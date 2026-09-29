@@ -12,6 +12,7 @@
   {% set enforcementActionTag %}
     {{ govukTag({ text: "Enforcement Summons (MSUMM)", classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
   {% endset %}
+  {% set noDataValue = { html: '<span role="img" aria-label="No data">—</span>' } %}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
@@ -38,23 +39,23 @@
           },
           {
             key: { text: "Reason" },
-            value: { text: formValues["enforcement-reason"] or "—" }
+            value: { text: formValues["enforcement-reason"] } if formValues["enforcement-reason"] else noDataValue
           },
           {
             key: { text: "Hearing court" },
-            value: { text: formValues["enforcement-court"] }
+            value: { text: formValues["enforcement-court"] } if formValues["enforcement-court"] else noDataValue
           },
           {
             key: { text: "Hearing venue" },
-            value: { text: formValues["enforcement-hearing-venue"] or "—" }
+            value: { text: formValues["enforcement-hearing-venue"] } if formValues["enforcement-hearing-venue"] else noDataValue
           },
           {
             key: { text: "Hearing date" },
-            value: { text: hearingDate }
+            value: { text: hearingDate } if hearingDate else noDataValue
           },
           {
             key: { text: "Hearing time" },
-            value: { text: formValues["enforcement-hearing-time"] or "—" }
+            value: { text: formValues["enforcement-hearing-time"] } if formValues["enforcement-hearing-time"] else noDataValue
           }
         ]
       }) }}

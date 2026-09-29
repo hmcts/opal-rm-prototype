@@ -33,6 +33,7 @@ const reviewCasesSuccessMessageKey = 'review-cases-success-message'
 const allRejectedCasesSuccessMessageKey = 'all-rejected-cases-success-message'
 const prototypeCurrentUserName = 'David Watts'
 const EMPTY_VALUE_TEXT = '—'
+const EMPTY_VALUE_HTML = '<span role="img" aria-label="No data">—</span>'
 
 router.get('/prototype-admin/clear-data', (req, res) => {
   return res.render('manage-prototype/clear-data')
@@ -1944,13 +1945,14 @@ function buildSummaryRow(keyText, valueText) {
     }
   }
 
+  const displayValue = valueText === 0 ? '0' : formatTextValue(valueText)
   return {
     key: {
       text: keyText
     },
-    value: {
-      text: formatTextValue(valueText)
-    }
+    value: displayValue === EMPTY_VALUE_TEXT
+      ? { text: EMPTY_VALUE_TEXT, html: EMPTY_VALUE_HTML }
+      : { text: displayValue }
   }
 }
 
@@ -1974,7 +1976,7 @@ function buildSummaryHtmlRow(keyText, html) {
       text: keyText
     },
     value: {
-      html
+      html: hasValue(html) && html !== EMPTY_VALUE_TEXT ? html : EMPTY_VALUE_HTML
     }
   }
 }

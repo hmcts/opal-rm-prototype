@@ -7,6 +7,7 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
     {% if activeCase.enforcementAction %}
+      {% set noDataValue = { html: '<span role="img" aria-label="No data">—</span>' } %}
       {% set enforcementActionTag %}
         {{ govukTag({ text: activeCase.enforcementAction.type, classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
       {% endset %}
@@ -46,12 +47,12 @@
         card: enforcementCard,
         rows: [
           { key: { text: "Enforcement action" }, value: { html: enforcementActionTag } },
-          { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason or "—" } },
+          { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason } if activeCase.enforcementAction.reason else noDataValue },
           { key: { text: "Hearing status" }, value: { html: hearingStatusTag } },
-          { key: { text: "Hearing court" }, value: { text: activeCase.enforcementAction.court or "—" } },
-          { key: { text: "Hearing venue" }, value: { text: activeCase.enforcementAction.hearingVenue or "—" } },
-          { key: { text: "Hearing date" }, value: { text: activeCase.enforcementAction.hearingDate or "—" } },
-          { key: { text: "Hearing time" }, value: { text: activeCase.enforcementAction.hearingTime or "—" } }
+          { key: { text: "Hearing court" }, value: { text: activeCase.enforcementAction.court } if activeCase.enforcementAction.court else noDataValue },
+          { key: { text: "Hearing venue" }, value: { text: activeCase.enforcementAction.hearingVenue } if activeCase.enforcementAction.hearingVenue else noDataValue },
+          { key: { text: "Hearing date" }, value: { text: activeCase.enforcementAction.hearingDate } if activeCase.enforcementAction.hearingDate else noDataValue },
+          { key: { text: "Hearing time" }, value: { text: activeCase.enforcementAction.hearingTime } if activeCase.enforcementAction.hearingTime else noDataValue }
         ]
       }) }}
     {% else %}
