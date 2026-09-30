@@ -22,9 +22,8 @@
           name: "result-hearing-order-option",
           fieldset: { legend: { text: "Select an option for orders", classes: "govuk-fieldset__legend--s" } },
           items: [
-            { value: "no-order", text: "No order required", checked: orderOption === "no-order" },
-            { value: "add", text: "Add new order terms", checked: orderOption === "add" },
-            { value: "amend", text: "Amend existing order terms", checked: orderOption === "amend" }
+            { value: "no-order", text: "No order to be made", checked: orderOption === "no-order" },
+            { value: "add-or-amend", text: "Add or amend order terms", checked: orderOption === "add-or-amend" }
           ],
           errorMessage: errors["result-hearing-order-option"]
         }) }}
