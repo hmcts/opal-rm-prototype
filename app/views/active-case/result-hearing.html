@@ -2,8 +2,10 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}Result a hearing - {{ hearing.activeCase.respondentName }} - {{ serviceName }}{% endblock %}
 
@@ -15,19 +17,30 @@
 
       <h2 class="govuk-heading-s govuk-!-margin-bottom-0">{{ hearing.hearingType }}</h2>
       <p class="govuk-body govuk-!-margin-bottom-0">{{ hearing.formValues["hearing-court"] }}</p>
-      {% if hearing.formValues["hearing-venue"] %}
-        <p class="govuk-body govuk-!-margin-bottom-0">{{ hearing.formValues["hearing-venue"] }}</p>
-      {% endif %}
-      <p class="govuk-body govuk-!-margin-bottom-0">{{ hearingDate }}</p>
-      {% if hearing.formValues["hearing-time"] %}
-        <p class="govuk-body">{{ hearing.formValues["hearing-time"] }}</p>
-      {% endif %}
+      <p class="govuk-body">{{ hearingDate }}</p>
 
       {% if errorSummary %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
 
       <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukInput({
+          id: "result-hearing-magistrate",
+          name: "result-hearing-magistrate",
+          label: { text: "Magistrate", classes: "govuk-label--s" },
+          value: formValues["result-hearing-magistrate"],
+          errorMessage: errors["result-hearing-magistrate"]
+        }) }}
+
+        {{ govukTextarea({
+          id: "result-hearing-clerks",
+          name: "result-hearing-clerks",
+          label: { text: "Clerks", classes: "govuk-label--s" },
+          rows: 4,
+          value: formValues["result-hearing-clerks"],
+          errorMessage: errors["result-hearing-clerks"]
+        }) }}
+
         {{ govukRadios({
           idPrefix: "result-hearing-present",
           name: "result-hearing-present",
@@ -40,22 +53,36 @@
           errorMessage: errors["result-hearing-present"]
         }) }}
 
+        {% set remitAmountHtml %}
+          {{ govukInput({
+            id: "result-hearing-remit-amount",
+            name: "result-hearing-remit-amount",
+            label: { text: "How much arrears to remit?" },
+            classes: "govuk-input--width-5",
+            prefix: { text: "£" },
+            value: formValues["result-hearing-remit-amount"],
+            errorMessage: errors["result-hearing-remit-amount"],
+            attributes: { inputmode: "decimal" }
+          }) }}
+        {% endset %}
+
         {{ govukRadios({
           idPrefix: "result-hearing-remit-arrears",
           name: "result-hearing-remit-arrears",
           fieldset: { legend: { text: "Remit arrears?", classes: "govuk-fieldset__legend--s" } },
-          classes: "govuk-radios--inline",
           items: [
-            { value: "yes", text: "Yes", checked: formValues["result-hearing-remit-arrears"] === "yes" },
-            { value: "no", text: "No", checked: formValues["result-hearing-remit-arrears"] === "no" }
+            { value: "no", text: "No", checked: formValues["result-hearing-remit-arrears"] === "no" },
+            { value: "yes", text: "Yes", checked: formValues["result-hearing-remit-arrears"] === "yes", conditional: { html: remitAmountHtml } }
           ],
           errorMessage: errors["result-hearing-remit-arrears"]
         }) }}
 
-        {{ govukSelect({
+        {{ xGovukAutocomplete({
           id: "result-hearing-code",
           name: "result-hearing-code",
           label: { text: "Select a result", classes: "govuk-label--s" },
+          hint: { text: "If there were multiple results you can add these later." },
+          value: formValues["result-hearing-code"],
           items: resultItems,
           errorMessage: errors["result-hearing-code"]
         }) }}
