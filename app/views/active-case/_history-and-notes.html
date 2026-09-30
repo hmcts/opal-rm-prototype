@@ -10,6 +10,7 @@
 
     {% set filterHtml %}
       {{ mojDatePicker({
+        leadingZeros: true,
         id: "history-date-from",
         name: "history-date-from",
         label: {
@@ -19,6 +20,7 @@
       }) }}
 
       {{ mojDatePicker({
+        leadingZeros: true,
         id: "history-date-to",
         name: "history-date-to",
         label: {

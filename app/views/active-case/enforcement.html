@@ -37,6 +37,11 @@
                 href: "/active-case/" + caseId + "/enforcement/hearing",
                 text: "Manage hearing",
                 visuallyHiddenText: "for the last enforcement action"
+              },
+              {
+                href: "/active-case/" + caseId + "/enforcement/result-hearing",
+                text: "Result hearing",
+                visuallyHiddenText: "for the last enforcement action"
               }
             ]
           }
@@ -56,7 +61,7 @@
         ]
       }) }}
     {% else %}
-      <p class="govuk-body">No current enforcement</p>
+      <p class="govuk-body">No current enforcement action</p>
     {% endif %}
   </div>
 

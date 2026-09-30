@@ -21,6 +21,12 @@
                   <span class="govuk-visually-hidden"> for {{ varyOrderApplication.type or "Application to vary or revoke an order" }}</span>
                 </a>
               </li>
+              <li class="govuk-summary-card__action">
+                <a class="govuk-link" href="/active-case/{{ caseId }}/application/result-hearing">
+                  Result hearing
+                  <span class="govuk-visually-hidden"> for {{ varyOrderApplication.type or "Application to vary or revoke an order" }}</span>
+                </a>
+              </li>
             </ul>
           {% endif %}
         </div>

@@ -1,0 +1,70 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% block pageTitle %}{% if errorSummary %}Error: {% endif %}Result a hearing - {{ hearing.activeCase.respondentName }} - {{ serviceName }}{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ hearing.activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Result a hearing</h1>
+
+      <h2 class="govuk-heading-s govuk-!-margin-bottom-0">{{ hearing.hearingType }}</h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">{{ hearing.formValues["hearing-court"] }}</p>
+      {% if hearing.formValues["hearing-venue"] %}
+        <p class="govuk-body govuk-!-margin-bottom-0">{{ hearing.formValues["hearing-venue"] }}</p>
+      {% endif %}
+      <p class="govuk-body govuk-!-margin-bottom-0">{{ hearingDate }}</p>
+      {% if hearing.formValues["hearing-time"] %}
+        <p class="govuk-body">{{ hearing.formValues["hearing-time"] }}</p>
+      {% endif %}
+
+      {% if errorSummary %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukRadios({
+          idPrefix: "result-hearing-present",
+          name: "result-hearing-present",
+          fieldset: { legend: { text: "Was the respondent/defendant present?", classes: "govuk-fieldset__legend--s" } },
+          classes: "govuk-radios--inline",
+          items: [
+            { value: "yes", text: "Yes", checked: formValues["result-hearing-present"] === "yes" },
+            { value: "no", text: "No", checked: formValues["result-hearing-present"] === "no" }
+          ],
+          errorMessage: errors["result-hearing-present"]
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "result-hearing-remit-arrears",
+          name: "result-hearing-remit-arrears",
+          fieldset: { legend: { text: "Remit arrears?", classes: "govuk-fieldset__legend--s" } },
+          classes: "govuk-radios--inline",
+          items: [
+            { value: "yes", text: "Yes", checked: formValues["result-hearing-remit-arrears"] === "yes" },
+            { value: "no", text: "No", checked: formValues["result-hearing-remit-arrears"] === "no" }
+          ],
+          errorMessage: errors["result-hearing-remit-arrears"]
+        }) }}
+
+        {{ govukSelect({
+          id: "result-hearing-code",
+          name: "result-hearing-code",
+          label: { text: "Select a result", classes: "govuk-label--s" },
+          items: resultItems,
+          errorMessage: errors["result-hearing-code"]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Continue" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
