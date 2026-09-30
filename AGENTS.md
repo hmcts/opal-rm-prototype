@@ -63,6 +63,7 @@
 - Include references and links to design system components.
 - Create placeholders for screenshots, and in the tables include columns for ARIA tags and field-specific error messages where applicable.
 - Create a separate section for page-specific error messages
+- Where no data is available for a table cell or field in a summary card, use an 'em-dash' in the UI and apply an aria tag "No data".
 
 ## Design system references
 - GOV.UK Design System: https://design-system.service.gov.uk/

@@ -83,6 +83,7 @@
             }) }}
           {% elif field.type == "date" %}
             {{ mojDatePicker({
+              leadingZeros: true,
               id: field.id,
               name: field.id,
               label: {

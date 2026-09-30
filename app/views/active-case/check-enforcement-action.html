@@ -12,6 +12,7 @@
   {% set enforcementActionTag %}
     {{ govukTag({ text: "Enforcement Summons (MSUMM)", classes: "govuk-tag--blue rm-enforcement-action-tag" }) }}
   {% endset %}
+  {% set noDataValue = { html: '<span role="img" aria-label="No data">—</span>' } %}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
@@ -26,7 +27,7 @@
               {
                 href: changeHref,
                 text: "Change",
-                visuallyHiddenText: "enforcement action details"
+                visuallyHiddenText: "last enforcement action"
               }
             ]
           }
@@ -38,33 +39,33 @@
           },
           {
             key: { text: "Reason" },
-            value: { text: formValues["enforcement-reason"] or "—" }
+            value: { text: formValues["enforcement-reason"] } if formValues["enforcement-reason"] else noDataValue
           },
           {
             key: { text: "Hearing court" },
-            value: { text: formValues["enforcement-court"] }
+            value: { text: formValues["enforcement-court"] } if formValues["enforcement-court"] else noDataValue
           },
           {
             key: { text: "Hearing venue" },
-            value: { text: formValues["enforcement-hearing-venue"] or "—" }
+            value: { text: formValues["enforcement-hearing-venue"] } if formValues["enforcement-hearing-venue"] else noDataValue
           },
           {
             key: { text: "Hearing date" },
-            value: { text: hearingDate }
+            value: { text: hearingDate } if hearingDate else noDataValue
           },
           {
             key: { text: "Hearing time" },
-            value: { text: formValues["enforcement-hearing-time"] or "—" }
+            value: { text: formValues["enforcement-hearing-time"] } if formValues["enforcement-hearing-time"] else noDataValue
           }
         ]
       }) }}
 
       <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}" data-module="rm-route-guard" data-route-guard-active="true">
         <div class="govuk-button-group">
           {{ govukButton({ text: "Submit" }) }}
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}" aria-label="Cancel and go back to Enforcement tab">Cancel</a>
         </div>
       </form>
     </div>

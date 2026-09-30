@@ -15,6 +15,7 @@
     <div class="govuk-grid-column-two-thirds">
       {% set expiresOnDateHtml %}
         {{ mojDatePicker({
+          leadingZeros: true,
           id: "terms-expiry-date",
           name: "terms-expiry-date",
           label: {

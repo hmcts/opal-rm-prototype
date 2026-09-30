@@ -1,0 +1,34 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}Order terms - {{ hearing.activeCase.respondentName }} - {{ serviceName }}{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: "/active-case/" + hearing.id + "/" + hearing.category + "/result-hearing/orders" }) }}
+      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ hearing.activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Order terms</h1>
+
+      {% if orderTermCards.length %}
+        {% for card in orderTermCards %}
+          {% set orderTermCard = card %}
+          {% include "create-a-case/_order-term-summary-card.html" %}
+        {% endfor %}
+      {% else %}
+        <p class="govuk-body">There are currently no order terms.</p>
+      {% endif %}
+
+      <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+      <div class="govuk-button-group">
+        {{ govukButton({ text: "Return to account", href: returnHref }) }}
+        {% if allowAdd %}
+          {{ govukButton({ text: "Add terms", href: addHref, classes: "govuk-button--secondary" }) }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
