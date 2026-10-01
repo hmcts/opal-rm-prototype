@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {%- from "moj/components/sub-navigation/macro.njk" import mojSubNavigation -%}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% block pageTitle %}
   Check results - {{ serviceName }} - GOV.UK Prototype Kit
@@ -19,22 +20,33 @@
       <span class="govuk-caption-l">Check results</span>
       <h1 class="govuk-heading-l">Check results</h1>
 
+      {% if successMessage %}
+        {{ mojAlert({ variant: "success", title: successMessage, dismissible: true }) }}
+      {% endif %}
+
       {{ mojSubNavigation({
         label: "Sub navigation",
         items: [{
           text: "To review",
           href: "/check-results",
-          active: true
+          active: tab === "to-review"
         }, {
           text: "Rejected",
-          href: "#"
+          href: "/check-results?tab=rejected",
+          active: tab === "rejected"
         }, {
           text: "Validated",
-          href: "#"
+          href: "/check-results?tab=validated",
+          active: tab === "validated"
         }]
       }) }}
 
-      <h2 class="govuk-heading-m">To review</h2>
+      {% set tabHeading = "To review" %}
+      {% if tab === "rejected" %}{% set tabHeading = "Rejected" %}{% endif %}
+      {% if tab === "validated" %}{% set tabHeading = "Validated" %}{% endif %}
+      <h2 class="govuk-heading-m">{{ tabHeading }}</h2>
+
+      {% if not toReviewTableRows.length %}<p class="govuk-body">No results to show.</p>{% else %}
 
       {{ govukTable({
         head: [
@@ -45,10 +57,13 @@
             text: "Applicant"
           },
           {
-            text: "Hearing date"
+            text: "Hearing type"
           },
           {
-            text: "Created"
+            text: "Court"
+          },
+          {
+            text: "Hearing date"
           },
           {
             text: "Submitted by"
@@ -56,6 +71,7 @@
         ],
         rows: toReviewTableRows
       }) }}
+      {% endif %}
     </div>
   </div>
 {% endblock %}

@@ -23,35 +23,49 @@
         items: [{
           text: "Submitted",
           href: "/review-results",
-          active: true
+          active: tab === "submitted"
         }, {
           text: "Rejected",
-          href: "#"
+          href: "/review-results?tab=rejected",
+          active: tab === "rejected"
         }, {
           text: "Approved",
-          href: "#"
+          href: "/review-results?tab=approved",
+          active: tab === "approved"
         }]
       }) }}
 
-      <h2 class="govuk-heading-m">Submitted</h2>
+      {% set tabHeading = "Submitted" %}
+      {% if tab === "rejected" %}{% set tabHeading = "Rejected" %}{% endif %}
+      {% if tab === "approved" %}{% set tabHeading = "Approved" %}{% endif %}
+      <h2 class="govuk-heading-m">{{ tabHeading }}</h2>
+
+      {% if not inReviewTableRows.length %}<p class="govuk-body">No results to show.</p>{% else %}
 
       {{ govukTable({
         head: [
           {
+            text: "Respondent"
+          },
+          {
             text: "Applicant"
           },
           {
-            text: "Respondent"
+            text: "Hearing type"
+          },
+          {
+            text: "Court"
           },
           {
             text: "Hearing date"
           },
           {
-            text: "Created"
+            text: "Submitted by"
           }
         ],
         rows: inReviewTableRows
       }) }}
+      {% endif %}
     </div>
   </div>
 {% endblock %}
