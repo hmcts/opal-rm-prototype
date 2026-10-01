@@ -1,0 +1,84 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}Check and submit result - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result" }) }}
+      <span class="govuk-caption-l">Record results</span>
+      <h1 class="govuk-heading-l">Check and submit for validation</h1>
+      {{ govukInsetText({ text: "The account will not change until a checker validates the result." }) }}
+      <h2 class="govuk-heading-m">Hearing</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {{ govukSummaryList({ card: {
+        title: { text: "Hearing information" },
+        actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/information", visuallyHiddenText: "hearing information" }] }
+      }, rows: [
+        { key: { text: "Court" }, value: { text: hearing.court } },
+        { key: { text: "Hearing date" }, value: { text: hearing.displayDate } },
+        { key: { text: "Respondent" }, value: { text: hearing.activeCase.respondentName } },
+        { key: { text: "Applicant" }, value: { text: hearing.activeCase.applicantName } },
+        { key: { text: "Hearing type" }, value: { text: hearing.type } },
+        { key: { text: "Magistrate(s)" }, value: { text: draft.magistrate } },
+        { key: { text: "Clerks" }, value: { text: draft.clerks } },
+        { key: { text: "Legal advisor" }, value: { text: draft.legalAdvisor } },
+        { key: { text: "Defendant present?" }, value: { text: "Yes" if draft.present === "yes" else "No" } },
+        { key: { text: "Arrears to remit?" }, value: { text: "£" + draft.remitAmount if draft.remitArrears === "yes" else "None" } }
+      ] }) }}
+      {% if draft.orderOption %}
+        {% if orderDetailsRows.length %}
+          <h2 class="govuk-heading-m">Order details</h2>
+          <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+          {{ govukSummaryList({ card: {
+            title: { text: "Order details" },
+            actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/order-details", visuallyHiddenText: "order details" }] }
+          }, rows: orderDetailsRows }) }}
+        {% endif %}
+        <h2 class="govuk-heading-m">Order terms</h2>
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+        {% for card in terms %}
+          {% set orderTermCard = card %}
+          {% include "create-a-case/_order-term-summary-card.html" %}
+        {% endfor %}
+        {% if not terms.length %}
+          <p class="govuk-body">No order terms to add or amend.</p>
+        {% endif %}
+        {% if interestRows.length %}
+          <h2 class="govuk-heading-m">Additional order information</h2>
+          <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+          {{ govukSummaryList({ card: {
+            title: { text: "Interest and indexation" },
+            actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/interest-and-indexation", visuallyHiddenText: "interest and indexation" }] }
+          }, rows: interestRows }) }}
+          {{ govukSummaryList({ card: {
+            title: { text: "Managing payments" },
+            actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/managing-payments", visuallyHiddenText: "managing payments" }] }
+          }, rows: managingPaymentsRows }) }}
+        {% endif %}
+      {% endif %}
+      <h2 class="govuk-heading-m">Results</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {% for result in draft.results %}
+        {{ govukSummaryList({ card: {
+          title: { text: result.code + " - " + result.title },
+          actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/change-result/" + loop.index0, visuallyHiddenText: "result " + loop.index }] }
+        }, rows: [
+          { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
+          { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
+          { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date } } if result.proposedHearing
+        ] }) }}
+      {% endfor %}
+      <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+      <form method="post" action="{{ formAction }}">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Submit for validation" }) }}
+          <a class="govuk-link" href="/record-results">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}Order terms - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/application/outcome" }) }}
+      <span class="govuk-caption-l">Record results</span>
+      <h1 class="govuk-heading-l">Order terms</h1>
+      <p class="govuk-body">Review the existing order terms. You can amend a term or add a new one.</p>
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Order details" },
+          actions: { items: [
+            { href: changeOrderDetailsHref, text: "Change", visuallyHiddenText: "order details" }
+          ] }
+        },
+        rows: orderDetailsRows
+      }) }}
+      <h2 class="govuk-heading-m">Order terms</h2>
+      {% for card in orderTermCards %}
+        {% set orderTermCard = card %}
+        {% include "create-a-case/_order-term-summary-card.html" %}
+      {% endfor %}
+      <p class="govuk-body"><a class="govuk-link" href="{{ addHref }}">Add terms</a></p>
+      <h2 class="govuk-heading-m">Additional order information</h2>
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Interest and indexation" },
+          actions: { items: [
+            { href: changeInterestHref, text: "Change", visuallyHiddenText: "interest and indexation" }
+          ] }
+        },
+        rows: interestAndIndexationRows
+      }) }}
+      {{ govukSummaryList({
+        card: {
+          title: { text: "Managing payments" },
+          actions: { items: [
+            { href: changeManagingPaymentsHref, text: "Change", visuallyHiddenText: "managing payments" }
+          ] }
+        },
+        rows: managingPaymentsRows
+      }) }}
+      {{ govukButton({ text: "Continue", href: continueHref }) }}
+    </div>
+  </div>
+{% endblock %}

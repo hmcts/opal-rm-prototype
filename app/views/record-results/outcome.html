@@ -1,0 +1,34 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}{% if errorSummary %}Error: {% endif %}Hearing outcome - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/information" }) }}
+      <span class="govuk-caption-l">Record results</span>
+      <h1 class="govuk-heading-l">Hearing outcome</h1>
+      {% if errorSummary %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukRadios({
+          idPrefix: "orderOption", name: "orderOption",
+          fieldset: { legend: { text: "What was the outcome of the hearing?", classes: "govuk-fieldset__legend--m" } },
+          items: [
+            { value: "add-or-amend", text: "Add or amend order terms", checked: option === "add-or-amend" },
+            { value: "no-order", text: "No order terms to add or amend", checked: option === "no-order" }
+          ],
+          errorMessage: errors.orderOption
+        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Continue" }) }}
+          <a class="govuk-link" href="/record-results">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

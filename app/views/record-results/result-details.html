@@ -1,0 +1,57 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "autocomplete/macro.njk" import xGovukAutocomplete %}
+
+{% block pageTitle %}{% if errorSummary %}Error: {% endif %}{{ code }} - {{ title }} - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result" }) }}
+      <span class="govuk-caption-l">Record results</span>
+      <h1 class="govuk-heading-l">{{ code }} - {{ title }}</h1>
+      {% if errorSummary %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukTextarea({
+          id: "reason", name: "reason",
+          label: { text: "Reason" if code === "MADJ" else "Reason (optional)", classes: "govuk-label--s" },
+          value: values.reason, errorMessage: errors.reason
+        }) }}
+        {% if code === "MADJ" %}
+          <h2 class="govuk-heading-m">New hearing details</h2>
+          {{ xGovukAutocomplete({
+            id: "court", name: "court",
+            label: { text: "Court", classes: "govuk-label--s" },
+            value: values.court, items: courtItems, errorMessage: errors.court
+          }) }}
+          {{ govukInput({
+            id: "venue", name: "venue",
+            label: { text: "Hearing venue (optional)", classes: "govuk-label--s" },
+            value: values.venue
+          }) }}
+          {{ mojDatePicker({
+            leadingZeros: true, id: "date", name: "date",
+            label: { text: "Hearing date", classes: "govuk-label--s" },
+            value: values.date, errorMessage: errors.date
+          }) }}
+          {{ govukInput({
+            id: "time", name: "time",
+            label: { text: "Hearing time (optional)", classes: "govuk-label--s" },
+            hint: { text: "For example, 14:30" },
+            value: values.time, errorMessage: errors.time
+          }) }}
+        {% endif %}
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Continue" }) }}
+          <a class="govuk-link" href="/record-results">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

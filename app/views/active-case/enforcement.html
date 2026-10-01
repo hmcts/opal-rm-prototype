@@ -17,6 +17,8 @@
         {% set hearingStatusClasses = "govuk-tag--yellow" %}
       {% elif hearingStatus === "Validation pending" %}
         {% set hearingStatusClasses = "govuk-tag--orange" %}
+      {% elif hearingStatus === "Result rejected" %}
+        {% set hearingStatusClasses = "govuk-tag--red" %}
       {% elif hearingStatus === "Result validated" %}
         {% set hearingStatusClasses = "govuk-tag--blue" %}
       {% elif hearingStatus === "Hearing deleted" %}
@@ -39,7 +41,7 @@
                 visuallyHiddenText: "for the last enforcement action"
               },
               {
-                href: "/active-case/" + caseId + "/enforcement/result-hearing",
+                href: "/record-results/" + caseId + "/enforcement/information",
                 text: "Result hearing",
                 visuallyHiddenText: "for the last enforcement action"
               }
@@ -54,6 +56,7 @@
           { key: { text: "Enforcement action" }, value: { html: enforcementActionTag } },
           { key: { text: "Reason" }, value: { text: activeCase.enforcementAction.reason } if activeCase.enforcementAction.reason else noDataValue },
           { key: { text: "Hearing status" }, value: { html: hearingStatusTag } },
+          { key: { text: "Result" }, value: { text: activeCase.enforcementAction.resultCode + " - " + activeCase.enforcementAction.resultTitle } } if activeCase.enforcementAction.resultCode,
           { key: { text: "Hearing court" }, value: { text: activeCase.enforcementAction.court } if activeCase.enforcementAction.court else noDataValue },
           { key: { text: "Hearing venue" }, value: { text: activeCase.enforcementAction.hearingVenue } if activeCase.enforcementAction.hearingVenue else noDataValue },
           { key: { text: "Hearing date" }, value: { text: activeCase.enforcementAction.hearingDate } if activeCase.enforcementAction.hearingDate else noDataValue },

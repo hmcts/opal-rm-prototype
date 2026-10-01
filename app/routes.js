@@ -5276,7 +5276,7 @@ function getReviewHistoryTimelineItems(reviewHistory) {
 
 function getReviewHistoryTimestamp(dateTimeText) {
   const match = String(dateTimeText || '').match(
-    /^(\d{1,2}) ([A-Za-z]+) (\d{4}) at (\d{1,2}):(\d{2})(am|pm)?$/i
+    /^(\d{1,2}) ([A-Za-z]+) (\d{4}) at (\d{1,2}):(\d{2})\s*(am|pm)?$/i
   )
 
   if (!match) {
@@ -7922,49 +7922,39 @@ router.post('/create-a-case/cancel-case-creation', (req, res, next) => {
 
 
 router.get('/resulting', (req, res) => {
-  return res.render('resulting/index')
+  return res.redirect('/record-results')
 })
+router.post('/resulting', (req, res) => res.redirect('/record-results'))
+
+router.all('/resulting/*', (req, res) => res.redirect('/record-results'))
+router.all('/active-case/:id/:category/result-hearing', (req, res) =>
+  res.redirect(`/record-results/${req.params.id}/${req.params.category}/information`))
+router.all('/active-case/:id/:category/result-hearing/*', (req, res) =>
+  res.redirect(`/record-results/${req.params.id}/${req.params.category}/information`))
+router.get('/review-results/active/:id/:category', (req, res) =>
+  res.redirect(`/my-results/${req.params.id}/${req.params.category}`))
+router.all('/review-results/:index', (req, res) => res.redirect('/validate-results'))
+router.all('/check-results/:index', (req, res) => res.redirect('/validate-results'))
 
 router.get('/review-results', (req, res) => {
-  const inReviewRows = [
-    {
-      id: 0,
-      applicant: 'HORVATH, Katarina',
-      respondent: 'NOVOTNY, Matej',
-      hearingDate: '21 March 2026',
-      created: 'Today'
-    },
-    {
-      id: 1,
-      applicant: 'POPA, Alina',
-      respondent: 'POPA, Andrei',
-      hearingDate: '20 March 2026',
-      created: '1 day ago'
-    },
-    {
-      id: 2,
-      applicant: 'KOWALSKI, Ewa',
-      respondent: 'KOWALSKI, Marek',
-      hearingDate: '18 March 2026',
-      created: '2 days ago'
-    }
-  ]
+  return res.redirect('/validate-results')
+})
+router.get('/review-results-legacy', (req, res) => res.redirect('/validate-results'))
+router.get('/check-results-legacy', (req, res) => res.redirect('/validate-results'))
 
+router.get('/review-results-legacy', (req, res) => {
+  const tab = ['submitted', 'rejected', 'approved'].includes(req.query.tab) ? req.query.tab : 'submitted'
+  const status = { submitted: 'Validation pending', rejected: 'Result rejected', approved: 'Result validated' }[tab]
+  const liveRows = getResultReviewEntries().filter((entry) => entry.record.hearingStatus === status)
   return res.render('review-results/index', {
-    inReviewRows,
-    inReviewTableRows: inReviewRows.map((row) => [
-      {
-        text: row.applicant
-      },
-      {
-        html: `<a class="govuk-link" href="/review-results/${row.id}">${escapeHtml(row.respondent)}</a>`
-      },
-      {
-        text: row.hearingDate
-      },
-      {
-        text: row.created
-      }
+    tab,
+    inReviewTableRows: liveRows.map((entry) => [
+      { html: getResultReviewAccountHtml(entry.activeCase.accountNumber, entry.activeCase.respondentName, `/review-results/active/${entry.id}/${entry.category}`) },
+      { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber, entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref) },
+      { text: entry.category === 'application' ? 'Application' : 'Enforcement action' },
+      getResultReviewTableCell(getResultReviewCourt(entry)),
+      getResultReviewTableCell(getResultReviewHearingDate(entry)),
+      getResultReviewTableCell(entry.review.submittedBy)
     ])
   })
 })
@@ -8198,50 +8188,23 @@ router.get('/review-results/:index', (req, res) => {
 })
 
 router.get('/check-results', (req, res) => {
-  const toReviewRows = [
-    {
-      id: 0,
-      applicant: 'HORVATH, Katarina',
-      respondent: 'NOVOTNY, Matej',
-      hearingDate: '21 March 2026',
-      created: 'Today',
-      submittedBy: 'joe.bloggs'
-    },
-    {
-      id: 1,
-      applicant: 'POPA, Alina',
-      respondent: 'POPA, Andrei',
-      hearingDate: '20 March 2026',
-      created: '1 day ago',
-      submittedBy: 'joe.bloggs'
-    },
-    {
-      id: 2,
-      applicant: 'KOWALSKI, Ewa',
-      respondent: 'KOWALSKI, Marek',
-      hearingDate: '18 March 2026',
-      created: '2 days ago',
-      submittedBy: 'emma.davis'
-    }
-  ]
+  return res.redirect('/validate-results')
+})
 
+router.get('/check-results-legacy', (req, res) => {
+  const tab = ['to-review', 'rejected', 'validated'].includes(req.query.tab) ? req.query.tab : 'to-review'
+  const status = { 'to-review': 'Validation pending', rejected: 'Result rejected', validated: 'Result validated' }[tab]
+  const liveRows = getResultReviewEntries().filter((entry) => entry.record.hearingStatus === status)
   return res.render('check-results/index', {
-    toReviewTableRows: toReviewRows.map((row) => [
-      {
-        html: `<a class="govuk-link" href="/check-results/${row.id}">${escapeHtml(row.respondent)}</a>`
-      },
-      {
-        text: row.applicant
-      },
-      {
-        text: row.hearingDate
-      },
-      {
-        text: row.created
-      },
-      {
-        text: row.submittedBy
-      }
+    tab,
+    successMessage: consumeActiveCaseSuccessMessage(req),
+    toReviewTableRows: liveRows.map((entry) => [
+      { html: getResultReviewAccountHtml(entry.activeCase.accountNumber, entry.activeCase.respondentName, `/active-case/${entry.id}/${entry.category}/validate-result`) },
+      { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber, entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref) },
+      { text: entry.category === 'application' ? 'Application' : 'Enforcement action' },
+      getResultReviewTableCell(getResultReviewCourt(entry)),
+      getResultReviewTableCell(getResultReviewHearingDate(entry)),
+      getResultReviewTableCell(entry.review.submittedBy)
     ])
   })
 })
@@ -11362,6 +11325,8 @@ function clearActiveCaseApplicationType(req, caseId) {
 }
 
 function getActiveCaseVaryOrderApplication(req, caseId) {
+  const sharedApplication = activeCases[caseId]?.resultReviews?.application?.record
+  if (sharedApplication) return sharedApplication
   const applications = getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationsKey)
   const seededApplications = getActiveCaseVaryOrderStore(req, activeCaseVaryOrderApplicationSeedsKey)
   const defaultApplication = activeCases[caseId]?.defaultVaryOrderApplication
@@ -11433,8 +11398,9 @@ function isDeletedHearingStatus(status) {
   return status === 'Hearing deleted' || status === 'Deleted'
 }
 
-function canManageHearing(record) {
-  return (record?.hearingStatus || 'Result pending') === 'Result pending'
+function canManageHearing(record, allowRejected = false) {
+  const status = record?.hearingStatus || 'Result pending'
+  return status === 'Result pending' || (allowRejected && status === 'Result rejected')
 }
 
 function formatHistoryHearingDate(dateString) {
@@ -11653,6 +11619,7 @@ function getActiveCaseVaryOrderApplicationSummaryRows(activeCase, application, c
     buildSummaryHtmlRow('Application made by', applicantValue),
     buildSummaryRow('Reason for the application', application['vary-order-application-reason']),
     buildHearingStatusSummaryRow(application.hearingStatus || 'Result pending'),
+    ...(application.resultCode ? [buildSummaryRow('Result', `${application.resultCode} - ${application.resultTitle}`)] : []),
     buildSummaryRow('Hearing court', application['vary-order-hearing-court']),
     buildSummaryRow('Hearing venue', application['vary-order-hearing-venue'] || EMPTY_VALUE_TEXT),
     buildSummaryRow('Hearing date', formatDateLong(application['vary-order-hearing-date'])),
@@ -11682,7 +11649,7 @@ function getActiveCaseVaryOrderApplicationDetailsRows(application) {
 }
 
 function hasActiveCourtHearing(activeCase, applications = []) {
-  const activeStatuses = ['Result pending', 'Validation pending']
+  const activeStatuses = ['Result pending', 'Validation pending', 'Result rejected']
   const hearingStatuses = [
     activeCase.enforcementAction?.hearingStatus,
     ...applications
@@ -11698,6 +11665,8 @@ function buildHearingStatusSummaryRow(status) {
     ? 'govuk-tag--yellow'
     : status === 'Validation pending'
       ? 'govuk-tag--orange'
+      : status === 'Result rejected'
+        ? 'govuk-tag--red'
       : status === 'Result validated'
         ? 'govuk-tag--blue'
         : isDeletedHearingStatus(status)
@@ -12123,14 +12092,14 @@ router.post('/active-case/:id/enforcement/change', (req, res, next) => {
 })
 
 // Both hearing journeys use the record's type as their visible context.
-function getManagedHearing(req) {
+function getManagedHearing(req, allowRejected = false) {
   const id = Number(req.params.id)
   const category = req.params.category
   const activeCase = activeCases[id]
   if (!activeCase || !['application', 'enforcement'].includes(category)) return null
   const application = category === 'application'
   const record = application ? getActiveCaseVaryOrderApplication(req, id) : activeCase.enforcementAction
-  if (!record || !canManageHearing(record)) return null
+  if (!record || !canManageHearing(record, allowRejected)) return null
   const values = application ? record : getActiveCaseEnforcementActionValues(record)
   const prefix = application ? 'vary-order-hearing-' : 'enforcement-hearing-'
   return {
@@ -12165,6 +12134,58 @@ const activeCaseResultTitles = {
 }
 const activeCaseResultCodes = Object.keys(activeCaseResultTitles)
 
+function getResultReviewEntries() {
+  return Object.entries(activeCases).flatMap(([id, activeCase]) =>
+    Object.entries(activeCase.resultReviews || {}).map(([category, review]) => ({
+      id: Number(id), activeCase, category, review, record: review.record
+    }))
+  )
+}
+
+function getResultReviewAccountHtml(accountNumber, accountName, href) {
+  if (!accountNumber || !href) return accountName ? escapeHtml(accountName) : EMPTY_VALUE_HTML
+  return `<a class="govuk-link" href="${escapeHtml(href)}">${escapeHtml(accountNumber)}</a><br>${escapeHtml(accountName || '')}`
+}
+
+function getResultReviewTableCell(value) {
+  return hasValue(value) ? { text: value } : { html: EMPTY_VALUE_HTML }
+}
+
+function getResultReviewCourt(entry) {
+  return entry.category === 'application'
+    ? entry.record['vary-order-hearing-court']
+    : entry.record.court
+}
+
+function getResultReviewHearingDate(entry) {
+  const date = entry.category === 'application'
+    ? entry.record['vary-order-hearing-date']
+    : entry.record.hearingDate
+  return formatDateForReview(formatHistoryHearingDate(date))
+}
+
+function getResultReviewTimestamp() {
+  return new Date().toLocaleString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit',
+    hour12: true, timeZone: 'Europe/London'
+  })
+}
+
+function submitResultForValidation(hearing) {
+  const reviews = hearing.activeCase.resultReviews || (hearing.activeCase.resultReviews = {})
+  const existing = reviews[hearing.category]
+  const submittedAt = getResultReviewTimestamp()
+  reviews[hearing.category] = {
+    record: hearing.record,
+    submittedBy: prototypeCurrentUserName,
+    submittedAt,
+    history: [
+      { action: existing ? 'Resubmitted' : 'Submitted', by: prototypeCurrentUserName, at: submittedAt, timestamp: new Date().toISOString() },
+      ...(existing?.history || [])
+    ]
+  }
+}
+
 function getActiveCaseResultHearingDraft(req, hearing) {
   const drafts = getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)
   const key = `${hearing.id}:${hearing.category}`
@@ -12187,6 +12208,7 @@ function getActiveCaseForOrderTermJourney(req, caseId) {
 }
 
 function getActiveCaseResultReviewHref(context) {
+  if (context.newJourney) return `/record-results/${context.caseId}/${context.category}/order-terms`
   return `/active-case/${context.caseId}/${context.category}/result-hearing/order-terms`
 }
 
@@ -12194,7 +12216,9 @@ function getActiveCaseOrderTermReturnHref(context, activeCase, caseId) {
   if (!context) return `/active-case/${caseId}?tab=orders`
   return getActiveCaseOrders(activeCase).terms.length
     ? getActiveCaseResultReviewHref(context)
-    : `/active-case/${caseId}/${context.category}/result-hearing/orders`
+    : context.newJourney
+      ? `/active-case/${caseId}/order-term/add`
+      : `/active-case/${caseId}/${context.category}/result-hearing/orders`
 }
 
 function getArrearsPence(value) {
@@ -12238,7 +12262,7 @@ function renderActiveCaseResultHearing(req, res, hearing, formValues, errors = {
 }
 
 router.get('/active-case/:id/:category/result-hearing', (req, res) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
   return renderActiveCaseResultHearing(req, res, hearing, {
@@ -12252,7 +12276,7 @@ router.get('/active-case/:id/:category/result-hearing', (req, res) => {
 })
 
 router.post('/active-case/:id/:category/result-hearing', (req, res, next) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const values = {
     'result-hearing-magistrate': String(getSingleValue(req.body['result-hearing-magistrate']) || '').trim(),
@@ -12303,7 +12327,7 @@ router.post('/active-case/:id/:category/result-hearing', (req, res, next) => {
 })
 
 router.get('/active-case/:id/:category/result-hearing/orders', (req, res) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
   if (!['MAT', 'MCHILD'].includes(draft.code)) {
@@ -12320,7 +12344,7 @@ router.get('/active-case/:id/:category/result-hearing/orders', (req, res) => {
 })
 
 router.post('/active-case/:id/:category/result-hearing/orders', (req, res, next) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
   if (!['MAT', 'MCHILD'].includes(draft.code)) return res.redirect(`/active-case/${hearing.id}/${hearing.category}/result-hearing`)
@@ -12349,7 +12373,7 @@ router.post('/active-case/:id/:category/result-hearing/orders', (req, res, next)
 })
 
 router.get('/active-case/:id/:category/result-hearing/order-terms', (req, res) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   const context = getActiveCaseResultContext(req, req.params.id)
   if (!hearing || !context || context.category !== hearing.category) return res.redirect(`/active-case/${req.params.id}`)
   if (getActiveCaseResultHearingDraft(req, hearing).orderOption !== 'add-or-amend') {
@@ -12375,7 +12399,7 @@ router.get('/active-case/:id/:category/result-hearing/order-terms/add', (req, re
 })
 
 router.get('/active-case/:id/:category/result-hearing/complete', (req, res, next) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   const context = getActiveCaseResultContext(req, req.params.id)
   if (!hearing || !context || context.category !== hearing.category) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
@@ -12398,10 +12422,188 @@ router.get('/active-case/:id/:category/result-hearing/complete', (req, res, next
       ? JSON.parse(JSON.stringify(getActiveCaseOrders(workingCase)))
       : null
   }
+  submitResultForValidation(hearing)
   delete getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)[`${hearing.id}:${hearing.category}`]
   delete req.session.data[activeCaseResultContextKey]
   setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, 'Hearing result submitted for validation.')
   return redirectWithSessionSave(req, res, next, hearing.cancelHref)
+})
+
+function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, decisionValues = {}) {
+  const id = Number(req.params.id)
+  const category = req.params.category
+  const activeCase = activeCases[id]
+  if (!activeCase || !['application', 'enforcement'].includes(category)) {
+    return res.redirect(`/active-case/${id}`)
+  }
+
+  const application = category === 'application'
+  const record = application ? getActiveCaseVaryOrderApplication(req, id) : activeCase.enforcementAction
+  const review = activeCase.resultReviews?.[category]
+  const pendingResult = record?.pendingResult || record?.validatedResult
+  if (!review || !pendingResult) {
+    return res.redirect(`/active-case/${id}?tab=${application ? 'hearings' : 'enforcement'}`)
+  }
+
+  const backHref = mode === 'inputter' ? `/my-results?tab=${record.hearingStatus === 'Result rejected' ? 'rejected' : record.hearingStatus === 'Result validated' ? 'validated' : 'submitted'}` : '/validate-results'
+  const hearingRows = [
+    buildSummaryRow(application ? 'Application' : 'Enforcement action', record.type),
+    buildSummaryRow('Court', application ? record['vary-order-hearing-court'] : record.court),
+    buildSummaryRow('Hearing date', application
+      ? formatDateLong(record['vary-order-hearing-date'])
+      : record.hearingDate)
+  ]
+  const resultRows = [
+    buildSummaryRow('Result', `${pendingResult.code} - ${pendingResult.title}`),
+    buildSummaryRow('Magistrate', pendingResult.magistrate),
+    buildSummaryRow('Clerks', pendingResult.clerks),
+    buildSummaryRow('Legal advisor', pendingResult.legalAdvisor || EMPTY_VALUE_TEXT),
+    buildSummaryRow('Respondent or defendant present', pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
+    buildSummaryRow('Remit arrears', pendingResult.remitArrears === 'yes' ? 'Yes' : 'No')
+  ]
+  if (pendingResult.results?.length) {
+    resultRows.splice(0, 1, ...pendingResult.results.map((result, index) =>
+      buildSummaryRow(`Result ${index + 1}`, `${result.code} - ${result.title}`)))
+  }
+  if (pendingResult.remitArrears === 'yes') {
+    resultRows.push(buildSummaryRow('Amount to remit', formatCurrency(Number(pendingResult.remitArrearsAmount))))
+  }
+  if (pendingResult.orderOption) {
+    resultRows.push(buildSummaryRow('Orders', pendingResult.orderOption === 'no-order'
+      ? 'No order to be made'
+      : 'Add or amend order terms'))
+  }
+  const proposedHearingRows = pendingResult.proposedHearing ? [
+    buildSummaryRow('Reason for adjournment', pendingResult.adjournmentReason),
+    buildSummaryRow('Court', pendingResult.proposedHearing.court),
+    buildSummaryRow('Hearing venue', pendingResult.proposedHearing.venue || EMPTY_VALUE_TEXT),
+    buildSummaryRow('Hearing date', formatDateLong(pendingResult.proposedHearing.date)),
+    buildSummaryRow('Hearing time', pendingResult.proposedHearing.time || EMPTY_VALUE_TEXT)
+  ] : []
+  const proposedCase = pendingResult.proposedOrders ? {
+    ...activeCase,
+    orders: JSON.parse(JSON.stringify(pendingResult.proposedOrders)),
+    isPendingResultWorkingCase: true
+  } : null
+  const proposedOrderTerms = proposedCase
+    ? getActiveCaseOrders(proposedCase).terms.map((term) => ({
+        title: `${term.code} - ${term.title}`,
+        rows: getActiveCaseOrderTermRows(term, proposedCase, id)
+      }))
+    : []
+  const proposedOrderDetailsRows = proposedCase
+    ? getActiveCaseOrderDetailsRows(proposedCase) : []
+  const proposedInterestRows = proposedCase
+    ? getActiveCaseInterestAndIndexationRows(proposedCase) : []
+  const proposedManagingPaymentsRows = proposedCase
+    ? getActiveCaseManagingPaymentsRows(proposedCase) : []
+  const arrearsAfterValidation = getArrearsPence(activeCase.arrears) -
+    (pendingResult.remitArrears === 'yes' ? getArrearsPence(pendingResult.remitArrearsAmount) : 0) +
+    (pendingResult.arrearsAdjustmentPence || 0)
+  const arrearsRows = record.hearingStatus !== 'Result validated' && (pendingResult.remitArrears === 'yes' || pendingResult.arrearsAdjustmentPence)
+    ? [
+        buildSummaryRow('Current account arrears', activeCase.arrears),
+        buildSummaryRow('Arrears after validation', formatCurrency(arrearsAfterValidation / 100))
+      ]
+    : []
+
+  return res.render('active-case/validate-result', {
+    activeCase, backHref, hearingRows, resultRows,
+    proposedHearingRows, proposedOrderTerms, proposedOrderDetailsRows,
+    proposedInterestRows, proposedManagingPaymentsRows, arrearsRows,
+    review, reviewTimelineItems: getReviewHistoryTimelineItems(review.history),
+    mode, status: record.hearingStatus, errors, decisionValues,
+    errorSummary: Object.keys(errors).length ? getActiveCaseVaryOrderErrorSummary(errors) : null,
+    formAction: `/active-case/${id}/${category}/validate-result`,
+    reviseHref: `/record-results/${id}/${category}/information`
+  })
+}
+
+router.get('/review-results/active/:id/:category', (req, res) => {
+  return renderActiveCaseResultReview(req, res, 'inputter')
+})
+
+router.get('/active-case/:id/:category/validate-result', (req, res) => {
+  return renderActiveCaseResultReview(req, res)
+})
+
+router.post('/active-case/:id/:category/validate-result', (req, res, next) => {
+  const id = Number(req.params.id)
+  const category = req.params.category
+  const activeCase = activeCases[id]
+  const review = activeCase?.resultReviews?.[category]
+  if (!review || review.record.hearingStatus !== 'Validation pending') return res.redirect('/validate-results')
+  const decision = String(getSingleValue(req.body['check-review-decision']) || '')
+  const rejectionReason = String(getSingleValue(req.body['rejection-reason']) || '').trim()
+  const errors = {}
+  if (!['approve', 'reject'].includes(decision)) errors['check-review-decision'] = buildFieldError('Select a review decision')
+  if (decision === 'reject' && !rejectionReason) errors['rejection-reason'] = buildFieldError('Enter a reason for rejection')
+  if (rejectionReason.length > 255) errors['rejection-reason'] = buildFieldError('Reason for rejection must be 255 characters or fewer')
+  if (Object.keys(errors).length) {
+    return renderActiveCaseResultReview(req, res, 'checker', errors, { decision, rejectionReason })
+  }
+
+  const record = review.record
+  const pending = record.pendingResult
+  const checkedAt = getResultReviewTimestamp()
+  if (decision === 'reject') {
+    record.hearingStatus = 'Result rejected'
+    review.rejectionReason = rejectionReason
+    review.history.unshift({ action: 'Rejected', by: 'Diana Prince', at: checkedAt, timestamp: new Date().toISOString(), note: rejectionReason })
+    setActiveCaseSuccessMessage(req, '/validate-results', 'Hearing result rejected and returned to the inputter.')
+    return redirectWithSessionSave(req, res, next, '/validate-results?tab=rejected')
+  }
+
+  if (pending.proposedOrders) {
+    activeCase.orders = cloneData(pending.proposedOrders)
+    for (const term of activeCase.orders.terms || []) ensureActiveCaseMinorCreditorAccount(term, activeCase, id)
+  }
+  updateActiveCaseArrearsForResult(activeCase, { remitArrears: pending.remitArrears, remitAmount: pending.remitArrearsAmount }, pending.arrearsAdjustmentPence || 0)
+  if (pending.proposedHearing) {
+    const proposed = pending.proposedHearing
+    if (category === 'application') {
+      for (const field of ['court', 'venue', 'date', 'time']) record[`vary-order-hearing-${field}`] = proposed[field]
+    } else {
+      Object.assign(record, {
+        court: proposed.court, hearingVenue: proposed.venue,
+        hearingDate: formatDateLong(proposed.date), hearingTime: proposed.time
+      })
+    }
+  }
+  record.resultCode = pending.code
+  record.resultTitle = pending.title
+  record.resultCodes = (pending.results || [{ code: pending.code, title: pending.title }])
+    .map((result) => ({ code: result.code, title: result.title }))
+  record.validatedResult = cloneData(pending)
+  delete record.pendingResult
+  record.hearingStatus = 'Result validated'
+  delete review.rejectionReason
+  review.history.unshift({ action: 'Validated', by: 'Diana Prince', at: checkedAt, timestamp: new Date().toISOString() })
+  setActiveCaseSuccessMessage(req, '/validate-results', 'Hearing result validated. Account changes have been applied.')
+  return redirectWithSessionSave(req, res, next, '/validate-results?tab=validated')
+})
+
+router.get('/active-case/:id/:category/result-hearing/revise', (req, res, next) => {
+  const hearing = getManagedHearing(req, true)
+  const review = hearing?.activeCase.resultReviews?.[hearing.category]
+  const pending = hearing?.record.pendingResult
+  if (!review || hearing.record.hearingStatus !== 'Result rejected' || !pending) return res.redirect(`/active-case/${req.params.id}`)
+  const draft = getActiveCaseResultHearingDraft(req, hearing)
+  Object.assign(draft, {
+    code: pending.code, magistrate: pending.magistrate, clerks: pending.clerks,
+    present: pending.respondentPresent, remitArrears: pending.remitArrears,
+    remitAmount: pending.remitArrearsAmount, orderOption: pending.orderOption,
+    adjournmentReason: pending.adjournmentReason,
+    proposedHearing: pending.proposedHearing
+  })
+  if (pending.proposedOrders) {
+    req.session.data[activeCaseResultContextKey] = {
+      caseId: hearing.id, category: hearing.category, code: pending.code,
+      arrearsAdjustmentPence: pending.arrearsAdjustmentPence || 0,
+      workingCase: { ...cloneData(hearing.activeCase), orders: cloneData(pending.proposedOrders), isPendingResultWorkingCase: true }
+    }
+  }
+  return redirectWithSessionSave(req, res, next, `/active-case/${hearing.id}/${hearing.category}/result-hearing`)
 })
 
 function renderActiveCaseAdjournedResult(res, hearing, formValues, errors = {}) {
@@ -12415,18 +12617,24 @@ function renderActiveCaseAdjournedResult(res, hearing, formValues, errors = {}) 
 }
 
 router.get('/active-case/:id/:category/result-hearing/details', (req, res) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
   if (draft.code !== 'MADJ') return res.redirect(`/active-case/${hearing.id}/${hearing.category}/result-hearing`)
   return renderActiveCaseAdjournedResult(res, hearing, {
     ...hearing.formValues,
+    ...(draft.proposedHearing ? {
+      'hearing-court': draft.proposedHearing.court,
+      'hearing-venue': draft.proposedHearing.venue,
+      'hearing-date': draft.proposedHearing.date,
+      'hearing-time': draft.proposedHearing.time
+    } : {}),
     'adjournment-reason': draft.adjournmentReason || ''
   })
 })
 
 router.post('/active-case/:id/:category/result-hearing/details', (req, res, next) => {
-  const hearing = getManagedHearing(req)
+  const hearing = getManagedHearing(req, true)
   if (!hearing) return res.redirect(`/active-case/${req.params.id}`)
   const draft = getActiveCaseResultHearingDraft(req, hearing)
   if (draft.code !== 'MADJ') return res.redirect(`/active-case/${hearing.id}/${hearing.category}/result-hearing`)
@@ -12462,6 +12670,7 @@ router.post('/active-case/:id/:category/result-hearing/details', (req, res, next
       time: values['hearing-time']
     }
   }
+  submitResultForValidation(hearing)
   delete getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)[`${hearing.id}:${hearing.category}`]
   delete req.session.data[activeCaseResultContextKey]
   setActiveCaseSuccessMessage(req, `/active-case/${hearing.id}`, 'Hearing result submitted for validation.')
@@ -15577,6 +15786,52 @@ searchData.forEach((d) => {
   })
 })
 
+// Three Reading hearings for the Record results worklist on 1 October 2026.
+const readingResultCourt = 'Reading County Court and Family Court'
+activeCases[30].enforcementAction = {
+  type: 'Enforcement Summons (MSUMM)',
+  hearingStatus: 'Result pending',
+  court: readingResultCourt,
+  hearingVenue: 'Courtroom 2',
+  hearingDate: '1 October 2026',
+  hearingTime: '09:30',
+  reason: 'Summonsed to give cause for non payment.'
+}
+activeCases[20].defaultVaryOrderApplication = {
+  type: 'Application to vary or revoke an order',
+  legislation: 'Application to Vary/Revoke an Order',
+  'vary-order-applying-party': 'applicant',
+  'vary-order-application-date': '15/09/2026',
+  'vary-order-application-reason': 'The applicant is asking for the current maintenance order to be varied.',
+  'vary-order-original-court': readingResultCourt,
+  'vary-order-original-order-date': '12/01/2025',
+  'vary-order-current-terms': 'Monthly maintenance payments.',
+  'vary-order-last-varied-date': '',
+  'vary-order-hearing-grounds': 'To consider a change in circumstances.',
+  'vary-order-hearing-court': readingResultCourt,
+  'vary-order-hearing-venue': 'Courtroom 3',
+  'vary-order-hearing-date': '01/10/2026',
+  'vary-order-hearing-time': '10:30',
+  hearingStatus: 'Result pending'
+}
+activeCases[8].defaultVaryOrderApplication = {
+  type: 'Application for an order to be made',
+  legislation: 'Application for an Order to be Made',
+  'vary-order-applying-party': 'applicant',
+  'vary-order-application-date': '18/09/2026',
+  'vary-order-application-reason': 'The applicant is seeking a maintenance order.',
+  'vary-order-original-court': '',
+  'vary-order-original-order-date': '',
+  'vary-order-current-terms': '',
+  'vary-order-last-varied-date': '',
+  'vary-order-hearing-grounds': 'To consider making a maintenance order.',
+  'vary-order-hearing-court': readingResultCourt,
+  'vary-order-hearing-venue': 'Courtroom 1',
+  'vary-order-hearing-date': '01/10/2026',
+  'vary-order-hearing-time': '11:30',
+  hearingStatus: 'Result pending'
+}
+
 const initialPrototypeState = {
   activeCases: cloneData(activeCases),
   minorCreditorAccounts: cloneData(minorCreditorAccounts),
@@ -15866,3 +16121,577 @@ router.get('/search/results', (req, res) => {
     pagination: { items: paginationItems, results: { from, to, count: total } }
   })
 })
+
+// Resulting worklist and the shared Application / Enforcement recording journey.
+const recordResultsJudicialKey = 'record-results-judicial-by-court-and-date'
+
+function getRecordResultsHearing(req, id, category) {
+  const activeCase = activeCases[Number(id)]
+  if (!activeCase || !['application', 'enforcement'].includes(category)) return null
+  const record = category === 'application'
+    ? getActiveCaseVaryOrderApplication(req, Number(id))
+    : activeCase.enforcementAction
+  if (!record) return null
+  const court = category === 'application' ? record['vary-order-hearing-court'] : record.court
+  const date = formatHistoryHearingDate(category === 'application'
+    ? record['vary-order-hearing-date'] : record.hearingDate)
+  const status = record.hearingStatus || 'Result pending'
+  if (req.params?.id && !['Result pending', 'Result rejected'].includes(status)) return null
+  return { id: Number(id), category, activeCase, record, court, date,
+    displayDate: formatDateLong(date), type: record.type,
+    status }
+}
+
+function getRecordResultsHref(hearing, step) {
+  return `/record-results/${hearing.id}/${hearing.category}/${step}`
+}
+
+function getRecordResultsDraft(req, hearing) {
+  const drafts = getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)
+  const key = `${hearing.id}:${hearing.category}`
+  if (!drafts[key]) drafts[key] = {}
+  const draft = drafts[key]
+  if (hearing.status === 'Result rejected' && hearing.record.pendingResult && !draft.rejectedLoaded) {
+    const pending = hearing.record.pendingResult
+    Object.assign(draft, {
+      magistrate: pending.magistrate, clerks: pending.clerks,
+      legalAdvisor: pending.legalAdvisor, present: pending.respondentPresent,
+      remitArrears: pending.remitArrears, remitAmount: pending.remitArrearsAmount,
+      orderOption: pending.orderOption, results: cloneData(pending.results ||
+        [{ code: pending.code, title: pending.title, reason: pending.adjournmentReason,
+          proposedHearing: pending.proposedHearing }]), rejectedLoaded: true
+    })
+    if (pending.proposedOrders) {
+      req.session.data[activeCaseResultContextKey] = {
+        caseId: hearing.id, category: hearing.category, newJourney: true,
+        workingCase: { ...cloneData(hearing.activeCase), orders: cloneData(pending.proposedOrders),
+          isPendingResultWorkingCase: true },
+        arrearsAdjustmentPence: pending.arrearsAdjustmentPence || 0
+      }
+    }
+  }
+  return draft
+}
+
+function getRecordResultsJudicial(req, hearing) {
+  const saved = getActiveCaseVaryOrderStore(req, recordResultsJudicialKey)
+  return saved[`${hearing.court}|${hearing.date}`] || null
+}
+
+router.get('/record-results', (req, res) => {
+  const court = String(req.query.court || '').trim()
+  const date = String(req.query.date || '').trim()
+  const searched = Boolean(court && date)
+  const hearings = searched ? Object.keys(activeCases).flatMap((id) =>
+    ['application', 'enforcement'].map((category) => getRecordResultsHearing(req, id, category))
+      .filter((hearing) => hearing && hearing.court === court &&
+        normaliseDateSearchText(hearing.date) === normaliseDateSearchText(date)))
+    .sort((a, b) => String(a.category === 'application'
+      ? a.record['vary-order-hearing-time'] : a.record.hearingTime).localeCompare(
+      String(b.category === 'application'
+        ? b.record['vary-order-hearing-time'] : b.record.hearingTime))) : []
+  const rows = hearings.map((hearing) => [
+    { html: getResultReviewAccountHtml(hearing.activeCase.accountNumber,
+      hearing.activeCase.respondentName, `/active-case/${hearing.id}`) },
+    { html: getResultReviewAccountHtml(hearing.activeCase.applicant?.accountNumber,
+      hearing.activeCase.applicantName, hearing.activeCase.applicant?.accountHref) },
+    { text: hearing.type },
+    buildHearingStatusSummaryRow(hearing.status).value,
+    hearing.status === 'Result pending'
+      ? { html: `<a class="govuk-link" href="${getRecordResultsHref(hearing, 'information')}">Record result<span class="govuk-visually-hidden"> for ${escapeHtml(hearing.activeCase.respondentName)}</span></a>` }
+      : { html: EMPTY_VALUE_HTML }
+  ])
+  return res.render('record-results/list', {
+    court, date, searched, rows, count: hearings.length,
+    courtItems: getActiveCaseVaryOrderHearingCourtItems(),
+    successMessage: consumeActiveCaseSuccessMessage(req),
+    errors: {}, errorSummary: null
+  })
+})
+
+router.post('/record-results', (req, res, next) => {
+  const court = String(getSingleValue(req.body.court) || '').trim()
+  const date = String(getSingleValue(req.body.date) || '').trim()
+  const errors = {}
+  if (!court) errors.court = buildFieldError('Select a court')
+  addActiveCaseVaryOrderDateError(errors, { date }, 'date', 'Hearing date')
+  if (Object.keys(errors).length) {
+    return res.render('record-results/list', {
+      court, date, searched: false, rows: [], count: 0,
+      courtItems: getActiveCaseVaryOrderHearingCourtItems(),
+      errors, errorSummary: getActiveCaseVaryOrderErrorSummary(errors)
+    })
+  }
+  return redirectWithSessionSave(req, res, next,
+    `/record-results?court=${encodeURIComponent(court)}&date=${encodeURIComponent(date)}`)
+})
+
+function renderRecordResultsInformation(req, res, hearing, values, errors = {}) {
+  return res.render('record-results/information', {
+    hearing, values, errors, judicial: getRecordResultsJudicial(req, hearing),
+    formAction: getRecordResultsHref(hearing, 'information'),
+    cancelHref: '/record-results',
+    errorSummary: Object.keys(errors).length ? getActiveCaseVaryOrderErrorSummary(errors) : null
+  })
+}
+
+router.get('/record-results/:id/:category/information', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing || !['Result pending', 'Result rejected'].includes(hearing.status)) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  return renderRecordResultsInformation(req, res, hearing, {
+    magistrate: draft.magistrate || '', clerks: draft.clerks || '',
+    legalAdvisor: draft.legalAdvisor || '', present: draft.present || '',
+    remitArrears: draft.remitArrears || '', remitAmount: draft.remitAmount || ''
+  })
+})
+
+router.post('/record-results/:id/:category/information', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing || !['Result pending', 'Result rejected'].includes(hearing.status)) return res.redirect('/record-results')
+  const values = Object.fromEntries(['magistrate', 'clerks', 'legalAdvisor', 'present',
+    'remitArrears', 'remitAmount'].map((field) =>
+    [field, String(getSingleValue(req.body[field]) || '').trim()]))
+  const errors = {}
+  if (!getRecordResultsJudicial(req, hearing)) {
+    if (!values.magistrate) errors.magistrate = buildFieldError('Enter the magistrate(s)')
+    if (!values.clerks) errors.clerks = buildFieldError('Enter the clerks')
+    if (!values.legalAdvisor) errors.legalAdvisor = buildFieldError('Enter the legal advisor')
+  }
+  if (!['yes', 'no'].includes(values.present)) errors.present = buildFieldError('Select whether the respondent was present')
+  if (!['yes', 'no'].includes(values.remitArrears)) errors.remitArrears = buildFieldError('Select whether arrears should be remitted')
+  if (values.remitArrears === 'yes' && (!values.remitAmount || !isDecimalValue(values.remitAmount))) {
+    errors.remitAmount = buildFieldError('Enter an amount to remit in pounds')
+  }
+  if (Object.keys(errors).length) return renderRecordResultsInformation(req, res, hearing, values, errors)
+  const judicial = getRecordResultsJudicial(req, hearing)
+  Object.assign(getRecordResultsDraft(req, hearing), {
+    ...values,
+    magistrate: judicial?.magistrate || values.magistrate,
+    clerks: judicial?.clerks || values.clerks,
+    legalAdvisor: judicial?.legalAdvisor || values.legalAdvisor,
+    remitAmount: values.remitArrears === 'yes' ? values.remitAmount : ''
+  })
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing,
+    hearing.category === 'application' ? 'outcome' : 'add-result'))
+})
+
+router.get('/record-results/:id/:category/outcome', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing || hearing.category !== 'application') return res.redirect('/record-results')
+  return res.render('record-results/outcome', {
+    hearing, option: getRecordResultsDraft(req, hearing).orderOption || '',
+    errors: {}, errorSummary: null, formAction: getRecordResultsHref(hearing, 'outcome')
+  })
+})
+
+router.post('/record-results/:id/:category/outcome', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing || hearing.category !== 'application') return res.redirect('/record-results')
+  const option = getSingleValue(req.body.orderOption) || ''
+  if (!['no-order', 'add-or-amend'].includes(option)) {
+    const errors = { orderOption: buildFieldError('Select whether to add or amend order terms') }
+    return res.render('record-results/outcome', { hearing, option, errors,
+      errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
+      formAction: getRecordResultsHref(hearing, 'outcome') })
+  }
+  const draft = getRecordResultsDraft(req, hearing)
+  draft.orderOption = option
+  if (option === 'add-or-amend') {
+    const context = getActiveCaseResultContext(req, hearing.id) || {
+      caseId: hearing.id, category: hearing.category, arrearsAdjustmentPence: 0
+    }
+    context.newJourney = true
+    if (!context.workingCase) context.workingCase = cloneData(hearing.activeCase)
+    req.session.data[activeCaseResultContextKey] = context
+  }
+  return redirectWithSessionSave(req, res, next,
+    getRecordResultsHref(hearing, option === 'add-or-amend' ? 'order-terms' : 'add-result'))
+})
+
+router.get('/record-results/:id/:category/order-terms', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) return res.redirect('/record-results')
+  const workingCase = getActiveCaseForOrderTermJourney(req, hearing.id)
+  if (!getActiveCaseOrders(workingCase).terms.length) {
+    return res.redirect(`/active-case/${hearing.id}/order-term/add`)
+  }
+  return res.render('record-results/order-terms', {
+    hearing,
+    orderDetailsRows: getActiveCaseOrderDetailsRows(workingCase),
+    changeOrderDetailsHref: getRecordResultsHref(hearing, 'order-details'),
+    changeInterestHref: getRecordResultsHref(hearing, 'interest-and-indexation'),
+    changeManagingPaymentsHref: getRecordResultsHref(hearing, 'managing-payments'),
+    interestAndIndexationRows: getActiveCaseInterestAndIndexationRows(workingCase),
+    managingPaymentsRows: getActiveCaseManagingPaymentsRows(workingCase),
+    orderTermCards: getActiveCaseOrders(workingCase).terms.map((term, index) =>
+      getActiveCaseOrderTermCard(term, index, hearing.id, workingCase)),
+    addHref: `/active-case/${hearing.id}/order-term/add`,
+    continueHref: getRecordResultsHref(hearing, 'add-result')
+  })
+})
+
+function renderRecordResultsOrderDetails(req, res, hearing, workingCase, errors = {}, submitted = null) {
+  const orders = getActiveCaseOrders(workingCase)
+  const caseType = getActiveCaseTypeValue(workingCase)
+  if (submitted) Object.assign(res.locals.data, submitted)
+  else setOrderDetailsFormData(req, res, orders.details)
+  const selectedApplicationCode = submitted
+    ? String(getSingleValue(submitted['order-application-code']) || '').trim().toUpperCase()
+    : orders.details.applicationCode
+  return res.render('create-a-case/order-details', {
+    accountContextLabel: (workingCase.accountNumber || workingCase.caseReference) +
+      ' — ' + workingCase.respondentName,
+    formAction: getRecordResultsHref(hearing, 'order-details'),
+    cancelHref: getRecordResultsHref(hearing, 'order-terms'),
+    orderMadeFieldsOptional: true,
+    primaryButtonText: 'Save changes',
+    applicationItems: getApplicationOptionItems(selectedApplicationCode, caseType),
+    applicationLookupJson: getApplicationLookupJson(caseType),
+    errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
+    latestAllowedDate: getCurrentDateString(),
+    routeGuard: true,
+    paymentFrequencyItems: getPaymentFrequencyItems(
+      submitted ? getSingleValue(submitted['order-payment-frequency']) || '' :
+        orders.details.paymentFrequency || 'monthly'
+    )
+  })
+}
+
+router.get('/record-results/:id/:category/order-details', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  return renderRecordResultsOrderDetails(req, res, hearing,
+    getActiveCaseForOrderTermJourney(req, hearing.id))
+})
+
+router.post('/record-results/:id/:category/order-details', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  const workingCase = getActiveCaseForOrderTermJourney(req, hearing.id)
+  const caseType = getActiveCaseTypeValue(workingCase)
+  const errors = validateAlternativeOrderDetails(req.body, caseType, {
+    orderMadeFieldsOptional: true
+  })
+  if (Object.keys(errors).length) {
+    return renderRecordResultsOrderDetails(req, res, hearing, workingCase, errors, req.body)
+  }
+  const selectedApplicationCode = String(
+    getSingleValue(req.body['order-application-code']) || '').trim().toUpperCase()
+  const applicationDefinition = getApplicationDefinition(selectedApplicationCode)
+  const orders = getActiveCaseOrders(workingCase)
+  orders.details = {
+    applicationCode: selectedApplicationCode,
+    applicationLabel: applicationDefinition
+      ? `${selectedApplicationCode} ${applicationDefinition.title}` : selectedApplicationCode,
+    court: getSingleValue(req.body['order-court-that-made-the-order']) || '',
+    dateOrderMade: getSingleValue(req.body['order-date-order-made']) || '',
+    paymentFrequency: getSingleValue(req.body['order-payment-frequency']) || '',
+    dateArrearsLastUpdated: getSingleValue(req.body['order-date-arrears-last-updated']) || ''
+  }
+  orders.terms = applySharedFrequencyToRecordedOrderTerms(
+    orders.terms || [], orders.details.paymentFrequency)
+  workingCase.dateArrearsUpdated = formatDateLong(orders.details.dateArrearsLastUpdated)
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
+})
+
+function renderRecordResultsInterest(req, res, hearing, workingCase, errors = {}, submitted = null) {
+  if (submitted) Object.assign(res.locals.data, submitted)
+  else setInterestAndIndexationFormData(req, res,
+    getActiveCaseOrders(workingCase).interestAndIndexation)
+  return res.render('create-a-case/interest-and-indexation', {
+    formAction: getRecordResultsHref(hearing, 'interest-and-indexation'),
+    cancelHref: getRecordResultsHref(hearing, 'order-terms'),
+    primaryButtonText: 'Save changes',
+    indexationLegendText: 'Does any indexation apply?',
+    routeGuard: true,
+    errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null
+  })
+}
+
+router.get('/record-results/:id/:category/interest-and-indexation', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  return renderRecordResultsInterest(req, res, hearing,
+    getActiveCaseForOrderTermJourney(req, hearing.id))
+})
+
+router.post('/record-results/:id/:category/interest-and-indexation', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  const workingCase = getActiveCaseForOrderTermJourney(req, hearing.id)
+  const errors = validateInterestAndIndexation(req.body)
+  if (Object.keys(errors).length) {
+    return renderRecordResultsInterest(req, res, hearing, workingCase, errors, req.body)
+  }
+  getActiveCaseOrders(workingCase).interestAndIndexation = {
+    'interest-applies': getSingleValue(req.body['interest-applies']) || '',
+    'indexation-type': getSingleValue(req.body['indexation-type']) || ''
+  }
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
+})
+
+function renderRecordResultsManagingPayments(req, res, hearing, workingCase, errors = {}, submitted = null) {
+  if (submitted) Object.assign(res.locals.data, submitted)
+  else setManagingPaymentsFormData(req, res, getActiveCaseOrders(workingCase).managingPayments)
+  return res.render('create-a-case/managing-payments', {
+    formAction: getRecordResultsHref(hearing, 'managing-payments'),
+    cancelHref: getRecordResultsHref(hearing, 'order-terms'),
+    primaryButtonText: 'Save changes',
+    paymentLegendText: 'Payment arrangement',
+    routeGuard: true,
+    errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null
+  })
+}
+
+router.get('/record-results/:id/:category/managing-payments', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  return renderRecordResultsManagingPayments(req, res, hearing,
+    getActiveCaseForOrderTermJourney(req, hearing.id))
+})
+
+router.post('/record-results/:id/:category/managing-payments', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  const context = getActiveCaseResultContext(req, req.params.id)
+  if (!hearing || hearing.category !== 'application' || !context?.newJourney) {
+    return res.redirect('/record-results')
+  }
+  const workingCase = getActiveCaseForOrderTermJourney(req, hearing.id)
+  const errors = validateManagingPayments(req.body)
+  if (Object.keys(errors).length) {
+    return renderRecordResultsManagingPayments(req, res, hearing, workingCase, errors, req.body)
+  }
+  getActiveCaseOrders(workingCase).managingPayments = {
+    'order-managing-payments': getSingleValue(req.body['order-managing-payments']) || ''
+  }
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
+})
+
+router.get('/record-results/:id/:category/add-result', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  const editing = Number.isInteger(draft.editIndex)
+  return res.render('record-results/add-result', {
+    hearing, results: draft.results || [], code: editing ? draft.results[draft.editIndex]?.code : '',
+    editing, addAnother: '', errors: {}, errorSummary: null,
+    resultItems: activeCaseResultCodes.map((code) => ({ value: code,
+      text: `${code} - ${activeCaseResultTitles[code]}` })),
+    formAction: getRecordResultsHref(hearing, 'add-result')
+  })
+})
+
+router.post('/record-results/:id/:category/add-result', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  const code = getSingleValue(req.body.code) || ''
+  const editing = Number.isInteger(draft.editIndex)
+  const addAnother = getSingleValue(req.body.addAnother) || ''
+  if (!editing && (draft.results || []).length && addAnother === 'no') {
+    return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'review'))
+  }
+  const errors = {}
+  if (!editing && (draft.results || []).length && addAnother !== 'yes') {
+    errors.addAnother = buildFieldError('Select whether you have another result to add')
+  }
+  if ((!draft.results?.length || editing || addAnother === 'yes') &&
+      !activeCaseResultCodes.includes(code)) {
+    errors.code = buildFieldError('Select a result')
+  }
+  if (Object.keys(errors).length) {
+    return res.render('record-results/add-result', {
+      hearing, results: draft.results || [], code, editing, addAnother, errors,
+      errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
+      resultItems: activeCaseResultCodes.map((item) => ({ value: item,
+        text: `${item} - ${activeCaseResultTitles[item]}` })),
+      formAction: getRecordResultsHref(hearing, 'add-result')
+    })
+  }
+  draft.selectedCode = code
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'result-details'))
+})
+
+router.get('/record-results/:id/:category/change-result/:index', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  const index = Number(req.params.index)
+  if (!Number.isInteger(index) || index < 0 || index >= (draft.results || []).length) {
+    return res.redirect(getRecordResultsHref(hearing, 'add-result'))
+  }
+  draft.editIndex = index
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
+})
+
+router.get('/record-results/:id/:category/result-details', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const code = getRecordResultsDraft(req, hearing).selectedCode
+  if (!activeCaseResultCodes.includes(code)) return res.redirect(getRecordResultsHref(hearing, 'add-result'))
+  const draft = getRecordResultsDraft(req, hearing)
+  const existing = Number.isInteger(draft.editIndex) ? draft.results[draft.editIndex] : null
+  return res.render('record-results/result-details', {
+    hearing, code, title: activeCaseResultTitles[code],
+    values: existing && existing.code === code ? {
+      reason: existing.reason || '', ...(existing.proposedHearing || {})
+    } : {}, errors: {}, errorSummary: null,
+    courtItems: getActiveCaseVaryOrderHearingCourtItems(),
+    formAction: getRecordResultsHref(hearing, 'result-details')
+  })
+})
+
+router.post('/record-results/:id/:category/result-details', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  const code = draft.selectedCode
+  if (!activeCaseResultCodes.includes(code)) return res.redirect(getRecordResultsHref(hearing, 'add-result'))
+  const values = Object.fromEntries(['reason', 'court', 'venue', 'date', 'time'].map((field) =>
+    [field, String(getSingleValue(req.body[field]) || '').trim()]))
+  const errors = {}
+  if (code === 'MADJ') {
+    if (!values.reason) errors.reason = buildFieldError('Enter the reason for adjournment')
+    if (!values.court) errors.court = buildFieldError('Select a court')
+    addActiveCaseVaryOrderDateError(errors, values, 'date', 'New hearing date')
+    if (values.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values.time)) {
+      errors.time = buildFieldError('Enter a hearing time in the format HH:MM')
+    }
+  }
+  if (Object.keys(errors).length) return res.render('record-results/result-details', {
+    hearing, code, title: activeCaseResultTitles[code], values, errors,
+    errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
+    courtItems: getActiveCaseVaryOrderHearingCourtItems(),
+    formAction: getRecordResultsHref(hearing, 'result-details')
+  })
+  const result = { code, title: activeCaseResultTitles[code], reason: values.reason }
+  if (code === 'MADJ') result.proposedHearing = {
+    court: values.court, venue: values.venue, date: values.date, time: values.time
+  }
+  if (Number.isInteger(draft.editIndex) && draft.results?.[draft.editIndex]) {
+    draft.results[draft.editIndex] = result
+  } else {
+    draft.results = [...(draft.results || []), result]
+  }
+  delete draft.selectedCode
+  delete draft.editIndex
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
+})
+
+router.get('/record-results/:id/:category/review', (req, res) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  if (!(draft.results || []).length) return res.redirect(getRecordResultsHref(hearing, 'add-result'))
+  const context = getActiveCaseResultContext(req, hearing.id)
+  const workingCase = context?.newJourney ? getActiveCaseForOrderTermJourney(req, hearing.id) : hearing.activeCase
+  if (draft.orderOption === 'add-or-amend' && !getActiveCaseOrders(workingCase).terms.length) {
+    return res.redirect(`/active-case/${hearing.id}/order-term/add`)
+  }
+  return res.render('record-results/review', {
+    hearing, draft,
+    orderDetailsRows: draft.orderOption === 'add-or-amend'
+      ? getActiveCaseOrderDetailsRows(workingCase) : [],
+    interestRows: draft.orderOption === 'add-or-amend'
+      ? getActiveCaseInterestAndIndexationRows(workingCase) : [],
+    managingPaymentsRows: draft.orderOption === 'add-or-amend'
+      ? getActiveCaseManagingPaymentsRows(workingCase) : [],
+    terms: draft.orderOption === 'add-or-amend'
+      ? getActiveCaseOrders(workingCase).terms.map((term, index) =>
+        getActiveCaseOrderTermCard(term, index, hearing.id, workingCase)) : [],
+    formAction: getRecordResultsHref(hearing, 'review')
+  })
+})
+
+router.post('/record-results/:id/:category/review', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing || !['Result pending', 'Result rejected'].includes(hearing.status)) return res.redirect('/record-results')
+  const draft = getRecordResultsDraft(req, hearing)
+  if (!(draft.results || []).length) return res.redirect(getRecordResultsHref(hearing, 'add-result'))
+  const context = getActiveCaseResultContext(req, hearing.id)
+  const first = draft.results[0]
+  const adjourned = draft.results.find((result) => result.proposedHearing)
+  const workingCase = context?.newJourney ? getActiveCaseForOrderTermJourney(req, hearing.id) : null
+  if (draft.orderOption === 'add-or-amend' &&
+      (!workingCase || !getActiveCaseOrders(workingCase).terms.length)) {
+    return res.redirect(`/active-case/${hearing.id}/order-term/add`)
+  }
+  hearing.record.pendingResult = {
+    code: first.code, title: first.title, results: cloneData(draft.results),
+    magistrate: draft.magistrate, clerks: draft.clerks, legalAdvisor: draft.legalAdvisor,
+    respondentPresent: draft.present, remitArrears: draft.remitArrears,
+    remitArrearsAmount: draft.remitAmount || '', orderOption: draft.orderOption || '',
+    proposedHearing: adjourned?.proposedHearing || null,
+    adjournmentReason: adjourned?.reason || '',
+    arrearsAdjustmentPence: context?.arrearsAdjustmentPence || 0,
+    proposedOrders: draft.orderOption === 'add-or-amend'
+      ? cloneData(getActiveCaseOrders(workingCase)) : null
+  }
+  hearing.record.hearingStatus = 'Validation pending'
+  submitResultForValidation(hearing)
+  const judicial = getActiveCaseVaryOrderStore(req, recordResultsJudicialKey)
+  judicial[`${hearing.court}|${hearing.date}`] = {
+    magistrate: draft.magistrate, clerks: draft.clerks, legalAdvisor: draft.legalAdvisor
+  }
+  delete getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)[`${hearing.id}:${hearing.category}`]
+  if (context?.newJourney) delete req.session.data[activeCaseResultContextKey]
+  setActiveCaseSuccessMessage(req, '/record-results', 'Hearing resulted and pending validation.')
+  return redirectWithSessionSave(req, res, next,
+    `/record-results?court=${encodeURIComponent(hearing.court)}&date=${encodeURIComponent(hearing.date)}`)
+})
+
+function renderResultQueue(req, res, inputter) {
+  const allowedTabs = inputter ? ['submitted', 'rejected', 'validated']
+    : ['to-review', 'rejected', 'validated']
+  const tab = allowedTabs.includes(req.query.tab) ? req.query.tab : allowedTabs[0]
+  const status = {
+    submitted: 'Validation pending', 'to-review': 'Validation pending',
+    rejected: 'Result rejected', validated: 'Result validated'
+  }[tab]
+  const entries = getResultReviewEntries().filter((entry) =>
+    entry.record.hearingStatus === status &&
+    (!inputter || entry.review.submittedBy === prototypeCurrentUserName))
+  const rows = entries.map((entry) => {
+    const href = inputter ? `/my-results/${entry.id}/${entry.category}`
+      : `/active-case/${entry.id}/${entry.category}/validate-result`
+    return [
+      { html: getResultReviewAccountHtml(entry.activeCase.accountNumber,
+        entry.activeCase.respondentName, href) },
+      { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber,
+        entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref) },
+      { text: entry.category === 'application' ? 'Application' : 'Enforcement action' },
+      getResultReviewTableCell(getResultReviewCourt(entry)),
+      getResultReviewTableCell(getResultReviewHearingDate(entry)),
+      getResultReviewTableCell(entry.review.submittedBy)
+    ]
+  })
+  return res.render('result-queues/index', {
+    inputter, tab, rows, successMessage: consumeActiveCaseSuccessMessage(req)
+  })
+}
+
+router.get('/my-results', (req, res) => renderResultQueue(req, res, true))
+router.get('/validate-results', (req, res) => renderResultQueue(req, res, false))
+
+router.get('/my-results/:id/:category', (req, res) =>
+  renderActiveCaseResultReview(req, res, 'inputter'))
