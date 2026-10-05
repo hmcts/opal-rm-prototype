@@ -11,16 +11,16 @@
       {% endif %}
       <h1 class="govuk-heading-l">Are you sure you want to delete this hearing?</h1>
       <p class="govuk-body">{{ hearingType }}</p>
-      <form method="post" action="{{ formAction }}/delete" novalidate>
+      <form method="post" action="{{ formAction }}/delete" novalidate data-module="rm-route-guard">
         {{ govukCharacterCount({
           id: "hearing-delete-reason", name: "hearing-delete-reason",
           label: { text: "Reason", classes: "govuk-label--s" },
-          maxlength: 1000, rows: 5, value: reason,
+          maxlength: 250, rows: 5, value: reason,
           errorMessage: reasonError
         }) }}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Yes - delete hearing" }) }}
-          <a class="govuk-link" href="{{ formAction }}">No - cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}" aria-label="{{ cancelAriaLabel }}">No - cancel</a>
         </div>
       </form>
     </div>

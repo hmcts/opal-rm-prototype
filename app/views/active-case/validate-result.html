@@ -10,99 +10,83 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/timeline/macro.njk" import mojTimeline %}
 
-{% block pageTitle %}{% if errorSummary %}Error: {% endif %}{{ "Review result" if mode === "inputter" else "Validate result" }} - {{ activeCase.respondentName }} - {{ serviceName }}{% endblock %}
+{% block pageTitle %}{% if errorSummary %}Error: {% endif %}Review hearing result - {{ activeCase.respondentName }} - {{ serviceName }}{% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: backHref }) }}
       <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} – {{ activeCase.respondentName }}</span>
-      <h1 class="govuk-heading-l">{{ "Review result" if mode === "inputter" else "Validate result" }}</h1>
+      <h1 class="govuk-heading-l">Review hearing result</h1>
 
       {% set statusClasses = "govuk-tag--orange" %}
       {% if status === "Result rejected" %}{% set statusClasses = "govuk-tag--red" %}{% endif %}
       {% if status === "Result validated" %}{% set statusClasses = "govuk-tag--blue" %}{% endif %}
-      {{ govukTag({ text: status, classes: statusClasses }) }}
-
-      <h2 class="govuk-heading-m govuk-!-margin-top-6">Activity</h2>
-      {{ mojTimeline({ headingLevel: 3, classes: "govuk-!-margin-bottom-7", items: reviewTimelineItems }) }}
+      {{ govukTag({ text: "Rejected" if status === "Result rejected" else status, classes: statusClasses }) }}
 
       {% if status !== "Result validated" %}
-        {{ govukInsetText({ text: "The proposed changes have not been applied to the account." }) }}
+        {{ govukInsetText({ text: "The account will not change until a checker validates the result." }) }}
       {% endif %}
 
       {% if errorSummary %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
 
-      <h2 class="govuk-heading-m">Case details</h2>
-      {{ govukSummaryList({ rows: [
-        { key: { text: "Case type" }, value: { text: activeCase.caseType } },
-        { key: { text: "Case reference" }, value: { text: activeCase.caseReference } }
-      ] }) }}
+      <h2 class="govuk-heading-m">Review history</h2>
+      {{ mojTimeline({ headingLevel: 3, classes: "govuk-!-margin-bottom-7", items: reviewTimelineItems }) }}
 
-      {{ govukSummaryList({ card: { title: { text: "Applicant details" } }, rows: [
-        { key: { text: "Name" }, value: { text: activeCase.applicantName } },
-        { key: { text: "Account number" }, value: { text: activeCase.applicant.accountNumber } } if activeCase.applicant.accountNumber
-      ] }) }}
-
-      {{ govukSummaryList({ card: { title: { text: "Respondent details" } }, rows: [
-        { key: { text: "Name" }, value: { text: activeCase.respondentName } },
-        { key: { text: "Account number" }, value: { text: activeCase.accountNumber } },
-        { key: { text: "Date of birth" }, value: { text: activeCase.respondent.dateOfBirth } } if activeCase.respondent.dateOfBirth
-      ] }) }}
-
-      {% if activeCase.centralAuthority %}
-        {{ govukSummaryList({ card: { title: { text: "Central authority details" } }, rows: [
-          { key: { text: "Name" }, value: { text: activeCase.centralAuthority["central-authority-name"] } },
-          { key: { text: "Reference" }, value: { text: activeCase.centralAuthority["central-authority-reference"] } }
-        ] }) }}
+      <h2 class="govuk-heading-m">Hearing</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {% set hearingCard = { title: { text: "Hearing information" } } %}
+      {% if canChangeResult %}
+        {% set hearingCard = { title: { text: "Hearing information" }, actions: { items: [{ text: "Change", href: hearingChangeHref, visuallyHiddenText: "hearing information" }] } } %}
       {% endif %}
-
-      <h2 class="govuk-heading-m">Hearing details</h2>
-      {{ govukSummaryList({ rows: hearingRows }) }}
-
-      <h2 class="govuk-heading-m">Results</h2>
-      {{ govukSummaryList({ rows: resultRows }) }}
-
-      {% if proposedHearingRows.length %}
-        <h2 class="govuk-heading-m">New hearing details</h2>
-        {{ govukSummaryList({ rows: proposedHearingRows }) }}
-      {% endif %}
-
-      {% if arrearsRows.length %}
-        <h2 class="govuk-heading-m">Arrears</h2>
-        {{ govukSummaryList({ rows: arrearsRows }) }}
-      {% endif %}
+      {{ govukSummaryList({ card: hearingCard, rows: hearingRows }) }}
 
       {% if proposedOrderDetailsRows.length %}
-        <h2 class="govuk-heading-m">Proposed order details</h2>
-        {{ govukSummaryList({ rows: proposedOrderDetailsRows }) }}
+        <h2 class="govuk-heading-m">Order details</h2>
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+        {% set orderCard = { title: { text: "Order details" } } %}
+        {% if canChangeResult %}
+          {% set orderCard = { title: { text: "Order details" }, actions: { items: [{ text: "Change", href: orderDetailsChangeHref, visuallyHiddenText: "order details" }] } } %}
+        {% endif %}
+        {{ govukSummaryList({ card: orderCard, rows: proposedOrderDetailsRows }) }}
       {% endif %}
 
       {% if proposedOrderTerms.length %}
         <h2 class="govuk-heading-m">Order terms</h2>
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
         {% for term in proposedOrderTerms %}
-          {{ govukSummaryList({ card: { title: { text: term.title } }, rows: term.rows }) }}
+          {% set termCard = { title: { text: term.title } } %}
+          {% if canChangeResult %}
+            {% set termCard = { title: { text: term.title }, actions: { items: [{ text: "Change", href: term.changeHref, visuallyHiddenText: term.title }] } } %}
+          {% endif %}
+          {{ govukSummaryList({ card: termCard, rows: term.rows }) }}
         {% endfor %}
       {% endif %}
 
       {% if proposedInterestRows.length %}
         <h2 class="govuk-heading-m">Additional order information</h2>
-        {{ govukSummaryList({ card: { title: { text: "Interest and indexation" } }, rows: proposedInterestRows }) }}
-        {{ govukSummaryList({ card: { title: { text: "Managing payments" } }, rows: proposedManagingPaymentsRows }) }}
+        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+        {% set interestCard = { title: { text: "Interest and indexation" } } %}
+        {% set paymentsCard = { title: { text: "Managing payments" } } %}
+        {% if canChangeResult %}
+          {% set interestCard = { title: { text: "Interest and indexation" }, actions: { items: [{ text: "Change", href: interestChangeHref, visuallyHiddenText: "interest and indexation" }] } } %}
+          {% set paymentsCard = { title: { text: "Managing payments" }, actions: { items: [{ text: "Change", href: managingPaymentsChangeHref, visuallyHiddenText: "managing payments" }] } } %}
+        {% endif %}
+        {{ govukSummaryList({ card: interestCard, rows: proposedInterestRows }) }}
+        {{ govukSummaryList({ card: paymentsCard, rows: proposedManagingPaymentsRows }) }}
       {% endif %}
 
-      {% if activeCase.comment %}
-        {{ govukSummaryList({ card: { title: { text: "Comments and notes" } }, rows: [
-          { key: { text: "Case comment" }, value: { text: activeCase.comment } }
-        ] }) }}
-      {% endif %}
-
-      {{ govukSummaryList({ card: { title: { text: "Session details" } }, rows: [
-        { key: { text: "Submitted by" }, value: { text: review.submittedBy } },
-        { key: { text: "Submitted on" }, value: { text: review.submittedAt } }
-      ] }) }}
+      <h2 class="govuk-heading-m">Results</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {% for result in resultCards %}
+        {% set resultCard = { title: { text: result.title } } %}
+        {% if canChangeResult %}
+          {% set resultCard = { title: { text: result.title }, actions: { items: [{ text: "Change", href: result.changeHref, visuallyHiddenText: "result " + loop.index }] } } %}
+        {% endif %}
+        {{ govukSummaryList({ card: resultCard, rows: result.rows }) }}
+      {% endfor %}
 
       {% if mode === "checker" and status === "Validation pending" %}
         <form method="post" action="{{ formAction }}" novalidate>
@@ -112,8 +96,8 @@
             fieldset: { legend: { text: "Select review decision", classes: "govuk-fieldset__legend--m" } },
             errorMessage: errors["check-review-decision"],
             items: [
-              { value: "approve", text: "Approve results", checked: decisionValues.decision === "approve" },
-              { value: "reject", text: "Reject results", checked: decisionValues.decision === "reject", conditional: {
+              { value: "approve", text: "Approve case", checked: decisionValues.decision === "approve" },
+              { value: "reject", text: "Reject case", checked: decisionValues.decision === "reject", conditional: {
                 html: govukCharacterCount({
                   name: "rejection-reason", id: "rejection-reason", maxlength: 255,
                   label: { text: "Enter reason for rejection" },
@@ -123,10 +107,20 @@
               } }
             ]
           }) }}
-          {{ govukButton({ text: "Continue" }) }}
+          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+          <div class="govuk-button-group">
+            {{ govukButton({ text: "Submit" }) }}
+            <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+          </div>
         </form>
-      {% elif mode === "inputter" and status === "Result rejected" %}
-        {{ govukButton({ text: "Change result and resubmit", href: reviseHref }) }}
+      {% elif canChangeResult %}
+        <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+        <form method="post" action="{{ resubmitHref }}">
+          <div class="govuk-button-group">
+            {{ govukButton({ text: "Submit for validation" }) }}
+            <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+          </div>
+        </form>
       {% endif %}
     </div>
   </div>
