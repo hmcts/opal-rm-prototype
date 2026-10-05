@@ -12467,9 +12467,10 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     buildSummaryRow('Hearing type', record.type),
     buildSummaryRow('Judiciary', pendingResult.judiciary || pendingResult.magistrate),
     buildSummaryRow('Clerks', pendingResult.clerks),
-    buildSummaryRow('Defendant present?', pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
-    buildSummaryRow('Arrears to remit?', pendingResult.remitArrears === 'yes'
-      ? formatCurrency(Number(pendingResult.remitArrearsAmount)) : 'None')
+    buildSummaryRow(`Was ${getResultPresencePersonName(activeCase, record, category)} present?`,
+      pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
+    ...(category === 'enforcement' ? [buildSummaryRow('Arrears to remit?', pendingResult.remitArrears === 'yes'
+      ? formatCurrency(Number(pendingResult.remitArrearsAmount)) : 'None')] : [])
   ]
   const resultCards = (pendingResult.results?.length ? pendingResult.results : [pendingResult])
     .map((result, index) => ({
@@ -16265,6 +16266,13 @@ router.get('/search/results', (req, res) => {
 // Resulting worklist and the shared Application / Enforcement recording journey.
 const recordResultsJudicialKey = 'record-results-judicial-by-court-and-date'
 
+function getResultPresencePersonName(activeCase, record, category) {
+  if (category === 'application' && record?.['vary-order-applying-party'] === 'respondent') {
+    return activeCase.applicantName || activeCase.applicant?.name || 'the applicant'
+  }
+  return activeCase.respondentName || 'the respondent'
+}
+
 function getRecordResultsHearing(req, id, category) {
   const activeCase = activeCases[Number(id)]
   if (!activeCase || !['application', 'enforcement'].includes(category)) return null
@@ -16278,6 +16286,7 @@ function getRecordResultsHearing(req, id, category) {
   const status = record.hearingStatus || 'Result pending'
   if (req.params?.id && !['Result pending', 'Result rejected'].includes(status)) return null
   return { id: Number(id), category, activeCase, record, court, date,
+    presencePersonName: getResultPresencePersonName(activeCase, record, category),
     displayDate: formatDateLong(date), type: record.type,
     status }
 }
@@ -16402,12 +16411,19 @@ router.post('/record-results/:id/:category/information', (req, res, next) => {
     if (!values.judiciary) errors.judiciary = buildFieldError('Enter the judiciary')
     if (!values.clerks) errors.clerks = buildFieldError('Enter the clerks')
   }
-  if (!['yes', 'no'].includes(values.present)) errors.present = buildFieldError('Select whether the respondent was present')
-  if (!['yes', 'no'].includes(values.remitArrears)) errors.remitArrears = buildFieldError('Select whether arrears should be remitted')
-  if (values.remitArrears === 'yes' && (!values.remitAmount || !isDecimalValue(values.remitAmount))) {
-    errors.remitAmount = buildFieldError('Enter an amount to remit in pounds')
+  if (!['yes', 'no'].includes(values.present)) {
+    errors.present = buildFieldError(`Select whether ${hearing.presencePersonName} was present`)
+  }
+  if (hearing.category === 'enforcement') {
+    if (!['yes', 'no'].includes(values.remitArrears)) {
+      errors.remitArrears = buildFieldError('Select whether arrears should be remitted')
+    }
+    if (values.remitArrears === 'yes' && (!values.remitAmount || !isDecimalValue(values.remitAmount))) {
+      errors.remitAmount = buildFieldError('Enter an amount to remit in pounds')
+    }
   }
   if (Object.keys(errors).length) return renderRecordResultsInformation(req, res, hearing, values, errors)
+  if (hearing.category === 'application') values.remitArrears = 'no'
   const judicial = getRecordResultsJudicial(req, hearing)
   Object.assign(getRecordResultsDraft(req, hearing), {
     ...values,
@@ -16782,8 +16798,10 @@ router.post('/record-results/:id/:category/review', (req, res, next) => {
   hearing.record.pendingResult = {
     code: first.code, title: first.title, results: cloneData(draft.results),
     judiciary: draft.judiciary || draft.magistrate, clerks: draft.clerks,
-    respondentPresent: draft.present, remitArrears: draft.remitArrears,
-    remitArrearsAmount: draft.remitAmount || '', orderOption: draft.orderOption || '',
+    respondentPresent: draft.present,
+    remitArrears: hearing.category === 'enforcement' ? draft.remitArrears : 'no',
+    remitArrearsAmount: hearing.category === 'enforcement' ? draft.remitAmount || '' : '',
+    orderOption: draft.orderOption || '',
     proposedHearing: adjourned?.proposedHearing || null,
     adjournmentReason: adjourned?.reason || '',
     arrearsAdjustmentPence: context?.arrearsAdjustmentPence || 0,
