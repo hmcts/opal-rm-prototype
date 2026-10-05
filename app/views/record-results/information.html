@@ -46,13 +46,15 @@
         {% endif %}
         {{ govukRadios({
           idPrefix: "present", name: "present",
-          fieldset: { legend: { text: "Was the respondent present?", classes: "govuk-fieldset__legend--s" } },
+          fieldset: { legend: { text: "Was " + hearing.presencePersonName + " present?", classes: "govuk-fieldset__legend--s" } },
+          classes: "govuk-radios--inline",
           items: [
             { value: "yes", text: "Yes", checked: values.present === "yes" },
             { value: "no", text: "No", checked: values.present === "no" }
           ],
           errorMessage: errors.present
         }) }}
+        {% if hearing.category === "enforcement" %}
         {% set remitAmountHtml %}
           {{ govukInput({
             id: "remitAmount", name: "remitAmount",
@@ -70,6 +72,7 @@
           ],
           errorMessage: errors.remitArrears
         }) }}
+        {% endif %}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
           <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>

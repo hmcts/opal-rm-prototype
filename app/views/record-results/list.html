@@ -18,9 +18,6 @@
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">List hearings</h1>
-      {% if not searched %}
-        <p class="govuk-body">Select a court and hearing date to find hearings awaiting a result.</p>
-      {% endif %}
       {% if errorSummary %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
@@ -28,6 +25,7 @@
         {{ xGovukAutocomplete({
           id: "court", name: "court",
           label: { text: "Select a court", classes: "govuk-label--s" },
+          classes: "govuk-!-width-two-thirds",
           value: court, items: courtItems,
           errorMessage: errors.court
         }) }}

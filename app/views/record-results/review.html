@@ -25,8 +25,8 @@
         { key: { text: "Hearing type" }, value: { text: hearing.type } },
         { key: { text: "Judiciary" }, value: { text: draft.judiciary or draft.magistrate } },
         { key: { text: "Clerks" }, value: { text: draft.clerks } },
-        { key: { text: "Defendant present?" }, value: { text: "Yes" if draft.present === "yes" else "No" } },
-        { key: { text: "Arrears to remit?" }, value: { text: "£" + draft.remitAmount if draft.remitArrears === "yes" else "None" } }
+        { key: { text: "Was " + hearing.presencePersonName + " present?" }, value: { text: "Yes" if draft.present === "yes" else "No" } },
+        { key: { text: "Arrears to remit?" }, value: { text: "£" + draft.remitAmount if draft.remitArrears === "yes" else "None" } } if hearing.category === "enforcement"
       ] }) }}
       {% if draft.orderOption %}
         {% if orderDetailsRows.length %}
