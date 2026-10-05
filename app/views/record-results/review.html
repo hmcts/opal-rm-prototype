@@ -23,9 +23,8 @@
         { key: { text: "Respondent" }, value: { text: hearing.activeCase.respondentName } },
         { key: { text: "Applicant" }, value: { text: hearing.activeCase.applicantName } },
         { key: { text: "Hearing type" }, value: { text: hearing.type } },
-        { key: { text: "Magistrate(s)" }, value: { text: draft.magistrate } },
+        { key: { text: "Judiciary" }, value: { text: draft.judiciary or draft.magistrate } },
         { key: { text: "Clerks" }, value: { text: draft.clerks } },
-        { key: { text: "Legal advisor" }, value: { text: draft.legalAdvisor } },
         { key: { text: "Defendant present?" }, value: { text: "Yes" if draft.present === "yes" else "No" } },
         { key: { text: "Arrears to remit?" }, value: { text: "£" + draft.remitAmount if draft.remitArrears === "yes" else "None" } }
       ] }) }}

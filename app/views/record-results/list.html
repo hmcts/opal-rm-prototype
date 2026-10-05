@@ -10,7 +10,7 @@
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}List hearings - {{ serviceName }}{% endblock %}
 
 {% block content %}
-  {{ govukBackLink({ text: "Back", href: "/cases" }) }}
+  {{ govukBackLink({ text: "Back to results", href: "/record-results" }) }}
   {% if successMessage %}
     {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
   {% endif %}
@@ -18,10 +18,13 @@
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">List hearings</h1>
+      {% if not searched %}
+        <p class="govuk-body">Select a court and hearing date to find hearings awaiting a result.</p>
+      {% endif %}
       {% if errorSummary %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
-      <form method="post" action="/record-results" novalidate>
+      <form method="post" action="/record-results/list-hearings" novalidate>
         {{ xGovukAutocomplete({
           id: "court", name: "court",
           label: { text: "Select a court", classes: "govuk-label--s" },

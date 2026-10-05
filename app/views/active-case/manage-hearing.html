@@ -2,6 +2,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 {% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
@@ -16,7 +17,7 @@
       <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
       <h1 class="govuk-heading-l">Manage hearing</h1>
       <h2 class="govuk-heading-m">{{ hearingType }}</h2>
-      <form method="post" action="{{ formAction }}" novalidate>
+      <form method="post" action="{{ formAction }}" novalidate data-module="rm-route-guard">
         {{ xGovukAutocomplete({
           id: "hearing-court", name: "hearing-court",
           label: { text: "Court", classes: "govuk-label--s" },
@@ -26,7 +27,9 @@
         {{ govukInput({
           id: "hearing-venue", name: "hearing-venue",
           label: { text: "Hearing venue (optional)", classes: "govuk-label--s" },
-          value: formValues["hearing-venue"]
+          value: formValues["hearing-venue"],
+          attributes: { maxlength: 100 },
+          errorMessage: errors["hearing-venue"]
         }) }}
         {{ mojDatePicker({
           leadingZeros: true,
@@ -34,6 +37,17 @@
           label: { text: "Hearing date", classes: "govuk-label--s" },
           hint: { text: "For example, 31/01/2023" },
           value: formValues["hearing-date"], errorMessage: errors["hearing-date"]
+        }) }}
+        {{ govukInsetText({
+          classes: "rm-hearing-date-inset",
+          attributes: {
+            "data-module": "rm-hearing-date-check",
+            "data-date-input-id": "hearing-date",
+            "role": "status",
+            "aria-live": "polite",
+            "hidden": "hidden"
+          },
+          html: '<h2 class="govuk-heading-m">Hearing date in the past</h2><p class="govuk-body">You can continue with this date or change it</p>'
         }) }}
         {{ govukInput({
           id: "hearing-time", name: "hearing-time",

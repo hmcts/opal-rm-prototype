@@ -11,7 +11,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: "/record-results" }) }}
+      {{ govukBackLink({ text: "Back", href: backHref }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">Hearing information</h1>
       {{ govukSummaryList({ rows: [
@@ -29,25 +29,19 @@
           <h2 class="govuk-heading-m">Judicial details</h2>
           <p class="govuk-body">These details were recorded for this court and hearing date.</p>
           {{ govukSummaryList({ rows: [
-            { key: { text: "Magistrate(s)" }, value: { text: judicial.magistrate } },
-            { key: { text: "Clerks" }, value: { text: judicial.clerks } },
-            { key: { text: "Legal advisor" }, value: { text: judicial.legalAdvisor } }
+            { key: { text: "Judiciary" }, value: { text: judicial.judiciary or judicial.magistrate } },
+            { key: { text: "Clerks" }, value: { text: judicial.clerks } }
           ] }) }}
         {% else %}
           {{ govukTextarea({
-            id: "magistrate", name: "magistrate", rows: 3,
-            label: { text: "Magistrate(s)", classes: "govuk-label--s" },
-            value: values.magistrate, errorMessage: errors.magistrate
+            id: "judiciary", name: "judiciary", rows: 3,
+            label: { text: "Judiciary", classes: "govuk-label--s" },
+            value: values.judiciary, errorMessage: errors.judiciary
           }) }}
           {{ govukTextarea({
             id: "clerks", name: "clerks", rows: 3,
             label: { text: "Clerks", classes: "govuk-label--s" },
             value: values.clerks, errorMessage: errors.clerks
-          }) }}
-          {{ govukTextarea({
-            id: "legalAdvisor", name: "legalAdvisor", rows: 3,
-            label: { text: "Legal advisor", classes: "govuk-label--s" },
-            value: values.legalAdvisor, errorMessage: errors.legalAdvisor
           }) }}
         {% endif %}
         {{ govukRadios({

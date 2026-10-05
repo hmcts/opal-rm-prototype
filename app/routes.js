@@ -11467,7 +11467,7 @@ function addActiveCaseVaryOrderDateError(errors, values, field, label, options =
   }
 
   if (dateResult.kind === 'missing') {
-    errors[field] = buildFieldError(`Enter ${label.toLowerCase()}`)
+    errors[field] = buildFieldError(options.missingMessage || `Enter ${label.toLowerCase()}`)
   } else if (dateResult.kind === 'invalid') {
     errors[field] = buildFieldError(
       options.invalidMessage || `Enter a real ${label.toLowerCase()} in the format DD/MM/YYYY`
@@ -12108,6 +12108,9 @@ function getManagedHearing(req, allowRejected = false) {
     categoryLabel: application ? 'Application' : 'Enforcement',
     formAction: `/active-case/${id}/${category}/hearing`,
     cancelHref: `/active-case/${id}?tab=${application ? 'hearings' : 'enforcement'}`,
+    cancelAriaLabel: application
+      ? 'No - cancel and go back to applications tab'
+      : 'No - cancel and go back to enforcement tab',
     formValues: {
       'hearing-court': values[application ? 'vary-order-hearing-court' : 'enforcement-court'] || '',
       'hearing-venue': values[`${prefix}venue`] || '',
@@ -12445,50 +12448,53 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     return res.redirect(`/active-case/${id}?tab=${application ? 'hearings' : 'enforcement'}`)
   }
 
-  const backHref = mode === 'inputter' ? `/my-results?tab=${record.hearingStatus === 'Result rejected' ? 'rejected' : record.hearingStatus === 'Result validated' ? 'validated' : 'submitted'}` : '/validate-results'
+  const canChangeResult = mode === 'inputter' && record.hearingStatus === 'Result rejected'
+  if (canChangeResult) getRecordResultsDraft(req, getRecordResultsHearing(req, id, category))
+  const recordingHref = `/record-results/${id}/${category}`
+
+  const backHref = mode === 'inputter'
+    ? req.query.from === 'list-hearings'
+      ? `/record-results/list-hearings?court=${encodeURIComponent(getResultReviewCourt({ category, record }))}&date=${encodeURIComponent(formatHistoryHearingDate(application ? record['vary-order-hearing-date'] : record.hearingDate))}`
+      : `/record-results?tab=${record.hearingStatus === 'Result rejected' ? 'rejected' : record.hearingStatus === 'Result validated' ? 'validated' : 'pending'}`
+    : '/validate-results'
   const hearingRows = [
-    buildSummaryRow(application ? 'Application' : 'Enforcement action', record.type),
     buildSummaryRow('Court', application ? record['vary-order-hearing-court'] : record.court),
     buildSummaryRow('Hearing date', application
       ? formatDateLong(record['vary-order-hearing-date'])
-      : record.hearingDate)
-  ]
-  const resultRows = [
-    buildSummaryRow('Result', `${pendingResult.code} - ${pendingResult.title}`),
-    buildSummaryRow('Magistrate', pendingResult.magistrate),
+      : record.hearingDate),
+    buildSummaryRow('Respondent', activeCase.respondentName),
+    buildSummaryRow('Applicant', activeCase.applicantName),
+    buildSummaryRow('Hearing type', record.type),
+    buildSummaryRow('Judiciary', pendingResult.judiciary || pendingResult.magistrate),
     buildSummaryRow('Clerks', pendingResult.clerks),
-    buildSummaryRow('Legal advisor', pendingResult.legalAdvisor || EMPTY_VALUE_TEXT),
-    buildSummaryRow('Respondent or defendant present', pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
-    buildSummaryRow('Remit arrears', pendingResult.remitArrears === 'yes' ? 'Yes' : 'No')
+    buildSummaryRow('Defendant present?', pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
+    buildSummaryRow('Arrears to remit?', pendingResult.remitArrears === 'yes'
+      ? formatCurrency(Number(pendingResult.remitArrearsAmount)) : 'None')
   ]
-  if (pendingResult.results?.length) {
-    resultRows.splice(0, 1, ...pendingResult.results.map((result, index) =>
-      buildSummaryRow(`Result ${index + 1}`, `${result.code} - ${result.title}`)))
-  }
-  if (pendingResult.remitArrears === 'yes') {
-    resultRows.push(buildSummaryRow('Amount to remit', formatCurrency(Number(pendingResult.remitArrearsAmount))))
-  }
-  if (pendingResult.orderOption) {
-    resultRows.push(buildSummaryRow('Orders', pendingResult.orderOption === 'no-order'
-      ? 'No order to be made'
-      : 'Add or amend order terms'))
-  }
-  const proposedHearingRows = pendingResult.proposedHearing ? [
-    buildSummaryRow('Reason for adjournment', pendingResult.adjournmentReason),
-    buildSummaryRow('Court', pendingResult.proposedHearing.court),
-    buildSummaryRow('Hearing venue', pendingResult.proposedHearing.venue || EMPTY_VALUE_TEXT),
-    buildSummaryRow('Hearing date', formatDateLong(pendingResult.proposedHearing.date)),
-    buildSummaryRow('Hearing time', pendingResult.proposedHearing.time || EMPTY_VALUE_TEXT)
-  ] : []
+  const resultCards = (pendingResult.results?.length ? pendingResult.results : [pendingResult])
+    .map((result, index) => ({
+      title: `${result.code} - ${result.title}`,
+      rows: [
+        buildSummaryRow('Reason', result.reason || result.adjournmentReason || EMPTY_VALUE_TEXT),
+        ...(result.proposedHearing ? [
+          buildSummaryRow('New hearing court', result.proposedHearing.court),
+          buildSummaryRow('New hearing venue', result.proposedHearing.venue),
+          buildSummaryRow('New hearing date', formatDateLong(result.proposedHearing.date)),
+          buildSummaryRow('New hearing time', result.proposedHearing.time)
+        ] : [])
+      ],
+      changeHref: canChangeResult ? `${recordingHref}/change-result/${index}` : null
+    }))
   const proposedCase = pendingResult.proposedOrders ? {
     ...activeCase,
     orders: JSON.parse(JSON.stringify(pendingResult.proposedOrders)),
     isPendingResultWorkingCase: true
   } : null
   const proposedOrderTerms = proposedCase
-    ? getActiveCaseOrders(proposedCase).terms.map((term) => ({
+    ? getActiveCaseOrders(proposedCase).terms.map((term, index) => ({
         title: `${term.code} - ${term.title}`,
-        rows: getActiveCaseOrderTermRows(term, proposedCase, id)
+        rows: getActiveCaseOrderTermRows(term, proposedCase, id),
+        changeHref: canChangeResult ? `/active-case/${id}/order-term/${index}/change` : null
       }))
     : []
   const proposedOrderDetailsRows = proposedCase
@@ -12497,25 +12503,19 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     ? getActiveCaseInterestAndIndexationRows(proposedCase) : []
   const proposedManagingPaymentsRows = proposedCase
     ? getActiveCaseManagingPaymentsRows(proposedCase) : []
-  const arrearsAfterValidation = getArrearsPence(activeCase.arrears) -
-    (pendingResult.remitArrears === 'yes' ? getArrearsPence(pendingResult.remitArrearsAmount) : 0) +
-    (pendingResult.arrearsAdjustmentPence || 0)
-  const arrearsRows = record.hearingStatus !== 'Result validated' && (pendingResult.remitArrears === 'yes' || pendingResult.arrearsAdjustmentPence)
-    ? [
-        buildSummaryRow('Current account arrears', activeCase.arrears),
-        buildSummaryRow('Arrears after validation', formatCurrency(arrearsAfterValidation / 100))
-      ]
-    : []
-
   return res.render('active-case/validate-result', {
-    activeCase, backHref, hearingRows, resultRows,
-    proposedHearingRows, proposedOrderTerms, proposedOrderDetailsRows,
-    proposedInterestRows, proposedManagingPaymentsRows, arrearsRows,
-    review, reviewTimelineItems: getReviewHistoryTimelineItems(review.history),
+    activeCase, backHref, hearingRows, resultCards, proposedOrderTerms,
+    proposedOrderDetailsRows, proposedInterestRows, proposedManagingPaymentsRows,
+    canChangeResult,
+    hearingChangeHref: `${recordingHref}/information`,
+    orderDetailsChangeHref: `${recordingHref}/order-details`,
+    interestChangeHref: `${recordingHref}/interest-and-indexation`,
+    managingPaymentsChangeHref: `${recordingHref}/managing-payments`,
+    resubmitHref: `${recordingHref}/review`,
+    review, reviewTimelineItems: getReviewHistoryTimelineItems(review.history.slice().reverse()),
     mode, status: record.hearingStatus, errors, decisionValues,
     errorSummary: Object.keys(errors).length ? getActiveCaseVaryOrderErrorSummary(errors) : null,
-    formAction: `/active-case/${id}/${category}/validate-result`,
-    reviseHref: `/record-results/${id}/${category}/information`
+    formAction: `/active-case/${id}/${category}/validate-result`
   })
 }
 
@@ -12708,9 +12708,16 @@ router.post('/active-case/:id/:category/hearing', (req, res, next) => {
   if (!englandAndWalesFamilyCourts.includes(values['hearing-court'])) {
     errors['hearing-court'] = buildFieldError('Select a court')
   }
-  addActiveCaseVaryOrderDateError(errors, values, 'hearing-date', 'Hearing date')
-  if (values['hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['hearing-time'])) {
-    errors['hearing-time'] = buildFieldError('Enter a hearing time in the format HH:MM')
+  if (values['hearing-venue'].length > 100) {
+    errors['hearing-venue'] = buildFieldError('Hearing venue must be 100 characters or fewer')
+  }
+  addActiveCaseVaryOrderDateError(errors, values, 'hearing-date', 'Hearing date', {
+    missingMessage: 'Enter a hearing date'
+  })
+  if (values['hearing-time'] && !/^[0-9:]+$/.test(values['hearing-time'])) {
+    errors['hearing-time'] = buildFieldError('Enter numbers only in the format 13:30')
+  } else if (values['hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['hearing-time'])) {
+    errors['hearing-time'] = buildFieldError('Enter hearing time in the correct format such as 14:30')
   }
   if (Object.keys(errors).length) return renderManagedHearing(res, hearing, values, errors)
   const hasHearingChanges = ['court', 'venue', 'date', 'time'].some(
@@ -12750,8 +12757,8 @@ router.post('/active-case/:id/:category/hearing/delete', (req, res, next) => {
   }
   const reason = String(getSingleValue(req.body['hearing-delete-reason']) || '').trim()
   const error = !reason
-    ? 'Enter a reason for deleting the hearing'
-    : reason.length > 1000 ? 'Reason must be 1,000 characters or fewer' : null
+    ? 'Enter a reason'
+    : reason.length > 250 ? 'Reason must be 250 characters or fewer' : null
   if (error) {
     return res.render('active-case/delete-hearing', {
       ...hearing, reason,
@@ -15832,6 +15839,139 @@ activeCases[8].defaultVaryOrderApplication = {
   hearingStatus: 'Result pending'
 }
 
+// Ready-made results for the inputter and checker journeys. Keep the three
+// Reading hearings above available to record from scratch.
+activeCases[31].defaultVaryOrderApplication = {
+  type: 'Application to vary or revoke an order',
+  legislation: 'Application to Vary/Revoke an Order',
+  'vary-order-applying-party': 'applicant',
+  'vary-order-application-date': '14/09/2026',
+  'vary-order-application-reason': 'The applicant has asked for the maintenance amount to be reviewed.',
+  'vary-order-original-court': 'Bristol Civil and Family Justice Centre',
+  'vary-order-original-order-date': '10/01/2025',
+  'vary-order-current-terms': 'Monthly maintenance payments for the applicant and child.',
+  'vary-order-last-varied-date': '',
+  'vary-order-hearing-grounds': 'To consider a change in financial circumstances.',
+  'vary-order-hearing-court': 'Bristol Civil and Family Justice Centre',
+  'vary-order-hearing-venue': 'Courtroom 2',
+  'vary-order-hearing-date': '02/10/2026',
+  'vary-order-hearing-time': '10:00'
+}
+activeCases[33].defaultVaryOrderApplication = {
+  ...activeCases[31].defaultVaryOrderApplication,
+  'vary-order-application-date': '16/09/2026',
+  'vary-order-original-court': 'Central Family Court',
+  'vary-order-hearing-court': 'Central Family Court',
+  'vary-order-hearing-date': '01/10/2026',
+  'vary-order-hearing-time': '11:00'
+}
+activeCases[34].enforcementAction = {
+  type: 'Enforcement Summons (MSUMM)',
+  court: 'Manchester Civil Justice Centre (Civil and Family Courts)',
+  hearingVenue: 'Courtroom 4',
+  hearingDate: '2 October 2026',
+  hearingTime: '14:00',
+  reason: 'Summonsed to explain missed maintenance payments.'
+}
+activeCases[32].enforcementAction = {
+  type: 'Enforcement Summons (MSUMM)',
+  court: 'Birmingham Civil and Family Justice Centre',
+  hearingVenue: 'Courtroom 1',
+  hearingDate: '30 September 2026',
+  hearingTime: '09:30',
+  reason: 'Summonsed to explain missed maintenance payments.'
+}
+
+function seedSampleResultReview(caseId, category, status, resultDetails, submittedAt, history) {
+  const activeCase = activeCases[caseId]
+  const record = category === 'application'
+    ? activeCase.defaultVaryOrderApplication : activeCase.enforcementAction
+  const firstResult = resultDetails.results[0]
+  const result = {
+    code: firstResult.code,
+    title: firstResult.title,
+    results: resultDetails.results,
+    judiciary: resultDetails.judiciary,
+    clerks: resultDetails.clerks,
+    respondentPresent: resultDetails.respondentPresent,
+    remitArrears: resultDetails.remitArrears,
+    remitArrearsAmount: resultDetails.remitArrearsAmount || '',
+    orderOption: resultDetails.orderOption || '',
+    proposedOrders: resultDetails.proposedOrders || null,
+    proposedHearing: firstResult.proposedHearing || null,
+    adjournmentReason: firstResult.reason || '',
+    arrearsAdjustmentPence: 0
+  }
+  record.hearingStatus = status
+  if (status === 'Result validated') {
+    record.validatedResult = result
+    record.resultCode = firstResult.code
+    record.resultTitle = firstResult.title
+    record.resultCodes = resultDetails.results.map(({ code, title }) => ({ code, title }))
+  } else {
+    record.pendingResult = result
+  }
+  activeCase.resultReviews = activeCase.resultReviews || {}
+  activeCase.resultReviews[category] = {
+    record,
+    submittedBy: prototypeCurrentUserName,
+    submittedAt,
+    ...(status === 'Result rejected' ? { rejectionReason: history[0].note } : {}),
+    history
+  }
+}
+
+const sampleSubmittedEvent = (at, timestamp) => ({
+  action: 'Submitted', by: prototypeCurrentUserName, at, timestamp
+})
+const sampleApplicationOrders31 = cloneData(getActiveCaseOrders(activeCases[31]))
+const sampleApplicationOrders33 = cloneData(getActiveCaseOrders(activeCases[33]))
+sampleApplicationOrders31.terms.find((term) => term.code === 'MAT').responses['result-mat-amount'] = '550.00'
+sampleApplicationOrders33.terms.find((term) => term.code === 'MCHILD').responses['result-mchild-amount'] = '375.00'
+
+seedSampleResultReview(31, 'application', 'Validation pending', {
+  results: [{ code: 'MAT', title: activeCaseResultTitles.MAT, reason: 'Maintenance amount varied.' }],
+  judiciary: 'Judge R Bakshi', clerks: 'S Brown', respondentPresent: 'yes',
+  remitArrears: 'no', orderOption: 'add-or-amend', proposedOrders: sampleApplicationOrders31
+}, '2 October 2026 at 11:20am', [
+  sampleSubmittedEvent('2 October 2026 at 11:20am', '2026-10-02T10:20:00.000Z')
+])
+
+seedSampleResultReview(34, 'enforcement', 'Validation pending', {
+  results: [{
+    code: 'MADJ', title: activeCaseResultTitles.MADJ,
+    reason: 'The respondent could not attend.',
+    proposedHearing: {
+      court: 'Manchester Civil Justice Centre (Civil and Family Courts)',
+      venue: 'Courtroom 4', date: '16/10/2026', time: '14:00'
+    }
+  }],
+  judiciary: 'Judge H Patel', clerks: 'A Taylor', respondentPresent: 'no', remitArrears: 'no'
+}, '2 October 2026 at 3:10pm', [
+  sampleSubmittedEvent('2 October 2026 at 3:10pm', '2026-10-02T14:10:00.000Z')
+])
+
+seedSampleResultReview(33, 'application', 'Result rejected', {
+  results: [{ code: 'MCHILD', title: activeCaseResultTitles.MCHILD,
+    reason: 'Child maintenance amount reviewed.' }],
+  judiciary: 'Judge J Smit', clerks: 'L Morris', respondentPresent: 'yes',
+  remitArrears: 'no', orderOption: 'add-or-amend', proposedOrders: sampleApplicationOrders33
+}, '1 October 2026 at 12:30pm', [
+  { action: 'Rejected', by: 'Diana Prince', at: '2 October 2026 at 9:15am',
+    timestamp: '2026-10-02T08:15:00.000Z', note: 'Correct the spelling of the judiciary name.' },
+  sampleSubmittedEvent('1 October 2026 at 12:30pm', '2026-10-01T11:30:00.000Z')
+])
+
+seedSampleResultReview(32, 'enforcement', 'Result validated', {
+  results: [{ code: 'MCHILD', title: activeCaseResultTitles.MCHILD,
+    reason: 'Maintenance order confirmed.' }],
+  judiciary: 'Judge A Khan', clerks: 'P Davies', respondentPresent: 'yes', remitArrears: 'no'
+}, '30 September 2026 at 10:45am', [
+  { action: 'Validated', by: 'Diana Prince', at: '1 October 2026 at 9:30am',
+    timestamp: '2026-10-01T08:30:00.000Z' },
+  sampleSubmittedEvent('30 September 2026 at 10:45am', '2026-09-30T09:45:00.000Z')
+])
+
 const initialPrototypeState = {
   activeCases: cloneData(activeCases),
   minorCreditorAccounts: cloneData(minorCreditorAccounts),
@@ -16154,8 +16294,8 @@ function getRecordResultsDraft(req, hearing) {
   if (hearing.status === 'Result rejected' && hearing.record.pendingResult && !draft.rejectedLoaded) {
     const pending = hearing.record.pendingResult
     Object.assign(draft, {
-      magistrate: pending.magistrate, clerks: pending.clerks,
-      legalAdvisor: pending.legalAdvisor, present: pending.respondentPresent,
+      judiciary: pending.judiciary || pending.magistrate, clerks: pending.clerks,
+      present: pending.respondentPresent,
       remitArrears: pending.remitArrears, remitAmount: pending.remitArrearsAmount,
       orderOption: pending.orderOption, results: cloneData(pending.results ||
         [{ code: pending.code, title: pending.title, reason: pending.adjournmentReason,
@@ -16178,7 +16318,9 @@ function getRecordResultsJudicial(req, hearing) {
   return saved[`${hearing.court}|${hearing.date}`] || null
 }
 
-router.get('/record-results', (req, res) => {
+router.get('/record-results', (req, res) => renderResultQueue(req, res, true))
+
+router.get('/record-results/list-hearings', (req, res) => {
   const court = String(req.query.court || '').trim()
   const date = String(req.query.date || '').trim()
   const searched = Boolean(court && date)
@@ -16199,6 +16341,8 @@ router.get('/record-results', (req, res) => {
     buildHearingStatusSummaryRow(hearing.status).value,
     hearing.status === 'Result pending'
       ? { html: `<a class="govuk-link" href="${getRecordResultsHref(hearing, 'information')}">Record result<span class="govuk-visually-hidden"> for ${escapeHtml(hearing.activeCase.respondentName)}</span></a>` }
+      : hearing.status === 'Validation pending'
+        ? { html: `<a class="govuk-link" href="/my-results/${hearing.id}/${hearing.category}?from=list-hearings">View result<span class="govuk-visually-hidden"> for ${escapeHtml(hearing.activeCase.respondentName)}</span></a>` }
       : { html: EMPTY_VALUE_HTML }
   ])
   return res.render('record-results/list', {
@@ -16209,7 +16353,7 @@ router.get('/record-results', (req, res) => {
   })
 })
 
-router.post('/record-results', (req, res, next) => {
+router.post('/record-results/list-hearings', (req, res, next) => {
   const court = String(getSingleValue(req.body.court) || '').trim()
   const date = String(getSingleValue(req.body.date) || '').trim()
   const errors = {}
@@ -16223,13 +16367,14 @@ router.post('/record-results', (req, res, next) => {
     })
   }
   return redirectWithSessionSave(req, res, next,
-    `/record-results?court=${encodeURIComponent(court)}&date=${encodeURIComponent(date)}`)
+    `/record-results/list-hearings?court=${encodeURIComponent(court)}&date=${encodeURIComponent(date)}`)
 })
 
 function renderRecordResultsInformation(req, res, hearing, values, errors = {}) {
   return res.render('record-results/information', {
     hearing, values, errors, judicial: getRecordResultsJudicial(req, hearing),
     formAction: getRecordResultsHref(hearing, 'information'),
+    backHref: `/record-results/list-hearings?court=${encodeURIComponent(hearing.court)}&date=${encodeURIComponent(hearing.date)}`,
     cancelHref: '/record-results',
     errorSummary: Object.keys(errors).length ? getActiveCaseVaryOrderErrorSummary(errors) : null
   })
@@ -16240,8 +16385,8 @@ router.get('/record-results/:id/:category/information', (req, res) => {
   if (!hearing || !['Result pending', 'Result rejected'].includes(hearing.status)) return res.redirect('/record-results')
   const draft = getRecordResultsDraft(req, hearing)
   return renderRecordResultsInformation(req, res, hearing, {
-    magistrate: draft.magistrate || '', clerks: draft.clerks || '',
-    legalAdvisor: draft.legalAdvisor || '', present: draft.present || '',
+    judiciary: draft.judiciary || draft.magistrate || '', clerks: draft.clerks || '',
+    present: draft.present || '',
     remitArrears: draft.remitArrears || '', remitAmount: draft.remitAmount || ''
   })
 })
@@ -16249,14 +16394,13 @@ router.get('/record-results/:id/:category/information', (req, res) => {
 router.post('/record-results/:id/:category/information', (req, res, next) => {
   const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
   if (!hearing || !['Result pending', 'Result rejected'].includes(hearing.status)) return res.redirect('/record-results')
-  const values = Object.fromEntries(['magistrate', 'clerks', 'legalAdvisor', 'present',
+  const values = Object.fromEntries(['judiciary', 'clerks', 'present',
     'remitArrears', 'remitAmount'].map((field) =>
     [field, String(getSingleValue(req.body[field]) || '').trim()]))
   const errors = {}
   if (!getRecordResultsJudicial(req, hearing)) {
-    if (!values.magistrate) errors.magistrate = buildFieldError('Enter the magistrate(s)')
+    if (!values.judiciary) errors.judiciary = buildFieldError('Enter the judiciary')
     if (!values.clerks) errors.clerks = buildFieldError('Enter the clerks')
-    if (!values.legalAdvisor) errors.legalAdvisor = buildFieldError('Enter the legal advisor')
   }
   if (!['yes', 'no'].includes(values.present)) errors.present = buildFieldError('Select whether the respondent was present')
   if (!['yes', 'no'].includes(values.remitArrears)) errors.remitArrears = buildFieldError('Select whether arrears should be remitted')
@@ -16267,9 +16411,8 @@ router.post('/record-results/:id/:category/information', (req, res, next) => {
   const judicial = getRecordResultsJudicial(req, hearing)
   Object.assign(getRecordResultsDraft(req, hearing), {
     ...values,
-    magistrate: judicial?.magistrate || values.magistrate,
+    judiciary: judicial?.judiciary || judicial?.magistrate || values.judiciary,
     clerks: judicial?.clerks || values.clerks,
-    legalAdvisor: judicial?.legalAdvisor || values.legalAdvisor,
     remitAmount: values.remitArrears === 'yes' ? values.remitAmount : ''
   })
   return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing,
@@ -16638,7 +16781,7 @@ router.post('/record-results/:id/:category/review', (req, res, next) => {
   }
   hearing.record.pendingResult = {
     code: first.code, title: first.title, results: cloneData(draft.results),
-    magistrate: draft.magistrate, clerks: draft.clerks, legalAdvisor: draft.legalAdvisor,
+    judiciary: draft.judiciary || draft.magistrate, clerks: draft.clerks,
     respondentPresent: draft.present, remitArrears: draft.remitArrears,
     remitArrearsAmount: draft.remitAmount || '', orderOption: draft.orderOption || '',
     proposedHearing: adjourned?.proposedHearing || null,
@@ -16651,46 +16794,86 @@ router.post('/record-results/:id/:category/review', (req, res, next) => {
   submitResultForValidation(hearing)
   const judicial = getActiveCaseVaryOrderStore(req, recordResultsJudicialKey)
   judicial[`${hearing.court}|${hearing.date}`] = {
-    magistrate: draft.magistrate, clerks: draft.clerks, legalAdvisor: draft.legalAdvisor
+    judiciary: draft.judiciary || draft.magistrate, clerks: draft.clerks
   }
   delete getActiveCaseVaryOrderStore(req, activeCaseResultHearingDraftsKey)[`${hearing.id}:${hearing.category}`]
   if (context?.newJourney) delete req.session.data[activeCaseResultContextKey]
-  setActiveCaseSuccessMessage(req, '/record-results', 'Hearing resulted and pending validation.')
+  setActiveCaseSuccessMessage(req, '/record-results/list-hearings', 'Hearing resulted and pending validation.')
   return redirectWithSessionSave(req, res, next,
-    `/record-results?court=${encodeURIComponent(hearing.court)}&date=${encodeURIComponent(hearing.date)}`)
+    `/record-results/list-hearings?court=${encodeURIComponent(hearing.court)}&date=${encodeURIComponent(hearing.date)}`)
 })
 
 function renderResultQueue(req, res, inputter) {
-  const allowedTabs = inputter ? ['submitted', 'rejected', 'validated']
+  const allowedTabs = inputter ? ['pending', 'rejected', 'validated']
     : ['to-review', 'rejected', 'validated']
   const tab = allowedTabs.includes(req.query.tab) ? req.query.tab : allowedTabs[0]
   const status = {
-    submitted: 'Validation pending', 'to-review': 'Validation pending',
+    pending: 'Validation pending', 'to-review': 'Validation pending',
     rejected: 'Result rejected', validated: 'Result validated'
   }[tab]
-  const entries = getResultReviewEntries().filter((entry) =>
-    entry.record.hearingStatus === status &&
-    (!inputter || entry.review.submittedBy === prototypeCurrentUserName))
-  const rows = entries.map((entry) => {
+  const inputterEntries = getResultReviewEntries().filter((entry) =>
+    entry.review.submittedBy === prototypeCurrentUserName)
+  const entries = (inputter ? inputterEntries : getResultReviewEntries()).filter((entry) =>
+    entry.record.hearingStatus === status)
+  if (inputter) {
+    entries.sort((a, b) => {
+      const hearingDate = (entry) => entry.category === 'application'
+        ? entry.record['vary-order-hearing-date'] : entry.record.hearingDate
+      return getDateSortValue(formatHistoryHearingDate(hearingDate(b))) -
+        getDateSortValue(formatHistoryHearingDate(hearingDate(a)))
+    })
+  }
+  const pageSize = 25
+  const pageCount = Math.ceil(entries.length / pageSize)
+  const page = Math.min(pageCount || 1, Math.max(1, Number.parseInt(req.query.page, 10) || 1))
+  const visibleEntries = inputter ? entries.slice((page - 1) * pageSize, page * pageSize) : entries
+  const rows = visibleEntries.map((entry) => {
     const href = inputter ? `/my-results/${entry.id}/${entry.category}`
       : `/active-case/${entry.id}/${entry.category}/validate-result`
+    if (inputter) {
+      const hearingDate = entry.category === 'application'
+        ? entry.record['vary-order-hearing-date'] : entry.record.hearingDate
+      return [
+        { html: getResultReviewAccountHtml(entry.activeCase.accountNumber,
+          entry.activeCase.respondentName, `/active-case/${entry.id}`),
+        text: entry.activeCase.accountNumber || entry.activeCase.respondentName },
+        { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber,
+          entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref),
+        text: entry.activeCase.applicant?.accountNumber || entry.activeCase.applicantName },
+        getResultReviewTableCell(getResultReviewCourt(entry)),
+        { ...getResultReviewTableCell(getResultReviewHearingDate(entry)),
+          sortValue: getDateSortValue(formatHistoryHearingDate(hearingDate)) },
+        { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` }
+      ]
+    }
     return [
       { html: getResultReviewAccountHtml(entry.activeCase.accountNumber,
-        entry.activeCase.respondentName, href) },
+        entry.activeCase.respondentName, `/active-case/${entry.id}`) },
       { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber,
         entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref) },
       { text: entry.category === 'application' ? 'Application' : 'Enforcement action' },
       getResultReviewTableCell(getResultReviewCourt(entry)),
       getResultReviewTableCell(getResultReviewHearingDate(entry)),
-      getResultReviewTableCell(entry.review.submittedBy)
+      getResultReviewTableCell(entry.review.submittedBy),
+      { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` }
     ]
   })
-  return res.render('result-queues/index', {
-    inputter, tab, rows, successMessage: consumeActiveCaseSuccessMessage(req)
+  return res.render(inputter ? 'record-results/index' : 'result-queues/index', {
+    inputter, tab, rows,
+    rejectedCount: inputterEntries.filter((entry) => entry.record.hearingStatus === 'Result rejected').length,
+    pagination: inputter && pageCount > 1 ? {
+      items: Array.from({ length: pageCount }, (_, index) => ({
+        number: index + 1,
+        href: `/record-results?tab=${tab}&page=${index + 1}`,
+        current: index + 1 === page
+      })),
+      results: { from: (page - 1) * pageSize + 1, to: Math.min(page * pageSize, entries.length), count: entries.length }
+    } : null,
+    successMessage: consumeActiveCaseSuccessMessage(req)
   })
 }
 
-router.get('/my-results', (req, res) => renderResultQueue(req, res, true))
+router.get('/my-results', (req, res) => res.redirect(`/record-results?tab=${req.query.tab === 'rejected' ? 'rejected' : req.query.tab === 'validated' || req.query.tab === 'approved' ? 'validated' : 'pending'}`))
 router.get('/validate-results', (req, res) => renderResultQueue(req, res, false))
 
 router.get('/my-results/:id/:category', (req, res) =>
