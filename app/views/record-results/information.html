@@ -25,9 +25,6 @@
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
       <form method="post" action="{{ formAction }}" novalidate>
-        {% if judicial %}
-          <p class="govuk-body">If you change Judiciary or Clerks, you will be asked to confirm the update for all hearings at this court on this date.</p>
-        {% endif %}
         {{ govukCharacterCount({
           id: "judiciary", name: "judiciary", rows: 3, maxlength: 250,
           classes: "govuk-!-width-three-quarters",

@@ -9036,7 +9036,7 @@ router.get('/create-cases/:index', (req, res) => {
     returnToAllRejected: fromAllRejected && showRejectedInputterTaskList,
     failedPublishingAlert: status === 'failed' && isChecker
       ? {
-          title: 'There was a problem publishing the case',
+          title: 'There was a problem publishing the case.',
           html: '<p class="govuk-body">Contact the service desk.</p><p class="govuk-body">Error code: [operation_ID].</p>'
         }
       : null,
@@ -13234,7 +13234,7 @@ router.post('/active-case/:id/order-term/add/details', (req, res, next) => {
   }
 
   if (state.hasReviewedTerm && getActiveCaseResultContext(req, id)?.newJourney) {
-    state.reviewSuccessMessage = 'Order terms updated'
+    state.reviewSuccessMessage = 'Order terms updated.'
   }
   delete state.errors
   state.pendingOrderTerm = {
@@ -13467,7 +13467,7 @@ router.post('/active-case/:id/order-term/add/creditor/add-minor-creditor', (req,
 
   if (getActiveCaseResultContext(req, id)?.newJourney &&
       (state.pendingMinorCreditor || state.pendingOrderTerm?.minorCreditorData)) {
-    setActiveCaseOrderTermAddSuccessMessage(req, id, 'Creditor details updated')
+    setActiveCaseOrderTermAddSuccessMessage(req, id, 'Creditor details updated.')
   }
   state.pendingMinorCreditor = creditor
 
@@ -13596,7 +13596,7 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
   if (!resultContext) ensureActiveCaseMinorCreditorAccount(completedOrderTerm, activeCase, id)
   clearActiveCaseOrderTermAddState(req)
   setActiveCaseSuccessMessage(req, resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}`,
-    resultContext ? 'Order terms added' : 'Order term added.')
+    resultContext ? 'Order terms added.' : 'Order term added.')
 
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
@@ -13966,7 +13966,7 @@ router.post('/active-case/:id/order-term/:index/creditor/add-minor-creditor', (r
 
   if (getActiveCaseResultContext(req, id)?.newJourney &&
       (orderTerm.pendingMinorCreditor || orderTerm.minorCreditorData)) {
-    setActiveCaseOrderTermAmendSuccessMessage(req, id, termIndex, 'Creditor details updated')
+    setActiveCaseOrderTermAmendSuccessMessage(req, id, termIndex, 'Creditor details updated.')
   }
   orderTerm.pendingMinorCreditor = creditor
 
@@ -14070,7 +14070,7 @@ router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
   delete orderTerm.pendingMinorCreditor
   clearActiveCaseOrderTermSnapshot(req, id, termIndex)
   setActiveCaseSuccessMessage(req, resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}`,
-    resultContext ? 'Order terms updated' : 'Order term amended.')
+    resultContext ? 'Order terms updated.' : 'Order term amended.')
 
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
@@ -16478,7 +16478,7 @@ function saveRecordResultsInformation(req, res, next, hearing, values, sessionUp
     hearing.category === 'application' ? 'outcome' : 'add-result')
   if (sessionUpdate || draft.present) {
     setActiveCaseSuccessMessage(req, nextHref, sessionUpdate
-      ? 'Judiciary details updated for this session' : 'Hearing information updated')
+      ? 'Judiciary details updated for this session.' : 'Hearing information updated.')
   }
   setRecordResultsJudicial(req, hearing, values.judiciary, values.clerks)
   Object.assign(draft, {
@@ -16579,7 +16579,7 @@ router.post('/record-results/list-hearings', (req, res, next) => {
 
 function renderRecordResultsInformation(req, res, hearing, values, errors = {}) {
   return res.render('record-results/information', {
-    hearing, values, errors, judicial: getRecordResultsJudicial(req, hearing),
+    hearing, values, errors,
     formAction: getRecordResultsHref(hearing, 'information'),
     backHref: getRecordResultsListHref(hearing.court, hearing.date),
     cancelHref: '/record-results',
@@ -16804,7 +16804,7 @@ router.post('/record-results/:id/:category/order-details', (req, res, next) => {
   orders.terms = applySharedFrequencyToRecordedOrderTerms(
     orders.terms || [], orders.details.paymentFrequency)
   workingCase.dateArrearsUpdated = formatDateLong(orders.details.dateArrearsLastUpdated)
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Order details updated')
+  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Order details updated.')
   return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
 })
 
@@ -16849,7 +16849,7 @@ router.post('/record-results/:id/:category/interest-and-indexation', (req, res, 
     'interest-applies': getSingleValue(req.body['interest-applies']) || '',
     'indexation-type': getSingleValue(req.body['indexation-type']) || ''
   }
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Interest and indexation updated')
+  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Interest and indexation updated.')
   return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
 })
 
@@ -16892,7 +16892,7 @@ router.post('/record-results/:id/:category/managing-payments', (req, res, next) 
   getActiveCaseOrders(workingCase).managingPayments = {
     'order-managing-payments': getSingleValue(req.body['order-managing-payments']) || ''
   }
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Managing payments updated')
+  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Managing payments updated.')
   return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
 })
 
@@ -16991,7 +16991,7 @@ router.post('/record-results/:id/:category/remove-result/:index', (req, res, nex
     else if (draft.editIndex > index) draft.editIndex -= 1
   }
   delete draft.selectedCode
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result removed')
+  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result removed.')
   return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
 })
 
@@ -17041,7 +17041,7 @@ router.post('/record-results/:id/:category/result-details', (req, res, next) => 
     court: values.court, venue: values.venue, date: values.date, time: values.time
   }
   if (Number.isInteger(draft.editIndex) && draft.results?.[draft.editIndex]) {
-    setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result updated')
+    setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result updated.')
     draft.results[draft.editIndex] = result
   } else {
     draft.results = [...(draft.results || []), result]
