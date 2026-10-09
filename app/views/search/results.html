@@ -38,8 +38,8 @@
             {% for row in results %}
               <tr class="govuk-table__row">
                 <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
-                <td class="govuk-table__cell">{{ row[1].html | safe }}</td>
-                <td class="govuk-table__cell">{{ row[2].html | safe }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[1].sortValue }}">{{ row[1].html | safe }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[2].sortValue }}">{{ row[2].html | safe }}</td>
                 <td class="govuk-table__cell">{{ row[3].text }}</td>
                 <td class="govuk-table__cell">{{ row[4].text }}</td>
               </tr>

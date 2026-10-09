@@ -11,7 +11,7 @@
 {% set showNav = true %}
 
 {% block pageTitle %}
-  {{ activeCase.respondentName }} - Case details - {{ serviceName }} - GOV.UK Prototype Kit
+  {{ respondentDisplayName }} - Case details - {{ serviceName }} - GOV.UK Prototype Kit
 {% endblock %}
 
 {% block content %}
@@ -40,7 +40,7 @@
 
       <div class="moj-page-header-actions govuk-!-margin-bottom-3">
         <div class="moj-page-header-actions__title">
-          <h1 class="govuk-heading-xl">{{ activeCase.respondentName }}</h1>
+          <h1 class="govuk-heading-xl">{{ respondentDisplayName }}</h1>
         </div>
         <div class="moj-page-header-actions__actions">
           <div class="moj-button-group moj-button-group--inline">
@@ -298,7 +298,7 @@
             <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1 govuk-!-margin-top-3">Applicant account</p>
             <p class="govuk-body">
               <a href="{{ activeCase.applicant.accountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a><br>
-              {{ activeCase.applicant.name }}
+              {{ applicantAccountName }}
             </p>
 
           </div>

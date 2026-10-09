@@ -1,0 +1,27 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}Remove result - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Are you sure you want to remove this result?</h1>
+
+      {{ govukSummaryList({ card: {
+        title: { text: result.code + " - " + result.title }
+      }, rows: [
+        { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
+        { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
+        { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date } } if result.proposedHearing
+      ] }) }}
+
+      <form method="post" action="{{ formAction }}">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Yes - remove" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">No - go back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

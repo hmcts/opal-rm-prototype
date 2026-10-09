@@ -1,15 +1,19 @@
 {% extends "layouts/main.html" %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
-{% block pageTitle %}Order terms - {{ serviceName }}{% endblock %}
+{% block pageTitle %}Existing order details - {{ serviceName }}{% endblock %}
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/application/outcome" }) }}
       <span class="govuk-caption-l">Record results</span>
-      <h1 class="govuk-heading-l">Order terms</h1>
+      <h1 class="govuk-heading-l">Existing order details</h1>
       <p class="govuk-body">Review the existing order terms. You can amend a term or add a new one.</p>
       {{ govukSummaryList({
         card: {
@@ -20,13 +24,15 @@
         },
         rows: orderDetailsRows
       }) }}
-      <h2 class="govuk-heading-m">Order terms</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Order terms</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-bottom-4">
+      {{ govukButton({ text: "Add terms", href: addHref, classes: "govuk-button--secondary" }) }}
       {% for card in orderTermCards %}
         {% set orderTermCard = card %}
         {% include "create-a-case/_order-term-summary-card.html" %}
       {% endfor %}
-      <p class="govuk-body"><a class="govuk-link" href="{{ addHref }}">Add terms</a></p>
-      <h2 class="govuk-heading-m">Additional order information</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2">Additional order information</h2>
+      <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-bottom-4">
       {{ govukSummaryList({
         card: {
           title: { text: "Interest and indexation" },
@@ -45,7 +51,11 @@
         },
         rows: managingPaymentsRows
       }) }}
-      {{ govukButton({ text: "Continue", href: continueHref }) }}
+      <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+      <div class="govuk-button-group">
+        {{ govukButton({ text: "Continue", href: continueHref }) }}
+        <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
+      </div>
     </div>
   </div>
 {% endblock %}

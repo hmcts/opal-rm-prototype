@@ -1,4 +1,5 @@
 {% extends "layouts/main.html" %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
@@ -6,6 +7,9 @@
 
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}Hearing outcome - {{ serviceName }}{% endblock %}
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/information" }) }}
@@ -26,7 +30,7 @@
         }) }}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="/record-results">Cancel</a>
+          <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>

@@ -2,18 +2,18 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-{% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
+{% from "moj/components/pagination/macro.njk" import mojPagination %}
 {% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}List hearings - {{ serviceName }}{% endblock %}
 
 {% block content %}
-  {{ govukBackLink({ text: "Back to results", href: "/record-results" }) }}
   {% if successMessage %}
     {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
   {% endif %}
+  {{ govukBackLink({ text: "Back to results", href: "/record-results" }) }}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">Record results</span>
@@ -26,8 +26,7 @@
           id: "court", name: "court",
           label: { text: "Select a court", classes: "govuk-label--s" },
           classes: "govuk-!-width-two-thirds",
-          value: court, items: courtItems,
-          errorMessage: errors.court
+          value: court, items: courtItems
         }) }}
         {{ mojDatePicker({
           leadingZeros: true,
@@ -35,26 +34,41 @@
           label: { text: "Hearing date", classes: "govuk-label--s" },
           value: date, errorMessage: errors.date
         }) }}
-        {{ govukButton({ text: "List hearings" }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Filter" }) }}
+          <a class="govuk-link" href="/record-results/list-hearings">Clear filter</a>
+        </div>
       </form>
     </div>
   </div>
-  {% if searched %}
-    <h2 class="govuk-heading-m">Showing {{ count }} hearing{% if count !== 1 %}s{% endif %}</h2>
-    {% if rows.length %}
-      {{ govukTable({
-        firstCellIsHeader: false,
-        head: [
-          { text: "Respondent account" },
-          { text: "Applicant account" },
-          { text: "Hearing type" },
-          { text: "Hearing status" },
-          { text: "Action" }
-        ],
-        rows: rows
-      }) }}
-    {% else %}
-      <p class="govuk-body">No hearings found for this court and date.</p>
-    {% endif %}
+  <h2 class="govuk-heading-m">Hearings to result and validate</h2>
+  {% if rows.length %}
+    <table class="govuk-table" data-module="moj-sortable-table">
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header" aria-sort="none">Respondent account</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">Applicant account</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">Court</th>
+          <th scope="col" class="govuk-table__header" aria-sort="ascending">Hearing date</th>
+          <th scope="col" class="govuk-table__header" aria-sort="none">Hearing status</th>
+          <th scope="col" class="govuk-table__header">Action</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for row in rows %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" data-sort-value="{{ row[0].sortValue }}">{{ row[0].html | safe }}</td>
+            <td class="govuk-table__cell" data-sort-value="{{ row[1].sortValue }}">{{ row[1].html | safe }}</td>
+            <td class="govuk-table__cell">{{ row[3].text }}</td>
+            <td class="govuk-table__cell" data-sort-value="{{ row[4].sortValue }}">{{ row[4].text }}</td>
+            <td class="govuk-table__cell" data-sort-value="{{ row[5].sortValue }}">{{ row[5].html | replace("Result pending", "Result&nbsp;pending") | replace("Validation pending", "Validation&nbsp;pending") | replace("Result rejected", "Result&nbsp;rejected") | safe }}</td>
+            <td class="govuk-table__cell">{{ row[6].html | replace("Record result", "Record&nbsp;result") | replace("View result", "View&nbsp;result") | safe }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ mojPagination(pagination) }}
+  {% else %}
+    <p class="govuk-body">No hearings match these filters.</p>
   {% endif %}
 {% endblock %}

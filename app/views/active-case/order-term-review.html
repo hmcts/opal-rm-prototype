@@ -1,4 +1,5 @@
 {% extends "layouts/main.html" %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
@@ -10,6 +11,9 @@
 {% endblock %}
 
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {% if showBackLink !== false %}
@@ -42,7 +46,7 @@
             text: primaryButtonText or "Save changes"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel<span class="govuk-visually-hidden"> and return to Orders tab</span></a>
+          <a class="govuk-link" href="{{ cancelHref }}"{% if cancelRouteGuard %} data-route-guard-always="true"{% endif %}>Cancel<span class="govuk-visually-hidden"> and return to Orders tab</span></a>
         </div>
       </form>
     </div>

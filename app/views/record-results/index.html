@@ -9,16 +9,16 @@
 {% set activeNav = "cases" %}
 {% block pageTitle %}Results - {{ serviceName }}{% endblock %}
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
       {{ mojPageHeaderActions({
         heading: { text: "Results", classes: "govuk-heading-l" },
         items: [{ text: "Record results", href: "/record-results/list-hearings" }]
       }) }}
-
-      {% if successMessage %}
-        {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
-      {% endif %}
+      <p class="govuk-body">Showing only results you have submitted.</p>
 
       {% set rejectedTabHtml %}Rejected {{ mojNotificationBadge({ text: rejectedCount | string }) }}{% endset %}
       {{ mojSubNavigation({
@@ -32,9 +32,9 @@
 
       {% if tab === "rejected" %}
         <h2 class="govuk-heading-m">Rejected results</h2>
-        <p class="govuk-body">You can change a result after a checker rejects it.</p>
       {% elseif tab === "validated" %}
         <h2 class="govuk-heading-m">Validated</h2>
+        <p class="govuk-body">Showing hearings validated in the last 24 hours.</p>
       {% else %}
         <h2 class="govuk-heading-m">Validation pending</h2>
       {% endif %}

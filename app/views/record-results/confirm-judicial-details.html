@@ -1,0 +1,25 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageTitle %}Change the judiciary details for this session? - {{ serviceName }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Change the judiciary details for this session?</h1>
+      <p class="govuk-body">This change will update judiciary details for all hearings in this session.</p>
+
+      {{ govukSummaryList({ rows: [
+        { key: { text: "Judiciary" }, value: { text: pending.judiciary } },
+        { key: { text: "Clerks" }, value: { text: pending.clerks } }
+      ] }) }}
+
+      <form method="post" action="{{ formAction }}">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Update all hearings" }) }}
+          <a class="govuk-link" href="{{ revertHref }}">Revert to original details</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,17 +1,26 @@
 {% extends "layouts/main.html" %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "moj/components/timeline/macro.njk" import mojTimeline %}
 
 {% block pageTitle %}Check and submit result - {{ serviceName }}{% endblock %}
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result" }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">Check and submit for validation</h1>
       {{ govukInsetText({ text: "The account will not change until a checker validates the result." }) }}
+      {% if reviewTimelineItems.length %}
+        <h2 class="govuk-heading-m">Activity timeline</h2>
+        {{ mojTimeline({ headingLevel: 3, classes: "govuk-!-margin-bottom-7", items: reviewTimelineItems }) }}
+      {% endif %}
       <h2 class="govuk-heading-m">Hearing</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
       {{ govukSummaryList({ card: {
@@ -20,8 +29,8 @@
       }, rows: [
         { key: { text: "Court" }, value: { text: hearing.court } },
         { key: { text: "Hearing date" }, value: { text: hearing.displayDate } },
-        { key: { text: "Respondent" }, value: { text: hearing.activeCase.respondentName } },
-        { key: { text: "Applicant" }, value: { text: hearing.activeCase.applicantName } },
+        { key: { text: "Respondent" }, value: { text: hearing.respondentDisplayName } },
+        { key: { text: "Applicant" }, value: { text: hearing.applicantDisplayName } },
         { key: { text: "Hearing type" }, value: { text: hearing.type } },
         { key: { text: "Judiciary" }, value: { text: draft.judiciary or draft.magistrate } },
         { key: { text: "Clerks" }, value: { text: draft.clerks } },
@@ -61,6 +70,9 @@
       {% endif %}
       <h2 class="govuk-heading-m">Results</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {% if not draft.results.length %}
+        <p class="govuk-body">No additional results.</p>
+      {% endif %}
       {% for result in draft.results %}
         {{ govukSummaryList({ card: {
           title: { text: result.code + " - " + result.title },
@@ -75,7 +87,7 @@
       <form method="post" action="{{ formAction }}">
         <div class="govuk-button-group">
           {{ govukButton({ text: "Submit for validation" }) }}
-          <a class="govuk-link" href="/record-results">Cancel</a>
+          <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>
