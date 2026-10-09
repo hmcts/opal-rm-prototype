@@ -16610,7 +16610,9 @@ router.post('/record-results/:id/:category/information', (req, res, next) => {
     [field, String(getSingleValue(req.body[field]) || '').trim()]))
   const errors = {}
   if (!values.judiciary) errors.judiciary = buildFieldError('Enter the judiciary')
+  else if (values.judiciary.length > 250) errors.judiciary = buildFieldError('Judiciary must be 250 characters or fewer')
   if (!values.clerks) errors.clerks = buildFieldError('Enter the clerks')
+  else if (values.clerks.length > 250) errors.clerks = buildFieldError('Clerks must be 250 characters or fewer')
   if (!['yes', 'no'].includes(values.present)) {
     errors.present = buildFieldError(`Select whether ${hearing.presencePersonName} was present`)
   }
@@ -17019,6 +17021,7 @@ router.post('/record-results/:id/:category/result-details', (req, res, next) => 
   const values = Object.fromEntries(['reason', 'court', 'venue', 'date', 'time'].map((field) =>
     [field, String(getSingleValue(req.body[field]) || '').trim()]))
   const errors = {}
+  if (values.reason.length > 250) errors.reason = buildFieldError('Reason must be 250 characters or fewer')
   if (code === 'MADJ') {
     if (!values.reason) errors.reason = buildFieldError('Enter the reason for adjournment')
     if (!values.court) errors.court = buildFieldError('Select a court')
