@@ -117,11 +117,13 @@ window.GOVUKPrototypeKit.documentReady(() => {
     updateSummaryText()
   })
 
+  var routeGuardLeaveMessage = 'Warning: Are you sure you want to leave this page? Any information you entered will be lost.'
+
   document.querySelectorAll('[data-module="rm-route-guard"]').forEach(function ($form) {
     var isSubmitting = false
     var isLeavingAfterConfirmation = false
     var isDirty = $form.getAttribute('data-route-guard-active') === 'true'
-    var leaveMessage = 'Warning: Are you sure you want to leave this page? Any information you entered will be lost.'
+    var leaveMessage = routeGuardLeaveMessage
 
     function getFormSnapshot () {
       return Array.prototype.slice.call($form.elements)
@@ -165,7 +167,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
       $link.addEventListener('click', function (event) {
         updateDirtyState()
 
-        if (!isDirty) {
+        if (!isDirty && $link.getAttribute('data-route-guard-always') !== 'true') {
           return
         }
 
@@ -188,6 +190,18 @@ window.GOVUKPrototypeKit.documentReady(() => {
       event.preventDefault()
       event.returnValue = leaveMessage
       return leaveMessage
+    })
+  })
+
+  document.querySelectorAll('a[data-route-guard-always="true"]').forEach(function ($link) {
+    if ($link.closest('[data-module="rm-route-guard"]')) {
+      return
+    }
+
+    $link.addEventListener('click', function (event) {
+      if (!window.confirm(routeGuardLeaveMessage)) {
+        event.preventDefault()
+      }
     })
   })
 

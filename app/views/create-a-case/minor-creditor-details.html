@@ -403,7 +403,7 @@
             text: submitButtonText
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel<span class="govuk-visually-hidden"> and return to creditor selection</span></a>
+          <a class="govuk-link" href="{{ cancelHref }}"{% if cancelRouteGuard %} data-route-guard-always="true"{% endif %}>Cancel<span class="govuk-visually-hidden"> and return to creditor selection</span></a>
         </div>
       </form>
     </div>

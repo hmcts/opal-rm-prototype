@@ -17,8 +17,8 @@
       {{ govukSummaryList({ rows: [
         { key: { text: "Court" }, value: { text: hearing.court } },
         { key: { text: "Hearing date" }, value: { text: hearing.displayDate } },
-        { key: { text: "Respondent" }, value: { text: hearing.activeCase.respondentName } },
-        { key: { text: "Applicant" }, value: { text: hearing.activeCase.applicantName } },
+        { key: { text: "Respondent" }, value: { text: hearing.respondentDisplayName } },
+        { key: { text: "Applicant" }, value: { text: hearing.applicantDisplayName } },
         { key: { text: "Hearing type" }, value: { text: hearing.type } }
       ] }) }}
       {% if errorSummary %}
@@ -26,24 +26,18 @@
       {% endif %}
       <form method="post" action="{{ formAction }}" novalidate>
         {% if judicial %}
-          <h2 class="govuk-heading-m">Judicial details</h2>
-          <p class="govuk-body">These details were recorded for this court and hearing date.</p>
-          {{ govukSummaryList({ rows: [
-            { key: { text: "Judiciary" }, value: { text: judicial.judiciary or judicial.magistrate } },
-            { key: { text: "Clerks" }, value: { text: judicial.clerks } }
-          ] }) }}
-        {% else %}
-          {{ govukTextarea({
-            id: "judiciary", name: "judiciary", rows: 3,
-            label: { text: "Judiciary", classes: "govuk-label--s" },
-            value: values.judiciary, errorMessage: errors.judiciary
-          }) }}
-          {{ govukTextarea({
-            id: "clerks", name: "clerks", rows: 3,
-            label: { text: "Clerks", classes: "govuk-label--s" },
-            value: values.clerks, errorMessage: errors.clerks
-          }) }}
+          <p class="govuk-body">If you change Judiciary or Clerks, you will be asked to confirm the update for all hearings at this court on this date.</p>
         {% endif %}
+        {{ govukTextarea({
+          id: "judiciary", name: "judiciary", rows: 3,
+          label: { text: "Judiciary", classes: "govuk-label--s" },
+          value: values.judiciary, errorMessage: errors.judiciary
+        }) }}
+        {{ govukTextarea({
+          id: "clerks", name: "clerks", rows: 3,
+          label: { text: "Clerks", classes: "govuk-label--s" },
+          value: values.clerks, errorMessage: errors.clerks
+        }) }}
         {{ govukRadios({
           idPrefix: "present", name: "present",
           fieldset: { legend: { text: "Was " + hearing.presencePersonName + " present?", classes: "govuk-fieldset__legend--s" } },
@@ -67,15 +61,15 @@
           idPrefix: "remitArrears", name: "remitArrears",
           fieldset: { legend: { text: "Should arrears be remitted?", classes: "govuk-fieldset__legend--s" } },
           items: [
-            { value: "no", text: "No", checked: values.remitArrears === "no" },
-            { value: "yes", text: "Yes", checked: values.remitArrears === "yes", conditional: { html: remitAmountHtml } }
+            { value: "yes", text: "Yes", checked: values.remitArrears === "yes", conditional: { html: remitAmountHtml } },
+            { value: "no", text: "No", checked: values.remitArrears === "no" }
           ],
           errorMessage: errors.remitArrears
         }) }}
         {% endif %}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref }}" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>

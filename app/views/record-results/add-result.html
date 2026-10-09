@@ -1,4 +1,5 @@
 {% extends "layouts/main.html" %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
@@ -8,6 +9,9 @@
 
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}Add results - {{ serviceName }}{% endblock %}
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + ("/outcome" if hearing.category === "application" else "/information") }) }}
@@ -18,7 +22,10 @@
         {% for result in results %}
           {{ govukSummaryList({ card: {
             title: { text: result.code + " - " + result.title },
-            actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/change-result/" + loop.index0, visuallyHiddenText: "result " + loop.index }] }
+            actions: { items: [
+              { text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/change-result/" + loop.index0, visuallyHiddenText: "result " + loop.index },
+              { text: "Remove", href: "/record-results/" + hearing.id + "/" + hearing.category + "/remove-result/" + loop.index0, visuallyHiddenText: "result " + loop.index }
+            ] }
           }, rows: [
             { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
             { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
@@ -33,15 +40,15 @@
         {% set resultSelectHtml %}
           {{ xGovukAutocomplete({
             id: "code", name: "code",
+            classes: "govuk-!-width-three-quarters",
             label: { text: "Select a result", classes: "govuk-label--s" },
-            hint: { text: "The result code list is provisional for this prototype." },
             value: code, items: resultItems, errorMessage: errors.code
           }) }}
         {% endset %}
-        {% if results.length and not editing %}
+        {% if askForMoreResults and not editing %}
           {{ govukRadios({
             idPrefix: "addAnother", name: "addAnother",
-            fieldset: { legend: { text: "Do you have any other results to add?", classes: "govuk-fieldset__legend--m" } },
+            fieldset: { legend: { text: "Do you have any more results to add for this case?", classes: "govuk-fieldset__legend--m" } },
             items: [
               { value: "yes", text: "Yes", checked: addAnother === "yes", conditional: { html: resultSelectHtml } },
               { value: "no", text: "No", checked: addAnother === "no" }
@@ -53,7 +60,7 @@
         {% endif %}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="/record-results">Cancel</a>
+          <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>

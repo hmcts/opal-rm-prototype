@@ -14,6 +14,13 @@
 {% endblock %}
 
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({
+      variant: "success",
+      title: successMessage,
+      dismissible: true
+    }) }}
+  {% endif %}
   {% set formErrors = errors or {} %}
   {% set displayedErrorSummary = errorSummary %}
   {% if not displayedErrorSummary and selectionError %}
@@ -33,13 +40,6 @@
         }) }}
       {% endif %}
 
-      {% if successMessage %}
-        {{ mojAlert({
-          variant: "success",
-          title: successMessage,
-          dismissible: true
-        }) }}
-      {% endif %}
 
       {% if displayedErrorSummary %}
         {{ govukErrorSummary({
@@ -145,7 +145,7 @@
             text: primaryButtonText or "Continue"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/order-term-creditor/cancel' }}">Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/order-term-creditor/cancel' }}"{% if cancelRouteGuard %} data-route-guard-always="true"{% endif %}>Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
         </div>
       </form>
     </div>

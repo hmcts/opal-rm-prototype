@@ -105,9 +105,19 @@
             }) }}
 
             {% if field.isChildDobField %}
-              <div id="{{ field.id }}-age-box" class="app-age-box govuk-!-margin-top-3 govuk-!-margin-bottom-7" data-age-box data-date-input="{{ field.id }}"{% if field.calculatedAge === null %} hidden{% endif %}>
-                <p class="govuk-body govuk-!-margin-bottom-0"><strong>Age: <span id="{{ field.id }}-age-value">{{ field.calculatedAge }}</span></strong></p>
-              </div>
+              {% set ageHiddenAttribute = { value: field.calculatedAge == null, optional: true } %}
+              {% set ageAttributes = {
+                "data-age-box": "",
+                "data-date-input": field.id,
+                hidden: ageHiddenAttribute
+              } %}
+              {% call govukInsetText({
+                id: field.id + "-age-box",
+                classes: "govuk-!-margin-top-3 govuk-!-margin-bottom-7",
+                attributes: ageAttributes
+              }) %}
+                <strong>Age: <span id="{{ field.id }}-age-value">{{ field.calculatedAge }}</span></strong>
+              {% endcall %}
             {% endif %}
           {% elif field.type == "currency" %}
             {{ govukInput({
@@ -228,7 +238,7 @@
             text: primaryButtonText or "Continue"
           }) }}
 
-          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/select-order-term' }}">Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
+          <a class="govuk-link" href="{{ cancelHref or '/create-a-case/select-order-term' }}"{% if cancelRouteGuard %} data-route-guard-always="true"{% endif %}>Cancel{% if cancelVisuallyHiddenText %}<span class="govuk-visually-hidden"> {{ cancelVisuallyHiddenText }}</span>{% endif %}</a>
         </div>
       </form>
     </div>
