@@ -1,9 +1,9 @@
 {% extends "layouts/main.html" %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 {% from "autocomplete/macro.njk" import xGovukAutocomplete %}
 
@@ -18,8 +18,9 @@
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
       <form method="post" action="{{ formAction }}" novalidate>
-        {{ govukTextarea({
-          id: "reason", name: "reason",
+        {{ govukCharacterCount({
+          id: "reason", name: "reason", maxlength: 250,
+          classes: "govuk-!-width-three-quarters",
           label: { text: "Reason" if code === "MADJ" else "Reason (optional)", classes: "govuk-label--s" },
           value: values.reason, errorMessage: errors.reason
         }) }}
