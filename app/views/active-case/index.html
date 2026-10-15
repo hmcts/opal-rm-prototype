@@ -5,7 +5,6 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
-{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
 
 {% set showNav = true %}
@@ -15,7 +14,17 @@
 {% endblock %}
 
 {% block content %}
-  {% if successMessage %}
+  {% if accountInactive %}
+    {{ mojAlert({
+      variant: "information",
+      title: "Account is inactive",
+      html: '<h2 class="moj-alert__heading">Account is inactive</h2>',
+      dismissible: false,
+      disableAutoFocus: true
+    }) }}
+  {% endif %}
+
+  {% if successMessage and not accountInactive %}
     {{ mojAlert({
       variant: "success",
       title: successMessage,
@@ -23,7 +32,7 @@
     }) }}
   {% endif %}
 
-  {% if hasActiveCourtHearing %}
+  {% if hasActiveCourtHearing and not accountInactive %}
     {{ mojAlert({
       variant: "information",
       title: "Account has one or more active court cases."
@@ -49,13 +58,10 @@
               href: "/active-case/" + caseId + "/note",
               classes: "govuk-button--secondary"
             }) }}
-            {{ mojButtonMenu({
-              button: { text: "More actions", classes: "govuk-button--secondary" },
-              alignMenu: "right",
-              items: [
-                { text: "Export", href: "#" },
-                { text: "Change case type", href: "/active-case/" + caseId + "/change-case-type" }
-              ]
+            {{ govukButton({
+              text: "Export as PDF",
+              href: "#",
+              classes: "govuk-button--secondary"
             }) }}
           </div>
         </div>
@@ -64,7 +70,7 @@
       <div class="rm-case-summary-bar govuk-!-margin-bottom-2">
         <div class="rm-case-summary-tile rm-case-summary-tile--dark">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrears</p>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ activeCase.arrears }}</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ totalArrears }}</p>
         </div>
         <div class="rm-case-summary-tile rm-case-summary-tile--light">
           <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Balance</p>
@@ -101,7 +107,7 @@
           </div>
         </div>
 
-        {% if activeCase.respondent.restricted %}
+        {% if activeCase.respondent.restricted and not accountInactive %}
           <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
               {{ mojAlert({

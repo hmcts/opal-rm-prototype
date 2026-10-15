@@ -10410,6 +10410,42 @@ function getActiveCaseOrders(activeCase) {
   return activeCase.orders
 }
 
+function isZeroAccountAmount(value) {
+  if (value === null || value === undefined) return false
+  const amount = String(value).replace(/[£,\s]/g, '')
+  return /^-?\d+(\.\d+)?$/.test(amount) && Number(amount) === 0
+}
+
+function isInactiveCaseAccount(activeCase) {
+  if (!activeCase || !isZeroAccountAmount(getActiveCaseTotalArrears(activeCase)) || !isZeroAccountAmount(activeCase.balance)) {
+    return false
+  }
+  const todayParts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date())
+  const today = Object.fromEntries(todayParts.map(({ type, value }) => [type, value]))
+  const todayKey = `${today.year}${today.month}${today.day}`
+  const terms = getActiveCaseOrders(activeCase).terms
+  return terms.length > 0 && terms.every((term) => {
+    const definition = getResultDefinition(term.code, 'orders')
+    const amountField = definition?.responses.find(isOrderTermAmountField)
+    const expiryField = definition?.responses.find((field) => hasFieldText(field, ['expiry date']))
+    if (!amountField || !expiryField || !isZeroAccountAmount(term.responses?.[amountField.id])) {
+      return false
+    }
+    const expiry = parseDateInput(term.responses?.[expiryField.id])
+    if (expiry.kind !== 'valid') return false
+    const expiryKey = `${expiry.date.getFullYear()}${String(expiry.date.getMonth() + 1).padStart(2, '0')}${String(expiry.date.getDate()).padStart(2, '0')}`
+    return expiryKey <= todayKey
+  })
+}
+
+function getCreditorRelatedCase(account) {
+  const caseId = String(account?.respondentAccountHref || '').match(/^\/active-case\/(\d+)$/)?.[1]
+  return activeCases[caseId] || Object.values(activeCases)
+    .find((activeCase) => activeCase.caseReference === account?.caseReference)
+}
+
 function getActiveCaseOrderTermAddState(req, caseId) {
   if (!req.session.data['active-case-add-order-term']) {
     req.session.data['active-case-add-order-term'] = {}
@@ -12320,6 +12356,12 @@ function getOrderTermArrearsPence(orderTerm) {
     }, 0)
 }
 
+function getActiveCaseTotalArrears(activeCase) {
+  const totalPence = getActiveCaseOrders(activeCase).terms
+    .reduce((total, term) => total + getOrderTermArrearsPence(term), 0)
+  return formatCurrency((totalPence / 100).toFixed(2))
+}
+
 function updateActiveCaseArrearsForResult(activeCase, draft, adjustmentPence = 0) {
   const remittedPence = draft.remitArrears === 'yes' ? getArrearsPence(draft.remitAmount) : 0
   if (!remittedPence && !adjustmentPence) return
@@ -12534,10 +12576,12 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
   const recordingHref = `/record-results/${id}/${category}`
 
   const backHref = mode === 'inputter'
-    ? req.query.from === 'list-hearings'
+    ? req.query.from === 'all-rejected'
+      ? '/record-results/all-rejected'
+      : req.query.from === 'list-hearings'
       ? getRecordResultsListHref(getResultReviewCourt({ category, record }),
         formatHistoryHearingDate(application ? record['vary-order-hearing-date'] : record.hearingDate))
-      : `/record-results?tab=${record.hearingStatus === 'Result rejected' ? 'rejected' : record.hearingStatus === 'Result validated' ? 'validated' : 'pending'}`
+      : `/record-results?tab=${record.hearingStatus === 'Result rejected' ? 'rejected' : 'pending'}`
     : '/validate-results'
   const hearingRows = [
     buildSummaryRow('Court', application ? record['vary-order-hearing-court'] : record.court),
@@ -12663,7 +12707,7 @@ router.post('/active-case/:id/:category/validate-result', (req, res, next) => {
   delete review.rejectionReason
   review.history.unshift({ action: 'Validated', by: 'Diana Prince', at: checkedAt, timestamp: new Date().toISOString() })
   setActiveCaseSuccessMessage(req, '/validate-results', 'Hearing result validated. Account changes have been applied.')
-  return redirectWithSessionSave(req, res, next, '/validate-results?tab=validated')
+  return redirectWithSessionSave(req, res, next, '/validate-results')
 })
 
 router.get('/active-case/:id/:category/result-hearing/revise', (req, res, next) => {
@@ -12879,6 +12923,7 @@ router.get('/active-case/:id', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const accountInactive = isInactiveCaseAccount(activeCase)
   const varyOrderApplication = getActiveCaseVaryOrderApplication(req, id)
   const previousVaryOrderApplications = getActiveCaseVaryOrderApplicationHistory(req, id)
   const historyRows = [
@@ -12891,6 +12936,8 @@ router.get('/active-case/:id', (req, res) => {
 
   return res.render('active-case/index', {
     activeCase,
+    accountInactive,
+    totalArrears: getActiveCaseTotalArrears(activeCase),
     respondentDisplayName: getPlainPersonName(activeCase.respondentName),
     applicantAccountName: getAccountLinkName(activeCase.applicant?.name || activeCase.applicantName,
       activeCase.applicant?.accountNumber),
@@ -12925,7 +12972,7 @@ router.get('/active-case/:id', (req, res) => {
       })),
       results: { from: historyOffset + 1, to: Math.min(historyOffset + 25, historyRows.length), count: historyRows.length }
     } : null,
-    successMessage: consumeActiveCaseSuccessMessage(req)
+    successMessage: accountInactive ? null : consumeActiveCaseSuccessMessage(req)
   })
 })
 
@@ -15456,6 +15503,69 @@ function getApplicantAccountRestrictionsRows(account) {
   return rows
 }
 
+function isPaymentHoldCreditor(account) {
+  return account && ['creditor', 'applicant-creditor'].includes(account.type)
+}
+
+function getCreditorPaymentState(req, id, account) {
+  const states = req.session.data.creditorPaymentStates || {}
+  req.session.data.creditorPaymentStates = states
+  if (!states[id]) {
+    states[id] = {
+      onHold: !hasCreditorBankDetails(account),
+      history: []
+    }
+  }
+  return states[id]
+}
+
+function hasCreditorBankDetails(account) {
+  return account.bacsStatus === 'PROVIDED' || ['BACS', 'IBAN'].includes(account.paymentMethod)
+}
+
+router.get('/active-case/creditor/:id/payment-hold/:action', (req, res) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+  const action = req.params.action
+  if (!isPaymentHoldCreditor(account) || !['add', 'remove'].includes(action)) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+  const state = getCreditorPaymentState(req, id, account)
+  if (state.onHold === (action === 'add')) {
+    return res.redirect(`/active-case/creditor/${id}`)
+  }
+  return res.render('active-case/payment-hold', {
+    accountNumber: account.accountNumber || account.caseReference,
+    accountName: account.organisationName || getPlainPersonName(account.name),
+    removing: action === 'remove',
+    formAction: `/active-case/creditor/${id}/payment-hold/${action}`,
+    cancelHref: `/active-case/creditor/${id}`
+  })
+})
+
+router.post('/active-case/creditor/:id/payment-hold/:action', (req, res, next) => {
+  const id = Number(req.params.id)
+  const account = minorCreditorAccounts[id]
+  const action = req.params.action
+  if (!isPaymentHoldCreditor(account) || !['add', 'remove'].includes(action)) {
+    return res.redirect('/create-cases?tab=approved')
+  }
+  const state = getCreditorPaymentState(req, id, account)
+  const onHold = action === 'add'
+  if (state.onHold !== onHold) {
+    state.history.unshift({
+      date: getHistoryDateToday(),
+      sortValue: Date.now(),
+      user: prototypeCurrentUserName,
+      type: 'Amendments',
+      details: `Hold payments out | Old: ${state.onHold ? 'Yes' : 'No'} | New: ${onHold ? 'Yes' : 'No'}`
+    })
+    state.onHold = onHold
+    if (!onHold) state.successMessage = 'Payment hold removed.'
+  }
+  return redirectWithSessionSave(req, res, next, `/active-case/creditor/${id}`)
+})
+
 router.get('/active-case/creditor/:id', (req, res) => {
   const id = Number(req.params.id)
   const account = minorCreditorAccounts[id]
@@ -15464,9 +15574,19 @@ router.get('/active-case/creditor/:id', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
+  const accountInactive = isInactiveCaseAccount(getCreditorRelatedCase(account))
   const tab = req.query.tab || 'at-a-glance'
+  const paymentState = isPaymentHoldCreditor(account) ? getCreditorPaymentState(req, id, account) : null
+  const paymentSuccessMessage = paymentState?.successMessage
+  if (paymentState && !accountInactive) delete paymentState.successMessage
+  const historyRows = [...(paymentState?.history || []), ...getAccountHistoryRows(account)]
+    .sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
+  const historyPageCount = Math.max(1, Math.ceil(historyRows.length / 25))
+  const historyPage = Math.min(historyPageCount, Math.max(1, parseInt(req.query.page, 10) || 1))
+  const historyOffset = (historyPage - 1) * 25
   return res.render('active-case/creditor', {
     account,
+    accountInactive,
     accountDisplayName: account.organisationName ||
       (account.type === 'organisation' ? account.name : getPlainPersonName(account.name)),
     respondentAccountName: getAccountLinkName(account.respondentName,
@@ -15480,8 +15600,17 @@ router.get('/active-case/creditor/:id', (req, res) => {
     applicantRestrictionsRows: getApplicantAccountRestrictionsRows(account),
     creditorDetailsRows: getMinorCreditorAccountDetailsRows(account),
     creditorBankRows: getMinorCreditorAccountBankRows(account),
-    historyRows: getAccountHistoryRows(account),
-    successMessage: consumeActiveCaseSuccessMessage(req)
+    paymentOnHold: paymentState?.onHold || false,
+    hasBankDetails: hasCreditorBankDetails(account),
+    historyRows: historyRows.slice(historyOffset, historyOffset + 25),
+    historyPagination: historyPageCount > 1 ? {
+      items: Array.from({ length: historyPageCount }, (_, index) => ({
+        number: index + 1, current: index + 1 === historyPage,
+        href: `/active-case/creditor/${id}?tab=history-and-notes&page=${index + 1}`
+      })),
+      results: { from: historyOffset + 1, to: Math.min(historyOffset + 25, historyRows.length), count: historyRows.length }
+    } : null,
+    successMessage: accountInactive ? null : paymentSuccessMessage || consumeActiveCaseSuccessMessage(req)
   })
 })
 
@@ -15839,6 +15968,19 @@ const searchData = [
     mc: [] }
 ]
 
+// Inactive account fixture: search TURNER with "Active accounts only" unchecked.
+searchData.push({
+  id: 40, caseRef: '40003101A', remoRef: '2026/REMO/40003101',
+  status: 'Inactive', bu: 'Reading', arrears: '£0.00', ct: 'REMO In', dolm: '14 October 2026',
+  r: { ln: 'TURNER', fn: 'Daniel', ti: 'Mr', dob: '12 May 1980', ni: 'AB 12 34 56 C',
+    a1: '10 Test Street', city: 'Reading', cy: 'Berkshire', pc: 'RG1 1AA',
+    email: 'daniel.turner@example.com', tel: '07700 900400', restr: false },
+  a: { id: 140, ln: 'TURNER', fn: 'Sarah', ti: 'Ms', dob: '8 June 1982', payout: '£0.00',
+    a1: '12 Test Street', city: 'Reading', cy: 'Berkshire', pc: 'RG1 1AB',
+    email: 'sarah.turner@example.com', tel: '07700 900401', restr: false },
+  mc: [{ id: 240, ln: 'TURNER', fn: 'Emily', dob: '14 October 2008', payout: '£0.00' }]
+})
+
 // Populate activeCases and minorCreditorAccounts from searchData
 searchData.forEach((d) => {
   const rAddr = makePcAddr(d.r.a1, d.r.city, d.r.cy, d.r.pc)
@@ -15901,6 +16043,23 @@ searchData.forEach((d) => {
     }
   })
 })
+
+const inactiveSampleOrders = getActiveCaseOrders(activeCases[40])
+inactiveSampleOrders.details.court = 'Reading County Court and Family Court'
+inactiveSampleOrders.details.dateOrderMade = '01/01/2026'
+inactiveSampleOrders.details.dateArrearsLastUpdated = '14/10/2026'
+inactiveSampleOrders.terms = [
+  buildActiveCaseOrderTerm('MAT', {
+    'result-mat-amount': '0.00', 'result-mat-frequency': 'monthly',
+    'result-mat-expiry': '14/10/2026', 'result-mat-arrears': '0.00'
+  }, activeCases[40].applicantName, { dateAdded: '01/01/2026' }),
+  buildActiveCaseOrderTerm('MCHILD', {
+    'result-mchild-amount': '0.00', 'result-mchild-frequency': 'monthly',
+    'result-mchild-expiry': '14/10/2026', 'result-mchild-arrears': '0.00',
+    'result-mchild-beneficiary': 'Emily TURNER', 'result-mchild-child-dob': '14/10/2008'
+  }, 'Emily TURNER', { creditor: 'minor-creditor-0', dateAdded: '01/01/2026' })
+]
+minorCreditorAccounts[140].type = 'applicant-creditor'
 
 // Three Reading hearings for the Record results worklist on 1 October 2026.
 const readingResultCourt = 'Reading County Court and Family Court'
@@ -16124,7 +16283,7 @@ function performSearch(params) {
   }
 
   return searchData.filter((c) => {
-    if (activeOnly && c.status !== 'Active') return false
+    if (activeOnly && isInactiveCaseAccount(activeCases[c.id])) return false
 
     if (accountNumber) {
       const accountNumbers = [
@@ -16248,8 +16407,8 @@ function mapSearchRows(results) {
       { html: buildSearchAccountHtml(`/active-case/${c.id}`, rRef, rLabel), text: rLabel },
       { html: buildSearchAccountHtml(`/active-case/creditor/${c.a.id}`, aRef, aLabel), sortValue: aLabel },
       { html: minorCreditorHtml, sortValue: c.mc.map((mc) => `${mc.ln}, ${mc.fn}`).join(' ') },
-      { text: c.status },
-      { text: c.arrears }
+      { text: isInactiveCaseAccount(activeCases[c.id]) ? 'Inactive' : 'Active' },
+      { text: activeCases[c.id] ? getActiveCaseTotalArrears(activeCases[c.id]) : c.arrears }
     ]
   })
 }
@@ -16261,7 +16420,7 @@ router.get('/search', (req, res) => {
 router.post('/search', (req, res, next) => {
   const b = req.body || {}
   const get = (k) => (b[k] || '').trim()
-  const renderSearchWithErrors = (errors) => res.status(400).render('search/index', getSearchViewData(b, errors))
+  const renderSearchWithErrors = (errors) => res.status(400).render('search/index', getSearchViewData({ ...b, 'active-accounts-only': isChecked(b['active-accounts-only']) ? 'yes' : 'no' }, errors))
 
   const accountNumber = get('account-number')
   const referenceNumber = get('reference-number')
@@ -16284,7 +16443,7 @@ router.post('/search', (req, res, next) => {
   const mcCoA1 = get('minor-creditor-company-address-line-1')
   const mcCoPc = get('minor-creditor-company-postcode')
   const majorCreditor = get('major-creditor')
-  const activeOnly = b['active-accounts-only'] === 'yes'
+  const activeOnly = isChecked(b['active-accounts-only'])
 
   const hasQuick = !!(accountNumber || referenceNumber)
   const hasAdv   = !!(rLn || rFn || rDob || rA1 || rPc || aLn || aFn || aDob || aA1 || aPc || mcLn || mcFn || mcA1 || mcPc || mcCo || mcCoA1 || mcCoPc || majorCreditor)
@@ -16333,7 +16492,7 @@ router.post('/search', (req, res, next) => {
     minorCompany: mcCo, minorCompanyExact: b['minor-creditor-company-name-exact'],
     minorCompanyAddress: mcCoA1, minorCompanyPostcode: mcCoPc,
     majorCreditor,
-    activeOnly: hasAdv ? activeOnly : false
+    activeOnly
   })
 
   if (results.length === 0) return res.redirect('/search/no-results')
@@ -16489,6 +16648,7 @@ function saveRecordResultsInformation(req, res, next, hearing, values, sessionUp
 }
 
 router.get('/record-results', (req, res) => renderResultQueue(req, res, true))
+router.get('/record-results/all-rejected', (req, res) => renderResultQueue(req, res, true, true))
 
 const recordResultsHearingStatuses = [
   'Result pending', 'Validation pending', 'Result rejected'
@@ -17125,25 +17285,18 @@ router.post('/record-results/:id/:category/review', (req, res, next) => {
     hearing.court, hearing.date))
 })
 
-function renderResultQueue(req, res, inputter) {
-  const allowedTabs = inputter ? ['pending', 'rejected', 'validated']
-    : ['to-review', 'rejected', 'validated']
-  const tab = allowedTabs.includes(req.query.tab) ? req.query.tab : allowedTabs[0]
+function renderResultQueue(req, res, inputter, allRejected = false) {
+  const allowedTabs = inputter ? ['pending', 'rejected']
+    : ['to-review', 'rejected']
+  const tab = allRejected ? 'rejected' : allowedTabs.includes(req.query.tab) ? req.query.tab : allowedTabs[0]
   const status = {
     pending: 'Validation pending', 'to-review': 'Validation pending',
-    rejected: 'Result rejected', validated: 'Result validated'
+    rejected: 'Result rejected'
   }[tab]
   const inputterEntries = getResultReviewEntries().filter((entry) =>
     entry.review.submittedBy === prototypeCurrentUserName)
-  const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000)
-  const entries = (inputter ? inputterEntries : getResultReviewEntries()).filter((entry) => {
-    if (entry.record.hearingStatus !== status) return false
-    if (!inputter || tab !== 'validated') return true
-    const validatedEvent = entry.review.history?.find((event) =>
-      event.action === 'Validated' && event.timestamp)
-    const validatedTime = Date.parse(validatedEvent?.timestamp || '')
-    return Number.isFinite(validatedTime) && validatedTime >= oneDayAgo
-  })
+  const entries = (inputter && !allRejected ? inputterEntries : getResultReviewEntries())
+    .filter((entry) => entry.record.hearingStatus === status)
   if (inputter) {
     entries.sort((a, b) => {
       const hearingDate = (entry) => entry.category === 'application'
@@ -17157,7 +17310,7 @@ function renderResultQueue(req, res, inputter) {
   const page = Math.min(pageCount || 1, Math.max(1, Number.parseInt(req.query.page, 10) || 1))
   const visibleEntries = inputter ? entries.slice((page - 1) * pageSize, page * pageSize) : entries
   const rows = visibleEntries.map((entry) => {
-    const href = inputter ? `/my-results/${entry.id}/${entry.category}`
+    const href = inputter ? `/my-results/${entry.id}/${entry.category}${allRejected ? '?from=all-rejected' : ''}`
       : `/active-case/${entry.id}/${entry.category}/validate-result`
     if (inputter) {
       const hearingDate = entry.category === 'application'
@@ -17172,7 +17325,8 @@ function renderResultQueue(req, res, inputter) {
         getResultReviewTableCell(getResultReviewCourt(entry)),
         { ...getResultReviewTableCell(getResultReviewHearingDate(entry)),
           sortValue: getDateSortValue(formatHistoryHearingDate(hearingDate)) },
-        { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` }
+        { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` },
+        ...(allRejected ? [getResultReviewTableCell(entry.review.submittedBy)] : [])
       ]
     }
     return [
@@ -17187,13 +17341,13 @@ function renderResultQueue(req, res, inputter) {
       { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` }
     ]
   })
-  return res.render(inputter ? 'record-results/index' : 'result-queues/index', {
-    inputter, tab, rows,
+  return res.render(allRejected ? 'record-results/all-rejected' : inputter ? 'record-results/index' : 'result-queues/index', {
+    inputter, allRejected, tab, rows,
     rejectedCount: inputterEntries.filter((entry) => entry.record.hearingStatus === 'Result rejected').length,
     pagination: inputter && pageCount > 1 ? {
       items: Array.from({ length: pageCount }, (_, index) => ({
         number: index + 1,
-        href: `/record-results?tab=${tab}&page=${index + 1}`,
+        href: allRejected ? `/record-results/all-rejected?page=${index + 1}` : `/record-results?tab=${tab}&page=${index + 1}`,
         current: index + 1 === page
       })),
       results: { from: (page - 1) * pageSize + 1, to: Math.min(page * pageSize, entries.length), count: entries.length }
@@ -17202,7 +17356,7 @@ function renderResultQueue(req, res, inputter) {
   })
 }
 
-router.get('/my-results', (req, res) => res.redirect(`/record-results?tab=${req.query.tab === 'rejected' ? 'rejected' : req.query.tab === 'validated' || req.query.tab === 'approved' ? 'validated' : 'pending'}`))
+router.get('/my-results', (req, res) => res.redirect(`/record-results?tab=${req.query.tab === 'rejected' ? 'rejected' : 'pending'}`))
 router.get('/validate-results', (req, res) => renderResultQueue(req, res, false))
 
 router.get('/my-results/:id/:category', (req, res) =>

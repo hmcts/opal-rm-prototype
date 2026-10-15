@@ -1,0 +1,35 @@
+      {% if rows.length %}
+        <table class="govuk-table" data-module="moj-sortable-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th scope="col" class="govuk-table__header" aria-sort="none">Respondent account</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Applicant account</th>
+              <th scope="col" class="govuk-table__header" aria-sort="none">Court</th>
+              <th scope="col" class="govuk-table__header" aria-sort="descending">Hearing date</th>
+              {% if allRejected %}<th scope="col" class="govuk-table__header" aria-sort="none">Submitted by</th>{% endif %}
+              <th scope="col" class="govuk-table__header">Action</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for row in rows %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell" data-sort-value="{{ row[0].text }}">{{ row[0].html | safe }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[1].text }}">{{ row[1].html | safe }}</td>
+                <td class="govuk-table__cell">{{ row[2].text or row[2].html | safe }}</td>
+                <td class="govuk-table__cell" data-sort-value="{{ row[3].sortValue }}">{{ row[3].text or row[3].html | safe }}</td>
+                {% if allRejected %}<td class="govuk-table__cell">{{ row[5].text }}</td>{% endif %}
+                <td class="govuk-table__cell">{{ row[4].html | safe }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if pagination %}{{ mojPagination(pagination) }}{% endif %}
+      {% else %}
+        {% if allRejected %}
+          <p class="govuk-body">There are no rejected results.</p>
+        {% elseif tab === "rejected" %}
+          <p class="govuk-body">No rejected results.</p>
+        {% else %}
+          <p class="govuk-body">No results pending validation.</p>
+        {% endif %}
+      {% endif %}

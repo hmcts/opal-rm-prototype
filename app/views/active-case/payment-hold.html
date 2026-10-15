@@ -1,0 +1,21 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set heading = "Do you want to remove the payment hold?" if removing else "Do you want to add a payment hold?" %}
+
+{% block pageTitle %}{{ heading }} - {{ serviceName }} - GOV.UK Prototype Kit{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ accountNumber }} &ndash; {{ accountName }}</span>
+      <h1 class="govuk-heading-l">{{ heading }}</h1>
+      <form method="post" action="{{ formAction }}">
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Yes - remove" if removing else "Yes - add hold" }) }}
+          <a href="{{ cancelHref }}" class="govuk-link">No - cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

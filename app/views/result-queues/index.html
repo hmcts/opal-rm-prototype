@@ -23,11 +23,10 @@
         items: [
           { text: "Submitted" if inputter else "To review", href: baseHref,
             active: tab === ("submitted" if inputter else "to-review") },
-          { text: "Rejected", href: baseHref + "?tab=rejected", active: tab === "rejected" },
-          { text: "Validated", href: baseHref + "?tab=validated", active: tab === "validated" }
+          { text: "Rejected", href: baseHref + "?tab=rejected", active: tab === "rejected" }
         ]
       }) }}
-      {% set tabHeading = "Validated" %}
+      {% set tabHeading = "To review" %}
       {% if tab === "submitted" %}{% set tabHeading = "Submitted" %}{% endif %}
       {% if tab === "to-review" %}{% set tabHeading = "To review" %}{% endif %}
       {% if tab === "rejected" %}{% set tabHeading = "Rejected" %}{% endif %}

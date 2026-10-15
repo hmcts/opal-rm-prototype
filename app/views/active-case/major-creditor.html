@@ -1,8 +1,9 @@
 {% extends "layouts/main.html" %}
 
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
-{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
 
 {% set showNav = true %}
@@ -25,12 +26,10 @@
           <h1 class="govuk-heading-xl">{{ account.name }}</h1>
         </div>
         <div class="moj-page-header-actions__actions">
-          {{ mojButtonMenu({
-            button: { text: "More actions", classes: "govuk-button--secondary" },
-            alignMenu: "right",
-            items: [
-              { text: "Export", href: "#" }
-            ]
+          {{ govukButton({
+            text: "Export as PDF",
+            href: "#",
+            classes: "govuk-button--secondary"
           }) }}
         </div>
       </div>
