@@ -5,7 +5,6 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
-{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
 
 {% set showNav = true %}
@@ -18,11 +17,29 @@
 {% endblock %}
 
 {% block content %}
-  {% if successMessage %}
+  {% if accountInactive %}
+    {{ mojAlert({
+      variant: "information",
+      title: "Account is inactive",
+      html: '<h2 class="moj-alert__heading">Account is inactive</h2>',
+      dismissible: false,
+      disableAutoFocus: true
+    }) }}
+  {% endif %}
+
+  {% if successMessage and not accountInactive %}
     {{ mojAlert({
       variant: "success",
       title: successMessage,
       dismissible: true
+    }) }}
+  {% endif %}
+
+  {% if isCreditor and paymentOnHold and not accountInactive %}
+    {{ mojAlert({
+      variant: "warning",
+      title: "Payments to this creditor are on hold.",
+      disableAutoFocus: true
     }) }}
   {% endif %}
 
@@ -49,12 +66,10 @@
               href: "/active-case/creditor/" + accountId + "/note",
               classes: "govuk-button--secondary"
             }) }}
-            {{ mojButtonMenu({
-              button: { text: "More actions", classes: "govuk-button--secondary" },
-              alignMenu: "right",
-              items: [
-                { text: "Export", href: "#" }
-              ]
+            {{ govukButton({
+              text: "Export as PDF",
+              href: "#",
+              classes: "govuk-button--secondary"
             }) }}
           </div>
         </div>
@@ -143,19 +158,27 @@
 
           </div>
 
+          {% if isCreditor %}
           <div class="govuk-grid-column-one-third">
 
             <h2 class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
 
-            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">BACS details</p>
-            {% if account.bacsStatus %}
-              {{ mojBadge({ text: account.bacsStatus }) }}
+            <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Payment method</p>
+            {% if hasBankDetails %}
+              {{ mojBadge({ text: "BACS payments", classes: "moj-badge--blue" }) }}
             {% else %}
-              <p class="govuk-body">Not provided</p>
+              {{ mojBadge({ text: "Manual payments", classes: "moj-badge--orange" }) }}
             {% endif %}
-            <p class="govuk-body govuk-!-margin-top-3"><a href="#" class="govuk-link">Add payment hold</a></p>
+            <p class="govuk-body govuk-!-margin-top-3">
+              {% if paymentOnHold %}
+                <a href="/active-case/creditor/{{ accountId }}/payment-hold/remove" class="govuk-link">Remove payment hold</a>
+              {% else %}
+                <a href="/active-case/creditor/{{ accountId }}/payment-hold/add" class="govuk-link">Add payment hold</a>
+              {% endif %}
+            </p>
 
           </div>
+          {% endif %}
 
         </div>
 
@@ -172,7 +195,7 @@
           </div>
         </div>
 
-        {% if account.restricted %}
+        {% if account.restricted and not accountInactive %}
           <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
               {{ mojAlert({

@@ -1,0 +1,18 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "moj/components/pagination/macro.njk" import mojPagination %}
+
+{% set showNav = true %}
+
+{% block pageTitle %}All rejected results - {{ serviceName }}{% endblock %}
+{% block beforeContent %}
+  {{ govukBackLink({ text: "Back", href: "/record-results?tab=rejected" }) }}
+{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h1 class="govuk-heading-l">All rejected results</h1>
+      {% include "record-results/_results-table.html" %}
+    </div>
+  </div>
+{% endblock %}
