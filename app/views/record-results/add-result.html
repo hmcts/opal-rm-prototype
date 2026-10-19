@@ -14,7 +14,7 @@
   {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + ("/outcome" if hearing.category === "application" else "/information") }) }}
+      {{ govukBackLink({ text: "Back", href: backHref or "/record-results/" + hearing.id + "/" + hearing.category + ("/outcome" if hearing.category === "application" else "/information") }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">{{ "Change result" if editing else "Add results" }}</h1>
       {% if results.length %}
@@ -60,7 +60,7 @@
         {% endif %}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
+          <a class="govuk-link" href="{{ cancelHref or "/record-results" }}" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>

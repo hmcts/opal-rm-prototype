@@ -1802,11 +1802,11 @@ function getOrderTermFrequencySummaryText(frequency) {
 }
 
 function formatCurrency(value) {
-  if (!hasValue(value)) {
+  if (!hasValue(value) && value !== 0) {
     return ''
   }
 
-  const number = Number(String(value).replace(/,/g, '').trim())
+  const number = Number(String(value).replace(/[£,]/g, '').trim())
 
   if (Number.isNaN(number)) {
     return value
@@ -1816,7 +1816,7 @@ function formatCurrency(value) {
 }
 
 function formatOrderTermAmountForSummary(value) {
-  return formatCurrency(value).replace(/\.00$/, '')
+  return formatCurrency(value)
 }
 
 function formatOrderTermAmountWithFrequency(amount, frequency) {
@@ -9472,6 +9472,7 @@ function getAccountHistoryRows(account) {
 
   return [
     ...(account.enforcementHistory || []),
+    ...(account.accountClosureHistory || []),
     ...noteRows,
     ...getSampleHistoryRows()
   ].sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
@@ -10426,14 +10427,15 @@ function isInactiveCaseAccount(activeCase) {
   const today = Object.fromEntries(todayParts.map(({ type, value }) => [type, value]))
   const todayKey = `${today.year}${today.month}${today.day}`
   const terms = getActiveCaseOrders(activeCase).terms
-  return terms.length > 0 && terms.every((term) => {
+  return (terms.length > 0 || Boolean(activeCase.closedAt)) && terms.every((term) => {
     const definition = getResultDefinition(term.code, 'orders')
     const amountField = definition?.responses.find(isOrderTermAmountField)
     const expiryField = definition?.responses.find((field) => hasFieldText(field, ['expiry date']))
-    if (!amountField || !expiryField || !isZeroAccountAmount(term.responses?.[amountField.id])) {
+    const amount = amountField ? term.responses?.[amountField.id] : term.closureAmount
+    if (!isZeroAccountAmount(amount)) {
       return false
     }
-    const expiry = parseDateInput(term.responses?.[expiryField.id])
+    const expiry = parseDateInput(expiryField ? term.responses?.[expiryField.id] : term.closureExpiryDate)
     if (expiry.kind !== 'valid') return false
     const expiryKey = `${expiry.date.getFullYear()}${String(expiry.date.getMonth() + 1).padStart(2, '0')}${String(expiry.date.getDate()).padStart(2, '0')}`
     return expiryKey <= todayKey
@@ -10597,8 +10599,7 @@ function getCurrentDateString() {
 }
 
 function formatActiveCaseOrderCurrency(value) {
-  const formatted = formatCurrency(value)
-  return formatted.replace(/\.00$/, '')
+  return formatCurrency(value)
 }
 
 function getActiveCaseOrderTermDisplay(field, value) {
@@ -10871,6 +10872,13 @@ function getActiveCaseOrderTermRows(orderTerm, activeCase, caseId) {
         rows.push(buildSummaryRow(getOrderTermSummaryLabel(field), displayValue))
       }
     })
+  }
+
+  if (hasValue(orderTerm.closureAmount) && !definition?.responses.some(isOrderTermAmountField)) {
+    rows.push(buildSummaryRow('Amount', formatCurrency(orderTerm.closureAmount)))
+  }
+  if (hasValue(orderTerm.closureExpiryDate) && !definition?.responses.some((field) => hasFieldText(field, ['expiry date']))) {
+    rows.push(buildSummaryRow('Expiry date', formatDateLong(orderTerm.closureExpiryDate)))
   }
 
   const creditorLabel = getActiveCaseOrderTermCreditorLabel(orderTerm, activeCase, caseId)
@@ -12239,6 +12247,17 @@ function getAccountLinkName(accountName, accountNumber) {
   return `${parts.slice(splitAt).join(' ').toUpperCase()}, ${parts.slice(0, splitAt).join(' ')}`
 }
 
+function getAccountHeaderName(account, name = account?.name) {
+  if (account?.organisationName) return account.organisationName
+  if (account?.type === 'organisation') return name
+  const title = account?.title || String(name || '').match(/^(Mr|Mrs|Ms|Miss|Dr)\s+/)?.[1]
+  if (account?.firstNames && account?.lastName) {
+    return [title, account.firstNames, normaliseLastName(account.lastName)].filter(hasValue).join(' ')
+  }
+  const [surname, ...givenNames] = getAccountLinkName(name, account?.accountNumber).split(',')
+  return [title, givenNames.join(',').trim(), surname].filter(hasValue).join(' ')
+}
+
 function getPlainPersonName(name) {
   const value = String(name || '').trim()
   if (!value) return value
@@ -12314,7 +12333,16 @@ function getActiveCaseResultContext(req, caseId) {
 function getActiveCaseForOrderTermJourney(req, caseId) {
   const activeCase = activeCases[caseId]
   const context = getActiveCaseResultContext(req, caseId)
-  if (!activeCase || !context) return activeCase
+  if (!activeCase) return activeCase
+  if (!context) {
+    const drafts = req.session.data.inactiveAccountOrderDrafts || {}
+    req.session.data.inactiveAccountOrderDrafts = drafts
+    if (!drafts[caseId] && isInactiveCaseAccount(activeCase)) {
+      drafts[caseId] = { workingCase: cloneData(activeCase) }
+      drafts[caseId].workingCase.isPendingResultWorkingCase = true
+    }
+    return drafts[caseId]?.workingCase || activeCase
+  }
   if (!context.existingCreditorAccountsReady) {
     // Seed accounts for live terms even when Resulting was opened from the hearing list.
     for (const term of getActiveCaseOrders(activeCase).terms) {
@@ -12327,7 +12355,67 @@ function getActiveCaseForOrderTermJourney(req, caseId) {
   return context.workingCase
 }
 
+function clearInactiveAccountOrderDraft(req, caseId) {
+  if (req.session.data.inactiveAccountOrderDrafts) delete req.session.data.inactiveAccountOrderDrafts[caseId]
+}
+
+function needsOrderTermReactivationConfirmation(req, caseId, proposedCase, action, termIndex) {
+  if (getActiveCaseResultContext(req, caseId) || !isInactiveCaseAccount(activeCases[caseId]) ||
+    isInactiveCaseAccount(proposedCase)) return false
+  const draft = req.session.data.inactiveAccountOrderDrafts?.[caseId]
+  if (!draft || draft.confirmed) return false
+  draft.confirmation = { action, termIndex }
+  return true
+}
+
+function commitInactiveAccountOrderDraft(req, caseId, workingCase) {
+  const draft = req.session.data.inactiveAccountOrderDrafts?.[caseId]
+  if (!draft || getActiveCaseResultContext(req, caseId)) return
+  const wasInactive = isInactiveCaseAccount(activeCases[caseId])
+  activeCases[caseId].orders = cloneData(getActiveCaseOrders(workingCase))
+  if (wasInactive && !isInactiveCaseAccount(activeCases[caseId])) {
+    activeCases[caseId].accountClosureHistory = [{
+      date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName,
+      type: 'Amendments', details: 'Account reactivated | Order terms updated.'
+    }, ...(activeCases[caseId].accountClosureHistory || [])]
+  }
+  clearInactiveAccountOrderDraft(req, caseId)
+}
+
+router.get('/active-case/:id/order-term/reactivate', (req, res) => {
+  const id = Number(req.params.id)
+  const draft = req.session.data.inactiveAccountOrderDrafts?.[id]
+  if (!activeCases[id] || !draft?.confirmation) return res.redirect(`/active-case/${id}?tab=orders`)
+  return res.render('active-case/reactivate-account', {
+    accountNumber: activeCases[id].accountNumber || activeCases[id].caseReference,
+    accountName: getAccountHeaderName(activeCases[id].respondent, activeCases[id].respondentName),
+    formAction: `/active-case/${id}/order-term/reactivate`,
+    cancelHref: `/active-case/${id}/order-term/reactivate/cancel`
+  })
+})
+
+router.post('/active-case/:id/order-term/reactivate', (req, res, next) => {
+  const id = Number(req.params.id)
+  const draft = req.session.data.inactiveAccountOrderDrafts?.[id]
+  if (!activeCases[id] || !draft?.confirmation) return res.redirect(`/active-case/${id}?tab=orders`)
+  const { action, termIndex } = draft.confirmation
+  draft.confirmed = true
+  if (action === 'add') return saveAddedActiveCaseOrderTerm(req, res, next)
+  req.params.index = String(termIndex)
+  return saveAmendedActiveCaseOrderTerm(req, res, next)
+})
+
+router.get('/active-case/:id/order-term/reactivate/cancel', (req, res, next) => {
+  const id = Number(req.params.id)
+  const confirmation = req.session.data.inactiveAccountOrderDrafts?.[id]?.confirmation
+  if (confirmation?.action === 'add') clearActiveCaseOrderTermAddState(req)
+  if (confirmation?.action === 'amend') clearActiveCaseOrderTermSnapshot(req, id, confirmation.termIndex)
+  clearInactiveAccountOrderDraft(req, id)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=orders`)
+})
+
 function getActiveCaseResultReviewHref(context) {
+  if (context.reviewReturnHref) return context.reviewReturnHref
   if (context.newJourney) return `/record-results/${context.caseId}/${context.category}/order-terms`
   return `/active-case/${context.caseId}/${context.category}/result-hearing/order-terms`
 }
@@ -12566,13 +12654,21 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
   const application = category === 'application'
   const record = application ? getActiveCaseVaryOrderApplication(req, id) : activeCase.enforcementAction
   const review = activeCase.resultReviews?.[category]
-  const pendingResult = record?.pendingResult || record?.validatedResult
+  let pendingResult = record?.pendingResult || record?.validatedResult
   if (!review || !pendingResult) {
     return res.redirect(`/active-case/${id}?tab=${application ? 'hearings' : 'enforcement'}`)
   }
 
   const canChangeResult = mode === 'inputter' && record.hearingStatus === 'Result rejected'
-  if (canChangeResult) getRecordResultsDraft(req, getRecordResultsHearing(req, id, category))
+  if (canChangeResult) {
+    const draft = getRecordResultsDraft(req, getRecordResultsHearing(req, id, category))
+    const context = getActiveCaseResultContext(req, id)
+    pendingResult = { ...pendingResult, ...draft,
+      respondentPresent: draft.present, remitArrearsAmount: draft.remitAmount,
+      proposedOrders: context?.workingCase?.orders || pendingResult.proposedOrders }
+    delete draft.reviewReturnHref
+    if (context) delete context.reviewReturnHref
+  }
   const recordingHref = `/record-results/${id}/${category}`
 
   const backHref = mode === 'inputter'
@@ -12610,7 +12706,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
           buildSummaryRow('New hearing time', result.proposedHearing.time)
         ] : [])
       ],
-      changeHref: canChangeResult ? `${recordingHref}/change-result/${index}` : null
+      changeHref: canChangeResult ? `${recordingHref}/edit/results?from=rejected-review` : null
     }))
   const proposedCase = pendingResult.proposedOrders ? {
     ...activeCase,
@@ -12621,7 +12717,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     ? getActiveCaseOrders(proposedCase).terms.map((term, index) => ({
         title: `${term.code} - ${term.title}`,
         rows: getActiveCaseOrderTermRows(term, proposedCase, id),
-        changeHref: canChangeResult ? `/active-case/${id}/order-term/${index}/change` : null
+        changeHref: canChangeResult ? `${recordingHref}/edit/order-term?index=${index}&from=rejected-review` : null
       }))
     : []
   const proposedOrderDetailsRows = proposedCase
@@ -12634,8 +12730,10 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     activeCase, backHref, hearingRows, resultCards, proposedOrderTerms,
     proposedOrderDetailsRows, proposedInterestRows, proposedManagingPaymentsRows,
     canChangeResult,
-    hearingChangeHref: `${recordingHref}/information`,
-    orderDetailsChangeHref: `${recordingHref}/order-details`,
+    hearingChangeHref: `${recordingHref}/edit/information?from=rejected-review`,
+    resultsChangeHref: `${recordingHref}/edit/results?from=rejected-review`,
+    addTermsHref: `${recordingHref}/edit/add-terms?from=rejected-review`,
+    orderDetailsChangeHref: `${recordingHref}/edit/order-details?from=rejected-review`,
     interestChangeHref: `${recordingHref}/interest-and-indexation`,
     managingPaymentsChangeHref: `${recordingHref}/managing-payments`,
     resubmitHref: `${recordingHref}/review`,
@@ -12939,6 +13037,7 @@ router.get('/active-case/:id', (req, res) => {
     accountInactive,
     totalArrears: getActiveCaseTotalArrears(activeCase),
     respondentDisplayName: getPlainPersonName(activeCase.respondentName),
+    respondentHeaderName: getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     applicantAccountName: getAccountLinkName(activeCase.applicant?.name || activeCase.applicantName,
       activeCase.applicant?.accountNumber),
     caseId: id,
@@ -12974,6 +13073,65 @@ router.get('/active-case/:id', (req, res) => {
     } : null,
     successMessage: accountInactive ? null : consumeActiveCaseSuccessMessage(req)
   })
+})
+
+function getCloseAccountViewData(req, activeCase, id) {
+  const blockers = []
+  if (!isZeroAccountAmount(activeCase.balance)) {
+    blockers.push({ text: 'reduce the account balance to £0.00' })
+  }
+  const application = getActiveCaseVaryOrderApplication(req, id)
+  if (hasActiveCourtHearing(activeCase, [application])) {
+    blockers.push({ text: 'resolve any active court cases' })
+  }
+  return {
+    accountName: getPlainPersonName(activeCase.respondentName),
+    accountNumber: activeCase.accountNumber || activeCase.caseReference,
+    blockers,
+    formAction: `/active-case/${id}/close-account`,
+    cancelHref: `/active-case/${id}`
+  }
+}
+
+router.get('/active-case/:id/close-account', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  return res.render('active-case/close-account', getCloseAccountViewData(req, activeCase, id))
+})
+
+router.post('/active-case/:id/close-account', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  const viewData = getCloseAccountViewData(req, activeCase, id)
+  if (viewData.blockers.length) return res.render('active-case/close-account', viewData)
+
+  const today = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London',
+    day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date())
+  getActiveCaseOrders(activeCase).terms.forEach((term) => {
+    const previousTerm = cloneData(term)
+    const fields = getResultDefinition(term.code, 'orders')?.responses || []
+    term.responses = term.responses || {}
+    fields.forEach((field) => {
+      if (isOrderTermAmountField(field) || hasFieldText(field, ['arrears', 'amount of arrears'])) {
+        term.responses[field.id] = '0.00'
+      }
+      if (hasFieldText(field, ['expiry date'])) term.responses[field.id] = today
+    })
+    if (!fields.some(isOrderTermAmountField)) term.closureAmount = '0.00'
+    if (!fields.some((field) => hasFieldText(field, ['expiry date']))) term.closureExpiryDate = today
+    retainPreviousActiveCaseOrderTerm(previousTerm, term)
+  })
+  activeCase.arrears = '£0.00'
+  activeCase.closedAt = today
+  getActiveCaseOrders(activeCase).details.dateArrearsLastUpdated = today
+  activeCase.dateArrearsUpdated = getHistoryDateToday()
+  activeCase.accountClosureHistory = [{
+    date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName,
+    type: 'Amendments', details: 'Account closed | Order amounts and arrears set to £0.00 | All order terms expire today.'
+  }, ...(activeCase.accountClosureHistory || [])]
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
 })
 
 router.get('/active-case/:id/change-case-type', (req, res) => {
@@ -13608,7 +13766,7 @@ router.get('/active-case/:id/order-term/add/review', (req, res) => {
 	  })
 })
 
-router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
+function saveAddedActiveCaseOrderTerm(req, res, next) {
   const id = Number(req.params.id)
   const activeCase = getActiveCaseForOrderTermJourney(req, id)
 
@@ -13633,6 +13791,12 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
     previousTerms: orderTerm.previousTerms || []
   }
 
+  const proposedCase = cloneData(activeCase)
+  getActiveCaseOrders(proposedCase).terms.push(cloneData(completedOrderTerm))
+  if (needsOrderTermReactivationConfirmation(req, id, proposedCase, 'add')) {
+    return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/reactivate`)
+  }
+
   applyCreditorToAllActiveOrderTerms(activeCase, completedOrderTerm)
   getActiveCaseOrders(activeCase).terms.push(completedOrderTerm)
   const resultContext = getActiveCaseResultContext(req, id)
@@ -13641,28 +13805,33 @@ router.post('/active-case/:id/order-term/add/review', (req, res, next) => {
       getOrderTermArrearsPence(completedOrderTerm)
   }
   if (!resultContext) ensureActiveCaseMinorCreditorAccount(completedOrderTerm, activeCase, id)
+  commitInactiveAccountOrderDraft(req, id, activeCase)
   clearActiveCaseOrderTermAddState(req)
   setActiveCaseSuccessMessage(req, resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}`,
     resultContext ? 'Order terms added.' : 'Order term added.')
 
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
-})
+}
+
+router.post('/active-case/:id/order-term/add/review', saveAddedActiveCaseOrderTerm)
 
 router.get('/active-case/:id/order-term/add/cancel', (req, res, next) => {
   const id = Number(req.params.id)
   clearActiveCaseOrderTermAddState(req)
+  clearInactiveAccountOrderDraft(req, id)
   const resultContext = getActiveCaseResultContext(req, id)
   return redirectWithSessionSave(req, res, next,
-    getActiveCaseOrderTermReturnHref(resultContext, getActiveCaseForOrderTermJourney(req, id), id))
+    getActiveCaseOrderTermReturnHref(resultContext, resultContext ? getActiveCaseForOrderTermJourney(req, id) : activeCases[id], id))
 })
 
 router.post('/active-case/:id/order-term/add/cancel', (req, res, next) => {
   const id = Number(req.params.id)
   clearActiveCaseOrderTermAddState(req)
+  clearInactiveAccountOrderDraft(req, id)
   const resultContext = getActiveCaseResultContext(req, id)
   return redirectWithSessionSave(req, res, next,
-    getActiveCaseOrderTermReturnHref(resultContext, getActiveCaseForOrderTermJourney(req, id), id))
+    getActiveCaseOrderTermReturnHref(resultContext, resultContext ? getActiveCaseForOrderTermJourney(req, id) : activeCases[id], id))
 })
 
 router.get('/active-case/:id/order-term/:index/history', (req, res) => {
@@ -14090,7 +14259,7 @@ router.get('/active-case/:id/order-term/:index/review', (req, res) => {
   })
 })
 
-router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
+function saveAmendedActiveCaseOrderTerm(req, res, next) {
   const id = Number(req.params.id)
   const activeCase = getActiveCaseForOrderTermJourney(req, id)
   const termIndex = Number(req.params.index)
@@ -14098,6 +14267,10 @@ router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
 
   if (!activeCase || !orderTerm) {
     return res.redirect('/create-cases?tab=approved')
+  }
+
+  if (needsOrderTermReactivationConfirmation(req, id, activeCase, 'amend', termIndex)) {
+    return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/reactivate`)
   }
 
   const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
@@ -14115,13 +14288,16 @@ router.post('/active-case/:id/order-term/:index/review', (req, res, next) => {
   }
   delete orderTerm.applyCreditorToAll
   delete orderTerm.pendingMinorCreditor
+  commitInactiveAccountOrderDraft(req, id, activeCase)
   clearActiveCaseOrderTermSnapshot(req, id, termIndex)
   setActiveCaseSuccessMessage(req, resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}`,
     resultContext ? 'Order terms updated.' : 'Order term amended.')
 
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
-})
+}
+
+router.post('/active-case/:id/order-term/:index/review', saveAmendedActiveCaseOrderTerm)
 
 router.get('/active-case/:id/order-term/:index/cancel', (req, res, next) => {
   const id = Number(req.params.id)
@@ -14133,6 +14309,7 @@ router.get('/active-case/:id/order-term/:index/cancel', (req, res, next) => {
     restoreActiveCaseOrderTermSnapshot(req, activeCase, id, termIndex)
   }
 
+  clearInactiveAccountOrderDraft(req, id)
   const resultContext = getActiveCaseResultContext(req, id)
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
@@ -14148,6 +14325,7 @@ router.post('/active-case/:id/order-term/:index/cancel', (req, res, next) => {
     restoreActiveCaseOrderTermSnapshot(req, activeCase, id, termIndex)
   }
 
+  clearInactiveAccountOrderDraft(req, id)
   const resultContext = getActiveCaseResultContext(req, id)
   return redirectWithSessionSave(req, res, next,
     resultContext ? getActiveCaseResultReviewHref(resultContext) : `/active-case/${id}?tab=orders`)
@@ -15587,6 +15765,7 @@ router.get('/active-case/creditor/:id', (req, res) => {
   return res.render('active-case/creditor', {
     account,
     accountInactive,
+    accountHeaderName: getAccountHeaderName(account),
     accountDisplayName: account.organisationName ||
       (account.type === 'organisation' ? account.name : getPlainPersonName(account.name)),
     respondentAccountName: getAccountLinkName(account.respondentName,
@@ -16631,9 +16810,54 @@ function setRecordResultsJudicial(req, hearing, judiciary, clerks) {
   }
 }
 
+// Remember the review that opened an edit without changing the initial recording journey.
+router.get('/record-results/:id/:category/edit/:section', (req, res, next) => {
+  const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
+  if (!hearing) return res.redirect('/record-results')
+  const section = req.params.section
+  if (!['information', 'order-details', 'order-term', 'add-terms', 'results'].includes(section)) {
+    return res.redirect(getRecordResultsHref(hearing, 'review'))
+  }
+  const draft = getRecordResultsDraft(req, hearing)
+  const returnHref = req.query.from === 'rejected-review'
+    ? `/my-results/${hearing.id}/${hearing.category}`
+    : getRecordResultsHref(hearing, 'review')
+  if (section === 'add-terms') {
+    if (!getActiveCaseResultContext(req, hearing.id)) {
+      req.session.data[activeCaseResultContextKey] = {
+        caseId: hearing.id, category: hearing.category, newJourney: true,
+        workingCase: { ...cloneData(hearing.activeCase), isPendingResultWorkingCase: true },
+        arrearsAdjustmentPence: 0
+      }
+    }
+    draft.orderOption = 'add-or-amend'
+    clearActiveCaseOrderTermAddState(req)
+  }
+  if (section === 'order-term') {
+    const index = Number(req.query.index)
+    const context = getActiveCaseResultContext(req, hearing.id)
+    if (!Number.isInteger(index) || index < 0 || !context?.workingCase?.orders?.terms?.[index]) {
+      return res.redirect(returnHref)
+    }
+  }
+  draft.reviewReturnHref = returnHref
+  const context = getActiveCaseResultContext(req, hearing.id)
+  if (context) context.reviewReturnHref = returnHref
+  if (section === 'results') {
+    delete draft.editIndex
+    delete draft.selectedCode
+  }
+  const nextHref = section === 'add-terms'
+    ? `/active-case/${hearing.id}/order-term/add`
+    : section === 'order-term'
+    ? `/active-case/${hearing.id}/order-term/${Number(req.query.index)}/change`
+    : getRecordResultsHref(hearing, section === 'results' ? 'add-result' : section)
+  return redirectWithSessionSave(req, res, next, nextHref)
+})
+
 function saveRecordResultsInformation(req, res, next, hearing, values, sessionUpdate = false) {
   const draft = getRecordResultsDraft(req, hearing)
-  const nextHref = getRecordResultsHref(hearing,
+  const nextHref = draft.reviewReturnHref || getRecordResultsHref(hearing,
     hearing.category === 'application' ? 'outcome' : 'add-result')
   if (sessionUpdate || draft.present) {
     setActiveCaseSuccessMessage(req, nextHref, sessionUpdate
@@ -16741,8 +16965,9 @@ function renderRecordResultsInformation(req, res, hearing, values, errors = {}) 
   return res.render('record-results/information', {
     hearing, values, errors,
     formAction: getRecordResultsHref(hearing, 'information'),
-    backHref: getRecordResultsListHref(hearing.court, hearing.date),
-    cancelHref: '/record-results',
+    backHref: getRecordResultsDraft(req, hearing).reviewReturnHref || getRecordResultsListHref(hearing.court, hearing.date),
+    cancelHref: getRecordResultsDraft(req, hearing).reviewReturnHref || '/record-results',
+    primaryButtonText: getRecordResultsDraft(req, hearing).reviewReturnHref ? 'Save changes' : 'Continue',
     errorSummary: Object.keys(errors).length ? getActiveCaseVaryOrderErrorSummary(errors) : null
   })
 }
@@ -16789,7 +17014,7 @@ router.post('/record-results/:id/:category/information', (req, res, next) => {
   const judicial = getRecordResultsJudicial(req, hearing)
   const pending = getActiveCaseVaryOrderStore(req, recordResultsPendingJudicialKey)
   const pendingKey = `${hearing.id}:${hearing.category}`
-  if (judicial &&
+  if (!getRecordResultsDraft(req, hearing).reviewReturnHref && judicial &&
       (values.judiciary !== judicial.judiciary || values.clerks !== judicial.clerks)) {
     pending[pendingKey] = values
     Object.assign(getRecordResultsDraft(req, hearing), {
@@ -16907,7 +17132,7 @@ function renderRecordResultsOrderDetails(req, res, hearing, workingCase, errors 
     accountContextLabel: (workingCase.accountNumber || workingCase.caseReference) +
       ' — ' + workingCase.respondentName,
     formAction: getRecordResultsHref(hearing, 'order-details'),
-    cancelHref: getRecordResultsHref(hearing, 'order-terms'),
+    cancelHref: getRecordResultsDraft(req, hearing).reviewReturnHref || getRecordResultsHref(hearing, 'order-terms'),
     orderMadeFieldsOptional: true,
     primaryButtonText: 'Save changes',
     applicationItems: getApplicationOptionItems(selectedApplicationCode, caseType),
@@ -16964,8 +17189,9 @@ router.post('/record-results/:id/:category/order-details', (req, res, next) => {
   orders.terms = applySharedFrequencyToRecordedOrderTerms(
     orders.terms || [], orders.details.paymentFrequency)
   workingCase.dateArrearsUpdated = formatDateLong(orders.details.dateArrearsLastUpdated)
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'order-terms'), 'Order details updated.')
-  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'order-terms'))
+  const nextHref = getRecordResultsDraft(req, hearing).reviewReturnHref || getRecordResultsHref(hearing, 'order-terms')
+  setActiveCaseSuccessMessage(req, nextHref, 'Order details updated.')
+  return redirectWithSessionSave(req, res, next, nextHref)
 })
 
 function renderRecordResultsInterest(req, res, hearing, workingCase, errors = {}, submitted = null) {
@@ -17067,6 +17293,7 @@ router.get('/record-results/:id/:category/add-result', (req, res) => {
   const editing = Number.isInteger(draft.editIndex)
   return res.render('record-results/add-result', {
     successMessage: consumeActiveCaseSuccessMessage(req),
+    backHref: draft.reviewReturnHref, cancelHref: draft.reviewReturnHref,
     hearing, results: draft.results || [], code: editing ? draft.results[draft.editIndex]?.code : '',
     editing, askForMoreResults: !!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft),
     addAnother: '', errors: {}, errorSummary: null,
@@ -17085,7 +17312,7 @@ router.post('/record-results/:id/:category/add-result', (req, res, next) => {
   const addAnother = getSingleValue(req.body.addAnother) || ''
   const askForMoreResults = !!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft)
   if (!editing && askForMoreResults && addAnother === 'no') {
-    return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'review'))
+    return redirectWithSessionSave(req, res, next, draft.reviewReturnHref || getRecordResultsHref(hearing, 'review'))
   }
   const errors = {}
   if (!editing && askForMoreResults && addAnother !== 'yes') {
@@ -17098,6 +17325,7 @@ router.post('/record-results/:id/:category/add-result', (req, res, next) => {
   if (Object.keys(errors).length) {
     return res.render('record-results/add-result', {
     successMessage: consumeActiveCaseSuccessMessage(req),
+      backHref: draft.reviewReturnHref, cancelHref: draft.reviewReturnHref,
       hearing, results: draft.results || [], code, editing, askForMoreResults, addAnother, errors,
       errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
       resultItems: activeCaseResultCodes.map((item) => ({ value: item,
@@ -17219,6 +17447,8 @@ router.get('/record-results/:id/:category/review', (req, res) => {
     return res.redirect(getRecordResultsHref(hearing, 'add-result'))
   }
   const context = getActiveCaseResultContext(req, hearing.id)
+  delete draft.reviewReturnHref
+  if (context) delete context.reviewReturnHref
   const workingCase = context?.newJourney ? getActiveCaseForOrderTermJourney(req, hearing.id) : hearing.activeCase
   if (draft.orderOption === 'add-or-amend' && !getActiveCaseOrders(workingCase).terms.length) {
     return res.redirect(`/active-case/${hearing.id}/order-term/add`)
@@ -17238,7 +17468,8 @@ router.get('/record-results/:id/:category/review', (req, res) => {
       ? getActiveCaseManagingPaymentsRows(workingCase) : [],
     terms: draft.orderOption === 'add-or-amend'
       ? getActiveCaseOrders(workingCase).terms.map((term, index) =>
-        getActiveCaseOrderTermCard(term, index, hearing.id, workingCase)) : [],
+        ({ ...getActiveCaseOrderTermCard(term, index, hearing.id, workingCase),
+          changeHref: getRecordResultsHref(hearing, `edit/order-term?index=${index}`) })) : [],
     formAction: getRecordResultsHref(hearing, 'review')
   })
 })

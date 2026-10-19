@@ -53,9 +53,12 @@
         {{ govukSummaryList({ card: orderCard, rows: proposedOrderDetailsRows }) }}
       {% endif %}
 
-      {% if proposedOrderTerms.length %}
+      {% if proposedOrderTerms.length or canChangeResult %}
         <h2 class="govuk-heading-m">Order terms</h2>
         <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+        {% if canChangeResult %}
+          {{ govukButton({ text: "Add terms", href: addTermsHref, classes: "govuk-button--secondary" }) }}
+        {% endif %}
         {% for term in proposedOrderTerms %}
           {% set termCard = { title: { text: term.title } } %}
           {% if canChangeResult %}
@@ -80,6 +83,12 @@
 
       <h2 class="govuk-heading-m">Results</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+      {% if canChangeResult %}
+        {{ govukButton({ text: "Add results", href: resultsChangeHref, classes: "govuk-button--secondary" }) }}
+      {% endif %}
+      {% if not resultCards.length %}
+        <p class="govuk-body">No results</p>
+      {% endif %}
       {% for result in resultCards %}
         {% set resultCard = { title: { text: result.title } } %}
         {% if canChangeResult %}
