@@ -33,14 +33,14 @@
       <h2 class="govuk-heading-m">{{ tabHeading }}</h2>
       {% if rows.length %}
         {{ govukTable({
+          attributes: { "data-module": "moj-sortable-table" },
           head: [
-            { text: "Respondent" },
-            { text: "Applicant" },
-            { text: "Hearing type" },
-            { text: "Court" },
-            { text: "Hearing date" },
-            { text: "Submitted by" },
-            { text: "Action" }
+            { text: "Respondent", attributes: { "aria-sort": "none" } },
+            { text: "Applicant", attributes: { "aria-sort": "none" } },
+            { text: "Court", attributes: { "aria-sort": "none" } },
+            { text: "Hearing date", attributes: { "aria-sort": "descending" } },
+            { text: "Submitted by", attributes: { "aria-sort": "none" } },
+            { text: "Action", attributes: { "aria-sort": "none" } }
           ],
           rows: rows
         }) }}

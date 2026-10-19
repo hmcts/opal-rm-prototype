@@ -4,6 +4,7 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
+{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
 
@@ -49,7 +50,7 @@
 
       <div class="moj-page-header-actions govuk-!-margin-bottom-3">
         <div class="moj-page-header-actions__title">
-          <h1 class="govuk-heading-xl">{{ respondentDisplayName }}</h1>
+          <h1 class="govuk-heading-xl">{{ respondentHeaderName }}</h1>
         </div>
         <div class="moj-page-header-actions__actions">
           <div class="moj-button-group moj-button-group--inline">
@@ -58,10 +59,13 @@
               href: "/active-case/" + caseId + "/note",
               classes: "govuk-button--secondary"
             }) }}
-            {{ govukButton({
-              text: "Export as PDF",
-              href: "#",
-              classes: "govuk-button--secondary"
+            {{ mojButtonMenu({
+              button: { text: "More actions", classes: "govuk-button--secondary" },
+              alignMenu: "right",
+              items: [
+                { text: "Export as PDF", href: "#" },
+                { text: "Close account", href: "/active-case/" + caseId + "/close-account" }
+              ]
             }) }}
           </div>
         </div>

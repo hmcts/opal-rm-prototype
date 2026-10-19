@@ -67,7 +67,7 @@
         }) }}
         {% endif %}
         <div class="govuk-button-group">
-          {{ govukButton({ text: "Continue" }) }}
+          {{ govukButton({ text: primaryButtonText or "Continue" }) }}
           <a class="govuk-link" href="{{ cancelHref }}" data-route-guard-always="true">Cancel</a>
         </div>
       </form>

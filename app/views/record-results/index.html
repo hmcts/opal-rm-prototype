@@ -7,7 +7,7 @@
 
 {% set showNav = true %}
 {% set activeNav = "cases" %}
-{% block pageTitle %}Results - {{ serviceName }}{% endblock %}
+{% block pageTitle %}Resulting - {{ serviceName }}{% endblock %}
 {% block content %}
   {% if successMessage %}
     {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
@@ -15,11 +15,9 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
       {{ mojPageHeaderActions({
-        heading: { text: "Results", classes: "govuk-heading-l" },
+        heading: { text: "Resulting", classes: "govuk-heading-l" },
         items: [{ text: "Record results", href: "/record-results/list-hearings" }]
       }) }}
-      <p class="govuk-body">Showing only results you have submitted.</p>
-
       {% set rejectedTabHtml %}Rejected {{ mojNotificationBadge({ text: rejectedCount | string }) }}{% endset %}
       {{ mojSubNavigation({
         label: "Result status",
@@ -30,13 +28,11 @@
       }) }}
 
       {% if tab === "rejected" %}
-        <h2 class="govuk-heading-m">Rejected results</h2>
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-1">Rejected results</h2>
+        <p class="govuk-body govuk-hint">Showing only results you submitted. To resubmit results for other team members, you can <a class="govuk-link" href="/record-results/all-rejected">view all rejected results</a>.</p>
       {% else %}
-        <h2 class="govuk-heading-m">Validation pending</h2>
-      {% endif %}
-
-      {% if tab === "rejected" %}
-        <p class="govuk-body">To resubmit results for other team members, you can <a class="govuk-link" href="/record-results/all-rejected">view all rejected results</a>.</p>
+        <h2 class="govuk-heading-m govuk-!-margin-bottom-1">Validation pending</h2>
+        <p class="govuk-body govuk-hint">Showing only results you have submitted.</p>
       {% endif %}
 
       {% include "record-results/_results-table.html" %}
