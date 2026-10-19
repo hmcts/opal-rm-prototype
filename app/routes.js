@@ -12684,8 +12684,10 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     buildSummaryRow('Hearing date', application
       ? formatDateLong(record['vary-order-hearing-date'])
       : record.hearingDate),
-    buildSummaryRow('Respondent', getPlainPersonName(activeCase.respondentName)),
-    buildSummaryRow('Applicant', getPlainPersonName(activeCase.applicantName)),
+    { key: { text: 'Respondent' }, value: { html: getResultReviewAccountHtml(
+      activeCase.accountNumber, activeCase.respondentName, `/active-case/${id}`) } },
+    { key: { text: 'Applicant' }, value: { html: getResultReviewAccountHtml(
+      activeCase.applicant?.accountNumber, activeCase.applicantName, activeCase.applicant?.accountHref) } },
     buildSummaryRow('Hearing type', record.type),
     buildSummaryRow('Judiciary', pendingResult.judiciary || pendingResult.magistrate),
     buildSummaryRow('Clerks', pendingResult.clerks),
@@ -17456,6 +17458,10 @@ router.get('/record-results/:id/:category/review', (req, res) => {
   return res.render('record-results/review', {
     successMessage: consumeActiveCaseSuccessMessage(req),
     hearing, draft,
+    respondentAccountHtml: getResultReviewAccountHtml(hearing.activeCase.accountNumber,
+      hearing.activeCase.respondentName, `/active-case/${hearing.id}`),
+    applicantAccountHtml: getResultReviewAccountHtml(hearing.activeCase.applicant?.accountNumber,
+      hearing.activeCase.applicantName, hearing.activeCase.applicant?.accountHref),
     reviewTimelineItems: hearing.activeCase.resultReviews?.[hearing.category]?.history?.length
       ? getReviewHistoryTimelineItems(
         hearing.activeCase.resultReviews[hearing.category].history.slice().reverse())
@@ -17528,14 +17534,12 @@ function renderResultQueue(req, res, inputter, allRejected = false) {
     entry.review.submittedBy === prototypeCurrentUserName)
   const entries = (inputter && !allRejected ? inputterEntries : getResultReviewEntries())
     .filter((entry) => entry.record.hearingStatus === status)
-  if (inputter) {
-    entries.sort((a, b) => {
-      const hearingDate = (entry) => entry.category === 'application'
-        ? entry.record['vary-order-hearing-date'] : entry.record.hearingDate
-      return getDateSortValue(formatHistoryHearingDate(hearingDate(b))) -
-        getDateSortValue(formatHistoryHearingDate(hearingDate(a)))
-    })
-  }
+  entries.sort((a, b) => {
+    const hearingDate = (entry) => entry.category === 'application'
+      ? entry.record['vary-order-hearing-date'] : entry.record.hearingDate
+    return getDateSortValue(formatHistoryHearingDate(hearingDate(b))) -
+      getDateSortValue(formatHistoryHearingDate(hearingDate(a)))
+  })
   const pageSize = 25
   const pageCount = Math.ceil(entries.length / pageSize)
   const page = Math.min(pageCount || 1, Math.max(1, Number.parseInt(req.query.page, 10) || 1))
@@ -17560,14 +17564,18 @@ function renderResultQueue(req, res, inputter, allRejected = false) {
         ...(allRejected ? [getResultReviewTableCell(entry.review.submittedBy)] : [])
       ]
     }
+    const hearingDate = entry.category === 'application'
+      ? entry.record['vary-order-hearing-date'] : entry.record.hearingDate
     return [
       { html: getResultReviewAccountHtml(entry.activeCase.accountNumber,
-        entry.activeCase.respondentName, `/active-case/${entry.id}`) },
+        entry.activeCase.respondentName, `/active-case/${entry.id}`),
+        attributes: { 'data-sort-value': getAccountLinkName(entry.activeCase.respondentName, entry.activeCase.accountNumber) } },
       { html: getResultReviewAccountHtml(entry.activeCase.applicant?.accountNumber,
-        entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref) },
-      { text: entry.category === 'application' ? 'Application' : 'Enforcement action' },
+        entry.activeCase.applicantName, entry.activeCase.applicant?.accountHref),
+        attributes: { 'data-sort-value': getAccountLinkName(entry.activeCase.applicantName, entry.activeCase.applicant?.accountNumber) } },
       getResultReviewTableCell(getResultReviewCourt(entry)),
-      getResultReviewTableCell(getResultReviewHearingDate(entry)),
+      { ...getResultReviewTableCell(getResultReviewHearingDate(entry)),
+        attributes: { 'data-sort-value': getDateSortValue(formatHistoryHearingDate(hearingDate)) } },
       getResultReviewTableCell(entry.review.submittedBy),
       { html: `<a class="govuk-link" href="${href}">View result<span class="govuk-visually-hidden"> for ${escapeHtml(entry.activeCase.respondentName)}</span></a>` }
     ]
