@@ -1,0 +1,52 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block pageTitle %}{% if errorSummary %}Error: {% endif %}Add or change payout holds - {{ serviceName }}{% endblock %}
+{% block beforeContent %}{{ govukBackLink({ text: "Back", href: cancelHref }) }}{% endblock %}
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <h1 class="govuk-heading-l">Add or change payout holds</h1>
+      <p class="govuk-body">Set how long payments received from this respondent are held before being paid out.</p>
+      <form method="post" action="{{ formAction }}" novalidate>
+        {% set overrideFields %}
+        <p class="govuk-body">Enter a hold period for both payment methods. Enter 0 for no hold.</p>
+        {{ govukInput({
+          id: "chequeDays", name: "chequeDays", value: values.chequeDays,
+          label: { text: "Cheque payments held for", classes: "govuk-label--s" },
+          classes: "govuk-input--width-4", inputmode: "numeric", suffix: { text: "days" },
+          errorMessage: errors.chequeDays
+        }) }}
+        {{ govukInput({
+          id: "bankDays", name: "bankDays", value: values.bankDays,
+          label: { text: "Bank payments held for", classes: "govuk-label--s" },
+          classes: "govuk-input--width-4", inputmode: "numeric", suffix: { text: "days" },
+          errorMessage: errors.bankDays
+        }) }}
+        {% endset %}
+        {{ govukRadios({
+          idPrefix: "overrideRules", name: "overrideRules",
+          fieldset: { legend: { text: "How long should payments received be held on this account?", classes: "govuk-fieldset__legend--m" } },
+          errorMessage: errors.overrideRules,
+          items: [
+            { value: "no", text: "Use standard payout rules", checked: values.overrideRules === 'no' },
+            { value: "yes", text: "Override standard payout rules", checked: values.overrideRules === 'yes', conditional: { html: overrideFields } },
+            { value: "hold-all", text: "Hold all payouts", checked: values.overrideRules === 'hold-all' }
+          ]
+        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Save changes" }) }}
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

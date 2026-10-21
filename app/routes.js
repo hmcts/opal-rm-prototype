@@ -12667,6 +12667,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
       respondentPresent: draft.present, remitArrearsAmount: draft.remitAmount,
       proposedOrders: context?.workingCase?.orders || pendingResult.proposedOrders }
     delete draft.reviewReturnHref
+    delete draft.addingResultFromReview
     if (context) delete context.reviewReturnHref
   }
   const recordingHref = `/record-results/${id}/${category}`
@@ -12690,7 +12691,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
       activeCase.applicant?.accountNumber, activeCase.applicantName, activeCase.applicant?.accountHref) } },
     buildSummaryRow('Hearing type', record.type),
     buildSummaryRow('Judiciary', pendingResult.judiciary || pendingResult.magistrate),
-    buildSummaryRow('Clerks', pendingResult.clerks),
+    buildSummaryRow('Legal adviser', pendingResult.clerks),
     buildSummaryRow(`Was ${getResultPresencePersonName(activeCase, record, category)} present?`,
       pendingResult.respondentPresent === 'yes' ? 'Yes' : 'No'),
     ...(category === 'enforcement' ? [buildSummaryRow('Arrears to remit?', pendingResult.remitArrears === 'yes'
@@ -12708,7 +12709,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
           buildSummaryRow('New hearing time', result.proposedHearing.time)
         ] : [])
       ],
-      changeHref: canChangeResult ? `${recordingHref}/edit/results?from=rejected-review` : null
+      changeHref: canChangeResult ? `${recordingHref}/change-result/${index}?from=rejected-review` : null
     }))
   const proposedCase = pendingResult.proposedOrders ? {
     ...activeCase,
@@ -12733,7 +12734,7 @@ function renderActiveCaseResultReview(req, res, mode = 'checker', errors = {}, d
     proposedOrderDetailsRows, proposedInterestRows, proposedManagingPaymentsRows,
     canChangeResult,
     hearingChangeHref: `${recordingHref}/edit/information?from=rejected-review`,
-    resultsChangeHref: `${recordingHref}/edit/results?from=rejected-review`,
+    resultsChangeHref: `${recordingHref}/add-result?from=rejected-review`,
     addTermsHref: `${recordingHref}/edit/add-terms?from=rejected-review`,
     orderDetailsChangeHref: `${recordingHref}/edit/order-details?from=rejected-review`,
     interestChangeHref: `${recordingHref}/interest-and-indexation`,
@@ -13014,6 +13015,84 @@ router.post('/active-case/:id/:category/hearing/delete', (req, res, next) => {
   return redirectWithSessionSave(req, res, next, hearing.cancelHref)
 })
 
+function getRespondentPayoutHolds(req, id) {
+  const saved = req.session.data.respondentPayoutHolds?.[id]
+  const overrideRules = saved?.overrideRules ||
+    (saved?.chequeDays && saved?.bankDays ? 'yes' : 'no')
+  return {
+    overrideRules,
+    chequeDays: overrideRules === 'yes' ? saved.chequeDays : '',
+    bankDays: overrideRules === 'yes' ? saved.bankDays : '',
+    holdAll: saved?.holdAll || false
+  }
+}
+
+function renderRespondentPayoutHolds(req, res, activeCase, id, values, errors = {}) {
+  return res.render('active-case/payout-holds', {
+    activeCase, caseId: id,
+    values: { ...values, overrideRules: values.holdAll ? 'hold-all' : values.overrideRules },
+    errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
+    cancelHref: `/active-case/${id}`,
+    formAction: `/active-case/${id}/payout-holds`
+  })
+}
+
+router.get('/active-case/:id/payout-holds', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  return renderRespondentPayoutHolds(req, res, activeCase, id, getRespondentPayoutHolds(req, id))
+})
+
+router.post('/active-case/:id/payout-holds', (req, res, next) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  const previous = getRespondentPayoutHolds(req, id)
+  const choice = String(getSingleValue(req.body.overrideRules) || '')
+  const values = {
+    overrideRules: choice === 'hold-all' ? previous.overrideRules : choice,
+    chequeDays: choice === 'hold-all' ? previous.chequeDays : String(getSingleValue(req.body.chequeDays) || '').trim(),
+    bankDays: choice === 'hold-all' ? previous.bankDays : String(getSingleValue(req.body.bankDays) || '').trim(),
+    holdAll: choice === 'hold-all'
+  }
+  const errors = {}
+  if (!['yes', 'no', 'hold-all'].includes(choice)) {
+    errors.overrideRules = buildFieldError('Select a payout option')
+  }
+  if (choice === 'yes') {
+    for (const [field, label] of [['chequeDays', 'cheque payments'], ['bankDays', 'bank payments']]) {
+      if (!values[field]) {
+        errors[field] = buildFieldError(`Enter the number of days to hold ${label}`)
+      } else if (!/^\d+$/.test(values[field]) || !Number.isSafeInteger(Number(values[field]))) {
+        errors[field] = buildFieldError(`Enter a whole number of days, 0 or more, for ${label}`)
+      }
+    }
+  } else if (choice === 'no') {
+    values.chequeDays = ''
+    values.bankDays = ''
+  }
+  if (Object.keys(errors).length) return renderRespondentPayoutHolds(req, res, activeCase, id, values, errors)
+  for (const field of ['chequeDays', 'bankDays']) {
+    if (values[field]) values[field] = String(Number(values[field]))
+  }
+  const store = getActiveCaseVaryOrderStore(req, 'respondentPayoutHolds')
+  store[id] = values
+  const message = previous.holdAll && !values.holdAll ? 'Payout hold removed.'
+    : !values.holdAll && (previous.chequeDays !== '' || previous.bankDays !== '') &&
+      values.chequeDays === '' && values.bankDays === '' ? 'Payout overrides removed.'
+      : 'Payout settings updated.'
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, message)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
+})
+
+router.all('/active-case/:id/payout-holds/remove', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/create-cases?tab=approved')
+  return res.redirect(`/active-case/${id}/payout-holds`)
+})
+
 router.get('/active-case/:id', (req, res) => {
   const id = Number(req.params.id)
   const tab = req.query.tab || 'at-a-glance'
@@ -13037,6 +13116,7 @@ router.get('/active-case/:id', (req, res) => {
   return res.render('active-case/index', {
     activeCase,
     accountInactive,
+    payoutHolds: getRespondentPayoutHolds(req, id),
     totalArrears: getActiveCaseTotalArrears(activeCase),
     respondentDisplayName: getPlainPersonName(activeCase.respondentName),
     respondentHeaderName: getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
@@ -16846,6 +16926,7 @@ router.get('/record-results/:id/:category/edit/:section', (req, res, next) => {
   const context = getActiveCaseResultContext(req, hearing.id)
   if (context) context.reviewReturnHref = returnHref
   if (section === 'results') {
+    draft.addingResultFromReview = true
     delete draft.editIndex
     delete draft.selectedCode
   }
@@ -16998,8 +17079,7 @@ router.post('/record-results/:id/:category/information', (req, res, next) => {
   const errors = {}
   if (!values.judiciary) errors.judiciary = buildFieldError('Enter the judiciary')
   else if (values.judiciary.length > 250) errors.judiciary = buildFieldError('Judiciary must be 250 characters or fewer')
-  if (!values.clerks) errors.clerks = buildFieldError('Enter the clerks')
-  else if (values.clerks.length > 250) errors.clerks = buildFieldError('Clerks must be 250 characters or fewer')
+  if (values.clerks.length > 250) errors.clerks = buildFieldError('Legal adviser must be 250 characters or fewer')
   if (!['yes', 'no'].includes(values.present)) {
     errors.present = buildFieldError(`Select whether ${hearing.presencePersonName} was present`)
   }
@@ -17292,12 +17372,20 @@ router.get('/record-results/:id/:category/add-result', (req, res) => {
   const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
   if (!hearing) return res.redirect('/record-results')
   const draft = getRecordResultsDraft(req, hearing)
+  if (req.query.from === 'review' || req.query.from === 'rejected-review') {
+    draft.reviewReturnHref = req.query.from === 'rejected-review'
+      ? `/my-results/${hearing.id}/${hearing.category}`
+      : getRecordResultsHref(hearing, 'review')
+    draft.addingResultFromReview = true
+    delete draft.editIndex
+    delete draft.selectedCode
+  }
   const editing = Number.isInteger(draft.editIndex)
   return res.render('record-results/add-result', {
     successMessage: consumeActiveCaseSuccessMessage(req),
     backHref: draft.reviewReturnHref, cancelHref: draft.reviewReturnHref,
-    hearing, results: draft.results || [], code: editing ? draft.results[draft.editIndex]?.code : '',
-    editing, askForMoreResults: !!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft),
+    hearing, results: draft.addingResultFromReview ? [] : draft.results || [], code: editing ? draft.results[draft.editIndex]?.code : '',
+    editing, askForMoreResults: !draft.addingResultFromReview && (!!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft)),
     addAnother: '', errors: {}, errorSummary: null,
     resultItems: activeCaseResultCodes.map((code) => ({ value: code,
       text: `${code} - ${activeCaseResultTitles[code]}` })),
@@ -17312,7 +17400,8 @@ router.post('/record-results/:id/:category/add-result', (req, res, next) => {
   const code = getSingleValue(req.body.code) || ''
   const editing = Number.isInteger(draft.editIndex)
   const addAnother = getSingleValue(req.body.addAnother) || ''
-  const askForMoreResults = !!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft)
+  const askForMoreResults = !draft.addingResultFromReview &&
+    (!!draft.results?.length || hasRecordResultsOrderOutcome(hearing, draft))
   if (!editing && askForMoreResults && addAnother === 'no') {
     return redirectWithSessionSave(req, res, next, draft.reviewReturnHref || getRecordResultsHref(hearing, 'review'))
   }
@@ -17328,7 +17417,7 @@ router.post('/record-results/:id/:category/add-result', (req, res, next) => {
     return res.render('record-results/add-result', {
     successMessage: consumeActiveCaseSuccessMessage(req),
       backHref: draft.reviewReturnHref, cancelHref: draft.reviewReturnHref,
-      hearing, results: draft.results || [], code, editing, askForMoreResults, addAnother, errors,
+      hearing, results: draft.addingResultFromReview ? [] : draft.results || [], code, editing, askForMoreResults, addAnother, errors,
       errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
       resultItems: activeCaseResultCodes.map((item) => ({ value: item,
         text: `${item} - ${activeCaseResultTitles[item]}` })),
@@ -17348,7 +17437,13 @@ router.get('/record-results/:id/:category/change-result/:index', (req, res, next
     return res.redirect(getRecordResultsHref(hearing, 'add-result'))
   }
   draft.editIndex = index
-  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
+  draft.selectedCode = draft.results[index].code
+  if (req.query.from === 'review' || req.query.from === 'rejected-review') {
+    draft.reviewReturnHref = req.query.from === 'rejected-review'
+      ? `/my-results/${hearing.id}/${hearing.category}`
+      : getRecordResultsHref(hearing, 'review')
+  }
+  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'result-details'))
 })
 
 router.get('/record-results/:id/:category/remove-result/:index', (req, res) => {
@@ -17361,8 +17456,8 @@ router.get('/record-results/:id/:category/remove-result/:index', (req, res) => {
 
   return res.render('record-results/remove-result', {
     hearing, result,
-    formAction: getRecordResultsHref(hearing, `remove-result/${index}`),
-    cancelHref: getRecordResultsHref(hearing, 'add-result')
+    formAction: getRecordResultsHref(hearing, `remove-result/${index}`) + (req.query.from === 'review' ? '?from=review' : ''),
+    cancelHref: getRecordResultsHref(hearing, req.query.from === 'review' ? 'review' : 'add-result')
   })
 })
 
@@ -17381,8 +17476,11 @@ router.post('/record-results/:id/:category/remove-result/:index', (req, res, nex
     else if (draft.editIndex > index) draft.editIndex -= 1
   }
   delete draft.selectedCode
-  setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result removed.')
-  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
+  const returnToReview = req.query.from === 'review' &&
+    (draft.results.length || hasRecordResultsOrderOutcome(hearing, draft))
+  const returnHref = getRecordResultsHref(hearing, returnToReview ? 'review' : 'add-result')
+  setActiveCaseSuccessMessage(req, returnHref, 'Result removed.')
+  return redirectWithSessionSave(req, res, next, returnHref)
 })
 
 router.get('/record-results/:id/:category/result-details', (req, res) => {
@@ -17393,6 +17491,7 @@ router.get('/record-results/:id/:category/result-details', (req, res) => {
   const draft = getRecordResultsDraft(req, hearing)
   const existing = Number.isInteger(draft.editIndex) ? draft.results[draft.editIndex] : null
   return res.render('record-results/result-details', {
+    editing: !!existing, returnHref: draft.reviewReturnHref || getRecordResultsHref(hearing, 'add-result'),
     hearing, code, title: activeCaseResultTitles[code],
     values: existing && existing.code === code ? {
       reason: existing.reason || '', ...(existing.proposedHearing || {})
@@ -17421,6 +17520,7 @@ router.post('/record-results/:id/:category/result-details', (req, res, next) => 
     }
   }
   if (Object.keys(errors).length) return res.render('record-results/result-details', {
+    editing: Number.isInteger(draft.editIndex), returnHref: draft.reviewReturnHref || getRecordResultsHref(hearing, 'add-result'),
     hearing, code, title: activeCaseResultTitles[code], values, errors,
     errorSummary: getActiveCaseVaryOrderErrorSummary(errors),
     courtItems: getActiveCaseVaryOrderHearingCourtItems(),
@@ -17430,15 +17530,19 @@ router.post('/record-results/:id/:category/result-details', (req, res, next) => 
   if (code === 'MADJ') result.proposedHearing = {
     court: values.court, venue: values.venue, date: values.date, time: values.time
   }
-  if (Number.isInteger(draft.editIndex) && draft.results?.[draft.editIndex]) {
-    setActiveCaseSuccessMessage(req, getRecordResultsHref(hearing, 'add-result'), 'Result updated.')
+  const editing = Number.isInteger(draft.editIndex) && !!draft.results?.[draft.editIndex]
+  const returnHref = (editing || draft.addingResultFromReview) && draft.reviewReturnHref
+    ? draft.reviewReturnHref : getRecordResultsHref(hearing, 'add-result')
+  if (editing) {
+    setActiveCaseSuccessMessage(req, returnHref, 'Result updated.')
     draft.results[draft.editIndex] = result
   } else {
     draft.results = [...(draft.results || []), result]
   }
   delete draft.selectedCode
   delete draft.editIndex
-  return redirectWithSessionSave(req, res, next, getRecordResultsHref(hearing, 'add-result'))
+  delete draft.addingResultFromReview
+  return redirectWithSessionSave(req, res, next, returnHref)
 })
 
 router.get('/record-results/:id/:category/review', (req, res) => {
@@ -17450,6 +17554,7 @@ router.get('/record-results/:id/:category/review', (req, res) => {
   }
   const context = getActiveCaseResultContext(req, hearing.id)
   delete draft.reviewReturnHref
+  delete draft.addingResultFromReview
   if (context) delete context.reviewReturnHref
   const workingCase = context?.newJourney ? getActiveCaseForOrderTermJourney(req, hearing.id) : hearing.activeCase
   if (draft.orderOption === 'add-or-amend' && !getActiveCaseOrders(workingCase).terms.length) {
