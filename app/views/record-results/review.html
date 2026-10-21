@@ -33,7 +33,7 @@
         { key: { text: "Applicant" }, value: { html: applicantAccountHtml } },
         { key: { text: "Hearing type" }, value: { text: hearing.type } },
         { key: { text: "Judiciary" }, value: { text: draft.judiciary or draft.magistrate } },
-        { key: { text: "Clerks" }, value: { text: draft.clerks } },
+        { key: { text: "Legal adviser" }, value: { html: draft.clerks | escape if draft.clerks else '<span aria-label="No data">—</span>' } },
         { key: { text: "Was " + hearing.presencePersonName + " present?" }, value: { text: "Yes" if draft.present === "yes" else "No" } },
         { key: { text: "Arrears to remit?" }, value: { text: "£" + draft.remitAmount if draft.remitArrears === "yes" else "None" } } if hearing.category === "enforcement"
       ] }) }}
@@ -71,14 +71,17 @@
       {% endif %}
       <h2 class="govuk-heading-m">Results</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
-      {{ govukButton({ text: "Add results", href: "/record-results/" + hearing.id + "/" + hearing.category + "/edit/results", classes: "govuk-button--secondary" }) }}
+      {{ govukButton({ text: "Add results", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result?from=review", classes: "govuk-button--secondary" }) }}
       {% if not draft.results.length %}
         <p class="govuk-body">No results</p>
       {% endif %}
       {% for result in draft.results %}
         {{ govukSummaryList({ card: {
           title: { text: result.code + " - " + result.title },
-          actions: { items: [{ text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/edit/results", visuallyHiddenText: "result " + loop.index }] }
+          actions: { items: [
+            { text: "Change", href: "/record-results/" + hearing.id + "/" + hearing.category + "/change-result/" + loop.index0 + "?from=review", visuallyHiddenText: "result " + loop.index },
+            { text: "Remove", href: "/record-results/" + hearing.id + "/" + hearing.category + "/remove-result/" + loop.index0 + "?from=review", visuallyHiddenText: "result " + loop.index }
+          ] }
         }, rows: [
           { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
           { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,

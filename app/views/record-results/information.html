@@ -26,15 +26,16 @@
       {% endif %}
       <form method="post" action="{{ formAction }}" novalidate>
         {{ govukCharacterCount({
-          id: "judiciary", name: "judiciary", rows: 3, maxlength: 250,
+          id: "judiciary", name: "judiciary", rows: 4, maxlength: 250,
           classes: "govuk-!-width-three-quarters",
           label: { text: "Judiciary", classes: "govuk-label--s" },
           value: values.judiciary, errorMessage: errors.judiciary
         }) }}
-        {{ govukCharacterCount({
-          id: "clerks", name: "clerks", rows: 3, maxlength: 250,
+        {{ govukInput({
+          id: "clerks", name: "clerks", maxlength: 250,
           classes: "govuk-!-width-three-quarters",
-          label: { text: "Clerks", classes: "govuk-label--s" },
+          label: { text: "Legal adviser (optional)", classes: "govuk-label--s" },
+          hint: { text: "Required if judiciary were Magistrates" },
           value: values.clerks, errorMessage: errors.clerks
         }) }}
         {{ govukRadios({

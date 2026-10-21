@@ -11,7 +11,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result" }) }}
+      {{ govukBackLink({ text: "Back", href: returnHref }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">{{ code }} - {{ title }}</h1>
       {% if errorSummary %}
@@ -43,14 +43,15 @@
           }) }}
           {{ govukInput({
             id: "time", name: "time",
+            classes: "govuk-input--width-5",
             label: { text: "Hearing time (optional)", classes: "govuk-label--s" },
             hint: { text: "For example, 14:30" },
             value: values.time, errorMessage: errors.time
           }) }}
         {% endif %}
         <div class="govuk-button-group">
-          {{ govukButton({ text: "Continue" }) }}
-          <a class="govuk-link" href="/record-results" data-route-guard-always="true">Cancel</a>
+          {{ govukButton({ text: "Save changes" if editing else "Continue" }) }}
+          <a class="govuk-link" href="{{ returnHref if editing else '/record-results' }}" data-route-guard-always="true">Cancel</a>
         </div>
       </form>
     </div>

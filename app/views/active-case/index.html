@@ -33,6 +33,15 @@
     }) }}
   {% endif %}
 
+  {% if payoutHolds.holdAll and not accountInactive %}
+    {{ mojAlert({
+      variant: "warning",
+      text: "Payouts are on hold",
+      dismissible: false,
+      disableAutoFocus: true
+    }) }}
+  {% endif %}
+
   {% if hasActiveCourtHearing and not accountInactive %}
     {{ mojAlert({
       variant: "information",
@@ -310,6 +319,26 @@
               <a href="{{ activeCase.applicant.accountHref }}" class="govuk-link" target="_blank" rel="noreferrer">{{ activeCase.applicant.accountNumber or activeCase.caseReference }}</a><br>
               {{ applicantAccountName }}
             </p>
+
+            <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-bottom-5">
+            <section aria-labelledby="payout-status-heading">
+              <h2 id="payout-status-heading" class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
+              {% if payoutHolds.holdAll %}
+                <p class="govuk-body">All payouts are currently on hold.</p>
+              {% else %}
+                {% if payoutHolds.overrideRules === 'yes' %}
+                  <p class="govuk-body">Payout overrides apply.</p>
+                  <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Cheque payments held for</h3>
+                  <p class="govuk-body">{{ payoutHolds.chequeDays }} {{ 'day' if payoutHolds.chequeDays === '1' else 'days' }}</p>
+                  <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Bank payments held for</h3>
+                  <p class="govuk-body">{{ payoutHolds.bankDays }} {{ 'day' if payoutHolds.bankDays === '1' else 'days' }}</p>
+                {% else %}
+                  <p class="govuk-body">Standard payout rules apply.</p>
+                {% endif %}
+              {% endif %}
+              <p class="govuk-body"><a class="govuk-link" href="/active-case/{{ caseId }}/payout-holds">Add or change payout holds</a></p>
+              <hr class="govuk-section-break govuk-section-break--visible">
+            </section>
 
           </div>
 

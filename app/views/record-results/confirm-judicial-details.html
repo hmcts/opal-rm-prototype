@@ -11,7 +11,7 @@
 
       {{ govukSummaryList({ rows: [
         { key: { text: "Judiciary" }, value: { text: pending.judiciary } },
-        { key: { text: "Clerks" }, value: { text: pending.clerks } }
+        { key: { text: "Legal adviser" }, value: { html: pending.clerks | escape if pending.clerks else '<span aria-label="No data">—</span>' } }
       ] }) }}
 
       <form method="post" action="{{ formAction }}">
