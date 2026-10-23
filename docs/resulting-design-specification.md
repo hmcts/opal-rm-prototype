@@ -226,7 +226,7 @@ Show order details, individual term cards, Interest and indexation, and Managing
 | Add terms | Place before term cards. Order selection → term details → creditor details → Check your answers → Save → invoking summary/review. | Visible `Add terms` text. | Reuse existing add-term validation. |
 | Change — selected term | Term details → creditor details → Check your answers → Save changes → invoking summary/review. Preserve the selected term's identity even if display ordering changes. | `Change [term type] [identifying context]`. | Reuse existing term-specific errors. |
 | Creditor account link | Opens the creditor account. | `View creditor account [number] for [name]`. | Not applicable |
-| Interest and indexation / Managing payments | Populated amendment journeys. Within the initial order journey, save returns to Existing order details. Review-entry detours are documented under dependencies. | Specific Change link context. | Reuse the corresponding existing form validation. |
+| Interest and indexation / Managing payments | Populated amendment journeys. Within the initial order journey, save returns to Existing order details. From a review, Save changes and Cancel return directly to the invoking review. | Specific Change link context. | Reuse the corresponding existing form validation. |
 | Continue | At least one term required on the order route. Continue to the optional further-results question. | Visible button text. | Do not allow completion of an empty order route. |
 
 Success alerts after saving: `Order details updated`, `Order terms added`, `Order terms updated`, `Interest and indexation updated`, `Managing payments updated`. Show once at the actual return destination.
@@ -328,6 +328,8 @@ No editable fields. If the selected result no longer exists, do not remove anoth
 
 ## 14. Check and submit for validation
 
+Group Order details, all order-term cards, Interest and indexation and Managing payments under one section heading: **Changes to order terms**. Place **Add or amend order terms** and **Remove all changes to order terms** together at the top, before every summary card. Do not repeat the former Order details, Order terms or Additional order information section headings; retain the individual card titles. Cards in this review section have no Change links. Use Add or amend order terms to open Existing order details, where card-level editing remains available. Apply this grouping to rejected reviews and read-only checker views, with editing buttons only on editable inputter reviews.
+
 Route reference: `/record-results/:id/:category/review`  
 Caption: **Record results**; H1: **Check and submit for validation**  
 Screenshot placeholders: _Application with terms_; _Application without order route_; _Enforcement_; _No results_; _Submission error_.
@@ -351,15 +353,20 @@ Successful submission returns to **Outstanding hearings**, retaining court/date 
 | --- | --- | --- |
 | Hearing information: Change | One prefilled page; shared-details confirmation if applicable. | Original review. |
 | Order details: Change | One prefilled page; Save changes. | Original review. |
-| Order term: Change | Term details → creditor details → Check your answers → Save changes. | Original review. |
-| Add terms | Order selection → term details → creditor details → Check your answers. | Original review. |
+| Order term: Change | Term details → creditor details → Check your answers → Save changes → Existing order details. | Continue from Existing order details returns to the original review. |
+| Add or amend order terms | Existing order details → review/amend existing terms or add terms. Continue returns to review. | Original review. |
+| Remove all changes to order terms | Confirmation → Yes - remove changes discards the complete proposed order outcome. | Original review with a one-time dismissible success alert. |
 | Add results | Standalone blank selector → code-specific Result details. | Original review. |
 | Individual result: Change | Selected result's prefilled details directly → Save changes. | Original review. |
 | Individual result: Remove | Confirmation → Yes - remove. | Original review, including when no results remain. |
+| Interest and indexation: Change | Populated single-page edit → Save changes. | Original review. |
+| Managing payments: Change | Populated single-page edit → Save changes. | Original review. |
 
 ### Page-specific errors
 
-A mandatory-result hearing with No results cannot be submitted. The current prototype redirects to Add results on Submit; a review-page error summary linked to Add results would be a content/interaction improvement, not an already agreed exact message. The review itself must remain accessible before submission with an empty Results section.
+A hearing with No results cannot be submitted unless the inputter selected Add or amend order terms. That selection represents a VARY result behind the scenes; no check for actual changes to existing terms is required. When this is the only result, the pending submission uses code VARY and the manual Results section remains empty.
+
+If neither a manual result nor that selection is present, remain on the invoking review and show an error summary linked to Results: `Add at least one result or select Add or amend order terms before submitting for validation` for Applications, or `Add at least one result before submitting for validation` for Enforcement. Apply this validation to new and rejected submissions. An empty Results section remains accessible before submission.
 
 At least one order term must be present for the Application order route. Do not apply any proposed order changes or create proposed hearings at this stage.
 
@@ -460,7 +467,7 @@ These items must remain visible when handing this specification to delivery team
 | Multiple created Application hearings | Agreed target; reviewed submission/validation code retained only one proposed hearing and needs extension. |
 | Cancellation snapshots and origin | Agreed target; global leave confirmation alone does not establish draft discard, local rollback or return-to-entry semantics. |
 | Review removal | Check and submit now supports last-result removal without redirecting away. Apply consistent controls/return behaviour to the rejected inputter review as needed. |
-| Interest/indexation and Managing payments from review | Existing prototype detour: save → Existing order details → Add results → Check and submit. A direct return for these two sections was not separately agreed; do not silently claim it. |
+| Interest/indexation and Managing payments from review | Fixed following the demo: both Change links open populated forms and save directly to the invoking new or rejected review. Cancel also returns to that review. |
 | Empty states and some exact errors | Proposed/unspecified copy is identified in the relevant sections. Confirm copy without changing the already agreed business rules. |
 | Legal adviser and rejection-reason limits | 250 and 255 respectively are existing prototype baselines, not additional decisions from the 32-point review. Confirm if service rules differ. |
 | Personal/checker queue sort defaults | Newest-first is existing prototype behaviour; initial/tie-break rules for those queues were not explicitly agreed. |

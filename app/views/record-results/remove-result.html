@@ -13,7 +13,7 @@
       }, rows: [
         { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
         { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
-        { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date } } if result.proposedHearing
+        { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing
       ] }) }}
 
       <form method="post" action="{{ formAction }}">

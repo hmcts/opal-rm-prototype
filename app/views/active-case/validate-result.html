@@ -9,10 +9,14 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/timeline/macro.njk" import mojTimeline %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% block pageTitle %}{% if errorSummary %}Error: {% endif %}Review hearing result - {{ activeCase.respondentName }} - {{ serviceName }}{% endblock %}
 
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       {{ govukBackLink({ text: "Back", href: backHref }) }}
@@ -43,56 +47,58 @@
       {% endif %}
       {{ govukSummaryList({ card: hearingCard, rows: hearingRows }) }}
 
-      {% if proposedOrderDetailsRows.length %}
-        <h2 class="govuk-heading-m">Order details</h2>
+      {% if proposedOrderDetailsRows.length or proposedOrderTerms.length or proposedInterestRows.length or (canChangeResult and isApplicationHearing) %}
+        <section aria-labelledby="order-changes-heading">
+        <h2 id="order-changes-heading" class="govuk-heading-m">{{ "Add or amend order terms" if canChangeResult else "Changes to order terms" }}</h2>
         <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
-        {% set orderCard = { title: { text: "Order details" } } %}
         {% if canChangeResult %}
-          {% set orderCard = { title: { text: "Order details" }, actions: { items: [{ text: "Change", href: orderDetailsChangeHref, visuallyHiddenText: "order details" }] } } %}
+          <div class="govuk-button-group">
+            {{ govukButton({ text: "Add or amend order terms" if hasProposedOrderChanges else "Add or amend terms", href: addTermsHref, classes: "govuk-button--secondary" }) }}
+            {% if hasProposedOrderChanges %}
+              {{ govukButton({ text: "Remove all changes from result", href: removeOrderChangesHref, classes: "govuk-button--secondary" }) }}
+            {% endif %}
+          </div>
         {% endif %}
+        {% if isApplicationHearing and not hasProposedOrderChanges %}
+          <p class="govuk-body">Hearing did not result in changes to order terms.</p>
+        {% endif %}
+      {% if proposedOrderDetailsRows.length %}
+        {% set orderCard = { title: { text: "Order details" } } %}
         {{ govukSummaryList({ card: orderCard, rows: proposedOrderDetailsRows }) }}
       {% endif %}
 
       {% if proposedOrderTerms.length or canChangeResult %}
-        <h2 class="govuk-heading-m">Order terms</h2>
-        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
-        {% if canChangeResult %}
-          {{ govukButton({ text: "Add terms", href: addTermsHref, classes: "govuk-button--secondary" }) }}
-        {% endif %}
         {% for term in proposedOrderTerms %}
           {% set termCard = { title: { text: term.title } } %}
-          {% if canChangeResult %}
-            {% set termCard = { title: { text: term.title }, actions: { items: [{ text: "Change", href: term.changeHref, visuallyHiddenText: term.title }] } } %}
-          {% endif %}
           {{ govukSummaryList({ card: termCard, rows: term.rows }) }}
         {% endfor %}
       {% endif %}
 
       {% if proposedInterestRows.length %}
-        <h2 class="govuk-heading-m">Additional order information</h2>
-        <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
         {% set interestCard = { title: { text: "Interest and indexation" } } %}
         {% set paymentsCard = { title: { text: "Managing payments" } } %}
-        {% if canChangeResult %}
-          {% set interestCard = { title: { text: "Interest and indexation" }, actions: { items: [{ text: "Change", href: interestChangeHref, visuallyHiddenText: "interest and indexation" }] } } %}
-          {% set paymentsCard = { title: { text: "Managing payments" }, actions: { items: [{ text: "Change", href: managingPaymentsChangeHref, visuallyHiddenText: "managing payments" }] } } %}
-        {% endif %}
         {{ govukSummaryList({ card: interestCard, rows: proposedInterestRows }) }}
         {{ govukSummaryList({ card: paymentsCard, rows: proposedManagingPaymentsRows }) }}
       {% endif %}
 
-      <h2 class="govuk-heading-m">Results</h2>
+        </section>
+      {% endif %}
+
+      <h2 id="results" class="govuk-heading-m" tabindex="-1">Results</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
       {% if canChangeResult %}
         {{ govukButton({ text: "Add results", href: resultsChangeHref, classes: "govuk-button--secondary" }) }}
       {% endif %}
       {% if not resultCards.length %}
-        <p class="govuk-body">No results</p>
+        <p class="govuk-body">{{ "No other results." if isApplicationHearing and hasProposedOrderChanges and proposedOrderTerms.length else "No results." }}</p>
       {% endif %}
       {% for result in resultCards %}
         {% set resultCard = { title: { text: result.title } } %}
         {% if canChangeResult %}
-          {% set resultCard = { title: { text: result.title }, actions: { items: [{ text: "Change", href: result.changeHref, visuallyHiddenText: "result " + loop.index }] } } %}
+          {% set resultCard = { title: { text: result.title }, actions: { items: [
+            { text: "Change", href: result.changeHref, visuallyHiddenText: "result " + loop.index },
+            { text: "Remove", href: result.removeHref, visuallyHiddenText: "result " + loop.index }
+          ] } } %}
         {% endif %}
         {{ govukSummaryList({ card: resultCard, rows: result.rows }) }}
       {% endfor %}
