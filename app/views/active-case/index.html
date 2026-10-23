@@ -33,10 +33,17 @@
     }) }}
   {% endif %}
 
-  {% if payoutHolds.holdAll and not accountInactive %}
+  {% if (payoutHolds.applyPayments === 'no' or payoutHolds.holdAll) and not accountInactive %}
+    {% if payoutHolds.applyPayments === 'no' and payoutHolds.holdAll %}
+      {% set holdMessage = "Payments received are being held in suspense. Payouts to creditors are on hold." %}
+    {% elif payoutHolds.applyPayments === 'no' %}
+      {% set holdMessage = "Payments received are being held in suspense." %}
+    {% else %}
+      {% set holdMessage = "Payouts to creditors are on hold." %}
+    {% endif %}
     {{ mojAlert({
       variant: "warning",
-      text: "Payouts are on hold",
+      text: holdMessage,
       dismissible: false,
       disableAutoFocus: true
     }) }}
@@ -106,6 +113,7 @@
           { text: "Respondent", href: "/active-case/" + caseId + "?tab=respondent", active: tab === 'respondent' },
           { text: "Authority", href: "/active-case/" + caseId + "?tab=authority", active: tab === 'authority' },
           { text: "Orders", href: "/active-case/" + caseId + "?tab=orders", active: tab === 'orders' },
+          { text: "Payments", href: "/active-case/" + caseId + "?tab=payments", active: tab === 'payments' },
           { text: "Applications", href: "/active-case/" + caseId + "?tab=hearings", active: tab === 'hearings' },
           { text: "Enforcement", href: "/active-case/" + caseId + "?tab=enforcement", active: tab === 'enforcement' },
           { text: "History and notes", href: "/active-case/" + caseId + "?tab=history-and-notes", active: tab === 'history-and-notes' }
@@ -266,6 +274,10 @@
 
         {% include "active-case/_orders.html" %}
 
+      {% elif tab === 'payments' %}
+
+        {% include "active-case/_payments.html" %}
+
       {% elif tab === 'hearings' %}
 
         {% include "active-case/_hearings.html" %}
@@ -320,26 +332,6 @@
               {{ applicantAccountName }}
             </p>
 
-            <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-bottom-5">
-            <section aria-labelledby="payout-status-heading">
-              <h2 id="payout-status-heading" class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
-              {% if payoutHolds.holdAll %}
-                <p class="govuk-body">All payouts are currently on hold.</p>
-              {% else %}
-                {% if payoutHolds.overrideRules === 'yes' %}
-                  <p class="govuk-body">Payout overrides apply.</p>
-                  <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Cheque payments held for</h3>
-                  <p class="govuk-body">{{ payoutHolds.chequeDays }} {{ 'day' if payoutHolds.chequeDays === '1' else 'days' }}</p>
-                  <h3 class="govuk-heading-s govuk-!-margin-bottom-1">Bank payments held for</h3>
-                  <p class="govuk-body">{{ payoutHolds.bankDays }} {{ 'day' if payoutHolds.bankDays === '1' else 'days' }}</p>
-                {% else %}
-                  <p class="govuk-body">Standard payout rules apply.</p>
-                {% endif %}
-              {% endif %}
-              <p class="govuk-body"><a class="govuk-link" href="/active-case/{{ caseId }}/payout-holds">Add or change payout holds</a></p>
-              <p class="govuk-body"><a class="govuk-link" href="/active-case/{{ caseId }}/alternate-payment-references">Manage alternate payment references</a></p>
-              <hr class="govuk-section-break govuk-section-break--visible">
-            </section>
 
           </div>
 
@@ -355,6 +347,8 @@
                   {% set hearingStatusClasses = "govuk-tag--yellow" %}
                 {% elif hearingStatus === "Validation pending" %}
                   {% set hearingStatusClasses = "govuk-tag--orange" %}
+                {% elif hearingStatus === "Result rejected" %}
+                  {% set hearingStatusClasses = "govuk-tag--red" %}
                 {% elif hearingStatus === "Result validated" %}
                   {% set hearingStatusClasses = "govuk-tag--blue" %}
                 {% elif hearingStatus === "Hearing deleted" %}
