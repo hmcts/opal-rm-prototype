@@ -1,0 +1,2143 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Beginner-friendly setup and working guide for the Opal RM prototype">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Resulting journeys — design specification - Opal RM Prototype Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#resulting-journeys-design-specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Opal RM Prototype Docs" class="md-header__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Opal RM Prototype Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Resulting journeys — design specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Opal RM Prototype Docs" class="md-nav__button md-logo" aria-label="Opal RM Prototype Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Opal RM Prototype Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hmcts/opal-rm-prototype" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hmcts/opal-rm-prototype
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../windows-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../macbook-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git-and-github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git and GitHub Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-codex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Codex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github-pages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Pages Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-and-authority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose and authority
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose and authority">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#source-material" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source material
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-system-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-system references
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-shared-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Shared rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Shared rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#roles-states-and-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roles, states and permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-and-accessibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Display and accessibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-journey-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Journey sequence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Journey sequence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#result-requirement-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result requirement matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-resulting-inputter-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Resulting — inputter workspace
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Resulting — inputter workspace">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-all-rejected-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. All rejected results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. All rejected results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-outstanding-hearings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Outstanding hearings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Outstanding hearings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-hearing-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Hearing information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Hearing information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-confirm-shared-judiciary-and-legal-adviser-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Confirm shared Judiciary and Legal adviser changes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Confirm shared Judiciary and Legal adviser changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-hearing-outcome-application-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Hearing outcome — Application only
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Hearing outcome — Application only">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-existing-order-details-and-term-subjourneys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Existing order details and term subjourneys
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Existing order details and term subjourneys">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-add-results-initial-recording-journey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Add results — initial recording journey
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Add results — initial recording journey">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-result-details-reusable-code-driven-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Result details — reusable, code-driven form
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Result details — reusable, code-driven form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-hearing-fields-where-configured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New-hearing fields where configured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addedit-return-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add/edit return behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-remove-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Remove result
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Remove result">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-check-and-submit-for-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Check and submit for validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Check and submit for validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#review-edit-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review edit routes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-cancellation-and-return-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Cancellation and return context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-validate-results-checker-worklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Validate results — checker worklist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Validate results — checker worklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-review-hearing-result-checker-and-submitted-inputter-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Review hearing result — checker and submitted inputter views
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Review hearing result — checker and submitted inputter views">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation-and-rejection-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation and rejection effects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-correct-and-resubmit-a-rejected-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Correct and resubmit a rejected result
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. Correct and resubmit a rejected result">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#page-specific-errors_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page-specific errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-acceptance-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Acceptance checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-dependencies-design-tidy-up-and-prototype-differences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Dependencies, design tidy-up and prototype differences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-traceability-to-the-agreed-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. Traceability to the agreed decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="resulting-journeys-design-specification">Resulting journeys — design specification<a class="headerlink" href="#resulting-journeys-design-specification" title="Permanent link">&para;</a></h1>
+<p>Date: 21 October 2026<br />
+Status: Consolidated design specification for BA review<br />
+Scope: Application and Enforcement hearing results; inputter and checker journeys</p>
+<h2 id="1-purpose-and-authority">1. Purpose and authority<a class="headerlink" href="#1-purpose-and-authority" title="Permanent link">&para;</a></h2>
+<p>This document consolidates the eight BA Markdown write-ups supplied for Resulting and the subsequent decisions agreed with the designer. It describes the intended behaviour, rather than asserting that every rule is already implemented in the prototype.</p>
+<p>Explicit decisions made during the review supersede conflicting wording in the supplied write-ups and older Figma frames. Existing checker behaviour is documented as a prototype baseline where it was not part of those decisions. Remaining dependencies and implementation gaps are listed at the end.</p>
+<p>This is a GOV.UK Prototype Kit prototype. Use session data for draft and proposed changes. This specification does not require a database or production integration. References to shared data describe the intended service behaviour; a prototype session cannot demonstrate sharing between independent users.</p>
+<h3 id="source-material">Source material<a class="headerlink" href="#source-material" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://www.figma.com/design/RPjAMYkSNtrw2S995IuwbW/RM---Cases?node-id=2060-103536">Resulting designs</a></li>
+<li><a href="https://www.figma.com/design/RPjAMYkSNtrw2S995IuwbW/RM---Cases?node-id=5379-10793">Review Add, Change and Remove route map</a></li>
+<li>Supplied BA files: Results (inputter view); Outstanding hearings; Hearing information; Hearing outcome; Existing order details; Add results; Result details; Check and submit for validation.</li>
+<li>Result-code workbook linked from the supplied Result details write-up. Its contents have not been independently verified for this specification; do not infer a complete result-code catalogue from the current prototype.</li>
+</ul>
+<h3 id="design-system-references">Design-system references<a class="headerlink" href="#design-system-references" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://design-system.service.gov.uk/components/button/">GOV.UK buttons</a>, <a href="https://design-system.service.gov.uk/components/back-link/">back links</a> and <a href="https://design-system.service.gov.uk/components/tabs/">tabs</a></li>
+<li><a href="https://design-system.service.gov.uk/components/table/">GOV.UK tables</a> and <a href="https://design-system.service.gov.uk/components/summary-list/">summary lists/cards</a></li>
+<li><a href="https://design-system.service.gov.uk/components/text-input/">GOV.UK text inputs</a>, <a href="https://design-system.service.gov.uk/components/character-count/">character count</a>, <a href="https://design-system.service.gov.uk/components/radios/">radios</a> and <a href="https://design-system.service.gov.uk/components/checkboxes/">checkboxes</a></li>
+<li><a href="https://design-system.service.gov.uk/components/error-summary/">GOV.UK error summaries</a>, <a href="https://design-system.service.gov.uk/components/error-message/">error messages</a> and <a href="https://design-system.service.gov.uk/patterns/check-answers/">check answers</a></li>
+<li><a href="https://govuk-prototype-components.x-govuk.org/">GOV.UK Prototype Components</a></li>
+<li><a href="https://design-patterns.service.justice.gov.uk/components/date-picker/">MOJ date picker</a>, <a href="https://design-patterns.service.justice.gov.uk/components/sortable-table/">sortable table</a>, <a href="https://design-patterns.service.justice.gov.uk/components/pagination/">pagination</a>, <a href="https://design-patterns.service.justice.gov.uk/components/alert/">alert</a> and <a href="https://design-patterns.service.justice.gov.uk/components/timeline/">timeline</a></li>
+</ul>
+<p>Use established Nunjucks macros and design-system utilities. Do not introduce custom CSS or custom interaction patterns to match a frame.</p>
+<h2 id="2-shared-rules">2. Shared rules<a class="headerlink" href="#2-shared-rules" title="Permanent link">&para;</a></h2>
+<h3 id="roles-states-and-permissions">Roles, states and permissions<a class="headerlink" href="#roles-states-and-permissions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Inputter behaviour</th>
+<th>Checker behaviour</th>
+<th>Account effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Result pending</td>
+<td>Record the hearing result.</td>
+<td>Not yet a submitted result to validate.</td>
+<td>Draft changes are not applied.</td>
+</tr>
+<tr>
+<td>Validation pending</td>
+<td>View the submitted result read-only.</td>
+<td>Review, validate or reject.</td>
+<td>Proposed order changes, remission and new hearings remain unapplied.</td>
+</tr>
+<tr>
+<td>Result rejected</td>
+<td>View review history, correct the draft and resubmit.</td>
+<td>View the rejected submission/history.</td>
+<td>Rejected proposals are not applied.</td>
+</tr>
+<tr>
+<td>Validated</td>
+<td>Excluded from outstanding and pending queues. No 24-hour Validated tab.</td>
+<td>Validation is recorded in history.</td>
+<td>Apply the validated proposals.</td>
+</tr>
+</tbody>
+</table>
+<p>Judiciary and Legal adviser are an exception to deferred account changes: confirmed shared personnel updates affect all hearings at the same court on the same date, including already validated hearings. Do not describe these shared metadata updates as waiting for result validation.</p>
+<h3 id="display-and-accessibility">Display and accessibility<a class="headerlink" href="#display-and-accessibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Keep primary navigation on Resulting, Outstanding hearings, All rejected results and Validate results worklists.</li>
+<li>Account links show the linked account number, then <code>LASTNAME, Firstname</code> underneath on lists and review screens. Hearing information uses the contextual display name, for example <code>Mr Piotr NOWAK</code>.</li>
+<li>Format monetary summaries as <code>£500.00</code> and <code>£1,000.00</code>. Retain payment frequency where relevant, for example <code>£500.00 monthly</code>.</li>
+<li>Table dates use <code>DD MMM YYYY</code>, for example <code>01 Oct 2026</code>. Date entry uses <code>DD/MM/YYYY</code>. Hearing-context summaries use day, full month and year.</li>
+<li>Where a summary field has no data, show an em dash with an accessible name of <code>No data</code>, for example <code>&lt;span aria-label="No data"&gt;—&lt;/span&gt;</code>.</li>
+<li>Use actual names in attendance questions, not placeholder tokens or “Defendant”.</li>
+<li>Paginate lists with more than 25 rows using MOJ pagination. Preserve filters and sorting across pages.</li>
+<li>Use native labels and component semantics. Add visually hidden context to repeated links rather than replacing visible labels with unrelated ARIA labels.</li>
+<li>Errors appear in a GOV.UK error summary and beside the field. Summary links target the relevant field. Preserve submitted values and use standard focus behaviour.</li>
+<li>Removal success messages use MOJ alert with <code>variant: "success"</code> and <code>dismissible: true</code>. Store before redirecting, consume on the destination and do not repeat on refresh.</li>
+</ul>
+<h2 id="3-journey-sequence">3. Journey sequence<a class="headerlink" href="#3-journey-sequence" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Open Outstanding hearings from Resulting or Cases, or start Record result from the account's relevant hearing.</li>
+<li>Select a Result pending hearing and complete Hearing information.</li>
+<li>For an Application, choose Hearing outcome. Enforcement bypasses this screen.</li>
+<li>On the Application order route, review existing orders and optionally add/amend terms.</li>
+<li>Record results through the initial Add results journey. At least one result is required except on the Application order route with at least one term.</li>
+<li>Check and submit for validation. Add, change or remove results from review as needed.</li>
+<li>Submit and return to Outstanding hearings with the court/date filters retained.</li>
+<li>The checker validates or rejects the submission.</li>
+<li>A rejected result can be corrected by an inputter and resubmitted.</li>
+</ol>
+<h3 id="result-requirement-matrix">Result requirement matrix<a class="headerlink" href="#result-requirement-matrix" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Hearing and route</th>
+<th>Can review show No results?</th>
+<th>Can submit with No results?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application: Add or amend order terms, with at least one term</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Application: No order terms to add or amend</td>
+<td>Yes, including after removing the final result</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Enforcement</td>
+<td>Yes, including after removing the final result</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>Do not force a user away from review simply because they removed the last result. Enforce the submission requirement when they attempt to submit.</p>
+<h2 id="4-resulting-inputter-workspace">4. Resulting — inputter workspace<a class="headerlink" href="#4-resulting-inputter-workspace" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results</code><br />
+H1: <strong>Resulting</strong><br />
+Screenshot placeholders: <em>Validation pending tab</em>; <em>Rejected tab</em>; <em>empty personal worklist</em>.</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Content and behaviour</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Record results</td>
+<td>Opens Outstanding hearings.</td>
+<td>Visible button text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Validation pending</td>
+<td>Personal submitted results awaiting validation. Each row opens a read-only review.</td>
+<td>GOV.UK tab semantics and associated panel.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Rejected</td>
+<td>Personal rejected submissions, with rejection count badge. Each row opens the correction review.</td>
+<td>Expose the badge count with its tab context.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Personal scope text</td>
+<td>Pending: <code>Showing only results you have submitted.</code> Rejected: <code>Showing only results you submitted. To resubmit results for other team members, you can view all rejected results.</code></td>
+<td>The final phrase is a descriptive link.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Table</td>
+<td>Respondent account; Applicant account; Court; Hearing date; Action. All displayed columns, including Action, are sortable.</td>
+<td>MOJ sortable headers; <code>aria-sort</code> reflects the active sort. Account links identify party and number; View result identifies the hearing parties.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>View all rejected results</td>
+<td>Opens the all-users rejected worklist.</td>
+<td><code>View all rejected results</code>.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>There is no Validated tab and no “validated in the last 24 hours” rule. The existing newest-first personal queue order is a prototype baseline, not the Outstanding hearings oldest-first decision.</p>
+<h3 id="page-specific-errors">Page-specific errors<a class="headerlink" href="#page-specific-errors" title="Permanent link">&para;</a></h3>
+<p>None for viewing tabs. Empty results are a normal state, not a validation error. Empty-state copy for personal queues remains to be confirmed; do not render a meaningless empty table.</p>
+<h2 id="5-all-rejected-results">5. All rejected results<a class="headerlink" href="#5-all-rejected-results" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/all-rejected</code><br />
+H1: <strong>All rejected results</strong><br />
+Screenshot placeholders: <em>All rejected results populated</em>; <em>All rejected results empty</em>.</p>
+<p>Show rejected hearing results submitted by any user, rather than just the signed-in user's submissions. Keep primary navigation and a return link to the personal Rejected tab. A View result link opens the selected rejected result and its correction journey.</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Content and behaviour</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Table</td>
+<td>Party account links, Court, Hearing date, Submitted by and Action. Use sortable headers and pagination. Submitted by follows the existing all-users worklist baseline.</td>
+<td>Account and action context as on Resulting; <code>aria-sort</code> on sortable headers.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Empty state</td>
+<td>Show a clear no-rejected-results message and the return link; no empty table. Exact copy is still a content dependency.</td>
+<td>Normal paragraph; no error role.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="page-specific-errors_1">Page-specific errors<a class="headerlink" href="#page-specific-errors_1" title="Permanent link">&para;</a></h3>
+<p>None for an empty worklist. Only eligible rejected submissions may be edited; direct navigation must respect the hearing's current state.</p>
+<h2 id="6-outstanding-hearings">6. Outstanding hearings<a class="headerlink" href="#6-outstanding-hearings" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/list-hearings</code> — the URL may remain unchanged when the screen is renamed.<br />
+H1 and navigation label: <strong>Outstanding hearings</strong><br />
+Screenshot placeholders: <em>Unfiltered list</em>; <em>Court/date filtered list</em>; <em>No matching hearings</em>; <em>Invalid date</em>.</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Back to Resulting</td>
+<td>Returns to personal Resulting.</td>
+<td>Visible link text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Select a court</td>
+<td>Optional court selection/autocomplete. Court and date can be used separately or together.</td>
+<td>Label associated with control.</td>
+<td>None for blank</td>
+</tr>
+<tr>
+<td>Hearing date</td>
+<td>Optional MOJ date picker; valid calendar date in DD/MM/YYYY when supplied.</td>
+<td>Date-picker labels and keyboard behaviour.</td>
+<td><code>Enter a valid hearing date</code>; format error: <code>Date must be in the format DD/MM/YYYY</code></td>
+</tr>
+<tr>
+<td>Filter</td>
+<td>Apply supplied filters to the eligible hearing list.</td>
+<td>Visible button text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Clear filter</td>
+<td>Clear court/date and restore the full eligible list.</td>
+<td>Visible link/button text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Hearings to result and validate</td>
+<td>Respondent account; Applicant account; Court; Hearing date; Hearing status; Action. No Hearing type column.</td>
+<td>Sortable header semantics; contextual account/action links.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Record result</td>
+<td>Only for Result pending; opens Hearing information.</td>
+<td><code>Record result for [respondent] and [applicant]</code>.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>View result</td>
+<td>For Validation pending or Result rejected; opens the appropriate review.</td>
+<td><code>View result for [respondent] and [applicant]</code>.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>Include Result pending, Validation pending and Result rejected; exclude validated hearings. Initially load without filters. Default sort: hearing date ascending, then court A–Z, then respondent surname A–Z. Use real dates and names for sorting rather than formatted strings. Show at most 25 hearings per page.</p>
+<h3 id="page-specific-errors_2">Page-specific errors<a class="headerlink" href="#page-specific-errors_2" title="Permanent link">&para;</a></h3>
+<p>An invalid filter date prevents filtering and retains the entered court/date for correction. No-match and no-outstanding-hearing states are informational, not errors. Exact empty-state copy remains a content dependency.</p>
+<h2 id="7-hearing-information">7. Hearing information<a class="headerlink" href="#7-hearing-information" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/information</code><br />
+Caption: <strong>Record results</strong>; H1: <strong>Hearing information</strong><br />
+Screenshot placeholders: <em>Application</em>; <em>Enforcement with remission expanded</em>; <em>Field errors</em>.</p>
+<p>Read-only context: Court, Hearing date, Respondent, Applicant and Hearing type. Use the actual type of the selected hearing.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Judiciary</td>
+<td>Required GOV.UK character-count textarea; maximum 250 characters. Prefill shared session values when present.</td>
+<td>Label <code>Judiciary</code>; component supplies counter/error descriptions.</td>
+<td><code>Enter the judiciary</code>; <code>Judiciary must be 250 characters or fewer</code></td>
+</tr>
+<tr>
+<td>Legal adviser (optional)</td>
+<td>Single-line text input. Hint: <code>Required if judiciary were Magistrates</code>. Optional because the system cannot reliably determine whether free-text Judiciary represents magistrates. Existing prototype maximum is 250 characters.</td>
+<td>Label and hint associated with input.</td>
+<td>No blank-field error. Existing limit error: <code>Legal adviser must be 250 characters or fewer</code></td>
+</tr>
+<tr>
+<td>Was [person's name] present?</td>
+<td>Required inline Yes/No radios. Application: the person who did not make the application. Enforcement: the account respondent.</td>
+<td>Named legend; retain radio group semantics.</td>
+<td><code>Select whether [person's name] was present</code></td>
+</tr>
+<tr>
+<td>Should arrears be remitted?</td>
+<td>Enforcement only; required Yes/No radios. Yes reveals the amount. No omits the proposed remission amount.</td>
+<td>Legend and conditional association provided by macro.</td>
+<td><code>Select whether arrears should be remitted</code></td>
+</tr>
+<tr>
+<td>How much arrears should be remitted?</td>
+<td>Required when Yes. GBP input with £ prefix. Accept whole pounds or exactly two decimal places: 500, 500.00, 500.50. Reject 500.5. Must be greater than zero and no more than account total arrears.</td>
+<td>Explicit label and linked error; prefix does not replace label.</td>
+<td>See remission errors below.</td>
+</tr>
+</tbody>
+</table>
+<p>Initial Continue: Application → Hearing outcome; Enforcement → Add results. Review edit: <strong>Save changes</strong> → original review, through shared-details confirmation where required.</p>
+<p>When shared values are prefilled, explain: <code>If you change Judiciary or Legal adviser, you will be asked to confirm the update for all hearings at this court on this date.</code></p>
+<h3 id="page-specific-errors_3">Page-specific errors<a class="headerlink" href="#page-specific-errors_3" title="Permanent link">&para;</a></h3>
+<p>Proposed exact remission copy for BA content review:</p>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Error message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Yes selected but amount blank</td>
+<td><code>Enter an amount to remit in pounds</code></td>
+</tr>
+<tr>
+<td>Invalid number, negative amount, or unsupported decimal precision</td>
+<td><code>Enter an amount in pounds using whole pounds or 2 decimal places</code></td>
+</tr>
+<tr>
+<td>Amount is zero</td>
+<td><code>Enter an amount greater than £0.00</code></td>
+</tr>
+<tr>
+<td>Amount exceeds total arrears</td>
+<td><code>Enter an amount no more than the total arrears of [formatted total]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Total arrears means the total across the account's order terms, not only the term most recently edited. Trim surrounding whitespace before validation. Do not silently round invalid input.</p>
+<h2 id="8-confirm-shared-judiciary-and-legal-adviser-changes">8. Confirm shared Judiciary and Legal adviser changes<a class="headerlink" href="#8-confirm-shared-judiciary-and-legal-adviser-changes" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/confirm-judicial-details</code><br />
+H1: <strong>Change the judiciary details for this session?</strong><br />
+Screenshot placeholders: <em>Proposed judge details</em>; <em>Proposed magistrates and Legal adviser details</em>.</p>
+<p>Show when previously stored shared Judiciary or Legal adviser values are changed, including through a review Change link. First-time entry where no shared details exist does not require a change confirmation.</p>
+<p>Explain: <strong>This change will update Judiciary and Legal adviser details for all hearings at this court on this date, including already validated hearings.</strong> This wording consolidates the agreed scope and is proposed copy for BA review.</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Behaviour</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Judiciary / Legal adviser</td>
+<td>Read-only proposed values. Blank Legal adviser is an em dash.</td>
+<td>Blank value has accessible name <code>No data</code>.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Update all hearings</td>
+<td>Apply shared values to every hearing in scope, regardless of result status. Continue to the normal next step, or original review if editing from review.</td>
+<td>Visible button text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Revert to original details</td>
+<td>Restore original shared values and return to Hearing information.</td>
+<td>Visible link text.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="page-specific-errors_4">Page-specific errors<a class="headerlink" href="#page-specific-errors_4" title="Permanent link">&para;</a></h3>
+<p>No form fields. Do not apply proposed shared edits before confirmation. Cancelling a wider result draft does not undo a previously confirmed shared update affecting other hearings.</p>
+<h2 id="9-hearing-outcome-application-only">9. Hearing outcome — Application only<a class="headerlink" href="#9-hearing-outcome-application-only" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/application/outcome</code><br />
+Caption: <strong>Record results</strong>; H1: <strong>Hearing outcome</strong><br />
+Screenshot placeholder: <em>Application outcome options</em>.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What was the outcome of the hearing?</td>
+<td>Required radios: <code>Add or amend order terms</code>; <code>No order terms to add or amend</code>.</td>
+<td>Group legend and labelled options.</td>
+<td><code>Select the outcome of the hearing</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Add or amend order terms → Existing order details. At least one term must exist when completing this route. If none exist, start the add-term journey.</li>
+<li>Existing terms may be accepted unchanged; the user does not have to make an amendment.</li>
+<li>No order terms to add or amend → initial blank result selector; at least one result is required before submission.</li>
+<li>Back → Hearing information. Enforcement bypasses Hearing outcome.</li>
+</ul>
+<h3 id="page-specific-errors_5">Page-specific errors<a class="headerlink" href="#page-specific-errors_5" title="Permanent link">&para;</a></h3>
+<p>No additional errors beyond the missing outcome selection. Retain the user's selection after any validation error.</p>
+<h2 id="10-existing-order-details-and-term-subjourneys">10. Existing order details and term subjourneys<a class="headerlink" href="#10-existing-order-details-and-term-subjourneys" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/application/order-terms</code> (summary); <code>/record-results/:id/application/order-details</code> (order-details edit).<br />
+Caption: <strong>Record results</strong>; H1: <strong>Existing order details</strong><br />
+Screenshot placeholders: <em>Existing terms</em>; <em>No terms/add-term entry</em>; <em>Updated proposal with success alert</em>.</p>
+<p>Show order details, individual term cards, Interest and indexation, and Managing payments. Display proposed edits without applying them to the live account.</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Rules and navigation</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Order details summary</td>
+<td>Application code/description, Court that made the order, Date order made, Payment frequency, Date arrears last updated.</td>
+<td>Standard summary list semantics.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Change — Order details</td>
+<td>Populated single-page edit → Save changes → invoking summary/review.</td>
+<td><code>Change order details</code>.</td>
+<td>Reuse the existing order-details field errors.</td>
+</tr>
+<tr>
+<td>Add terms</td>
+<td>Place before term cards. Order selection → term details → creditor details → Check your answers → Save → invoking summary/review.</td>
+<td>Visible <code>Add terms</code> text.</td>
+<td>Reuse existing add-term validation.</td>
+</tr>
+<tr>
+<td>Change — selected term</td>
+<td>Term details → creditor details → Check your answers → Save changes → invoking summary/review. Preserve the selected term's identity even if display ordering changes.</td>
+<td><code>Change [term type] [identifying context]</code>.</td>
+<td>Reuse existing term-specific errors.</td>
+</tr>
+<tr>
+<td>Creditor account link</td>
+<td>Opens the creditor account.</td>
+<td><code>View creditor account [number] for [name]</code>.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Interest and indexation / Managing payments</td>
+<td>Populated amendment journeys. Within the initial order journey, save returns to Existing order details. Review-entry detours are documented under dependencies.</td>
+<td>Specific Change link context.</td>
+<td>Reuse the corresponding existing form validation.</td>
+</tr>
+<tr>
+<td>Continue</td>
+<td>At least one term required on the order route. Continue to the optional further-results question.</td>
+<td>Visible button text.</td>
+<td>Do not allow completion of an empty order route.</td>
+</tr>
+</tbody>
+</table>
+<p>Success alerts after saving: <code>Order details updated</code>, <code>Order terms added</code>, <code>Order terms updated</code>, <code>Interest and indexation updated</code>, <code>Managing payments updated</code>. Show once at the actual return destination.</p>
+<h3 id="page-specific-errors_6">Page-specific errors<a class="headerlink" href="#page-specific-errors_6" title="Permanent link">&para;</a></h3>
+<p>The summary has no editable fields. Field-specific order/term rules remain owned by the existing order specifications; this document does not invent additional limits. The order-route minimum of one term must be enforced before submission.</p>
+<h2 id="11-add-results-initial-recording-journey">11. Add results — initial recording journey<a class="headerlink" href="#11-add-results-initial-recording-journey" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/add-result</code><br />
+Caption: <strong>Record results</strong>; H1: <strong>Add results</strong><br />
+Screenshot placeholders: <em>Initial blank selector</em>; <em>Optional further-results question</em>; <em>Results added with question</em>.</p>
+<table>
+<thead>
+<tr>
+<th>Entry state</th>
+<th>Display</th>
+<th>Continue behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application without order route; Enforcement; no results yet</td>
+<td>Blank Select a result control.</td>
+<td>Select a code → Result details.</td>
+</tr>
+<tr>
+<td>Application order route with terms; no results yet</td>
+<td><code>Do you have any more results to add for this case?</code> Yes/No radios. Yes reveals a blank result selector.</td>
+<td>Yes and selected code → Result details; No → review.</td>
+</tr>
+<tr>
+<td>One or more results added</td>
+<td>Result cards with Change and Remove, followed by the further-results question.</td>
+<td>Yes → blank selector then details; No → review.</td>
+</tr>
+</tbody>
+</table>
+<p>Duplicate result codes are allowed. Treat each entry as a separate result. After adding a result in this initial journey, return to Add results with the updated cards and further-results question.</p>
+<table>
+<thead>
+<tr>
+<th>Field / link</th>
+<th>Component and rule</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Select a result</td>
+<td>Supported autocomplete/select, blank for each new result; choices from reference data. Required when adding.</td>
+<td>Explicit label, no placeholder-only label.</td>
+<td><code>Select a result</code></td>
+</tr>
+<tr>
+<td>Do you have any more results to add for this case?</td>
+<td>Required Yes/No selection when this question is displayed.</td>
+<td>Group legend and conditional association to selector.</td>
+<td><code>Select whether you have any more results to add for this case</code></td>
+</tr>
+<tr>
+<td>Change</td>
+<td>Opens selected result's prefilled Result details directly; no code-selection step.</td>
+<td><code>Change [code and description], result [position]</code>.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Remove</td>
+<td>Opens confirmation for that entry.</td>
+<td><code>Remove [code and description], result [position]</code>.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="page-specific-errors_7">Page-specific errors<a class="headerlink" href="#page-specific-errors_7" title="Permanent link">&para;</a></h3>
+<p>Do not require the result selector when the user chooses No. Do not require an answer to the further-results question when using the standalone selector from review, because that question is not displayed there.</p>
+<h2 id="12-result-details-reusable-code-driven-form">12. Result details — reusable, code-driven form<a class="headerlink" href="#12-result-details-reusable-code-driven-form" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/result-details</code><br />
+Caption: <strong>Record results</strong>; H1: <strong>[Result code] – [Result description]</strong><br />
+Screenshot placeholders: <em>Code-specific add form</em>; <em>Prefilled edit form</em>; <em>MADJ hearing details</em>; <em>Validation errors</em>.</p>
+<p>There are no permanent result-specific fields shared by every result. The workbook defines each code's field labels, grouping, order, hints, options, optional/required status and validation. Do not add a generic Reason field to codes that do not define one.</p>
+<table>
+<thead>
+<tr>
+<th>Configured type</th>
+<th>Component and validation</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Date</td>
+<td>MOJ date picker; valid calendar date in DD/MM/YYYY. A newly scheduled hearing may be in the future.</td>
+<td>Associated label, hint and error; component date-picker semantics.</td>
+<td><code>Enter [field]</code>; <code>[Field] must be in the format DD/MM/YYYY</code>; <code>Enter a valid [field]</code></td>
+</tr>
+<tr>
+<td>Decimal, maximum 2 decimal places</td>
+<td>GOV.UK input; configured unit/prefix, bounds and precision. Do not assume remission's exact precision rule applies to every decimal field.</td>
+<td>Associated label/hint/error.</td>
+<td><code>Enter [field]</code>; <code>Enter [field] using no more than 2 decimal places</code>; configured bound error.</td>
+</tr>
+<tr>
+<td>Integer</td>
+<td>GOV.UK input; whole number and configured bounds.</td>
+<td>Associated label/hint/error.</td>
+<td><code>Enter [field]</code>; <code>[Field] must be a whole number</code>; configured bound error.</td>
+</tr>
+<tr>
+<td>Menu: select/autocomplete</td>
+<td>Standard select/autocomplete from configured choices.</td>
+<td>Accessible combobox/select semantics.</td>
+<td><code>Select [field]</code></td>
+</tr>
+<tr>
+<td>Menu: one choice, fewer than 6 options</td>
+<td>GOV.UK radios.</td>
+<td>Fieldset legend and labelled options.</td>
+<td><code>Select [field]</code></td>
+</tr>
+<tr>
+<td>Menu: multiple choices</td>
+<td>GOV.UK checkboxes; configured minimum/maximum selection if defined.</td>
+<td>Fieldset legend and labelled options.</td>
+<td><code>Select [field]</code>; configured selection-limit error.</td>
+</tr>
+<tr>
+<td>Text, maximum 60 characters</td>
+<td>GOV.UK single-line input.</td>
+<td>Label plus hint/error association.</td>
+<td><code>Enter [field]</code>; <code>[Field] must be 60 characters or fewer</code></td>
+</tr>
+<tr>
+<td>Text, maximum 1,000 characters</td>
+<td>GOV.UK character-count textarea.</td>
+<td>Label plus counter/error association.</td>
+<td><code>Enter [field]</code>; <code>[Field] must be 1,000 characters or fewer</code></td>
+</tr>
+</tbody>
+</table>
+<p>These are component/error patterns, not a substitute for the missing per-code workbook mapping. Exact field wording must be populated from that source.</p>
+<h3 id="new-hearing-fields-where-configured">New-hearing fields where configured<a class="headerlink" href="#new-hearing-fields-where-configured" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Rule</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Court</td>
+<td>Required; unselected for a newly added result. Prefill the stored value when changing an existing result.</td>
+<td>Label associated with select/autocomplete.</td>
+<td><code>Select a court</code></td>
+</tr>
+<tr>
+<td>Hearing venue (optional)</td>
+<td>Optional text input unless the code configuration defines otherwise.</td>
+<td>Visible label.</td>
+<td>Configured type/length error only.</td>
+</tr>
+<tr>
+<td>Hearing date</td>
+<td>Required valid date; future dates allowed.</td>
+<td>MOJ date picker.</td>
+<td><code>Enter a hearing date</code>; <code>Date must be in the format DD/MM/YYYY</code>; <code>Enter a valid hearing date</code></td>
+</tr>
+<tr>
+<td>Hearing time (optional)</td>
+<td>Compact GOV.UK width-5 input. Only 24-hour HH:MM: 00:00–23:59. Reject 14.30, 2:30, 24:00 and invalid minutes.</td>
+<td>Label and hint <code>For example, 14:30</code>.</td>
+<td><code>Enter a hearing time in the format HH:MM</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every hearing created by a result belongs under Applications, including when the originating hearing was Enforcement. There is no limit on the number of Application hearings created. Process each configured new-hearing result; do not retain only the first proposed hearing. Creation happens on validation, not draft save or submission.</p>
+<h3 id="addedit-return-behaviour">Add/edit return behaviour<a class="headerlink" href="#addedit-return-behaviour" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Entry</th>
+<th>Action</th>
+<th>Destination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial Add results</td>
+<td>Continue with valid details</td>
+<td>Initial Add results, updated card list and further-results question.</td>
+</tr>
+<tr>
+<td>Add results button on review</td>
+<td>Standalone blank selector → Result details → Continue</td>
+<td>Original review, with the additional result. No existing cards or further-results question on the standalone selector.</td>
+</tr>
+<tr>
+<td>Change beside a result on review</td>
+<td>Open details directly, prefilled → Save changes</td>
+<td>Original review, updating that entry without duplication.</td>
+</tr>
+<tr>
+<td>Change beside a result on initial Add results</td>
+<td>Open details directly, prefilled → Save changes</td>
+<td>Initial Add results, with <code>Result updated</code> success alert.</td>
+</tr>
+</tbody>
+</table>
+<p>Back returns within the add/edit context; it does not save unsubmitted edits. Cancel follows the context-sensitive cancellation rules below.</p>
+<h3 id="page-specific-errors_8">Page-specific errors<a class="headerlink" href="#page-specific-errors_8" title="Permanent link">&para;</a></h3>
+<p>Validate only configured fields. Missing optional values do not fail validation. Time punctuation is part of the valid HH:MM format, so do not use “Enter only numbers” for a valid colon. Keep the user on the form with values preserved when errors exist.</p>
+<h2 id="13-remove-result">13. Remove result<a class="headerlink" href="#13-remove-result" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/remove-result/:index</code><br />
+H1: <strong>Are you sure you want to remove this result?</strong><br />
+Screenshot placeholders: <em>Confirmation</em>; <em>Review after removal</em>; <em>Review with No results</em>.</p>
+<p>Show the selected result's code, description and applicable details. Remove only that entry, including when another entry has the same code.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Behaviour</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Yes - remove</td>
+<td>Remove the selected draft result; return to the invoking review or initial Add results screen. Show <code>Result removed</code> once with MOJ dismissible success alert.</td>
+<td>Visible confirmation button text.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>No - go back</td>
+<td>Return to invoking screen without removing anything or showing a success message.</td>
+<td>Context identifies the destination.</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>When invoked from review, removing the last result returns to review with <strong>No results</strong> and <strong>Add results</strong>. Do not redirect to Add results on removal. Submission eligibility remains governed by the result requirement matrix.</p>
+<h3 id="page-specific-errors_9">Page-specific errors<a class="headerlink" href="#page-specific-errors_9" title="Permanent link">&para;</a></h3>
+<p>No editable fields. If the selected result no longer exists, do not remove another result by accident. Return to the invoking result list/review; stale-entry message wording is a remaining content dependency.</p>
+<h2 id="14-check-and-submit-for-validation">14. Check and submit for validation<a class="headerlink" href="#14-check-and-submit-for-validation" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/record-results/:id/:category/review</code><br />
+Caption: <strong>Record results</strong>; H1: <strong>Check and submit for validation</strong><br />
+Screenshot placeholders: <em>Application with terms</em>; <em>Application without order route</em>; <em>Enforcement</em>; <em>No results</em>; <em>Submission error</em>.</p>
+<p>Show the inset text <strong>The account will not change until a checker validates the result.</strong> The shared-personnel confirmation separately explains its immediate effect.</p>
+<table>
+<thead>
+<tr>
+<th>Section / control</th>
+<th>Rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Review history</td>
+<td>Show existing submissions/rejections and rejection reasons where applicable, using MOJ timeline.</td>
+<td>Heading <code>Review history</code>; semantic timeline.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Hearing information</td>
+<td>Court, Hearing date, linked party accounts/names, Hearing type, Judiciary, Legal adviser and named attendance question. Remission summary for Enforcement only.</td>
+<td>Standard summary semantics; contextual party links.</td>
+<td>Not applicable</td>
+</tr>
+<tr>
+<td>Order details / Order terms</td>
+<td>Application order-route proposal. Add terms precedes cards; each term has a Change link.</td>
+<td>Unique Change link names include identifying term context.</td>
+<td>Existing order field errors belong to edit forms.</td>
+</tr>
+<tr>
+<td>Additional order information</td>
+<td>Relevant Interest and indexation and Managing payments summaries.</td>
+<td>Contextual Change links.</td>
+<td>Existing edit-form errors.</td>
+</tr>
+<tr>
+<td>Results</td>
+<td>Add results precedes result cards. Each result has Change and Remove. Empty text is exactly <code>No results</code>, with no empty-state Change link.</td>
+<td>Unique action names distinguish duplicate result codes.</td>
+<td>See page-specific submission errors.</td>
+</tr>
+<tr>
+<td>Submit for validation</td>
+<td>Validate route requirements; set status Validation pending and submit the proposal to checker queue.</td>
+<td>Visible button text.</td>
+<td>Do not submit an incomplete proposal.</td>
+</tr>
+</tbody>
+</table>
+<p>Successful submission returns to <strong>Outstanding hearings</strong>, retaining court/date filters, with <strong>Hearing resulted and pending validation.</strong> as a one-time dismissible success alert. If entry was from account details, the agreed submission destination is still Outstanding hearings; cancellation has a different rule.</p>
+<h3 id="review-edit-routes">Review edit routes<a class="headerlink" href="#review-edit-routes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Review action</th>
+<th>Route through screens</th>
+<th>Save destination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hearing information: Change</td>
+<td>One prefilled page; shared-details confirmation if applicable.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Order details: Change</td>
+<td>One prefilled page; Save changes.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Order term: Change</td>
+<td>Term details → creditor details → Check your answers → Save changes.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Add terms</td>
+<td>Order selection → term details → creditor details → Check your answers.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Add results</td>
+<td>Standalone blank selector → code-specific Result details.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Individual result: Change</td>
+<td>Selected result's prefilled details directly → Save changes.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Individual result: Remove</td>
+<td>Confirmation → Yes - remove.</td>
+<td>Original review, including when no results remain.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="page-specific-errors_10">Page-specific errors<a class="headerlink" href="#page-specific-errors_10" title="Permanent link">&para;</a></h3>
+<p>A mandatory-result hearing with No results cannot be submitted. The current prototype redirects to Add results on Submit; a review-page error summary linked to Add results would be a content/interaction improvement, not an already agreed exact message. The review itself must remain accessible before submission with an empty Results section.</p>
+<p>At least one order term must be present for the Application order route. Do not apply any proposed order changes or create proposed hearings at this stage.</p>
+<h2 id="15-cancellation-and-return-context">15. Cancellation and return context<a class="headerlink" href="#15-cancellation-and-return-context" title="Permanent link">&para;</a></h2>
+<p>Remember the journey's original entry point separately from any local review-edit return point.</p>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Confirmed Cancel</th>
+<th>Decline cancellation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recording started from Outstanding hearings</td>
+<td>Discard the unsaved hearing-result draft and proposed order changes. Return to Outstanding hearings with court/date filters retained.</td>
+<td>Stay on the current page with entries intact.</td>
+</tr>
+<tr>
+<td>Recording started from account details</td>
+<td>Discard the unsaved hearing-result draft and proposed order changes. Return to the originating account details screen. Preserve the originating tab where available.</td>
+<td>Stay on the current page.</td>
+</tr>
+<tr>
+<td>Local edit/add opened from review</td>
+<td>Discard only the current unsaved local operation. Preserve the rest of the draft and return to the original review.</td>
+<td>Stay on the edit form.</td>
+</tr>
+<tr>
+<td>Checker Cancel</td>
+<td>Leave without recording a decision and return to the checker worklist.</td>
+<td>No proposed result changes are applied.</td>
+</tr>
+</tbody>
+</table>
+<p>Cancel accessible text identifies the real destination, for example <code>Cancel and return to review</code>, rather than always saying Outstanding hearings. Use the existing leave-confirmation pattern. Confirmed result removal is separate from cancelling an unsaved edit.</p>
+<h2 id="16-validate-results-checker-worklist">16. Validate results — checker worklist<a class="headerlink" href="#16-validate-results-checker-worklist" title="Permanent link">&para;</a></h2>
+<p>Route reference: <code>/validate-results</code><br />
+H1: <strong>Validate results</strong><br />
+Screenshot placeholders: <em>To review</em>; <em>Rejected</em>; <em>Validation success</em>; <em>Rejection success</em>.</p>
+<p>Current prototype baseline: tabs <strong>To review</strong> and <strong>Rejected</strong>. No Validated tab. Keep primary navigation. Columns: Respondent account, Applicant account, Court, Hearing date, Submitted by, Action. Do not include Hearing type. All displayed headers are sortable, with the same accessible sorting treatment as Resulting. The existing checker default is newest hearing date first; the agreed oldest-first rule applies to Outstanding hearings.</p>
+<p>View result opens the selected hearing result. Party account links remain separate from this action. Paginate after 25 rows.</p>
+<h3 id="page-specific-errors_11">Page-specific errors<a class="headerlink" href="#page-specific-errors_11" title="Permanent link">&para;</a></h3>
+<p>No input validation on the list. Empty queues are normal informational states. Exact empty-state copy remains a dependency.</p>
+<h2 id="17-review-hearing-result-checker-and-submitted-inputter-views">17. Review hearing result — checker and submitted inputter views<a class="headerlink" href="#17-review-hearing-result-checker-and-submitted-inputter-views" title="Permanent link">&para;</a></h2>
+<p>Route references: checker <code>/active-case/:id/:category/validate-result</code>; inputter <code>/my-results/:id/:category</code>.<br />
+H1: <strong>Review hearing result</strong><br />
+Screenshot placeholders: <em>Checker pending review</em>; <em>Inputter pending read-only</em>; <em>Rejected review/history</em>; <em>Rejection reason expanded</em>.</p>
+<p>Show status, Review history, hearing information, proposed orders where applicable, and result cards. Party account numbers are links above LASTNAME, Firstname. The checker does not have inputter Change/Add/Remove controls. An inputter's Validation pending view is read-only.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Component and rules</th>
+<th>Accessible name / ARIA</th>
+<th>Field-specific error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Select review decision</td>
+<td>Required radios: <code>Validate hearing result</code>; <code>Reject hearing result</code>. Only shown for a pending result in checker mode.</td>
+<td>Fieldset legend and labelled options.</td>
+<td><code>Select a review decision</code></td>
+</tr>
+<tr>
+<td>Enter reason for rejection</td>
+<td>Conditional GOV.UK character-count textarea when Reject selected. Required; current prototype limit 255 characters.</td>
+<td>Associated label, counter and inline error.</td>
+<td><code>Enter a reason for rejection</code>; <code>Reason for rejection must be 255 characters or fewer</code></td>
+</tr>
+</tbody>
+</table>
+<p>Current prototype action is <strong>Submit</strong>. Figma still includes Continue in a checker frame; reconcile this wording during design tidy-up rather than treating the mismatch as an agreed new step.</p>
+<h3 id="validation-and-rejection-effects">Validation and rejection effects<a class="headerlink" href="#validation-and-rejection-effects" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Validate: apply proposed order changes and remission; create every proposed Application hearing; record validation in history; remove the submission from the pending queue. Return to Validate results with <strong>Hearing result validated. Account changes have been applied.</strong></li>
+<li>Reject: retain the proposal for correction, set Result rejected and add the reason to Review history. Do not apply proposed changes. Return to Validate results with <strong>Hearing result rejected and returned to the inputter.</strong></li>
+<li>Both success alerts are one-time dismissible MOJ success alerts.</li>
+</ul>
+<h3 id="page-specific-errors_12">Page-specific errors<a class="headerlink" href="#page-specific-errors_12" title="Permanent link">&para;</a></h3>
+<p>Retain the chosen decision and reason on error. If the hearing is no longer Validation pending, do not apply another decision based on the stale screen. Stale-state message wording and concurrent-checker behaviour remain outside the agreed prototype decisions.</p>
+<h2 id="18-correct-and-resubmit-a-rejected-result">18. Correct and resubmit a rejected result<a class="headerlink" href="#18-correct-and-resubmit-a-rejected-result" title="Permanent link">&para;</a></h2>
+<p>Enter from personal Rejected, All rejected results or Outstanding hearings. Show the rejection reason in Review history, the proposed data and the same inputter editing routes described above. All rejected results supports correction of submissions originally entered by another team member.</p>
+<p>Add results and Change return to the rejected review that opened them, not the new-result Check and submit page. Results can be removed through confirmation; an empty review remains accessible, subject to the submission matrix. Proposed order changes remain unapplied until validation.</p>
+<p>Submit for validation returns the result to Validation pending and retains the review history. Use the same submission destination and retained court/date context as the recording journey. Preservation of the all-rejected origin for Back navigation is separate from submission destination.</p>
+<p>Screenshot placeholders: <em>Rejected editable review</em>; <em>Corrected result</em>; <em>Resubmitted status/history</em>.</p>
+<h3 id="page-specific-errors_13">Page-specific errors<a class="headerlink" href="#page-specific-errors_13" title="Permanent link">&para;</a></h3>
+<p>Apply the same submission eligibility rules as a new hearing result. Do not lose rejection history when preparing the editable draft or resubmitting it.</p>
+<h2 id="19-acceptance-checks">19. Acceptance checks<a class="headerlink" href="#19-acceptance-checks" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Resulting has only Validation pending and Rejected; Action sorts; All rejected results includes other users' submissions.</li>
+<li>Outstanding hearings retains primary navigation, filters independently by court/date, paginates at 25, and defaults to date/court/respondent surname ascending.</li>
+<li>Status determines action consistently: Record result for Result pending; View result for pending validation/rejected.</li>
+<li>Judiciary is required and limited to 250; Legal adviser is optional with the magistrates hint. Enforcement alone displays remission.</li>
+<li>Shared edits require confirmation, including when opened from review, and affect already validated hearings at the same court/date.</li>
+<li>Remission accepts 500/500.00/500.50, rejects 500.5, zero and amounts above total account arrears.</li>
+<li>Existing terms can continue unchanged. Application order route has at least one term but may have no manually added results.</li>
+<li>Duplicate result codes remain distinct. Change edits only the selected entry; Remove removes only that entry.</li>
+<li>Review Add results opens the standalone blank selector; Change opens prefilled details directly; successful saves return to the invoking review.</li>
+<li>Removing the last result on review stays on review, shows No results/Add results and a dismissible one-time Result removed alert. Mandatory-result submission remains blocked.</li>
+<li>A new result's court is blank; an existing result's court is retained when edited. Time accepts only valid 24-hour HH:MM and uses a compact input.</li>
+<li>Multiple new hearings are all created under Applications on validation; no first-result-only truncation occurs.</li>
+<li>Cancel returns to the original journey entry and discards the draft; local review Cancel discards only the local edit. A confirmed shared update is not rolled back.</li>
+<li>Submission returns to filtered Outstanding hearings; inputter pending is read-only. Validation applies proposals; rejection does not; history remains visible.</li>
+<li>Missing data, link context, keyboard behaviour, error focus, conditional controls, pagination and screen-reader sorting announcements receive manual checks.</li>
+</ol>
+<h2 id="20-dependencies-design-tidy-up-and-prototype-differences">20. Dependencies, design tidy-up and prototype differences<a class="headerlink" href="#20-dependencies-design-tidy-up-and-prototype-differences" title="Permanent link">&para;</a></h2>
+<p>These items must remain visible when handing this specification to delivery teams. They are not evidence that the corresponding behaviour has already been implemented.</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Status / required work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Result-code workbook</td>
+<td>Required to complete per-code fields, options, validation, bounds and hearing-creation mapping. Current prototype has a simplified Reason/MADJ form, not the full configurable catalogue.</td>
+</tr>
+<tr>
+<td>Outstanding hearings naming and tie-break sorting</td>
+<td>Agreed target; reconcile prototype headings, navigation and date/court/surname ordering.</td>
+</tr>
+<tr>
+<td>Shared details confirmation from review</td>
+<td>Agreed target; the reviewed prototype bypassed confirmation for review-entry edits. Also update confirmation text to state that validated hearings are included.</td>
+</tr>
+<tr>
+<td>Remission amount bounds</td>
+<td>Agreed target; existing prototype decimal syntax alone does not enforce positive value and total-arrears maximum.</td>
+</tr>
+<tr>
+<td>Multiple created Application hearings</td>
+<td>Agreed target; reviewed submission/validation code retained only one proposed hearing and needs extension.</td>
+</tr>
+<tr>
+<td>Cancellation snapshots and origin</td>
+<td>Agreed target; global leave confirmation alone does not establish draft discard, local rollback or return-to-entry semantics.</td>
+</tr>
+<tr>
+<td>Review removal</td>
+<td>Check and submit now supports last-result removal without redirecting away. Apply consistent controls/return behaviour to the rejected inputter review as needed.</td>
+</tr>
+<tr>
+<td>Interest/indexation and Managing payments from review</td>
+<td>Existing prototype detour: save → Existing order details → Add results → Check and submit. A direct return for these two sections was not separately agreed; do not silently claim it.</td>
+</tr>
+<tr>
+<td>Empty states and some exact errors</td>
+<td>Proposed/unspecified copy is identified in the relevant sections. Confirm copy without changing the already agreed business rules.</td>
+</tr>
+<tr>
+<td>Legal adviser and rejection-reason limits</td>
+<td>250 and 255 respectively are existing prototype baselines, not additional decisions from the 32-point review. Confirm if service rules differ.</td>
+</tr>
+<tr>
+<td>Personal/checker queue sort defaults</td>
+<td>Newest-first is existing prototype behaviour; initial/tie-break rules for those queues were not explicitly agreed.</td>
+</tr>
+<tr>
+<td>Figma</td>
+<td>Add missing Add terms/Add results/Remove controls and empty variants; standardise currency, Legal adviser spelling, attendance context, sorting samples and success/cancellation states. The review route map has already been updated for Add, Change and Remove.</td>
+</tr>
+<tr>
+<td>External order specifications</td>
+<td>Existing order-form field rules are referenced rather than reproduced without verification. No external Confluence pages or original BA files were modified to create this document.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="21-traceability-to-the-agreed-decisions">21. Traceability to the agreed decisions<a class="headerlink" href="#21-traceability-to-the-agreed-decisions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Decisions</th>
+<th>Specification coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1–4: tabs, Action sort, all rejected, Resulting name</td>
+<td>Sections 4–5</td>
+</tr>
+<tr>
+<td>5–7: Outstanding hearings name and ordering</td>
+<td>Section 6</td>
+</tr>
+<tr>
+<td>8–12: shared personnel, validated scope, review confirmation, optional Legal adviser, Judiciary limit</td>
+<td>Sections 7–8</td>
+</tr>
+<tr>
+<td>13–14: remission range and whole pounds/exact two-decimal input</td>
+<td>Section 7</td>
+</tr>
+<tr>
+<td>15–17: unchanged terms, optional results on order route, mandatory results elsewhere</td>
+<td>Sections 3, 9–11, 14</td>
+</tr>
+<tr>
+<td>18–22: duplicate codes, multiple Application hearings, future date, HH:MM, blank new court</td>
+<td>Sections 11–12</td>
+</tr>
+<tr>
+<td>23–24: review return routes, Add buttons, No results</td>
+<td>Section 14</td>
+</tr>
+<tr>
+<td>25–28: submit destination, origin-aware Cancel, discard draft/local edit</td>
+<td>Sections 14–15</td>
+</tr>
+<tr>
+<td>29–30: account/name display, Review history, Validate hearing result</td>
+<td>Sections 2, 14, 17</td>
+</tr>
+<tr>
+<td>31–32: workbook-driven fields, standalone Add, direct prefilled Change</td>
+<td>Sections 11–12, 14</td>
+</tr>
+<tr>
+<td>Subsequent refinements: field sizing, review Remove, empty review</td>
+<td>Sections 7, 12–14</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
