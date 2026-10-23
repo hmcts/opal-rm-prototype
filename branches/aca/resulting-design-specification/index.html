@@ -1495,7 +1495,7 @@ Screenshot placeholders: <em>Existing terms</em>; <em>No terms/add-term entry</e
 </tr>
 <tr>
 <td>Interest and indexation / Managing payments</td>
-<td>Populated amendment journeys. Within the initial order journey, save returns to Existing order details. Review-entry detours are documented under dependencies.</td>
+<td>Populated amendment journeys. Within the initial order journey, save returns to Existing order details. From a review, Save changes and Cancel return directly to the invoking review.</td>
 <td>Specific Change link context.</td>
 <td>Reuse the corresponding existing form validation.</td>
 </tr>
@@ -1751,6 +1751,7 @@ Screenshot placeholders: <em>Confirmation</em>; <em>Review after removal</em>; <
 <h3 id="page-specific-errors_9">Page-specific errors<a class="headerlink" href="#page-specific-errors_9" title="Permanent link">&para;</a></h3>
 <p>No editable fields. If the selected result no longer exists, do not remove another result by accident. Return to the invoking result list/review; stale-entry message wording is a remaining content dependency.</p>
 <h2 id="14-check-and-submit-for-validation">14. Check and submit for validation<a class="headerlink" href="#14-check-and-submit-for-validation" title="Permanent link">&para;</a></h2>
+<p>Group Order details, all order-term cards, Interest and indexation and Managing payments under one section heading: <strong>Changes to order terms</strong>. Place <strong>Add or amend order terms</strong> and <strong>Remove all changes to order terms</strong> together at the top, before every summary card. Do not repeat the former Order details, Order terms or Additional order information section headings; retain the individual card titles. Cards in this review section have no Change links. Use Add or amend order terms to open Existing order details, where card-level editing remains available. Apply this grouping to rejected reviews and read-only checker views, with editing buttons only on editable inputter reviews.</p>
 <p>Route reference: <code>/record-results/:id/:category/review</code><br />
 Caption: <strong>Record results</strong>; H1: <strong>Check and submit for validation</strong><br />
 Screenshot placeholders: <em>Application with terms</em>; <em>Application without order route</em>; <em>Enforcement</em>; <em>No results</em>; <em>Submission error</em>.</p>
@@ -1826,13 +1827,18 @@ Screenshot placeholders: <em>Application with terms</em>; <em>Application withou
 </tr>
 <tr>
 <td>Order term: Change</td>
-<td>Term details → creditor details → Check your answers → Save changes.</td>
+<td>Term details → creditor details → Check your answers → Save changes → Existing order details.</td>
+<td>Continue from Existing order details returns to the original review.</td>
+</tr>
+<tr>
+<td>Add or amend order terms</td>
+<td>Existing order details → review/amend existing terms or add terms. Continue returns to review.</td>
 <td>Original review.</td>
 </tr>
 <tr>
-<td>Add terms</td>
-<td>Order selection → term details → creditor details → Check your answers.</td>
-<td>Original review.</td>
+<td>Remove all changes to order terms</td>
+<td>Confirmation → Yes - remove changes discards the complete proposed order outcome.</td>
+<td>Original review with a one-time dismissible success alert.</td>
 </tr>
 <tr>
 <td>Add results</td>
@@ -1849,10 +1855,21 @@ Screenshot placeholders: <em>Application with terms</em>; <em>Application withou
 <td>Confirmation → Yes - remove.</td>
 <td>Original review, including when no results remain.</td>
 </tr>
+<tr>
+<td>Interest and indexation: Change</td>
+<td>Populated single-page edit → Save changes.</td>
+<td>Original review.</td>
+</tr>
+<tr>
+<td>Managing payments: Change</td>
+<td>Populated single-page edit → Save changes.</td>
+<td>Original review.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="page-specific-errors_10">Page-specific errors<a class="headerlink" href="#page-specific-errors_10" title="Permanent link">&para;</a></h3>
-<p>A mandatory-result hearing with No results cannot be submitted. The current prototype redirects to Add results on Submit; a review-page error summary linked to Add results would be a content/interaction improvement, not an already agreed exact message. The review itself must remain accessible before submission with an empty Results section.</p>
+<p>A hearing with No results cannot be submitted unless the inputter selected Add or amend order terms. That selection represents a VARY result behind the scenes; no check for actual changes to existing terms is required. When this is the only result, the pending submission uses code VARY and the manual Results section remains empty.</p>
+<p>If neither a manual result nor that selection is present, remain on the invoking review and show an error summary linked to Results: <code>Add at least one result or select Add or amend order terms before submitting for validation</code> for Applications, or <code>Add at least one result before submitting for validation</code> for Enforcement. Apply this validation to new and rejected submissions. An empty Results section remains accessible before submission.</p>
 <p>At least one order term must be present for the Application order route. Do not apply any proposed order changes or create proposed hearings at this stage.</p>
 <h2 id="15-cancellation-and-return-context">15. Cancellation and return context<a class="headerlink" href="#15-cancellation-and-return-context" title="Permanent link">&para;</a></h2>
 <p>Remember the journey's original entry point separately from any local review-edit return point.</p>
@@ -1999,7 +2016,7 @@ Screenshot placeholders: <em>Checker pending review</em>; <em>Inputter pending r
 </tr>
 <tr>
 <td>Interest/indexation and Managing payments from review</td>
-<td>Existing prototype detour: save → Existing order details → Add results → Check and submit. A direct return for these two sections was not separately agreed; do not silently claim it.</td>
+<td>Fixed following the demo: both Change links open populated forms and save directly to the invoking new or rejected review. Cancel also returns to that review.</td>
 </tr>
 <tr>
 <td>Empty states and some exact errors</td>
