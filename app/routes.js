@@ -13138,7 +13138,7 @@ function getRespondentPayoutHolds(req, id) {
   const overrideRules = saved?.overrideRules ||
     (saved?.chequeDays && saved?.bankDays ? 'yes' : 'no')
   return {
-    applyPayments: saved?.applyPayments || '',
+    applyPayments: saved?.applyPayments || 'yes',
     overrideRules,
     chequeDays: overrideRules === 'yes' ? saved.chequeDays : '',
     bankDays: overrideRules === 'yes' ? saved.bankDays : '',
@@ -13146,16 +13146,40 @@ function getRespondentPayoutHolds(req, id) {
   }
 }
 
-function renderRespondentPayoutHolds(req, res, activeCase, id, values, errors = {}) {
+function renderRespondentPayoutHolds(req, res, activeCase, id, values, errors = {}, settingsSection = 'payouts') {
   return res.render('active-case/payout-holds', {
     activeCase, caseId: id,
+    settingsSection,
+    heading: settingsSection === 'received' ? 'Change payments received' : 'Change payout holds',
     values: { ...values, overrideRules: values.holdAll ? 'hold-all' : values.overrideRules },
     errors,
     errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
-    cancelHref: `/active-case/${id}`,
-    formAction: `/active-case/${id}/payout-holds`
+    cancelHref: `/active-case/${id}?tab=payments`,
+    formAction: `/active-case/${id}/${settingsSection === 'received' ? 'payments-received' : 'payout-holds'}`
   })
 }
+
+router.get('/active-case/:id/payments-received', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  return renderRespondentPayoutHolds(req, res, activeCases[id], id,
+    getRespondentPayoutHolds(req, id), {}, 'received')
+})
+
+router.post('/active-case/:id/payments-received', (req, res, next) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const values = { ...getRespondentPayoutHolds(req, id),
+    applyPayments: String(getSingleValue(req.body.applyPayments) || '') }
+  if (!['yes', 'no'].includes(values.applyPayments)) {
+    return renderRespondentPayoutHolds(req, res, activeCases[id], id, values, {
+      applyPayments: buildFieldError('Select whether you want to stop payments from the respondent being added to the account')
+    }, 'received')
+  }
+  getActiveCaseVaryOrderStore(req, 'respondentPayoutHolds')[id] = values
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Payments received settings updated.')
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=payments`)
+})
 
 router.get('/active-case/:id/payout-holds', (req, res) => {
   const id = Number(req.params.id)
@@ -13171,16 +13195,13 @@ router.post('/active-case/:id/payout-holds', (req, res, next) => {
   const previous = getRespondentPayoutHolds(req, id)
   const choice = String(getSingleValue(req.body.overrideRules) || '')
   const values = {
-    applyPayments: String(getSingleValue(req.body.applyPayments) || ''),
+    applyPayments: previous.applyPayments || 'yes',
     overrideRules: choice === 'hold-all' ? previous.overrideRules : choice,
     chequeDays: choice === 'hold-all' ? previous.chequeDays : String(getSingleValue(req.body.chequeDays) || '').trim(),
     bankDays: choice === 'hold-all' ? previous.bankDays : String(getSingleValue(req.body.bankDays) || '').trim(),
     holdAll: choice === 'hold-all'
   }
   const errors = {}
-  if (!['yes', 'no'].includes(values.applyPayments)) {
-    errors.applyPayments = buildFieldError('Select whether payments received should be applied to this account')
-  }
   if (!['yes', 'no', 'hold-all'].includes(choice)) {
     errors.overrideRules = buildFieldError('Select a payout option')
   }
@@ -13207,7 +13228,7 @@ router.post('/active-case/:id/payout-holds', (req, res, next) => {
       values.chequeDays === '' && values.bankDays === '' ? 'Payout overrides removed.'
       : 'Payout holds updated.'
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, message)
-  return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
+  return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=payments`)
 })
 
 router.all('/active-case/:id/payout-holds/remove', (req, res) => {

@@ -1,0 +1,46 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-full">
+    <h2 class="govuk-heading-m rm-summary-list__section-heading govuk-!-margin-bottom-4">Payments</h2>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {{ govukSummaryList({
+      card: {
+        headingLevel: 3,
+        title: { text: "Payments received" },
+        actions: { items: [{ text: "Change", href: "/active-case/" + caseId + "/payments-received", visuallyHiddenText: "how payments received are handled" }] }
+      },
+      rows: [{ key: { text: "Status" }, value: { text: "Payments received are being held in suspense." if payoutHolds.applyPayments === 'no' else "Payments received are added to the account balance." } }]
+    }) }}
+
+    {% set payoutRows = [{ key: { text: "Status" }, value: { text: "Payouts to creditors are on hold." if payoutHolds.holdAll else ("Payout overrides apply." if payoutHolds.overrideRules === 'yes' else "Standard payout rules apply.") } }] %}
+    {% if not payoutHolds.holdAll %}
+      {% set chequeDays = payoutHolds.chequeDays if payoutHolds.overrideRules === 'yes' else '10' %}
+      {% set bankDays = payoutHolds.bankDays if payoutHolds.overrideRules === 'yes' else '0' %}
+      {% set unused = payoutRows.push({ key: { text: "Cheque payments held for" }, value: { text: chequeDays + (" day" if chequeDays === '1' else " days") } }) %}
+      {% set unused = payoutRows.push({ key: { text: "Bank payments held for" }, value: { text: bankDays + (" day" if bankDays === '1' else " days") } }) %}
+    {% endif %}
+    {{ govukSummaryList({
+      card: {
+        headingLevel: 3,
+        title: { text: "Payouts to creditors" },
+        actions: { items: [{ text: "Change", href: "/active-case/" + caseId + "/payout-holds", visuallyHiddenText: "payouts to creditors" }] }
+      }, rows: payoutRows
+    }) }}
+
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <aside class="govuk-prototype-kit-common-templates-related-items" aria-labelledby="payments-actions-heading">
+      <h2 id="payments-actions-heading" class="govuk-heading-m">Actions</h2>
+      <nav aria-label="Payment actions">
+        <ul class="govuk-list">
+          <li><a class="govuk-link" href="/active-case/{{ caseId }}/alternate-payment-references">Manage alternate payment references</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+</div>

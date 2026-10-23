@@ -3,9 +3,8 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
-{% from "moj/components/pagination/macro.njk" import mojPagination %}
 {% block pageTitle %}Manage alternate payment references - {{ serviceName }}{% endblock %}
-{% block beforeContent %}{{ govukBackLink({ text: "Back", href: baseHref | replace("/alternate-payment-references", "") }) }}{% endblock %}
+{% block beforeContent %}{{ govukBackLink({ text: "Back", href: (baseHref | replace("/alternate-payment-references", "")) + "?tab=payments" }) }}{% endblock %}
 {% block content %}
   {% if successMessage %}{{ mojAlert({ variant: "success", dismissible: true, text: successMessage }) }}{% endif %}
   <span class="govuk-caption-l">{{ activeCase.accountNumber }} &ndash; {{ accountHeaderName }}</span>
@@ -19,14 +18,5 @@
   {% else %}
     <p class="govuk-body govuk-hint">There is no alternate payment reference for this account.</p>
     {{ govukButton({ text: "Add payment reference", href: baseHref + "/add", classes: "govuk-button--secondary" }) }}
-  {% endif %}
-  <h2 class="govuk-heading-m">Alternate payment references from consolidated accounts</h2>
-  {% if consolidated.length %}
-    {% set referenceRows = [] %}
-    {% for entry in consolidated %}{% include "active-case/_alternate-payment-reference-row.html" %}{% endfor %}
-    {{ govukTable({ head: [{ text: "Reference" }, { text: "Date created" }, { text: "Date updated" }, { text: "Actions" }], rows: referenceRows }) }}
-    {% if pagination %}{{ mojPagination(pagination) }}{% endif %}
-  {% else %}
-    <p class="govuk-body govuk-hint">There are no alternate payment references from consolidated accounts.</p>
   {% endif %}
 {% endblock %}

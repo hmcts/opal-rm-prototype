@@ -26,7 +26,7 @@
       {% set statusClasses = "govuk-tag--orange" %}
       {% if status === "Result rejected" %}{% set statusClasses = "govuk-tag--red" %}{% endif %}
       {% if status === "Result validated" %}{% set statusClasses = "govuk-tag--blue" %}{% endif %}
-      {{ govukTag({ text: "Rejected" if status === "Result rejected" else status, classes: statusClasses }) }}
+      {{ govukTag({ text: status, classes: statusClasses }) }}
 
       {% if status !== "Result validated" %}
         {{ govukInsetText({ text: "The account will not change until a checker validates the result." }) }}
