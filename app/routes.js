@@ -13015,6 +13015,115 @@ router.post('/active-case/:id/:category/hearing/delete', (req, res, next) => {
   return redirectWithSessionSave(req, res, next, hearing.cancelHref)
 })
 
+function getAlternatePaymentReferences(req, id) {
+  const store = getActiveCaseVaryOrderStore(req, 'respondentAlternatePaymentReferences')
+  if (!store[id]) store[id] = { reference: null, consolidated: [] }
+  return store[id]
+}
+
+function getAlternatePaymentReference(state, referenceId) {
+  return referenceId === 'account' ? state.reference
+    : state.consolidated.find((reference) => reference.id === referenceId)
+}
+
+function renderAlternatePaymentReferenceForm(req, res, id, editing, referenceId, value, errors = {}) {
+  return res.render('active-case/alternate-payment-reference-form', {
+    activeCase: activeCases[id], accountHeaderName: getAccountHeaderName(activeCases[id].respondent, activeCases[id].respondentName),
+    heading: `${editing ? 'Change' : 'Add'} alternate payment reference`, value, errors,
+    errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
+    cancelHref: `/active-case/${id}/alternate-payment-references`,
+    formAction: `/active-case/${id}/alternate-payment-references/${editing ? `${referenceId}/change` : 'add'}`
+  })
+}
+
+router.get('/active-case/:id/alternate-payment-references', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const state = getAlternatePaymentReferences(req, id)
+  const successMessage = state.successMessage
+  delete state.successMessage
+  const pageCount = Math.ceil(state.consolidated.length / 25)
+  const page = Math.min(Math.max(parseInt(req.query.page, 10) || 1, 1), Math.max(pageCount, 1))
+  const baseHref = `/active-case/${id}/alternate-payment-references`
+  return res.render('active-case/alternate-payment-references', {
+    activeCase: activeCases[id], accountHeaderName: getAccountHeaderName(activeCases[id].respondent, activeCases[id].respondentName),
+    baseHref, successMessage, reference: state.reference,
+    consolidated: state.consolidated.slice((page - 1) * 25, page * 25),
+    pagination: pageCount > 1 ? {
+      items: Array.from({ length: pageCount }, (_, index) => ({ text: String(index + 1), href: `${baseHref}?page=${index + 1}`, selected: page === index + 1 })),
+      previous: page > 1 ? { text: 'Previous', href: `${baseHref}?page=${page - 1}` } : null,
+      next: page < pageCount ? { text: 'Next', href: `${baseHref}?page=${page + 1}` } : null
+    } : null
+  })
+})
+
+router.get('/active-case/:id/alternate-payment-references/add', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  if (getAlternatePaymentReferences(req, id).reference) return res.redirect(`/active-case/${id}/alternate-payment-references`)
+  return renderAlternatePaymentReferenceForm(req, res, id, false, null, '')
+})
+
+router.get('/active-case/:id/alternate-payment-references/:referenceId/change', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const reference = getAlternatePaymentReference(getAlternatePaymentReferences(req, id), req.params.referenceId)
+  if (!reference || reference.systemGenerated) return res.redirect(`/active-case/${id}/alternate-payment-references`)
+  return renderAlternatePaymentReferenceForm(req, res, id, true, req.params.referenceId, reference.value)
+})
+
+function saveAlternatePaymentReference(req, res, next, editing) {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const state = getAlternatePaymentReferences(req, id)
+  const referenceId = editing ? req.params.referenceId : 'account'
+  const existing = getAlternatePaymentReference(state, referenceId)
+  const returnHref = `/active-case/${id}/alternate-payment-references`
+  if ((editing && (!existing || existing.systemGenerated)) || (!editing && state.reference)) return res.redirect(returnHref)
+  const value = String(getSingleValue(req.body.paymentReference) || '').trim()
+  const errors = {}
+  if (!value) errors.paymentReference = buildFieldError('Enter a payment reference')
+  else {
+    const store = getActiveCaseVaryOrderStore(req, 'respondentAlternatePaymentReferences')
+    const duplicate = Object.values(store).some((account) =>
+      [account.reference, ...(account.consolidated || [])].some((reference) =>
+        reference && reference !== existing && reference.value.toLowerCase() === value.toLowerCase()))
+    if (duplicate) errors.paymentReference = buildFieldError('This payment reference already exists. Enter a different payment reference')
+  }
+  if (Object.keys(errors).length) return renderAlternatePaymentReferenceForm(req, res, id, editing, referenceId, value, errors)
+  const today = getHistoryDateToday()
+  if (editing) Object.assign(existing, { value, dateUpdated: today })
+  else state.reference = { id: 'account', value, dateCreated: today, dateUpdated: today }
+  state.successMessage = editing ? 'Payment reference updated.' : 'Payment reference added.'
+  return redirectWithSessionSave(req, res, next, returnHref)
+}
+
+router.post('/active-case/:id/alternate-payment-references/add', (req, res, next) => saveAlternatePaymentReference(req, res, next, false))
+router.post('/active-case/:id/alternate-payment-references/:referenceId/change', (req, res, next) => saveAlternatePaymentReference(req, res, next, true))
+
+router.get('/active-case/:id/alternate-payment-references/:referenceId/remove', (req, res) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const reference = getAlternatePaymentReference(getAlternatePaymentReferences(req, id), req.params.referenceId)
+  const baseHref = `/active-case/${id}/alternate-payment-references`
+  if (!reference || reference.systemGenerated) return res.redirect(baseHref)
+  return res.render('active-case/remove-alternate-payment-reference', { reference, baseHref,
+    formAction: `${baseHref}/${encodeURIComponent(req.params.referenceId)}/remove` })
+})
+
+router.post('/active-case/:id/alternate-payment-references/:referenceId/remove', (req, res, next) => {
+  const id = Number(req.params.id)
+  if (!activeCases[id]) return res.redirect('/search')
+  const state = getAlternatePaymentReferences(req, id)
+  const reference = getAlternatePaymentReference(state, req.params.referenceId)
+  const returnHref = `/active-case/${id}/alternate-payment-references`
+  if (!reference || reference.systemGenerated) return res.redirect(returnHref)
+  if (req.params.referenceId === 'account') state.reference = null
+  else state.consolidated = state.consolidated.filter((item) => item.id !== req.params.referenceId)
+  state.successMessage = 'Payment reference removed.'
+  return redirectWithSessionSave(req, res, next, returnHref)
+})
+
 function getRespondentPayoutHolds(req, id) {
   const saved = req.session.data.respondentPayoutHolds?.[id]
   const overrideRules = saved?.overrideRules ||
@@ -13082,7 +13191,7 @@ router.post('/active-case/:id/payout-holds', (req, res, next) => {
   const message = previous.holdAll && !values.holdAll ? 'Payout hold removed.'
     : !values.holdAll && (previous.chequeDays !== '' || previous.bankDays !== '') &&
       values.chequeDays === '' && values.bankDays === '' ? 'Payout overrides removed.'
-      : 'Payout settings updated.'
+      : 'Payout holds updated.'
   setActiveCaseSuccessMessage(req, `/active-case/${id}`, message)
   return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
 })
@@ -15783,34 +15892,38 @@ function hasCreditorBankDetails(account) {
   return account.bacsStatus === 'PROVIDED' || ['BACS', 'IBAN'].includes(account.paymentMethod)
 }
 
-router.get('/active-case/creditor/:id/payment-hold/:action', (req, res) => {
+router.get(['/active-case/creditor/:id/payment-hold/:action', '/active-case/major-creditor/:id/payment-hold/:action'], (req, res) => {
   const id = Number(req.params.id)
-  const account = minorCreditorAccounts[id]
+  const isMajorCreditor = req.path.startsWith('/active-case/major-creditor/')
+  const account = isMajorCreditor ? majorCreditorAccounts[id] : minorCreditorAccounts[id]
+  const accountHref = `/active-case/${isMajorCreditor ? 'major-creditor' : 'creditor'}/${id}`
   const action = req.params.action
-  if (!isPaymentHoldCreditor(account) || !['add', 'remove'].includes(action)) {
+  if (!account || (!isMajorCreditor && !isPaymentHoldCreditor(account)) || !['add', 'remove'].includes(action)) {
     return res.redirect('/create-cases?tab=approved')
   }
-  const state = getCreditorPaymentState(req, id, account)
+  const state = getCreditorPaymentState(req, isMajorCreditor ? `major-creditor:${id}` : id, account)
   if (state.onHold === (action === 'add')) {
-    return res.redirect(`/active-case/creditor/${id}`)
+    return res.redirect(accountHref)
   }
   return res.render('active-case/payment-hold', {
     accountNumber: account.accountNumber || account.caseReference,
-    accountName: account.organisationName || getPlainPersonName(account.name),
+    accountName: isMajorCreditor ? account.name : account.organisationName || getPlainPersonName(account.name),
     removing: action === 'remove',
-    formAction: `/active-case/creditor/${id}/payment-hold/${action}`,
-    cancelHref: `/active-case/creditor/${id}`
+    formAction: `${accountHref}/payment-hold/${action}`,
+    cancelHref: accountHref
   })
 })
 
-router.post('/active-case/creditor/:id/payment-hold/:action', (req, res, next) => {
+router.post(['/active-case/creditor/:id/payment-hold/:action', '/active-case/major-creditor/:id/payment-hold/:action'], (req, res, next) => {
   const id = Number(req.params.id)
-  const account = minorCreditorAccounts[id]
+  const isMajorCreditor = req.path.startsWith('/active-case/major-creditor/')
+  const account = isMajorCreditor ? majorCreditorAccounts[id] : minorCreditorAccounts[id]
+  const accountHref = `/active-case/${isMajorCreditor ? 'major-creditor' : 'creditor'}/${id}`
   const action = req.params.action
-  if (!isPaymentHoldCreditor(account) || !['add', 'remove'].includes(action)) {
+  if (!account || (!isMajorCreditor && !isPaymentHoldCreditor(account)) || !['add', 'remove'].includes(action)) {
     return res.redirect('/create-cases?tab=approved')
   }
-  const state = getCreditorPaymentState(req, id, account)
+  const state = getCreditorPaymentState(req, isMajorCreditor ? `major-creditor:${id}` : id, account)
   const onHold = action === 'add'
   if (state.onHold !== onHold) {
     state.history.unshift({
@@ -15823,7 +15936,7 @@ router.post('/active-case/creditor/:id/payment-hold/:action', (req, res, next) =
     state.onHold = onHold
     if (!onHold) state.successMessage = 'Payment hold removed.'
   }
-  return redirectWithSessionSave(req, res, next, `/active-case/creditor/${id}`)
+  return redirectWithSessionSave(req, res, next, accountHref)
 })
 
 router.get('/active-case/creditor/:id', (req, res) => {
@@ -15931,7 +16044,13 @@ router.get('/active-case/major-creditor/:id', (req, res) => {
     return res.redirect('/create-cases?tab=approved')
   }
 
-  return res.render('active-case/major-creditor', { account })
+  const paymentState = getCreditorPaymentState(req, `major-creditor:${id}`, account)
+  const successMessage = paymentState.successMessage
+  delete paymentState.successMessage
+  return res.render('active-case/major-creditor', {
+    account, accountId: id, paymentOnHold: paymentState.onHold,
+    hasBankDetails: hasCreditorBankDetails(account), successMessage
+  })
 })
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -17476,8 +17595,7 @@ router.post('/record-results/:id/:category/remove-result/:index', (req, res, nex
     else if (draft.editIndex > index) draft.editIndex -= 1
   }
   delete draft.selectedCode
-  const returnToReview = req.query.from === 'review' &&
-    (draft.results.length || hasRecordResultsOrderOutcome(hearing, draft))
+  const returnToReview = req.query.from === 'review'
   const returnHref = getRecordResultsHref(hearing, returnToReview ? 'review' : 'add-result')
   setActiveCaseSuccessMessage(req, returnHref, 'Result removed.')
   return redirectWithSessionSave(req, res, next, returnHref)
@@ -17549,9 +17667,6 @@ router.get('/record-results/:id/:category/review', (req, res) => {
   const hearing = getRecordResultsHearing(req, req.params.id, req.params.category)
   if (!hearing) return res.redirect('/record-results')
   const draft = getRecordResultsDraft(req, hearing)
-  if (!draft.results?.length && !hasRecordResultsOrderOutcome(hearing, draft)) {
-    return res.redirect(getRecordResultsHref(hearing, 'add-result'))
-  }
   const context = getActiveCaseResultContext(req, hearing.id)
   delete draft.reviewReturnHref
   delete draft.addingResultFromReview

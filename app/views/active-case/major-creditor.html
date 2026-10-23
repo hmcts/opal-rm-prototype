@@ -5,6 +5,7 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/badge/macro.njk" import mojBadge %}
 {% from "moj/components/sub-navigation/macro.njk" import mojSubNavigation %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% set showNav = true %}
 
@@ -13,6 +14,12 @@
 {% endblock %}
 
 {% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", text: successMessage, dismissible: true }) }}
+  {% endif %}
+  {% if paymentOnHold %}
+    {{ mojAlert({ variant: "warning", title: "Payments to this creditor are on hold.", dismissible: false, disableAutoFocus: true }) }}
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
@@ -71,12 +78,19 @@
 
           <h2 class="govuk-heading-m rm-enquiry-section-heading">Payout status</h2>
 
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">BACS details</p>
-          {% if account.bacsStatus %}
-            {{ mojBadge({ text: account.bacsStatus }) }}
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Payment method</p>
+          {% if hasBankDetails %}
+            {{ mojBadge({ text: "BACS payments", classes: "moj-badge--blue" }) }}
           {% else %}
-            <p class="govuk-body">Not provided</p>
+            {{ mojBadge({ text: "Manual payments", classes: "moj-badge--orange" }) }}
           {% endif %}
+          <p class="govuk-body govuk-!-margin-top-3">
+            {% if paymentOnHold %}
+              <a class="govuk-link" href="/active-case/major-creditor/{{ accountId }}/payment-hold/remove">Remove payment hold</a>
+            {% else %}
+              <a class="govuk-link" href="/active-case/major-creditor/{{ accountId }}/payment-hold/add">Add payment hold</a>
+            {% endif %}
+          </p>
 
         </div>
 

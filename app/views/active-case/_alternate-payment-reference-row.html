@@ -1,0 +1,12 @@
+{% set referenceActions %}
+  {% if not entry.systemGenerated %}
+    <a class="govuk-link" href="{{ baseHref }}/{{ entry.id | urlencode }}/change">Change<span class="govuk-visually-hidden"> payment reference {{ entry.value }}</span></a>
+    <a class="govuk-link govuk-!-margin-left-3" href="{{ baseHref }}/{{ entry.id | urlencode }}/remove">Remove<span class="govuk-visually-hidden"> payment reference {{ entry.value }}</span></a>
+  {% else %}<span aria-label="No data">—</span>{% endif %}
+{% endset %}
+{% set unused = referenceRows.push([
+  { text: entry.value },
+  { text: entry.dateCreated } if entry.dateCreated else { html: '<span aria-label="No data">—</span>' },
+  { text: entry.dateUpdated } if entry.dateUpdated else { html: '<span aria-label="No data">—</span>' },
+  { html: referenceActions }
+]) %}
