@@ -2,7 +2,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set heading = "You cannot close this account" if blockers.length else "Do you want to close this account?" %}
+{% set heading = "You cannot deactivate this account" if blockers.length else "Do you want to deactivate this account?" %}
 {% block pageTitle %}{{ heading }} - {{ serviceName }}{% endblock %}
 {% block beforeContent %}
   {{ govukBackLink({ text: "Back", href: cancelHref }) }}
@@ -13,7 +13,7 @@
       <span class="govuk-caption-l">{{ accountNumber }} &ndash; {{ accountName }}</span>
       <h1 class="govuk-heading-l">{{ heading }}</h1>
       {% if blockers.length %}
-        <p class="govuk-body">This account cannot be closed because there are outstanding items that need to be resolved.</p>
+        <p class="govuk-body">This account cannot be deactivated because there are outstanding items that need to be resolved.</p>
         <p class="govuk-body">You must:</p>
         <ul class="govuk-list govuk-list--bullet">
           {% for blocker in blockers %}
@@ -22,7 +22,7 @@
         </ul>
         <p class="govuk-body"><a class="govuk-link" href="{{ cancelHref }}">Go back</a></p>
       {% else %}
-        <p class="govuk-body">Closing this account will:</p>
+        <p class="govuk-body">Deactivating this account will:</p>
         <ul class="govuk-list govuk-list--bullet">
           <li>set all order amounts and arrears to £0.00</li>
           <li>set every order term’s expiry date to today</li>
@@ -30,7 +30,7 @@
         </ul>
         <form method="post" action="{{ formAction }}">
           <div class="govuk-button-group">
-            {{ govukButton({ text: "Yes - close account", classes: "govuk-button--warning" }) }}
+            {{ govukButton({ text: "Yes - deactivate account", classes: "govuk-button--warning" }) }}
             <a class="govuk-link" href="{{ cancelHref }}">No - cancel</a>
           </div>
         </form>

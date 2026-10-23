@@ -13320,7 +13320,7 @@ router.post('/active-case/:id/close-account', (req, res, next) => {
   activeCase.dateArrearsUpdated = getHistoryDateToday()
   activeCase.accountClosureHistory = [{
     date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName,
-    type: 'Amendments', details: 'Account closed | Order amounts and arrears set to £0.00 | All order terms expire today.'
+    type: 'Amendments', details: 'Account deactivated | Order amounts and arrears set to £0.00 | All order terms expire today.'
   }, ...(activeCase.accountClosureHistory || [])]
   return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
 })
