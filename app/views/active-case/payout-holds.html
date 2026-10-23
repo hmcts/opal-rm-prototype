@@ -17,6 +17,15 @@
       <h1 class="govuk-heading-l">Add or change payout holds</h1>
       <p class="govuk-body">Set how long payments received from this respondent are held before being paid out.</p>
       <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukRadios({
+          idPrefix: "applyPayments", name: "applyPayments",
+          fieldset: { legend: { text: "Should payments received be applied to this account?", classes: "govuk-fieldset__legend--m" } },
+          errorMessage: errors.applyPayments,
+          items: [
+            { value: "yes", text: "Yes", checked: values.applyPayments === 'yes' },
+            { value: "no", text: "No", checked: values.applyPayments === 'no' }
+          ]
+        }) }}
         {% set overrideFields %}
         <p class="govuk-body">Enter a hold period for both payment methods. Enter 0 for no hold.</p>
         {{ govukInput({

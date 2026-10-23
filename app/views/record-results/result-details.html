@@ -19,7 +19,7 @@
       {% endif %}
       <form method="post" action="{{ formAction }}" novalidate>
         {{ govukCharacterCount({
-          id: "reason", name: "reason", maxlength: 250,
+          id: "reason", name: "reason", maxlength: 1000,
           classes: "govuk-!-width-three-quarters",
           label: { text: "Reason" if code === "MADJ" else "Reason (optional)", classes: "govuk-label--s" },
           value: values.reason, errorMessage: errors.reason
