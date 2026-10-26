@@ -17,6 +17,9 @@ site/
 .pages/
 
 # Agent working artifacts
+.agents/
+**/skills/
+**/SKILL.md
 .codex-dev-server.*.log
 docs/superpowers/
 docs/video-journeys/
@@ -24,3 +27,8 @@ PLAN.md
 TODO.md
 DECISIONS.md
 RESULT.md
+
+# Local research, specifications and QA outputs
+/Usability Testing Scripts/
+/Design Specifications/
+/QA Differences/
