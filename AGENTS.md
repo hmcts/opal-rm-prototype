@@ -6,6 +6,7 @@
 - Treat this as a prototype, not a production service. Prioritise speed of iteration, clarity, and faithful use of the design systems over production-grade architecture.
 
 ## Core rules
+- Skills are local-only and may contain sensitive IP. Never stage, commit or push skill packages or their contents to GitHub, including with force-add. Preserve the skill exclusions in `.gitignore`.
 - Use components and patterns from the GOV.UK Design System, GOV.UK Prototype Components, and MOJ Design System wherever possible.
 - Prefer Nunjucks macros over handwritten HTML for components.
 - Do not invent custom UI patterns if an equivalent GOV.UK, GOV.UK Prototype Components, or MOJ component already exists.
@@ -26,6 +27,7 @@
 - Prefer importing and calling macros from GOV.UK Frontend, GOV.UK Prototype Components, or MOJ Frontend instead of writing component markup manually.
 - All date fields must use the MOJ date picker macro from `moj/components/date-picker/macro.njk`. Do not use native HTML date inputs or handwritten date input markup.
 - Keep templates mostly declarative: page structure, copy, and macro calls belong in Nunjucks.
+- Where no data is available for a table cell or field in a summary card, use an em dash (`—`) in the UI with `aria-label="No data"`.
 - If conditional logic is required, simple branching in Nunjucks is acceptable, but non-trivial logic should move to the JavaScript layer.
 - When composing pages, favour standard page sections such as back links, phase banners, service navigation, page headings, inset text, summaries, details, buttons, and form components from the design systems.
 
@@ -59,11 +61,12 @@
 - When the server starts successfully, expect the prototype at `http://localhost:3000` and the manage page at `http://localhost:3000/manage-prototype`.
 - After starting the server, confirm it is responding before proceeding with further manual checks.
 
+## Local-only project outputs
+- Store usability testing scripts in `Usability Testing Scripts/`, design and functional specifications in `Design Specifications/`, and QA difference reports in `QA Differences/` at the project root.
+- Keep these folders local-only and ignored by Git. Do not stage, commit, push or copy their contents into published documentation.
+
 ## Writing specifications
-- Include references and links to design system components.
-- Create placeholders for screenshots, and in the tables include columns for ARIA tags and field-specific error messages where applicable.
-- Create a separate section for page-specific error messages
-- Where no data is available for a table cell or field in a summary card, use an 'em-dash' in the UI and apply an aria tag "No data".
+- Use the local [cogworx-spec skill](.agents/skills/cogworx-spec/SKILL.md) for specification and delivery-handover work. It loads the project-specific specification requirements when working in this repository.
 
 ## Design system references
 - GOV.UK Design System: https://design-system.service.gov.uk/

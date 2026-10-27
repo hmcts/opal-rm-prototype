@@ -45,15 +45,15 @@
         <section aria-labelledby="order-changes-heading">
         <h2 id="order-changes-heading" class="govuk-heading-m">Add or amend order terms</h2>
         <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
+        {% if draft.orderOption !== "add-or-amend" %}
+          <p class="govuk-body">Hearing did not result in changes to order terms.</p>
+        {% endif %}
         <div class="govuk-button-group">
           {{ govukButton({ text: "Add or amend order terms" if draft.orderOption === "add-or-amend" else "Add or amend terms", href: "/record-results/" + hearing.id + "/" + hearing.category + "/edit/add-terms", classes: "govuk-button--secondary" }) }}
           {% if draft.orderOption === 'add-or-amend' %}
             {{ govukButton({ text: "Remove all changes from result", href: "/record-results/" + hearing.id + "/" + hearing.category + "/remove-order-changes", classes: "govuk-button--secondary" }) }}
           {% endif %}
         </div>
-        {% if draft.orderOption !== "add-or-amend" %}
-          <p class="govuk-body">Hearing did not result in changes to order terms.</p>
-        {% endif %}
         {% if orderDetailsRows.length %}
           {{ govukSummaryList({ card: {
             title: { text: "Order details" }
@@ -76,10 +76,10 @@
       {% endif %}
       <h2 id="results" class="govuk-heading-m" tabindex="-1">Results</h2>
       <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-0 govuk-!-margin-bottom-4">
-      {{ govukButton({ text: "Add results", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result?from=review", classes: "govuk-button--secondary" }) }}
       {% if not draft.results.length %}
         <p class="govuk-body">{{ "No other results." if hearing.category === "application" and draft.orderOption === "add-or-amend" and terms.length else "No results." }}</p>
       {% endif %}
+      {{ govukButton({ text: "Add results", href: "/record-results/" + hearing.id + "/" + hearing.category + "/add-result?from=review", classes: "govuk-button--secondary" }) }}
       {% for result in draft.results %}
         {{ govukSummaryList({ card: {
           title: { text: result.code + " - " + result.title },
@@ -89,8 +89,10 @@
           ] }
         }, rows: [
           { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
-          { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
-          { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing
+          { key: { text: "Hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
+            { key: { text: "Hearing venue" }, value: { text: result.proposedHearing.venue } if result.proposedHearing.venue else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing,
+            { key: { text: "Hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing,
+            { key: { text: "Hearing time" }, value: { text: result.proposedHearing.time } if result.proposedHearing.time else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing
         ] }) }}
       {% endfor %}
       <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">

@@ -12,8 +12,10 @@
         title: { text: result.code + " - " + result.title }
       }, rows: [
         { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
-        { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
-        { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing
+        { key: { text: "Hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
+            { key: { text: "Hearing venue" }, value: { text: result.proposedHearing.venue } if result.proposedHearing.venue else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing,
+            { key: { text: "Hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing,
+            { key: { text: "Hearing time" }, value: { text: result.proposedHearing.time } if result.proposedHearing.time else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing
       ] }) }}
 
       <form method="post" action="{{ formAction }}">
