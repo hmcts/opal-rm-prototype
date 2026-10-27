@@ -1,6 +1,5 @@
 {% extends "layouts/main.html" %}
 {% from "moj/components/alert/macro.njk" import mojAlert %}
-{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
@@ -14,11 +13,12 @@
   {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: backHref or "/record-results/" + hearing.id + "/" + hearing.category + ("/outcome" if hearing.category === "application" else "/information") }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">{{ "Change result" if editing else "Add results" }}</h1>
-      {% if results.length %}
+      {% if results.length or not standaloneAdd %}
         <h2 class="govuk-heading-m">Results added</h2>
+      {% endif %}
+      {% if results.length %}
         {% for result in results %}
           {{ govukSummaryList({ card: {
             title: { text: result.code + " - " + result.title },
@@ -28,8 +28,10 @@
             ] }
           }, rows: [
             { key: { text: "Reason" }, value: { text: result.reason } if result.reason else { html: '<span aria-label="No data">—</span>' } },
-            { key: { text: "New hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
-            { key: { text: "New hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing
+            { key: { text: "Hearing court" }, value: { text: result.proposedHearing.court } } if result.proposedHearing,
+            { key: { text: "Hearing venue" }, value: { text: result.proposedHearing.venue } if result.proposedHearing.venue else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing,
+            { key: { text: "Hearing date" }, value: { text: result.proposedHearing.date | hearingDateLong } } if result.proposedHearing,
+            { key: { text: "Hearing time" }, value: { text: result.proposedHearing.time } if result.proposedHearing.time else { html: '<span aria-label="No data">—</span>' } } if result.proposedHearing
           ] }) }}
         {% endfor %}
       {% elif not standaloneAdd %}

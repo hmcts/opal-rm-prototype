@@ -11,7 +11,9 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: backHref }) }}
+      {% if primaryButtonText === "Save changes" %}
+        {{ govukBackLink({ text: "Back", href: backHref }) }}
+      {% endif %}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">Hearing information</h1>
       {{ govukSummaryList({ rows: [

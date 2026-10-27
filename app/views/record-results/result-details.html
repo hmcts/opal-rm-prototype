@@ -11,7 +11,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ govukBackLink({ text: "Back", href: returnHref }) }}
+      {{ govukBackLink({ text: "Back", href: backHref }) }}
       <span class="govuk-caption-l">Record results</span>
       <h1 class="govuk-heading-l">{{ code }} - {{ title }}</h1>
       {% if errorSummary %}
