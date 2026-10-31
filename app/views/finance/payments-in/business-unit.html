@@ -1,0 +1,10 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  <form action="{{ payBase }}/business-unit" method="post" novalidate>
+    <input type="hidden" name="pay-journey" value="{{ journey }}">
+    {{ xGovukAutocomplete({ id: "pay-business-unit", name: "pay-business-unit", label: { text: "Business unit", classes: "govuk-label--s" }, value: values["pay-business-unit"], errorMessage: errors["pay-business-unit"], items: units, showAllValues: true }) }}
+    <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}<a class="govuk-link" href="/finance">Cancel</a></div>
+  </form>
+</div></div>
+{% endblock %}

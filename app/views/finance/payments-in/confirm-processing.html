@@ -1,0 +1,12 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{{ govukSummaryList({ rows: rows }) }}
+<form method="post" action="{{ payAuto }}/confirm-processing" novalidate>
+  {% if overrides.length %}
+    {{ govukCheckboxes({ name: "pay-overrides", fieldset: { legend: { text: "Override inhibits for DWP/AEA files", classes: "govuk-fieldset__legend--m" } }, hint: { text: "Leave AEA files selected. Deselect DWP files so inhibits are applied." }, items: overrides }) }}
+  {% endif %}
+  <div class="govuk-button-group">{{ govukButton({ text: "Process", preventDoubleClick: true }) }}<a class="govuk-link" href="{{ payAuto }}/cancel-processing">Cancel</a></div>
+</form>
+</div></div>
+{% endblock %}

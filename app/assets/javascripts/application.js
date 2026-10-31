@@ -253,3 +253,37 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
   })
 })
+
+window.GOVUKPrototypeKit.documentReady(function () {
+  document.querySelectorAll('[data-pay-print]').forEach(function (button) {
+    button.addEventListener('click', function () { window.print() })
+  })
+
+  document.querySelectorAll('form[data-pay-multi-select]').forEach(function (form) {
+    var count = form.querySelector('[data-pay-selection-count]')
+    if (!count) return
+    function updateCount () {
+      count.textContent = form.querySelectorAll('tbody input[type="checkbox"]:checked').length
+    }
+    form.addEventListener('click', updateCount)
+    form.addEventListener('change', updateCount)
+    updateCount()
+  })
+
+  document.querySelectorAll('[data-pay-balance]').forEach(function (input) {
+    var message = document.querySelector('[data-pay-overpayment]')
+    var amountText = message && message.querySelector('[data-pay-overpayment-amount]')
+    if (!message || !amountText) return
+    function updateOverpayment () {
+      var value = input.value.trim().replace(/^£\s*/, '').replace(/,/g, '')
+      var parts = value.split('.')
+      var amount = /^\d{1,18}(?:\.\d{1,2})?$/.test(value)
+        ? BigInt(parts[0]) * 100n + BigInt((parts[1] || '').padEnd(2, '0')) : 0n
+      var difference = amount - BigInt(input.getAttribute('data-pay-balance') || '0')
+      message.hidden = difference <= 0n
+      if (difference > 0n) amountText.textContent = '£' + (difference / 100n).toLocaleString('en-GB') + '.' + String(difference % 100n).padStart(2, '0')
+    }
+    input.addEventListener('input', updateOverpayment)
+    updateOverpayment()
+  })
+})

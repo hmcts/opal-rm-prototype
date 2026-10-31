@@ -1,0 +1,10 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  <h2 class="govuk-heading-m">Payments in</h2>
+  <ul class="govuk-list govuk-list--spaced">
+    <li><a class="govuk-link" href="{{ payManual }}">Manual cash input</a></li>
+    <li><a class="govuk-link" href="{{ payAuto }}">Automatic cash input</a></li>
+  </ul>
+</div></div>
+{% endblock %}

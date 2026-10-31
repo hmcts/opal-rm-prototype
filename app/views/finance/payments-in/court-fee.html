@@ -1,0 +1,11 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+<form method="post" action="{{ payManual }}/court-fee" novalidate>
+  {{ xGovukAutocomplete({ id: "pay-feeCode", name: "pay-feeCode", value: values.feeCode, items: feeItems, showAllValues: true, errorMessage: errors["pay-feeCode"], label: { text: "Court fee code", classes: "govuk-label--s" } }) }}
+  {{ govukInput({ id: "pay-amount", name: "pay-amount", value: values.amount, errorMessage: errors["pay-amount"], label: { text: "Amount", classes: "govuk-label--s" }, inputmode: "decimal", prefix: { text: "£" }, classes: "govuk-input--width-10", spellcheck: false }) }}
+  {{ govukInput({ id: "pay-items", name: "pay-items", value: values.items, errorMessage: errors["pay-items"], label: { text: "Number of items", classes: "govuk-label--s" }, inputmode: "numeric", classes: "govuk-input--width-5" }) }}
+  <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}{{ govukButton({ text: "Cancel", name: "pay-action", value: "cancel", classes: "govuk-button--secondary" }) }}</div>
+</form>
+</div></div>
+{% endblock %}

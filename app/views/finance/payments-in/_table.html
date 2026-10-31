@@ -1,0 +1,19 @@
+{% set renderedRows = [] %}
+{% for row in tableRows %}
+  {% set renderedRow = [] %}
+  {% for cell in row %}
+    {% if cell.select %}
+      {% set labelHtml %}<span class="govuk-visually-hidden">{{ cell.select.text }}</span>{% endset %}
+      {% set checkboxHtml %}{{ govukCheckboxes({
+        name: cell.select.name, classes: "govuk-checkboxes--small", formGroup: { classes: "govuk-!-margin-bottom-0" },
+        items: [{ id: cell.select.id, value: cell.select.value, html: labelHtml }]
+      }) }}{% endset %}
+      {% set unused = renderedRow.push({ html: checkboxHtml }) %}
+    {% else %}{% set unused = renderedRow.push(cell) %}{% endif %}
+  {% endfor %}
+  {% set unused = renderedRows.push(renderedRow) %}
+{% endfor %}
+<div class="moj-scrollable-pane" tabindex="0" role="region" aria-label="{{ tableCaption }}">
+  {{ govukTable({ caption: tableCaption, captionClasses: "govuk-visually-hidden", head: tableHead, rows: renderedRows, attributes: tableAttributes }) }}
+</div>
+{% if pagination %}{{ mojPagination(pagination) }}{% endif %}

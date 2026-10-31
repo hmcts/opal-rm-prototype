@@ -1,0 +1,23 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+<p class="govuk-body">Search active respondent accounts in {{ businessUnit }} using an account number or a name.</p>
+<form method="post" action="{{ payManual }}/search" novalidate>
+  {{ govukInput({ id: "pay-number", name: "pay-number", label: { text: "Account number", classes: "govuk-label--s" }, hint: { text: "8 digits, followed by the check letter if known" }, value: values["pay-number"], errorMessage: errors["pay-number"], spellcheck: false, classes: "govuk-input--width-10" }) }}
+  <h2 class="govuk-heading-m">Or search by name</h2>
+  {% set individualHtml %}
+    {{ govukInput({ id: "pay-last-name", name: "pay-last-name", label: { text: "Last name" }, value: values["pay-last-name"], errorMessage: errors["pay-last-name"] }) }}
+    {{ govukCheckboxes({ name: "pay-last-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for last name", checked: values["pay-last-exact"] }] }) }}
+    {{ govukInput({ id: "pay-first-names", name: "pay-first-names", label: { text: "First names" }, value: values["pay-first-names"] }) }}
+    {{ govukCheckboxes({ name: "pay-first-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for first names", checked: values["pay-first-exact"] }] }) }}
+    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
+  {% endset %}
+  {% set companyHtml %}
+    {{ govukInput({ id: "pay-company", name: "pay-company", label: { text: "Company name" }, value: values["pay-company"], errorMessage: errors["pay-company"] }) }}
+    {{ govukCheckboxes({ name: "pay-company-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for company name", checked: values["pay-company-exact"] }] }) }}
+  {% endset %}
+  {{ govukRadios({ name: "pay-type", value: values["pay-type"] or "individual", fieldset: { legend: { text: "Respondent type", classes: "govuk-fieldset__legend--s" } }, items: [{ value: "individual", text: "Individual", conditional: { html: individualHtml } }, { value: "company", text: "Company", conditional: { html: companyHtml } }] }) }}
+  <div class="govuk-button-group">{{ govukButton({ text: "Search" }) }}<a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></div>
+</form>
+</div></div>
+{% endblock %}

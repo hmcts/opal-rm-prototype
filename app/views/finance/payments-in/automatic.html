@@ -1,0 +1,32 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<p class="govuk-body"><a class="govuk-link" href="{{ payBase }}/business-unit?journey=automatic">Change business unit</a></p>
+{{ mojSubNavigation({ label: "Automatic cash input", items: [
+  { text: "Process", href: payAuto + "?tab=process", active: tab === "process" },
+  { text: "Allocate", href: payAuto + "?tab=allocate", active: tab === "allocate" },
+  { text: "Ignored files (" + ignoredCount + ")", href: payAuto + "?tab=ignored", active: tab === "ignored" }] }) }}
+{% if processingCount %}{{ mojAlert({ variant: "information", text: processingCount + (" file is still being processed. Refresh to see the latest status." if processingCount === 1 else " files are still being processed. Refresh to see the latest status."), disableAutoFocus: true }) }}{% endif %}
+<form method="post" action="{{ payAuto }}/refresh">
+  <input type="hidden" name="pay-tab" value="{{ tab }}">
+  {{ govukButton({ text: "Refresh", classes: "govuk-button--secondary" }) }}
+</form>
+<h2 class="govuk-heading-m">{{ tableCaption }}</h2>
+{% if tab === "ignored" %}<p class="govuk-body">Ignored files are shown for 14 days. No till is created when every record in a file is ignored.</p>{% endif %}
+{% if items.length %}
+  {% if selecting %}
+    <form method="post" action="{{ payAuto }}/{{ 'process' if tab === 'process' else 'allocate' }}?page={{ page }}" data-pay-multi-select novalidate>
+      <div class="govuk-form-group{% if tableError %} govuk-form-group--error{% endif %}">
+        {% if tableError %}<p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
+        <p class="govuk-body">Select the {{ "files to process" if tab === "process" else "tills to allocate" }}. Selection applies to this page.</p>
+        {{ govukButton({ text: "Process" if tab === "process" else "Allocate", preventDoubleClick: true }) }}
+        <p class="govuk-hint" aria-live="polite"><span data-pay-selection-count>0</span> of {{ items.length }} selected</p>
+        {% include "finance/payments-in/_table.html" %}
+      </div>
+    </form>
+  {% else %}{% include "finance/payments-in/_table.html" %}{% endif %}
+{% else %}
+  <p class="govuk-body">{{ "There are no uploaded files to process." if tab === "process" else ("There are no outstanding tills to allocate." if tab === "allocate" else "There are no ignored files in the last 14 days.") }}</p>
+{% endif %}
+<p class="govuk-body"><a class="govuk-link" href="{{ payAuto }}/reports">View cash till reports</a></p>
+<p class="govuk-body"><a class="govuk-link" href="{{ payAuto }}/reports?type=cash-list">View cash list report</a></p>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% set individualHtml %}
+  {{ govukSelect({ id: "pay-payerTitle", name: "pay-payerTitle", label: { text: "Title (optional)" }, value: values.payerTitle,
+    errorMessage: errors["pay-payerTitle"], items: [{ value: "", text: "Select title" }, { value: "Mr", text: "Mr", selected: values.payerTitle === "Mr" }, { value: "Mrs", text: "Mrs", selected: values.payerTitle === "Mrs" }, { value: "Miss", text: "Miss", selected: values.payerTitle === "Miss" }, { value: "Ms", text: "Ms", selected: values.payerTitle === "Ms" }] }) }}
+  {{ govukInput({ id: "pay-payerFirstNames", name: "pay-payerFirstNames", label: { text: "First names (optional)" }, value: values.payerFirstNames, errorMessage: errors["pay-payerFirstNames"], autocomplete: "given-name", attributes: { maxlength: 50 } }) }}
+  {{ govukInput({ id: "pay-payerLastName", name: "pay-payerLastName", label: { text: "Last name" }, value: values.payerLastName, errorMessage: errors["pay-payerLastName"], autocomplete: "family-name", attributes: { maxlength: 50 } }) }}
+{% endset %}
+{% set companyHtml %}{{ govukInput({ id: "pay-companyName", name: "pay-companyName", label: { text: "Company name" }, value: values.companyName, errorMessage: errors["pay-companyName"], attributes: { maxlength: 50 } }) }}{% endset %}
+{{ govukRadios({ name: "pay-payerType", value: values.payerType, errorMessage: errors["pay-payerType"],
+  fieldset: { legend: { text: "Payer type", classes: "govuk-fieldset__legend--s" } },
+  items: [{ value: "Individual", text: "Individual", conditional: { html: individualHtml } }, { value: "Company", text: "Company", conditional: { html: companyHtml } }] }) }}
+<fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Payer address (optional)</legend>
+  {% for number in [1, 2, 3] %}
+    {{ govukInput({ id: "pay-address" + number, name: "pay-address" + number, label: { text: "Address line " + number }, value: values["address" + number], errorMessage: errors["pay-address" + number], attributes: { maxlength: 30 } }) }}
+  {% endfor %}
+  {{ govukInput({ id: "pay-postcode", name: "pay-postcode", label: { text: "Postcode" }, classes: "govuk-input--width-10", value: values.postcode, errorMessage: errors["pay-postcode"], autocomplete: "postal-code", attributes: { maxlength: 8 } }) }}
+</fieldset>
