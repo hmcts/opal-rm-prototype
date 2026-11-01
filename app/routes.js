@@ -613,6 +613,18 @@ function buildKatarzynaKowalczykMinorCreditor() {
 
 function buildCreateDataScenarios() {
   return {
+    'payments-in': {
+      label: 'Payments In: manual and automatic input',
+      description: 'Creates incoming payment scenarios in Reading, including failed allocations, DWP/AEA files and ignored files. Account balances are unchanged.',
+      redirectTo: '/finance/payments-in/manual',
+      sessionData: { ...buildBaseSessionData(), paymentsIn: { businessUnit: 'Reading', scenario: 'standard', units: {} } }
+    },
+    'payments-in-pagination': {
+      label: 'Payments In: tables with more than 25 rows',
+      description: 'Creates 26 manual tills, a draft with 30 payments and 30 automatic files to check pagination and page-level selection.',
+      redirectTo: '/finance/payments-in/manual',
+      sessionData: { ...buildBaseSessionData(), paymentsIn: { businessUnit: 'Reading', scenario: 'pagination', units: {} } }
+    },
     'create-a-case-remo-in': {
       label: 'Create a case: REMO In order journey',
       description: 'Seeds the create a case journey with a REMO In individual applicant (outside UK), UK respondent, two order terms, and completed order metadata.',
@@ -17885,3 +17897,923 @@ router.get('/validate-results', (req, res) => renderResultQueue(req, res, false)
 
 router.get('/my-results/:id/:category', (req, res) =>
   renderActiveCaseResultReview(req, res, 'inputter'))
+
+
+// Payments In: session-only prototype journeys.
+const payReference = require('./data/payments-in-fixtures')
+const payBase = '/finance/payments-in'
+const payManual = payBase + '/manual'
+const payAuto = payBase + '/automatic'
+
+function payText(value) {
+  return String(getSingleValue(value) || '').trim()
+}
+
+function payChecked(value) {
+  return asArray(value).filter((item) => typeof item === 'string' && item !== '_unchecked')
+}
+
+// Integer pence are stored as strings so 18-digit monetary inputs retain precision.
+function payParseMoney(value, allowNegative = false) {
+  const raw = String(value || '').trim()
+  const negative = allowNegative && raw.includes('-')
+  const input = (negative ? raw.replace('-', '') : raw).replace(/^£\s*/, '')
+  if (!/^(?:\d{1,18}|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(input)) return null
+  const parts = input.replace(/,/g, '').split('.')
+  if (parts[0].length > 18) return null
+  return ((negative ? -1n : 1n) * (BigInt(parts[0]) * 100n + BigInt((parts[1] || '').padEnd(2, '0')))).toString()
+}
+
+function payDecimal(pence) {
+  const value = BigInt(pence || '0')
+  const absolute = value < 0n ? -value : value
+  return (value < 0n ? '-' : '') + (absolute / 100n).toString() + '.' + String(absolute % 100n).padStart(2, '0')
+}
+
+function payMoney(pence) {
+  const value = BigInt(pence || '0')
+  const absolute = value < 0n ? -value : value
+  return (value < 0n ? '-£' : '£') + (absolute / 100n).toLocaleString('en-GB') + '.' + String(absolute % 100n).padStart(2, '0')
+}
+
+function paySum(items, field = 'amount') {
+  return items.reduce((total, item) => total + BigInt(item[field] || '0'), 0n).toString()
+}
+
+function payDate(value, includeTime = false) {
+  if (!value) return ''
+  const date = new Date(value)
+  const day = date.toLocaleDateString('en-GB', { timeZone: 'Europe/London', day: '2-digit', month: 'short', year: 'numeric' })
+  return includeTime ? day + ' at ' + date.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' }) : day
+}
+
+function payLink(href, label, extra = '') {
+  return { html: '<a class="govuk-link" href="' + escapeHtml(href) + '"' + extra + '>' + escapeHtml(label) + '</a>' }
+}
+
+function payValue(value) {
+  return value === undefined || value === null || value === '' ? { html: EMPTY_VALUE_HTML } : { text: String(value) }
+}
+
+function paySummary(label, value, href) {
+  return { key: { text: label }, value: payValue(value),
+    ...(href ? { actions: { items: [{ text: 'Change', href, visuallyHiddenText: label.toLowerCase() }] } } : {}) }
+}
+
+function payUnits() {
+  return [...new Set(Object.values(activeCases).map((account) => account.businessUnit).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+}
+
+function payAccounts(unit) {
+  return Object.entries(activeCases).filter(([, account]) =>
+    account.respondent && (!unit || account.businessUnit === unit) && !isInactiveCaseAccount(account)
+  ).map(([id, account]) => ({
+    id, ref: account.accountNumber || accountRef(id, 'RP'), name: getAccountHeaderName(account.respondent, account.respondentName),
+    firstNames: account.respondent.firstNames || '', lastName: account.respondent.lastName || '',
+    companyName: account.respondent.companyName || '', aliases: account.respondent.aliases || [],
+    restricted: account.respondent.restricted, dob: account.respondent.dateOfBirth,
+    address: account.respondent.address || [], balance: payParseMoney(account.balance, true) || '0',
+    arrears: getActiveCaseTotalArrears(account), applicantName: account.applicantName,
+    applicantRef: account.applicant?.accountNumber, account
+  }))
+}
+
+function payState(req) {
+  if (!req.session.data.paymentsIn || typeof req.session.data.paymentsIn !== 'object') {
+    req.session.data.paymentsIn = { businessUnit: '', units: {} }
+  }
+  const state = req.session.data.paymentsIn
+  state.units = state.units || {}
+  return state
+}
+
+function payNewUnit(unit, scenario) {
+  const state = { draft: null, pending: null, tills: [], nextTillNumber: 5576, nextPaymentId: 1, files: [], reports: [] }
+  const account = payAccounts(unit)[0]
+  const now = Date.now()
+  const sources = ['NatWest', 'allpay', 'DWP/AEA', 'Barclaycard', 'British Telecom', 'NatWest']
+  const count = scenario === 'pagination' ? 30 : 6
+  for (let index = 0; index < count; index++) {
+    const ignored = index === 4 || index === 5
+    const file = {
+      id: 'file-' + (index + 1), fileName: 'RM_' + String(index + 1).padStart(3, '0') + '.dat',
+      source: sources[index % sources.length], uploadedAt: new Date(now - (count - index) * 60000).toISOString(),
+      amount: ignored ? (index === 4 ? '5000' : '0') : '25000', records: ignored ? 1 : 10,
+      errorCount: index === 0 || index === 4 ? 1 : 0, suspenseAmount: index === 0 ? '2500' : '0',
+      ignored, status: index === 5 ? 'ignored' : 'to-process',
+      processedAt: index === 5 ? new Date(now - 16 * 86400000).toISOString() : null,
+      failNextProcess: index === 3, failNextAllocation: index === 1, accountId: account?.id
+    }
+    if (index === 5) file.uploadedAt = new Date(now - 17 * 86400000).toISOString()
+    state.files.push(file)
+  }
+  if (scenario && account) {
+    const createPayment = (index) => ({ id: 'payment-' + state.nextPaymentId++, category: 'Maintenance',
+      accountId: account.id, amount: String(1000 + index), receivedFrom: 'Respondent',
+      method: 'Credit transfer', source: 'NatWest', reference: 'RM payment ' + (index + 1), detailsComplete: true })
+    const total = scenario === 'pagination' ? 26 : 2
+    for (let index = 0; index < total; index++) state.tills.push({
+      id: String(state.nextTillNumber++), number: String(state.nextTillNumber - 1).padStart(6, '0'),
+      createdAt: new Date(now - index * 60000).toISOString(), createdBy: prototypeCurrentUserName,
+      status: index === 0 ? 'failed' : 'ready', payments: [createPayment(index)]
+    })
+    if (scenario === 'pagination') state.draft = { payments: Array.from({ length: 30 }, (_, index) => createPayment(index)) }
+  }
+  return state
+}
+
+function payUnitState(req) {
+  const state = payState(req)
+  if (!state.businessUnit || !payUnits().includes(state.businessUnit)) return null
+  if (!state.units[state.businessUnit]) state.units[state.businessUnit] = payNewUnit(state.businessUnit, state.scenario)
+  return state.units[state.businessUnit]
+}
+
+function payFlash(req, text, variant = 'success', links = []) {
+  payUnitState(req).flash = { text, variant, links }
+}
+
+function payRender(req, res, template, view = {}) {
+  const unit = payUnitState(req)
+  const flash = unit?.flash
+  if (unit) delete unit.flash
+  const errors = view.errors || {}
+  return res.render('finance/payments-in/' + template, {
+    primaryNavPath: '/finance', businessUnit: payState(req).businessUnit,
+    payBase, payManual, payAuto, values: {}, errors: {}, ...view,
+    errorSummary: Object.entries(errors).map(([field, error]) => ({ href: '#' + field, text: error.text || error })),
+    flash
+  })
+}
+
+function payRequireUnit(req, res, next) {
+  if (!payUnitState(req)) return res.redirect(payBase + '/business-unit?journey=' + (req.path.includes('/automatic') ? 'automatic' : 'manual'))
+  next()
+}
+
+function payRequireDraft(req, res, next) {
+  if (!payUnitState(req)?.draft) return res.redirect(payManual)
+  next()
+}
+
+function payRequirePending(req, res, next) {
+  if (!payUnitState(req)?.draft) return res.redirect(payManual)
+  if (!payUnitState(req).pending?.category) return res.redirect(payManual + '/category')
+  next()
+}
+
+function payPage(items, req, href) {
+  const pages = Math.max(1, Math.ceil(items.length / 25))
+  const page = Math.min(pages, Math.max(1, Number.parseInt(req.query.page, 10) || 1))
+  return { items: items.slice((page - 1) * 25, page * 25), page,
+    pagination: pages > 1 ? {
+      items: Array.from({ length: pages }, (_, index) => ({ number: index + 1, current: page === index + 1,
+        href: href + (href.includes('?') ? '&' : '?') + 'page=' + (index + 1) })),
+      previous: page > 1 ? { href: href + (href.includes('?') ? '&' : '?') + 'page=' + (page - 1) } : null,
+      next: page < pages ? { href: href + (href.includes('?') ? '&' : '?') + 'page=' + (page + 1) } : null,
+      results: { from: (page - 1) * 25 + 1, to: Math.min(page * 25, items.length), count: items.length }
+    } : null }
+}
+
+function paySelection(name, id, label) {
+  return { select: { name, id: name + '-' + id, value: id, text: label } }
+}
+
+function payPaymentName(payment) {
+  const account = payAccounts().find((item) => item.id === payment.accountId)
+  if (payment.category === 'Maintenance') return account ? account.name + ' (' + account.ref + ')' : ''
+  if (payment.reason === 'UN') return ''
+  if (payment.payerType === 'Company') return payment.companyName
+  return [payment.payerTitle, payment.payerFirstNames, payment.payerLastName].filter(Boolean).join(' ')
+}
+
+function payPaymentRows(payments, editable) {
+  return payments.map((payment) => [
+    payValue(payment.category), payValue(payPaymentName(payment)), { text: payMoney(payment.amount), format: 'numeric' },
+    payValue(payment.receivedFrom), payValue(payment.method),
+    ...(editable ? [{ html: '<a class="govuk-link" href="' + payManual + '/payment/' + encodeURIComponent(payment.id) + '/change">Change<span class="govuk-visually-hidden"> payment ' + escapeHtml(payment.id) + '</span></a> ' +
+      '<a class="govuk-link" href="' + payManual + '/payment/' + encodeURIComponent(payment.id) + '/remove">Remove<span class="govuk-visually-hidden"> payment ' + escapeHtml(payment.id) + '</span></a>' }] : [])
+  ])
+}
+
+function payCheckRows(payment) {
+  const detailHref = payManual + '/details'
+  const rows = [paySummary('Category', payment.category), paySummary('Amount', payMoney(payment.amount), payment.category === 'Court Fee' ? payManual + '/court-fee' : detailHref)]
+  if (payment.category === 'Maintenance') rows.push(paySummary('Respondent account', payPaymentName(payment), payManual + '/change-account'))
+  if (payment.category === 'Court Fee') {
+    const fee = payReference.courtFees.find((item) => item.code === payment.feeCode)
+    rows.push(paySummary('Court fee', fee ? fee.code + ' – ' + fee.description + ' (' + payMoney(fee.amount) + ')' : '', payManual + '/court-fee'))
+    rows.push(paySummary('Number of items', payment.items, payManual + '/court-fee'))
+  }
+  rows.push(paySummary('Payment received from', payment.receivedFrom, detailHref))
+  if (payment.category === 'Maintenance' && payment.receivedFrom === 'Third party') rows.push(paySummary('Third party', payment.thirdPartyName, detailHref))
+  rows.push(paySummary('Method of payment', payment.method, detailHref))
+  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source, detailHref))
+  if (payment.method !== 'Notes and coins') rows.push(paySummary('Payment reference', payment.reference, detailHref))
+  if (payment.category === 'Suspense') {
+    rows.push(paySummary('Suspense reason', payReference.reasons.find((item) => item.value === payment.reason)?.text, detailHref))
+    if (payment.reason === 'UN') rows.push(paySummary('Relevant details', payment.relevantDetails, detailHref))
+  }
+  if (payment.category === 'Court Fee' || (payment.category === 'Suspense' && payment.reason !== 'UN')) {
+    rows.push(paySummary('Payer type', payment.payerType, payManual + '/payer'))
+    rows.push(paySummary('Payer name', payPaymentName(payment), payManual + '/payer'))
+    rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
+  }
+  return rows
+}
+
+router.get('/finance', (req, res) => payRender(req, res, 'index', { heading: 'Finance', backHref: '/search' }))
+
+router.get(payBase + '/business-unit', (req, res) => {
+  const journey = req.query.journey === 'automatic' ? 'automatic' : 'manual'
+  return payRender(req, res, 'business-unit', { heading: 'Select a business unit', journey, backHref: '/finance',
+    units: payUnits().map((unit) => ({ value: unit, text: unit })), values: { 'pay-business-unit': payState(req).businessUnit } })
+})
+
+router.post(payBase + '/business-unit', (req, res, next) => {
+  const journey = req.body['pay-journey'] === 'automatic' ? 'automatic' : 'manual'
+  const value = payText(req.body['pay-business-unit'])
+  if (!payUnits().includes(value)) return payRender(req, res, 'business-unit', { heading: 'Select a business unit', journey,
+    backHref: '/finance', units: payUnits().map((unit) => ({ value: unit, text: unit })),
+    values: { 'pay-business-unit': value }, errors: { 'pay-business-unit': { text: 'Select a business unit' } } })
+  payState(req).businessUnit = value
+  return redirectWithSessionSave(req, res, next, journey === 'automatic' ? payAuto : payManual)
+})
+
+router.get(payManual, payRequireUnit, (req, res) => {
+  const state = payUnitState(req)
+  const tills = state.tills.filter((till) => till.status !== 'allocated').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const page = payPage(tills, req, payManual)
+  const tableError = req.query['selection-error'] && page.items.length ? 'Select 1 or more tills to allocate' : null
+  return payRender(req, res, 'manual-index', { heading: 'Manual cash input', backHref: '/finance', draft: state.draft,
+    tableError, errors: tableError ? { ['pay-tills-' + page.items[0].id]: { text: tableError } } : {},
+    ...page, tableCaption: 'Tills awaiting allocation', tableAttributes: { 'data-module': 'moj-multi-select', 'data-id-prefix': 'manual-' },
+    tableHead: [{ html: '<span class="govuk-visually-hidden">Select tills</span>', attributes: { id: 'manual-select-all' } },
+      { text: 'Till number' }, { text: 'Payments' }, { text: 'Amount', format: 'numeric' }, { text: 'Created by' }, { text: 'Date created' }, { text: 'Status' }],
+    tableRows: page.items.map((till) => [paySelection('pay-tills', till.id, 'Select till ' + till.number),
+      payLink(payManual + '/till/' + till.id, till.number), { text: String(till.payments.length) },
+      { text: payMoney(paySum(till.payments)), format: 'numeric' }, { text: till.createdBy }, { text: payDate(till.createdAt) },
+      { text: till.status === 'failed' ? 'Allocation failed – retry' : 'Ready' }]) })
+})
+
+router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
+  const state = payUnitState(req)
+  const available = state.tills.filter((till) => till.status !== 'allocated').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const page = payPage(available, req, payManual)
+  const selected = payChecked(req.body['pay-tills'])
+  const tills = page.items.filter((till) => selected.includes(till.id))
+  if (!tills.length) {
+    return redirectWithSessionSave(req, res, next, payManual + '?page=' + page.page + '&selection-error=1')
+  }
+  tills.forEach((till) => { till.status = 'allocated'; till.allocatedAt = new Date().toISOString() })
+  payFlash(req, tills.length + (tills.length === 1 ? ' till allocated.' : ' tills allocated.'), 'success',
+    [{ text: 'View cash till report', href: payManual + '/reports?type=cash-till' }, { text: 'View cash list report', href: payManual + '/reports?type=cash-list' }])
+  return redirectWithSessionSave(req, res, next, payManual)
+})
+
+router.get(payManual + '/new-till', payRequireUnit, (req, res) => {
+  const state = payUnitState(req)
+  state.draft = state.draft || { payments: [] }
+  const page = payPage(state.draft.payments, req, payManual + '/new-till')
+  return payRender(req, res, 'till', { heading: 'Till details', backHref: payManual, editable: true, ...page,
+    total: payMoney(paySum(state.draft.payments)), count: state.draft.payments.length,
+    tableCaption: 'Payments in this till', tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
+      { text: 'Received from' }, { text: 'Method' }, { text: 'Actions' }], tableRows: payPaymentRows(page.items, true) })
+})
+
+router.post(payManual + '/new-till', payRequireUnit, payRequireDraft, (req, res, next) => {
+  const state = payUnitState(req)
+  if (!state.draft.payments.length) return res.redirect(payManual + '/new-till')
+  const id = String(state.nextTillNumber++)
+  state.tills.push({ id, number: id.padStart(6, '0'), createdAt: new Date().toISOString(), createdBy: prototypeCurrentUserName,
+    payments: state.draft.payments, status: 'ready' })
+  state.draft = null
+  state.pending = null
+  payFlash(req, 'Till ' + id.padStart(6, '0') + ' created.')
+  return redirectWithSessionSave(req, res, next, payManual)
+})
+
+router.get(payManual + '/start', (req, res) => {
+  const account = payAccounts().find((item) => item.id === req.query.account)
+  if (!account) return res.redirect(payManual)
+  payState(req).businessUnit = account.account.businessUnit
+  const state = payUnitState(req)
+  state.draft = state.draft || { payments: [] }
+  state.pending = { category: 'Maintenance' }
+  return res.redirect(payManual + '/confirm-account?account=' + account.id)
+})
+
+router.get(payManual + '/add-payment', payRequireUnit, payRequireDraft, (req, res) => {
+  payUnitState(req).pending = null
+  return res.redirect(payManual + '/category')
+})
+
+router.get(payManual + '/category', payRequireUnit, payRequireDraft, (req, res) =>
+  payRender(req, res, 'category', { heading: 'Payment category', backHref: payManual + '/new-till',
+    values: { 'pay-category': payUnitState(req).pending?.category } }))
+
+router.post(payManual + '/category', payRequireUnit, payRequireDraft, (req, res, next) => {
+  const category = payText(req.body['pay-category'])
+  if (!['Maintenance', 'Court Fee', 'Suspense'].includes(category)) return payRender(req, res, 'category', {
+    heading: 'Payment category', backHref: payManual + '/new-till', errors: { 'pay-category': { text: 'Select payment category' } } })
+  const state = payUnitState(req)
+  if (state.pending?.category !== category) state.pending = { category }
+  return redirectWithSessionSave(req, res, next, payManual + (category === 'Maintenance' ? '/search' : category === 'Court Fee' ? '/court-fee' : '/details'))
+})
+
+function paySearch(req) {
+  const search = payUnitState(req).pending.search || {}
+  const normalise = (value) => String(value || '').toLocaleLowerCase('en-GB')
+  const match = (value, query, exact) => !query || (exact ? normalise(value) === normalise(query) : normalise(value).includes(normalise(query)))
+  return payAccounts(payState(req).businessUnit).filter((account) => {
+    if (search.number) return account.ref === search.number.toUpperCase() || account.ref.slice(0, 8) === search.number
+    if (search.type === 'company') return match(account.companyName, search.company, search.companyExact) && Boolean(account.companyName)
+    const names = [{ firstNames: account.firstNames, lastName: account.lastName },
+      ...(search.aliases ? account.aliases : [])]
+    return names.some((name) => match(name.lastName, search.lastName, search.lastExact) && match(name.firstNames, search.firstNames, search.firstExact))
+  })
+}
+
+router.get(payManual + '/search', payRequireUnit, payRequirePending, (req, res) =>
+  payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category',
+    values: payUnitState(req).pending.searchValues || {} }))
+
+router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res, next) => {
+  const fields = ['number', 'last-name', 'first-names', 'company', 'type', 'last-exact', 'first-exact', 'company-exact', 'aliases']
+  const values = Object.fromEntries(fields.map((field) => ['pay-' + field, payText(req.body['pay-' + field])]))
+  for (const field of ['last-exact', 'first-exact', 'company-exact', 'aliases']) values['pay-' + field] = payChecked(req.body['pay-' + field]).includes('yes')
+  const errors = {}
+  const number = values['pay-number'].replace(/\s/g, '').toUpperCase()
+  const hasName = values['pay-type'] === 'company' ? Boolean(values['pay-company']) : Boolean(values['pay-last-name'] || values['pay-first-names'])
+  if (number && hasName) errors['pay-number'] = { text: 'Search using an account number or a name, not both' }
+  else if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
+  else if (!number && !hasName) errors['pay-number'] = { text: 'Enter an account number or a name to search' }
+  else if (!number && values['pay-type'] === 'company' && !values['pay-company']) errors['pay-company'] = { text: 'Enter a company name' }
+  else if (!number && values['pay-type'] !== 'company' && !values['pay-last-name'] && !values['pay-first-names']) errors['pay-last-name'] = { text: 'Enter a respondent name' }
+  if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
+  const pending = payUnitState(req).pending
+  pending.searchValues = values
+  pending.search = { number, type: values['pay-type'], lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
+    company: values['pay-company'], lastExact: values['pay-last-exact'], firstExact: values['pay-first-exact'],
+    companyExact: values['pay-company-exact'], aliases: values['pay-aliases'] }
+  const results = paySearch(req)
+  return redirectWithSessionSave(req, res, next, number && results.length === 1 ? payManual + '/confirm-account?account=' + results[0].id : payManual + '/search-results')
+})
+
+function payRenderSearchResults(req, res, errors = {}) {
+  const results = paySearch(req)
+  const page = payPage(results, req, payManual + '/search-results')
+  return payRender(req, res, 'search-results', { heading: 'Search results', backHref: payManual + '/search', ...page, errors,
+    count: results.length, accounts: page.items.map((account) => ({ ...account,
+      displayDob: account.restricted ? 'Restricted' : account.dob, displayAddress: account.restricted ? 'Restricted' : account.address.join(', '),
+      balanceDisplay: payMoney(account.balance) })) })
+}
+
+router.get(payManual + '/search-results', payRequireUnit, payRequirePending, (req, res) => payRenderSearchResults(req, res))
+
+router.post(payManual + '/search-results', payRequireUnit, payRequirePending, (req, res, next) => {
+  const results = paySearch(req)
+  const account = payPage(results, req, payManual + '/search-results').items.find((item) => item.id === payText(req.body['pay-account']))
+  if (!account || results.length > 100) return payRenderSearchResults(req, res, { 'pay-account': { text: 'Select an account' } })
+  return redirectWithSessionSave(req, res, next, payManual + '/confirm-account?account=' + account.id)
+})
+
+router.get(payManual + '/confirm-account', payRequireUnit, payRequirePending, (req, res) => {
+  const account = payAccounts(payState(req).businessUnit).find((item) => item.id === req.query.account)
+  if (!account) return res.redirect(payManual + '/search')
+  const hold = getRespondentPayoutHolds(req, account.id).applyPayments === 'no'
+  return payRender(req, res, 'confirm-account', { heading: 'Confirm account', backHref: payManual + '/search-results',
+    account, hold, rows: [
+      paySummary('Account number', account.ref), paySummary('Name', account.name),
+      paySummary('Aliases', account.aliases.slice(0, 5).map((alias) => [alias.firstNames, alias.lastName].filter(Boolean).join(' ')).join(', ')),
+      paySummary('Date of birth', account.restricted ? 'Restricted' : account.dob),
+      paySummary('Address', account.restricted ? 'Restricted' : account.address.join(', ')),
+      paySummary('Balance', payMoney(account.balance)), paySummary('Total arrears', account.arrears),
+      paySummary('Applicant', account.applicantName), paySummary('Applicant account', account.applicantRef),
+      paySummary('Enforcement action', account.account.enforcementAction?.type),
+      paySummary('Comments', account.account.comment)
+    ] })
+})
+
+router.post(payManual + '/confirm-account', payRequireUnit, payRequirePending, (req, res, next) => {
+  const account = payAccounts(payState(req).businessUnit).find((item) => item.id === payText(req.body['pay-account']))
+  if (!account) return res.redirect(payManual + '/search')
+  const state = payUnitState(req)
+  state.pending = { category: 'Maintenance', id: state.pending.id, search: state.pending.search,
+    searchValues: state.pending.searchValues, accountId: account.id }
+  return redirectWithSessionSave(req, res, next, payManual + '/details')
+})
+
+router.get(payManual + '/change-account', payRequireUnit, payRequirePending, (req, res) => {
+  const state = payUnitState(req)
+  state.pending = { category: 'Maintenance', id: state.pending.id }
+  return res.redirect(payManual + '/search')
+})
+
+
+
+function payReadFields(body, fields) {
+  return Object.fromEntries(fields.map((field) => [field, payText(body['pay-' + field])]))
+}
+
+function payCancelForm(req, res, next, step) {
+  const pending = payUnitState(req).pending
+  pending.formDrafts = pending.formDrafts || {}
+  pending.formDrafts[step] = Object.fromEntries(Object.entries(req.body)
+    .filter(([field]) => field.startsWith('pay-') && field !== 'pay-action')
+    .map(([field, value]) => [field.slice(4), payText(value)]))
+  pending.cancelStep = step
+  return redirectWithSessionSave(req, res, next, payManual + '/cancel-payment')
+}
+
+function payFormValues(pending, step, fallback) {
+  const values = { ...fallback, ...(pending.formDrafts?.[step] || {}) }
+  if (step === 'details' && pending.formDrafts?.[step]) {
+    const field = { 'Postal order': 'postal-reference', Cheque: 'cheque-reference', 'Credit transfer': 'transfer-reference' }[values.method]
+    values.reference = field ? values[field] || '' : ''
+  }
+  return values
+}
+
+function payClearFormDraft(pending, step) {
+  if (pending.formDrafts) delete pending.formDrafts[step]
+  delete pending.cancelStep
+}
+
+function payPayerErrors(values) {
+  const errors = {}
+  if (!['Individual', 'Company'].includes(values.payerType)) errors['pay-payerType'] = { text: 'Select payer type' }
+  if (values.payerType === 'Individual') {
+    if (values.payerTitle && !['Mr', 'Mrs', 'Miss', 'Ms'].includes(values.payerTitle)) errors['pay-payerTitle'] = { text: 'Select a title' }
+    if (!values.payerLastName) errors['pay-payerLastName'] = { text: 'Enter last name' }
+  }
+  if (values.payerType === 'Company' && !values.companyName) errors['pay-companyName'] = { text: 'Enter company name' }
+  for (const field of values.payerType === 'Company' ? ['companyName'] : ['payerFirstNames', 'payerLastName']) {
+    if (values[field]?.length > 50) errors['pay-' + field] = { text: 'Name must be 50 characters or fewer' }
+  }
+  for (const field of ['address1', 'address2', 'address3']) {
+    if (values[field]?.length > 30) errors['pay-' + field] = { text: 'Address line must be 30 characters or fewer' }
+  }
+  if (values.postcode && (values.postcode.length > 8 || !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(values.postcode))) {
+    errors['pay-postcode'] = { text: 'Enter a valid UK postcode' }
+  }
+  return errors
+}
+
+const payPayerFields = ['payerType', 'payerTitle', 'payerFirstNames', 'payerLastName', 'companyName', 'address1', 'address2', 'address3', 'postcode']
+
+function payStorePayer(pending, values) {
+  for (const field of payPayerFields) pending[field] = values[field] || ''
+  if (pending.payerType === 'Company') {
+    pending.payerTitle = ''
+    pending.payerFirstNames = ''
+    pending.payerLastName = ''
+  } else pending.companyName = ''
+  pending.postcode = pending.postcode.toUpperCase()
+  pending.payerComplete = true
+}
+
+function payRenderCourtFee(req, res, values, errors = {}) {
+  return payRender(req, res, 'court-fee', { heading: 'Court fee details', backHref: payManual + '/category',
+    values, errors, feeItems: payReference.courtFees.map((fee) => ({
+      value: fee.code, text: fee.code + ' – ' + fee.description + ' (' + payMoney(fee.amount) + ')'
+    })) })
+}
+
+router.get(payManual + '/court-fee', payRequireUnit, payRequirePending, (req, res) => {
+  const pending = payUnitState(req).pending
+  if (pending.category !== 'Court Fee') return res.redirect(payManual + '/details')
+  return payRenderCourtFee(req, res, payFormValues(pending, 'court-fee', { feeCode: pending.feeCode, amount: pending.amount ? payDecimal(pending.amount) : '', items: pending.items }))
+})
+
+router.post(payManual + '/court-fee', payRequireUnit, payRequirePending, (req, res, next) => {
+  if (req.body['pay-action'] === 'cancel') return payCancelForm(req, res, next, 'court-fee')
+  const pending = payUnitState(req).pending
+  if (pending.category !== 'Court Fee') return res.redirect(payManual + '/details')
+  const values = payReadFields(req.body, ['feeCode', 'amount', 'items'])
+  const fee = payReference.courtFees.find((item) => item.code === values.feeCode)
+  const amount = payParseMoney(values.amount)
+  const errors = {}
+  if (!fee) errors['pay-feeCode'] = { text: 'Select a valid court fee' }
+  if (amount === null || BigInt(amount) <= 0n) errors['pay-amount'] = { text: 'Enter an amount greater than £0.00, with up to 18 digits before the decimal point and 2 after' }
+  if (!/^[1-9]\d{0,17}$/.test(values.items)) errors['pay-items'] = { text: 'Enter a whole number of items greater than 0, with no more than 18 digits' }
+  if (Object.keys(errors).length) return payRenderCourtFee(req, res, values, errors)
+  payClearFormDraft(pending, 'court-fee')
+  Object.assign(pending, { feeCode: fee.code, amount, items: values.items,
+    expected: (BigInt(fee.amount) * BigInt(values.items)).toString(), detailsComplete: false, feeConfirmed: false })
+  return redirectWithSessionSave(req, res, next, payManual + (pending.expected === amount ? '/details' : '/fee-difference'))
+})
+
+router.get(payManual + '/fee-difference', payRequireUnit, payRequirePending, (req, res) => {
+  const pending = payUnitState(req).pending
+  if (pending.category !== 'Court Fee' || !pending.expected || !pending.amount) return res.redirect(payManual + '/court-fee')
+  const difference = BigInt(pending.amount) - BigInt(pending.expected)
+  if (!difference) return res.redirect(payManual + '/details')
+  return payRender(req, res, 'fee-difference', { heading: difference < 0n ? 'This payment is less than the court fee' : 'Confirm the court fee overpayment',
+    backHref: payManual + '/court-fee', underpayment: difference < 0n, difference: payMoney(difference < 0n ? -difference : difference),
+    rows: [paySummary('Court fee code', pending.feeCode), paySummary('Number of items', pending.items),
+      paySummary('Expected amount', payMoney(pending.expected)), paySummary('Amount received', payMoney(pending.amount))] })
+})
+
+router.post(payManual + '/fee-difference', payRequireUnit, payRequirePending, (req, res, next) => {
+  const pending = payUnitState(req).pending
+  if (pending.category !== 'Court Fee' || !pending.expected || !pending.amount || BigInt(pending.amount) < BigInt(pending.expected)) return res.redirect(payManual + '/court-fee')
+  pending.feeConfirmed = true
+  return redirectWithSessionSave(req, res, next, payManual + '/details')
+})
+
+function payRenderDetails(req, res, values, errors = {}) {
+  const pending = payUnitState(req).pending
+  const account = payAccounts(payState(req).businessUnit).find((item) => item.id === pending.accountId)
+  return payRender(req, res, 'details', { heading: pending.category === 'Suspense' ? 'Suspense details' : 'Payment details',
+    backHref: pending.category === 'Maintenance' ? payManual + '/confirm-account?account=' + pending.accountId :
+      pending.category === 'Court Fee' ? payManual + '/court-fee' : payManual + '/category',
+    category: pending.category, values, errors, reasons: payReference.reasons, sources: payReference.sources,
+    balance: account?.balance, feeRows: pending.category === 'Court Fee' ? [
+      paySummary('Court fee', pending.feeCode), paySummary('Amount', payMoney(pending.amount)), paySummary('Number of items', pending.items)
+    ] : null })
+}
+
+router.get(payManual + '/details', payRequireUnit, payRequirePending, (req, res) => {
+  const pending = payUnitState(req).pending
+  if (pending.category === 'Maintenance' && !payAccounts(payState(req).businessUnit).some((account) => account.id === pending.accountId)) return res.redirect(payManual + '/search')
+  if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.amount || !pending.items)) return res.redirect(payManual + '/court-fee')
+  if (pending.category === 'Court Fee' && BigInt(pending.amount) !== BigInt(pending.expected) && !pending.feeConfirmed) return res.redirect(payManual + '/fee-difference')
+  return payRenderDetails(req, res, payFormValues(pending, 'details', { ...pending, amount: pending.amount ? payDecimal(pending.amount) : '' }))
+})
+
+router.post(payManual + '/details', payRequireUnit, payRequirePending, (req, res, next) => {
+  if (req.body['pay-action'] === 'cancel') return payCancelForm(req, res, next, 'details')
+  const pending = payUnitState(req).pending
+  if (pending.category === 'Maintenance' && !payAccounts(payState(req).businessUnit).some((account) => account.id === pending.accountId)) return res.redirect(payManual + '/search')
+  if (pending.category === 'Court Fee' && (!pending.expected || !pending.amount ||
+    (BigInt(pending.amount) !== BigInt(pending.expected) && !pending.feeConfirmed))) return res.redirect(payManual + '/court-fee')
+  const values = payReadFields(req.body, ['amount', 'receivedFrom', 'thirdPartyName', 'method', 'source', 'reason', 'relevantDetails', ...payPayerFields])
+  const referenceField = { 'Postal order': 'postal-reference', Cheque: 'cheque-reference', 'Credit transfer': 'transfer-reference' }[values.method]
+  values.reference = referenceField ? payText(req.body['pay-' + referenceField]) : ''
+  const amount = pending.category === 'Court Fee' ? pending.amount : payParseMoney(values.amount)
+  const errors = {}
+  if (amount === null || BigInt(amount) <= 0n) errors['pay-amount'] = { text: 'Enter an amount greater than £0.00, with up to 18 digits before the decimal point and 2 after' }
+  const receiver = pending.category === 'Court Fee' ? 'Applicant' : 'Respondent'
+  if (![receiver, 'Third party'].includes(values.receivedFrom)) errors['pay-receivedFrom'] = { text: 'Select who the payment was received from' }
+  if (pending.category === 'Maintenance' && values.receivedFrom === 'Third party' && !values.thirdPartyName) errors['pay-thirdPartyName'] = { text: 'Enter the name of the third party' }
+  if (pending.category === 'Maintenance' && values.receivedFrom === 'Third party' && values.thirdPartyName.length > 50) errors['pay-thirdPartyName'] = { text: 'Name must be 50 characters or fewer' }
+  if (!payReference.methods.includes(values.method)) errors['pay-method'] = { text: 'Select a method of payment' }
+  if (values.method === 'Credit transfer' && !payReference.sources.includes(values.source)) errors['pay-source'] = { text: 'Select a source' }
+  if (values.reference.length > 50) errors['pay-' + referenceField] = { text: 'Payment reference must be 50 characters or fewer' }
+  if (pending.category === 'Suspense' && !payReference.reasons.some((reason) => reason.value === values.reason)) errors['pay-reason'] = { text: 'Select a reason for the suspense' }
+  if (pending.category === 'Suspense' && values.reason === 'UN' && values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
+  if (pending.category === 'Court Fee') Object.assign(errors, payPayerErrors(values))
+  if (Object.keys(errors).length) return payRenderDetails(req, res, values, errors)
+  payClearFormDraft(pending, 'details')
+  Object.assign(pending, { amount, receivedFrom: values.receivedFrom, method: values.method, reference: values.reference,
+    thirdPartyName: pending.category === 'Maintenance' && values.receivedFrom === 'Third party' ? values.thirdPartyName : '',
+    source: values.method === 'Credit transfer' ? values.source : '', detailsComplete: true })
+  if (pending.category === 'Court Fee') payStorePayer(pending, values)
+  if (pending.category === 'Suspense') {
+    pending.reason = values.reason
+    pending.relevantDetails = values.reason === 'UN' ? values.relevantDetails : ''
+    if (values.reason === 'UN') {
+      for (const field of payPayerFields) delete pending[field]
+      delete pending.payerComplete
+    }
+  }
+  return redirectWithSessionSave(req, res, next, payManual + (pending.category === 'Suspense' && pending.reason !== 'UN' ? '/payer' : '/check-payment'))
+})
+
+router.get(payManual + '/payer', payRequireUnit, payRequirePending, (req, res) => {
+  const pending = payUnitState(req).pending
+  if (!pending.detailsComplete) return res.redirect(payManual + '/details')
+  if (pending.category === 'Maintenance' || (pending.category === 'Suspense' && pending.reason === 'UN')) return res.redirect(payManual + '/check-payment')
+  return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details', values: payFormValues(pending, 'payer', pending) })
+})
+
+router.post(payManual + '/payer', payRequireUnit, payRequirePending, (req, res, next) => {
+  if (req.body['pay-action'] === 'cancel') return payCancelForm(req, res, next, 'payer')
+  const pending = payUnitState(req).pending
+  if (!pending.detailsComplete || pending.category === 'Maintenance' || pending.reason === 'UN') return res.redirect(payManual + '/details')
+  const values = payReadFields(req.body, payPayerFields)
+  const errors = payPayerErrors(values)
+  if (Object.keys(errors).length) return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details', values, errors })
+  payClearFormDraft(pending, 'payer')
+  payStorePayer(pending, values)
+  return redirectWithSessionSave(req, res, next, payManual + '/check-payment')
+})
+
+function payMissingStep(req) {
+  const pending = payUnitState(req).pending
+  if (pending.category === 'Maintenance' && !payAccounts(payState(req).businessUnit).some((account) => account.id === pending.accountId)) return '/search'
+  if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.items || !pending.amount ||
+    (BigInt(pending.amount) !== BigInt(pending.expected || '0') && !pending.feeConfirmed))) return '/court-fee'
+  if (!pending.detailsComplete || !payReference.methods.includes(pending.method) || !pending.amount) return '/details'
+  if ((pending.category === 'Court Fee' || (pending.category === 'Suspense' && pending.reason !== 'UN')) && !pending.payerComplete) return '/payer'
+  return null
+}
+
+function payRenderCheck(req, res, errors = {}, note) {
+  const pending = payUnitState(req).pending
+  const account = payAccounts(payState(req).businessUnit).find((item) => item.id === pending.accountId)
+  // A zero outstanding balance does not turn incoming RM maintenance into an overpayment.
+  const excess = pending.category === 'Maintenance' && account && BigInt(account.balance) > 0n && BigInt(pending.amount) > BigInt(account.balance)
+    ? (BigInt(pending.amount) - BigInt(account.balance)).toString()
+    : pending.category === 'Court Fee' && BigInt(pending.amount) > BigInt(pending.expected)
+      ? (BigInt(pending.amount) - BigInt(pending.expected)).toString() : null
+  return payRender(req, res, 'check-payment', { heading: pending.id ? 'Check payment changes' : 'Check payment',
+    backHref: pending.category === 'Suspense' && pending.reason !== 'UN' ? payManual + '/payer' : payManual + '/details',
+    errors, rows: payCheckRows(pending), needsNote: pending.category !== 'Maintenance',
+    values: { note: note === undefined ? payFormValues(pending, 'check-payment', { note: pending.note }).note : note }, excess: excess && payMoney(excess),
+    receiptHold: account && getRespondentPayoutHolds(req, account.id).applyPayments === 'no' })
+}
+
+router.get(payManual + '/check-payment', payRequireUnit, payRequirePending, (req, res) => {
+  const missing = payMissingStep(req)
+  if (missing) return res.redirect(payManual + missing)
+  return payRenderCheck(req, res)
+})
+
+router.post(payManual + '/check-payment', payRequireUnit, payRequirePending, (req, res, next) => {
+  if (req.body['pay-action'] === 'cancel') return payCancelForm(req, res, next, 'check-payment')
+  const missing = payMissingStep(req)
+  if (missing) return res.redirect(payManual + missing)
+  const state = payUnitState(req)
+  const pending = state.pending
+  const note = payText(req.body['pay-note'])
+  if (pending.category !== 'Maintenance' && (!note || note.length > 1000)) return payRenderCheck(req, res,
+    { 'pay-note': { text: !note ? 'Add a suspense note' : 'Suspense note must be 1,000 characters or fewer' } }, note)
+  const { search, searchValues, formDrafts, cancelStep, ...payment } = pending
+  if (payment.category !== 'Maintenance') payment.note = note
+  const editing = Boolean(payment.id)
+  if (editing) {
+    if (!state.draft.payments.some((item) => item.id === payment.id)) return res.redirect(payManual + '/new-till')
+    state.draft.payments = state.draft.payments.map((item) => item.id === payment.id ? payment : item)
+  } else {
+    payment.id = 'payment-' + state.nextPaymentId++
+    state.draft.payments.push(payment)
+  }
+  state.pending = null
+  payFlash(req, editing ? 'Payment updated.' : 'Payment added to till.')
+  const another = req.body['pay-action'] === 'another'
+  return redirectWithSessionSave(req, res, next, payManual + (another ? '/category' : '/new-till'))
+})
+
+router.get(payManual + '/payment/:paymentId/change', payRequireUnit, payRequireDraft, (req, res) => {
+  const state = payUnitState(req)
+  const payment = state.draft.payments.find((item) => item.id === req.params.paymentId)
+  if (!payment) return res.redirect(payManual + '/new-till')
+  state.pending = cloneData(payment)
+  return res.redirect(payManual + '/check-payment')
+})
+
+router.get(payManual + '/payment/:paymentId/remove', payRequireUnit, payRequireDraft, (req, res) => {
+  const payment = payUnitState(req).draft.payments.find((item) => item.id === req.params.paymentId)
+  if (!payment) return res.redirect(payManual + '/new-till')
+  return payRender(req, res, 'confirm-action', { heading: 'Are you sure you want to remove this payment?',
+    backHref: payManual + '/new-till', cancelHref: payManual + '/new-till', buttonText: 'Remove payment',
+    formAction: payManual + '/payment/' + encodeURIComponent(payment.id) + '/remove', rows: payCheckRows(payment) })
+})
+
+router.post(payManual + '/payment/:paymentId/remove', payRequireUnit, payRequireDraft, (req, res, next) => {
+  const state = payUnitState(req)
+  if (!state.draft.payments.some((item) => item.id === req.params.paymentId)) return res.redirect(payManual + '/new-till')
+  state.draft.payments = state.draft.payments.filter((item) => item.id !== req.params.paymentId)
+  if (state.pending?.id === req.params.paymentId) state.pending = null
+  payFlash(req, 'Payment removed.')
+  return redirectWithSessionSave(req, res, next, payManual + '/new-till')
+})
+
+router.get(payManual + '/delete-till', payRequireUnit, payRequireDraft, (req, res) =>
+  payRender(req, res, 'confirm-action', { heading: 'Are you sure you want to delete this till?', backHref: payManual + '/new-till',
+    cancelHref: payManual + '/new-till', buttonText: 'Delete till', formAction: payManual + '/delete-till',
+    text: 'All payments in this draft till will be deleted.' }))
+
+router.post(payManual + '/delete-till', payRequireUnit, payRequireDraft, (req, res, next) => {
+  const state = payUnitState(req)
+  state.draft = null
+  state.pending = null
+  payFlash(req, 'Draft till deleted.')
+  return redirectWithSessionSave(req, res, next, payManual)
+})
+
+router.get(payManual + '/cancel-payment', payRequireUnit, payRequireDraft, (req, res) => {
+  const pending = payUnitState(req).pending
+  if (!pending) return res.redirect(payManual + '/new-till')
+  const step = pending.cancelStep || (pending.detailsComplete ? 'check-payment' : pending.category === 'Court Fee' ? 'court-fee' : pending.category === 'Maintenance' && !pending.accountId ? 'search' : 'details')
+  return payRender(req, res, 'confirm-action', { heading: 'Do you want to discard these payment details?', backHref: payManual + '/' + step,
+    cancelHref: payManual + '/' + step,
+    buttonText: 'Discard payment details', formAction: payManual + '/cancel-payment',
+    text: 'Any unsaved details for this payment will be lost. Payments already saved in the till will be kept.' })
+})
+
+router.post(payManual + '/cancel-payment', payRequireUnit, payRequireDraft, (req, res, next) => {
+  payUnitState(req).pending = null
+  payFlash(req, 'Unsaved payment details discarded.')
+  return redirectWithSessionSave(req, res, next, payManual + '/new-till')
+})
+
+router.get(payManual + '/till/:tillId', payRequireUnit, (req, res) => {
+  const till = payUnitState(req).tills.find((item) => item.id === req.params.tillId)
+  if (!till) return res.redirect(payManual)
+  const page = payPage(till.payments, req, payManual + '/till/' + till.id)
+  return payRender(req, res, 'till', { heading: 'Till ' + till.number, backHref: payManual, editable: false,
+    ...page, total: payMoney(paySum(till.payments)), count: till.payments.length,
+    detailsRows: [paySummary('Business unit', payState(req).businessUnit), paySummary('Created by', till.createdBy),
+      paySummary('Date created', payDate(till.createdAt, true)), paySummary('Status', till.status === 'allocated' ? 'Allocated' : till.status === 'failed' ? 'Allocation failed' : 'Ready to allocate')],
+    tableCaption: 'Payments in till ' + till.number, tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
+      { text: 'Received from' }, { text: 'Method' }], tableRows: payPaymentRows(page.items, false) })
+})
+
+router.get(payManual + '/reports', payRequireUnit, (req, res) => {
+  const allocated = req.query.type === 'cash-list'
+  const tills = payUnitState(req).tills.filter((till) => !allocated || till.status === 'allocated').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const href = payManual + '/reports?type=' + (allocated ? 'cash-list' : 'cash-till')
+  const page = payPage(tills, req, href)
+  return payRender(req, res, 'report-list', { heading: allocated ? 'Cash list report' : 'Cash till reports', backHref: payManual,
+    ...page, tableCaption: allocated ? 'Allocated manual tills' : 'Manual cash tills',
+    tableHead: [{ text: 'Till number' }, { text: 'Date created' }, { text: 'Payments' }, { text: 'Amount', format: 'numeric' }, { text: 'Status' }],
+    tableRows: page.items.map((till) => [payLink(payManual + '/till/' + till.id, till.number), { text: payDate(till.createdAt) },
+      { text: String(till.payments.length) }, { text: payMoney(paySum(till.payments)), format: 'numeric' }, { text: till.status === 'allocated' ? 'Allocated' : till.status === 'failed' ? 'Allocation failed' : 'Ready' }]),
+    summaryRows: [paySummary('Tills', tills.length), paySummary('Total payments', tills.reduce((count, till) => count + till.payments.length, 0)),
+      paySummary('Total amount', payMoney(tills.reduce((sum, till) => sum + BigInt(paySum(till.payments)), 0n).toString()))] })
+})
+
+
+
+function payAdvanceFiles(req, refresh = false) {
+  const state = payUnitState(req)
+  state.files.filter((file) => file.status === 'processing').forEach((file) => {
+    if (!refresh && Date.now() - new Date(file.queuedAt).getTime() < 15000) return
+    file.processedAt = new Date().toISOString()
+    file.processedBy = prototypeCurrentUserName
+    if (file.failNextProcess) {
+      file.status = 'failed-process'
+      file.failNextProcess = false
+      return
+    }
+    file.status = file.ignored ? 'ignored' : 'ready'
+    if (!file.ignored) {
+      file.tillId = String(state.nextTillNumber++)
+      file.tillNumber = file.tillId.padStart(6, '0')
+    }
+  })
+}
+
+function payAutomaticView(req, res) {
+  payAdvanceFiles(req)
+  const state = payUnitState(req)
+  const tab = ['process', 'allocate', 'ignored'].includes(req.query.tab) ? req.query.tab : 'process'
+  const files = state.files.filter((file) => tab === 'process' ? ['to-process', 'failed-process'].includes(file.status)
+    : tab === 'allocate' ? ['ready', 'failed-allocation'].includes(file.status)
+      : file.status === 'ignored' && Date.now() - new Date(file.processedAt).getTime() <= 14 * 86400000)
+    .sort((a, b) => tab === 'process' ? a.uploadedAt.localeCompare(b.uploadedAt) : b.processedAt.localeCompare(a.processedAt))
+  const page = payPage(files, req, payAuto + '?tab=' + tab)
+  const selecting = tab !== 'ignored'
+  const selectionName = tab === 'process' ? 'pay-files' : 'pay-auto-tills'
+  const tableError = req.query['selection-error'] && page.items.length ? (tab === 'process' ? 'Select at least 1 file' : 'Select at least 1 till to allocate') : null
+  const head = selecting ? [{ html: '<span class="govuk-visually-hidden">Select ' + (tab === 'process' ? 'files' : 'tills') + '</span>', attributes: { id: 'automatic-select-all' } }] : []
+  if (tab === 'allocate') head.push({ text: 'Till number' })
+  head.push({ text: 'File name' }, { text: 'Source' })
+  if (tab !== 'process') head.push({ text: 'Errors' }, { text: 'Amount', format: 'numeric' })
+  head.push({ text: tab === 'process' ? 'Date uploaded' : 'Date processed' })
+  if (selecting) head.push({ text: 'Status' })
+  return payRender(req, res, 'automatic', { heading: 'Automatic cash input', backHref: '/finance', tab, selecting, ...page, tableError,
+    errors: tableError ? { [selectionName + '-' + page.items[0].id]: { text: tableError } } : {},
+    ignoredCount: state.files.filter((file) => file.status === 'ignored' && Date.now() - new Date(file.processedAt).getTime() <= 14 * 86400000).length,
+    processingCount: state.files.filter((file) => file.status === 'processing').length,
+    tableCaption: tab === 'process' ? 'Files to process' : tab === 'allocate' ? 'Tills ready to allocate' : 'Ignored files in the last 14 days',
+    tableAttributes: selecting ? { 'data-module': 'moj-multi-select', 'data-id-prefix': 'automatic-' } : {},
+    tableHead: head, tableRows: page.items.map((file) => {
+      const row = selecting ? [paySelection(selectionName, file.id, 'Select ' + file.fileName)] : []
+      if (tab === 'allocate') row.push(payLink(payAuto + '/file/' + file.id, file.tillNumber))
+      row.push(tab === 'ignored' ? payLink(payAuto + '/file/' + file.id, file.fileName) : { text: file.fileName }, { text: file.source })
+      if (tab !== 'process') row.push({ text: String(file.errorCount) }, { text: payMoney(file.amount), format: 'numeric' })
+      row.push({ text: payDate(tab === 'process' ? file.uploadedAt : file.processedAt) })
+      if (selecting) row.push({ text: file.status.startsWith('failed') ? 'Failed – retry' : tab === 'process' ? 'Awaiting processing' : 'Ready' })
+      return row
+    }) })
+}
+
+router.get(payAuto, payRequireUnit, (req, res) => payAutomaticView(req, res))
+
+router.post(payAuto + '/refresh', payRequireUnit, (req, res, next) => {
+  payAdvanceFiles(req, true)
+  const tab = ['process', 'allocate', 'ignored'].includes(req.body['pay-tab']) ? req.body['pay-tab'] : 'process'
+  return redirectWithSessionSave(req, res, next, payAuto + '?tab=' + tab)
+})
+
+router.post(payAuto + '/process', payRequireUnit, (req, res, next) => {
+  payAdvanceFiles(req)
+  const state = payUnitState(req)
+  const files = state.files.filter((file) => ['to-process', 'failed-process'].includes(file.status)).sort((a, b) => a.uploadedAt.localeCompare(b.uploadedAt))
+  const page = payPage(files, req, payAuto + '?tab=process')
+  const selected = payChecked(req.body['pay-files'])
+  state.pendingFiles = page.items.filter((file) => selected.includes(file.id)).map((file) => file.id)
+  if (!state.pendingFiles.length) return redirectWithSessionSave(req, res, next, payAuto + '?tab=process&page=' + page.page + '&selection-error=1')
+  return redirectWithSessionSave(req, res, next, payAuto + '/confirm-processing')
+})
+
+router.get(payAuto + '/confirm-processing', payRequireUnit, (req, res) => {
+  const state = payUnitState(req)
+  const files = state.files.filter((file) => (state.pendingFiles || []).includes(file.id) && ['to-process', 'failed-process'].includes(file.status))
+  if (!files.length) return res.redirect(payAuto)
+  return payRender(req, res, 'confirm-processing', { heading: 'Confirm before processing', backHref: payAuto,
+    count: files.length, rows: [paySummary('Business unit', payState(req).businessUnit), paySummary('Files selected', files.length)],
+    overrides: files.filter((file) => file.source === 'DWP/AEA').map((file) => ({ value: file.id, text: file.fileName, checked: true })) })
+})
+
+router.post(payAuto + '/confirm-processing', payRequireUnit, (req, res, next) => {
+  const state = payUnitState(req)
+  const files = state.files.filter((file) => (state.pendingFiles || []).includes(file.id) && ['to-process', 'failed-process'].includes(file.status))
+  if (!files.length) return res.redirect(payAuto)
+  const overrides = payChecked(req.body['pay-overrides'])
+  files.forEach((file) => {
+    file.overrideInhibits = file.source === 'DWP/AEA' && overrides.includes(file.id)
+    file.status = 'processing'
+    file.queuedAt = new Date().toISOString()
+  })
+  delete state.pendingFiles
+  return redirectWithSessionSave(req, res, next, payAuto + '?tab=allocate')
+})
+
+router.get(payAuto + '/cancel-processing', payRequireUnit, (req, res) => {
+  delete payUnitState(req).pendingFiles
+  return res.redirect(payAuto)
+})
+
+router.post(payAuto + '/allocate', payRequireUnit, (req, res, next) => {
+  payAdvanceFiles(req)
+  const state = payUnitState(req)
+  const files = state.files.filter((file) => ['ready', 'failed-allocation'].includes(file.status)).sort((a, b) => b.processedAt.localeCompare(a.processedAt))
+  const page = payPage(files, req, payAuto + '?tab=allocate')
+  const selected = payChecked(req.body['pay-auto-tills'])
+  const tills = page.items.filter((file) => selected.includes(file.id))
+  if (!tills.length) return redirectWithSessionSave(req, res, next, payAuto + '?tab=allocate&page=' + page.page + '&selection-error=1')
+  let allocated = 0
+  tills.forEach((file) => {
+    if (file.failNextAllocation) {
+      file.status = 'failed-allocation'
+      file.failNextAllocation = false
+    } else {
+      file.status = 'allocated'
+      file.allocatedAt = new Date().toISOString()
+      allocated++
+    }
+  })
+  const failed = tills.length - allocated
+  payFlash(req, allocated + (allocated === 1 ? ' till allocated.' : ' tills allocated.') + (failed ? ' ' + failed + ' failed to allocate. Select the failed tills to try again.' : ''),
+    failed ? 'warning' : 'success', [{ text: 'View cash till reports', href: payAuto + '/reports' }, { text: 'View cash list report', href: payAuto + '/reports?type=cash-list' }])
+  return redirectWithSessionSave(req, res, next, payAuto + '?tab=allocate')
+})
+
+router.get(payAuto + '/reports', payRequireUnit, (req, res) => {
+  payAdvanceFiles(req)
+  const cashList = req.query.type === 'cash-list'
+  const files = payUnitState(req).files.filter((file) => cashList ? file.status === 'allocated' : ['ready', 'failed-allocation', 'allocated'].includes(file.status))
+    .sort((a, b) => b.processedAt.localeCompare(a.processedAt))
+  const page = payPage(files, req, payAuto + '/reports' + (cashList ? '?type=cash-list' : ''))
+  return payRender(req, res, 'report-list', { heading: cashList ? 'Cash list report' : 'Cash till reports', backHref: payAuto + '?tab=allocate', ...page,
+    summaryRows: [paySummary('Tills', files.length), paySummary('Total records', files.reduce((total, file) => total + file.records, 0)), paySummary('Total amount', payMoney(paySum(files)))],
+    tableCaption: 'Automatic cash tills', tableHead: [{ text: 'Till' }, { text: 'File' }, { text: 'Source' }, { text: 'Amount', format: 'numeric' }, { text: 'Date processed' }, { text: 'Status' }],
+    tableRows: page.items.map((file) => [payLink(payAuto + '/file/' + file.id, file.tillNumber), { text: file.fileName }, { text: file.source },
+      { text: payMoney(file.amount), format: 'numeric' }, { text: payDate(file.processedAt) }, { text: file.status === 'allocated' ? 'Allocated' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready' }]) })
+})
+
+router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
+  payAdvanceFiles(req)
+  const file = payUnitState(req).files.find((item) => item.id === req.params.fileId && ['ready', 'failed-allocation', 'allocated', 'ignored'].includes(item.status))
+  if (!file) return res.redirect(payAuto)
+  if (file.status === 'ignored' && Date.now() - new Date(file.processedAt).getTime() > 14 * 86400000) return res.redirect(payAuto + '?tab=ignored')
+  const ignoredCount = file.ignored ? file.records : 0
+  const suspenseCount = file.ignored ? 0 : file.errorCount
+  const suspense = file.ignored ? '0' : file.suspenseAmount
+  const ignored = file.ignored ? file.amount : '0'
+  const accepted = (BigInt(file.amount) - BigInt(suspense) - BigInt(ignored)).toString()
+  const totals = [
+    ['Records read', file.records, file.amount],
+    ['Records accepted', file.records - ignoredCount - suspenseCount, accepted],
+    ['Records in suspense', suspenseCount, suspense],
+    ['Records ignored', ignoredCount, ignored]
+  ]
+  const account = payAccounts(payState(req).businessUnit).find((item) => item.id === file.accountId)
+  return payRender(req, res, 'file-report', { heading: file.ignored ? file.fileName : 'Till ' + file.tillNumber,
+    backHref: payAuto + '?tab=' + (file.ignored ? 'ignored' : 'allocate'),
+    detailsRows: [paySummary('File name', file.fileName), paySummary('Source', file.source),
+      paySummary('Business unit', payState(req).businessUnit), paySummary('Date processed', payDate(file.processedAt, true)),
+      paySummary('Processed by', file.processedBy), paySummary('Status', file.status === 'allocated' ? 'Allocated' : file.ignored ? 'Ignored' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready to allocate'),
+      ...(file.source === 'DWP/AEA' ? [paySummary('Override inhibits', file.overrideInhibits ? 'Yes' : 'No')] : [])],
+    totalHead: [{ text: 'Type' }, { text: 'Number', format: 'numeric' }, { text: 'Value', format: 'numeric' }],
+    totalRows: totals.map(([type, count, amount]) => [{ text: type }, { text: String(count), format: 'numeric' }, { text: payMoney(amount), format: 'numeric' }]),
+    accountRows: account && !file.ignored ? [paySummary('Respondent account', account.ref),
+      paySummary('Respondent', account.name), paySummary('Value accepted', payMoney(accepted))] : null,
+    accountHref: account && !file.ignored ? '/active-case/' + account.id : null,
+    errorRows: file.errorCount ? [
+      paySummary('Error', file.ignored ? 'Unknown business unit bank details – record ignored' : 'No Opal account – payment held in suspense'),
+      paySummary('Court bank sort code', ''), paySummary('Court bank account', ''),
+      paySummary('Beneficiary name', ''), paySummary('Respondent bank sort code', ''),
+      paySummary('Respondent bank account', ''), paySummary('Respondent account', file.ignored ? '' : 'Unknown account'),
+      paySummary('Transaction amount', payMoney(file.ignored ? file.amount : file.suspenseAmount))
+    ] : null,
+    outcomeRows: [paySummary('Total value to suspense', payMoney(suspense)), paySummary('Total value ignored', payMoney(ignored))] })
+})
+
+// Prevent the kit's automatic template routing from rendering partials or unguarded views.
+router.get(payBase + '/:template', (req, res) => res.redirect('/finance'))

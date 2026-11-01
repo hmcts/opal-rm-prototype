@@ -1,0 +1,16 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{% if excess %}{{ mojAlert({ variant: "information", text: "This payment includes an overpayment of " + excess + "." }) }}{% endif %}
+{% if receiptHold %}{{ mojAlert({ variant: "warning", text: "Payments received for this account are held in suspense." }) }}{% endif %}
+{{ govukSummaryList({ rows: rows }) }}
+<form method="post" action="{{ payManual }}/check-payment" novalidate>
+  {% if needsNote %}{{ govukCharacterCount({ id: "pay-note", name: "pay-note", maxlength: 1000, label: { text: "Add suspense note", classes: "govuk-label--s" }, value: values.note, errorMessage: errors["pay-note"] }) }}{% endif %}
+  <div class="govuk-button-group">
+    {{ govukButton({ text: "Save and review till", name: "pay-action", value: "review", preventDoubleClick: true }) }}
+    {{ govukButton({ text: "Save and add another payment", name: "pay-action", value: "another", classes: "govuk-button--secondary", preventDoubleClick: true }) }}
+  </div>
+  {{ govukButton({ text: "Cancel", name: "pay-action", value: "cancel", classes: "govuk-button--secondary" }) }}
+</form>
+</div></div>
+{% endblock %}

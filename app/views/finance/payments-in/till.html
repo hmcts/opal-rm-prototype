@@ -1,0 +1,19 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% if detailsRows %}{{ govukSummaryList({ rows: detailsRows }) }}{% endif %}
+{% if editable %}
+  <div class="govuk-button-group">{{ govukButton({ text: "Add payment", href: payManual + "/add-payment", classes: "govuk-button--secondary" }) }}</div>
+{% endif %}
+{% if count %}
+  {% include "finance/payments-in/_table.html" %}
+  {{ govukSummaryList({ rows: [{ key: { text: "Payments" }, value: { text: count } }, { key: { text: "Total amount" }, value: { text: total } }] }) }}
+  {% if editable %}
+    <form method="post" action="{{ payManual }}/new-till">{{ govukButton({ text: "Create till", preventDoubleClick: true }) }}</form>
+  {% endif %}
+  {% include "finance/payments-in/_print.html" %}
+{% else %}
+  <p class="govuk-body">There are no payments.</p>
+  <p class="govuk-body">You must add at least 1 payment to the till.</p>
+{% endif %}
+{% if editable %}<p class="govuk-body"><a class="govuk-link" href="{{ payManual }}/delete-till">Delete till</a></p>{% endif %}
+{% endblock %}

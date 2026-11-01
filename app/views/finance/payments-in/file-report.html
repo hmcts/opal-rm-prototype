@@ -1,0 +1,18 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% include "finance/payments-in/_print.html" %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  <h2 class="govuk-heading-m">File details</h2>{{ govukSummaryList({ rows: detailsRows }) }}
+</div></div>
+<h2 class="govuk-heading-m">Total records</h2>
+{{ govukTable({ caption: "Record counts and values", captionClasses: "govuk-visually-hidden", head: totalHead, rows: totalRows }) }}
+{% if accountRows %}
+  <h2 class="govuk-heading-m">Matched respondent account</h2>
+  {{ govukSummaryList({ rows: accountRows }) }}
+  <p class="govuk-body"><a class="govuk-link" href="{{ accountHref }}" target="_blank" rel="noreferrer noopener">View respondent account (opens in new tab)</a></p>
+{% endif %}
+<h2 class="govuk-heading-m">Errors in record details</h2>
+{% if errorRows %}{{ govukSummaryList({ card: { title: { text: "Record details" } }, rows: errorRows }) }}
+{% else %}<p class="govuk-body">There are no errors.</p>{% endif %}
+{{ govukSummaryList({ rows: outcomeRows }) }}
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% if summaryRows %}{{ govukSummaryList({ rows: summaryRows }) }}{% endif %}
+{% if items.length %}{% include "finance/payments-in/_table.html" %}{% include "finance/payments-in/_print.html" %}
+{% else %}<p class="govuk-body">There are no records to display.</p>{% endif %}
+{% endblock %}

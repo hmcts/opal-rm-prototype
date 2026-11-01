@@ -1,0 +1,48 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% macro paymentReference(field, method) %}
+{{ govukInput({ id: "pay-" + field, name: "pay-" + field, label: { text: "Payment reference (optional)" }, value: values.reference if values.method === method, errorMessage: errors["pay-" + field], spellcheck: false, attributes: { maxlength: 50 } }) }}
+{% endmacro %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{% if feeRows %}{{ govukSummaryList({ rows: feeRows }) }}{% endif %}
+<form method="post" action="{{ payManual }}/details" novalidate data-module="rm-route-guard" id="pay-details-form">
+  {% if category !== "Court Fee" %}
+    {{ govukInput({ id: "pay-amount", name: "pay-amount", label: { text: "Amount", classes: "govuk-label--s" }, value: values.amount,
+      errorMessage: errors["pay-amount"], prefix: { text: "£" }, inputmode: "decimal", spellcheck: false, classes: "govuk-input--width-10",
+      attributes: { "data-pay-balance": balance } if balance else {} }) }}
+    {% if balance and balance !== "0" %}
+      <div hidden data-pay-overpayment>{{ govukInsetText({ html: 'This amount includes an overpayment of <span data-pay-overpayment-amount></span>.' }) }}</div>
+    {% endif %}
+  {% endif %}
+  {% set thirdPartyHtml %}
+    {% if category === "Maintenance" %}
+      {{ govukInput({ id: "pay-thirdPartyName", name: "pay-thirdPartyName", label: { text: "Name" }, value: values.thirdPartyName, errorMessage: errors["pay-thirdPartyName"], attributes: { maxlength: 50 } }) }}
+    {% endif %}
+  {% endset %}
+  {{ govukRadios({ name: "pay-receivedFrom", value: values.receivedFrom, errorMessage: errors["pay-receivedFrom"],
+    fieldset: { legend: { text: "Payment received from", classes: "govuk-fieldset__legend--s" } },
+    items: [{ value: "Applicant" if category === "Court Fee" else "Respondent", text: "Applicant" if category === "Court Fee" else "Respondent" },
+      { value: "Third party", text: "Third party", conditional: { html: thirdPartyHtml } if category === "Maintenance" else {} }] }) }}
+  {% set transferHtml %}
+    {% set sourceItems = [] %}{% for source in sources %}{% set unused = sourceItems.push({ value: source, text: source }) %}{% endfor %}
+    {{ govukRadios({ name: "pay-source", value: values.source, errorMessage: errors["pay-source"], classes: "govuk-radios--small", fieldset: { legend: { text: "Source", classes: "govuk-fieldset__legend--s" } }, items: sourceItems }) }}
+    {{ paymentReference("transfer-reference", "Credit transfer") }}
+  {% endset %}
+  {{ govukRadios({ name: "pay-method", value: values.method, errorMessage: errors["pay-method"],
+    fieldset: { legend: { text: "Method of payment", classes: "govuk-fieldset__legend--s" } },
+    items: [{ value: "Notes and coins", text: "Notes and coins" },
+      { value: "Postal order", text: "Postal order", conditional: { html: paymentReference("postal-reference", "Postal order") } },
+      { value: "Cheque", text: "Cheque", conditional: { html: paymentReference("cheque-reference", "Cheque") } },
+      { value: "Credit transfer", text: "Credit transfer", conditional: { html: transferHtml } }] }) }}
+  {% if category === "Suspense" %}
+    {% set relevantHtml %}{{ govukCharacterCount({ id: "pay-relevantDetails", name: "pay-relevantDetails", maxlength: 1000, label: { text: "Relevant details (optional)" }, value: values.relevantDetails, errorMessage: errors["pay-relevantDetails"] }) }}{% endset %}
+    {% set reasonItems = [] %}{% for reason in reasons %}{% set unused = reasonItems.push({ value: reason.value, text: reason.text, conditional: { html: relevantHtml } if reason.value === "UN" else {} }) %}{% endfor %}
+    {{ govukRadios({ name: "pay-reason", value: values.reason, errorMessage: errors["pay-reason"], fieldset: { legend: { text: "Reason for suspense", classes: "govuk-fieldset__legend--s" } }, items: reasonItems }) }}
+  {% elif category === "Court Fee" %}
+    <h2 class="govuk-heading-m">Payer details</h2>
+    {% include "finance/payments-in/_payer-fields.html" %}
+  {% endif %}
+  <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}{{ govukButton({ text: "Cancel", name: "pay-action", value: "cancel", classes: "govuk-button--secondary" }) }}</div>
+</form>
+</div></div>
+{% endblock %}

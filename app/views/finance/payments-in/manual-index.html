@@ -1,0 +1,21 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<p class="govuk-body"><a class="govuk-link" href="{{ payBase }}/business-unit?journey=manual">Change business unit</a></p>
+<div class="govuk-button-group">
+  {{ govukButton({ text: "Continue draft till" if draft else "Create till", href: payManual + "/new-till" }) }}
+  <a class="govuk-link" href="{{ payManual }}/reports?type=cash-till">View cash till reports</a>
+  <a class="govuk-link" href="{{ payManual }}/reports?type=cash-list">View cash list report</a>
+</div>
+<h2 class="govuk-heading-m">Allocate tills</h2>
+{% if items.length %}
+  <form method="post" action="{{ payManual }}/allocate?page={{ page }}" data-pay-multi-select novalidate>
+    <div class="govuk-form-group{% if tableError %} govuk-form-group--error{% endif %}">
+      {% if tableError %}<p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
+      <p class="govuk-body">Select the tills you want to allocate. Selection applies to this page.</p>
+      {{ govukButton({ text: "Allocate", preventDoubleClick: true }) }}
+      <p class="govuk-hint" aria-live="polite"><span data-pay-selection-count>0</span> of {{ items.length }} tills selected</p>
+      {% include "finance/payments-in/_table.html" %}
+    </div>
+  </form>
+{% else %}<p class="govuk-body">There are no outstanding tills to allocate.</p>{% endif %}
+{% endblock %}

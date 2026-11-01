@@ -1,0 +1,21 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% if count > 100 %}
+  <p class="govuk-body">There are more than 100 results. Refine your search to continue.</p>
+{% elif not count %}
+  <p class="govuk-body">There are no matching results.</p>
+{% else %}
+  <form method="post" action="{{ payManual }}/search-results?page={{ page }}" novalidate>
+    {% set accountItems = [] %}
+    {% for account in accounts %}
+      {% set accountHint %}<p class="govuk-body">Applicant: {{ account.applicantName or "—" }}<br>Date of birth: {{ account.displayDob }}<br>Address: {{ account.displayAddress }}<br>Balance: {{ account.balanceDisplay }}<br><a class="govuk-link" href="/active-case/{{ account.id }}" target="_blank" rel="noreferrer noopener">View account {{ account.ref }} (opens in new tab)</a></p>{% endset %}
+      {% set unused = accountItems.push({ value: account.id, text: account.name + " (" + account.ref + ")", hint: { html: accountHint } }) %}
+    {% endfor %}
+    {{ govukRadios({ name: "pay-account", errorMessage: errors["pay-account"], fieldset: { legend: { text: "Select 1 account to continue", classes: "govuk-fieldset__legend--m" } }, items: accountItems }) }}
+    {% if pagination %}{{ mojPagination(pagination) }}{% endif %}
+    <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}<a class="govuk-link" href="{{ payManual }}/search">Search again</a></div>
+  </form>
+{% endif %}
+{% if count === 0 or count > 100 %}<p class="govuk-body"><a class="govuk-link" href="{{ payManual }}/search">Search again</a></p>{% endif %}
+<p class="govuk-body"><a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></p>
+{% endblock %}
