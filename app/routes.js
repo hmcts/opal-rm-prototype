@@ -18141,7 +18141,7 @@ function payCheckRows(payment) {
   return rows
 }
 
-router.get('/finance', (req, res) => payRender(req, res, 'index', { heading: 'Finance', backHref: '/search' }))
+router.get('/finance', (req, res) => payRender(req, res, 'index', { heading: 'Finance' }))
 
 router.get(payBase + '/business-unit', (req, res) => {
   return res.redirect(req.query.journey === 'automatic' ? payAuto : payManual)
