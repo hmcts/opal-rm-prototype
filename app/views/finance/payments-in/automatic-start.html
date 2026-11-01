@@ -1,0 +1,11 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  <h2 class="govuk-heading-m">Items ready for processing</h2>
+  {{ govukSummaryList({ rows: rows }) }}
+  <div class="govuk-button-group">
+    {{ govukButton({ text: "Continue", href: continueHref }) }}
+    <a class="govuk-link" href="/finance">Cancel</a>
+  </div>
+</div></div>
+{% endblock %}

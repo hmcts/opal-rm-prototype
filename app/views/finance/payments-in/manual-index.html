@@ -1,6 +1,5 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
-<p class="govuk-body"><a class="govuk-link" href="{{ payBase }}/business-unit?journey=manual">Change business unit</a></p>
 <div class="govuk-button-group">
   {{ govukButton({ text: "Continue draft till" if draft else "Create till", href: payManual + "/new-till" }) }}
   <a class="govuk-link" href="{{ payManual }}/reports?type=cash-till">View cash till reports</a>

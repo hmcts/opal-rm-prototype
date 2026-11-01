@@ -1,7 +1,7 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
-<p class="govuk-body">Search active respondent accounts in {{ businessUnit }} using an account number or a name.</p>
+<p class="govuk-body">Search active respondent accounts using an account number or a name.</p>
 <form method="post" action="{{ payManual }}/search" novalidate>
   {{ govukInput({ id: "pay-number", name: "pay-number", label: { text: "Account number", classes: "govuk-label--s" }, hint: { text: "8 digits, followed by the check letter if known" }, value: values["pay-number"], errorMessage: errors["pay-number"], spellcheck: false, classes: "govuk-input--width-10" }) }}
   <h2 class="govuk-heading-m">Or search by name</h2>
