@@ -24,7 +24,7 @@
     {% set flashHtml %}<p class="govuk-body">{{ flash.text }}</p>{% for link in flash.links %}<p class="govuk-body"><a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a></p>{% endfor %}{% endset %}
     {{ mojAlert({ variant: flash.variant, dismissible: true, html: flashHtml }) }}
   {% endif %}
-  {% if businessUnit %}<span class="govuk-caption-l">{{ businessUnit }}</span>{% endif %}
+  {% if caption %}<span class="govuk-caption-l">{{ caption }}</span>{% endif %}
   <h1 class="govuk-heading-l">{{ heading }}</h1>
   {% block paymentContent %}{% endblock %}
 {% endblock %}

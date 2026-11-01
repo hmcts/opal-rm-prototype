@@ -93,7 +93,6 @@ module.exports = {
     "NatWest",
     "British Telecom",
     "Barclaycard",
-    "DWP/AEA",
     "Other"
   ],
   "methods": [
