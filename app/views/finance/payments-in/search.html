@@ -1,31 +1,53 @@
 {% extends "finance/payments-in/layout.html" %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
-<p class="govuk-body">Use quick search to search by account number or advanced search to search by name.</p>
-<form method="post" action="{{ payManual }}/search" data-pay-account-search data-initial-type="{{ values['pay-type'] }}" novalidate>
-  <input type="hidden" name="pay-type" value="">
-  <h2 class="govuk-heading-m">Quick search</h2>
-  {{ govukInput({ id: "pay-number", name: "pay-number", label: { text: "Account number", classes: "govuk-label--s" }, hint: { text: "For example, 12345678 or 12345678A" }, value: values["pay-number"], errorMessage: errors["pay-number"], spellcheck: false, classes: "govuk-input--width-10" }) }}
-  <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
-  <h2 class="govuk-heading-m">Advanced search</h2>
-  {% set individualHtml %}
-    <h2 class="govuk-heading-m">Individuals</h2>
-    {{ govukInput({ id: "pay-last-name", name: "pay-last-name", label: { text: "Last name", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-last-name"], errorMessage: errors["pay-last-name"] }) }}
-    {{ govukCheckboxes({ name: "pay-last-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-last-exact"] }] }) }}
-    {{ govukInput({ id: "pay-first-names", name: "pay-first-names", label: { text: "First names", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-first-names"] }) }}
-    {{ govukCheckboxes({ name: "pay-first-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-first-exact"] }] }) }}
-    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ id: "pay-individual-aliases", value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
+<form method="post" action="{{ payManual }}/search" novalidate>
+  {{ govukInput({
+    id: "pay-number", name: "pay-number", label: { text: "Account number" },
+    classes: "govuk-input--width-10", attributes: { maxlength: "9" },
+    value: values["pay-number"], errorMessage: errors["pay-number"]
+  }) }}
+
+  {% set advancedSearchHtml %}
+    <h2 class="govuk-heading-m">Advanced search</h2>
+    {{ govukInput({
+      id: "pay-last-name", name: "pay-last-name", label: { text: "Last name" },
+      classes: "govuk-input--width-20", value: values["pay-last-name"], errorMessage: errors["pay-last-name"]
+    }) }}
+    {{ govukInput({
+      id: "pay-first-names", name: "pay-first-names", label: { text: "First names" },
+      classes: "govuk-input--width-20", value: values["pay-first-names"], errorMessage: errors["pay-first-names"]
+    }) }}
+    {{ mojDatePicker({
+      leadingZeros: true, id: "pay-date-of-birth", name: "pay-date-of-birth",
+      label: { text: "Date of birth", classes: "govuk-label--s" },
+      hint: { text: "For example, 31/01/2023" },
+      value: values["pay-date-of-birth"], errorMessage: errors["pay-date-of-birth"]
+    }) }}
+    {{ govukInput({
+      id: "pay-postcode", name: "pay-postcode", label: { text: "Postal or zip code" },
+      classes: "govuk-input--width-10", value: values["pay-postcode"], errorMessage: errors["pay-postcode"]
+    }) }}
+    {{ govukCheckboxes({
+      idPrefix: "pay-active-only", name: "pay-active-only", classes: "govuk-checkboxes--small",
+      items: [{ value: "yes", text: "Active accounts only", checked: values["pay-active-only"] !== false }]
+    }) }}
   {% endset %}
-  {% set companyHtml %}
-    <h2 class="govuk-heading-m">Companies</h2>
-    {{ govukInput({ id: "pay-company", name: "pay-company", label: { text: "Company name", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-company"], errorMessage: errors["pay-company"] }) }}
-    {{ govukCheckboxes({ name: "pay-company-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-company-exact"] }] }) }}
-    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ id: "pay-company-aliases", value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
-  {% endset %}
-  {{ govukTabs({ id: "pay-search-tabs", items: [
-    { label: "Individuals", id: "pay-individuals", panel: { html: individualHtml } },
-    { label: "Companies", id: "pay-companies", panel: { html: companyHtml } }
-  ] }) }}
+
+  {{ govukDetails({
+    summaryText: "or use advanced search",
+    open: values["pay-last-name"] or values["pay-first-names"] or values["pay-date-of-birth"] or values["pay-postcode"] or values["pay-active-only"] === false,
+    attributes: {
+      "data-module": "rm-toggle-details-summary",
+      "data-open-text": "Hide advanced search",
+      "data-closed-text": "or use advanced search"
+    },
+    html: advancedSearchHtml
+  }) }}
+
   <div class="govuk-button-group">{{ govukButton({ text: "Search" }) }}<a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></div>
 </form>
 </div></div>
