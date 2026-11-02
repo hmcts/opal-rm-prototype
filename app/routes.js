@@ -10,6 +10,7 @@ const router = govukPrototypeKit.requests.setupRouter()
 
 router.use((req, res, next) => {
   res.locals.primaryNavPath = req.path.replace(/\/+$/, '') || '/'
+  res.locals.accountCaptionName = getAccountHeaderName
   next()
 })
 
@@ -9492,7 +9493,7 @@ function getAccountHistoryRows(account) {
 
 function getAccountNoteViewData(account, formAction, cancelHref, note = '', errors = null) {
   return {
-    accountName: account.name || account.respondentName,
+    accountName: getAccountHeaderName(account.respondent || account, account.name || account.respondentName),
     accountNumber: account.accountNumber || account.caseReference,
     formAction,
     cancelHref,
@@ -10598,7 +10599,7 @@ function getActiveCaseOrderTermAddSessionData(activeCase, state) {
 }
 
 function getActiveCaseOrderTermAddCaption(activeCase, caseId) {
-  return `${activeCase.accountNumber || accountRef(caseId, 'RP')} — ${activeCase.respondentName}`
+  return `${activeCase.accountNumber || accountRef(caseId, 'RP')} — ${getAccountHeaderName(activeCase.respondent, activeCase.respondentName)}`
 }
 
 function getCurrentDateString() {
@@ -12787,7 +12788,7 @@ router.post('/active-case/:id/:category/validate-result', (req, res, next) => {
   const errors = {}
   if (!['approve', 'reject'].includes(decision)) errors['check-review-decision'] = buildFieldError('Select a review decision')
   if (decision === 'reject' && !rejectionReason) errors['rejection-reason'] = buildFieldError('Enter a reason for rejection')
-  if (rejectionReason.length > 255) errors['rejection-reason'] = buildFieldError('Reason for rejection must be 255 characters or fewer')
+  if (rejectionReason.length > 250) errors['rejection-reason'] = buildFieldError('Reason for rejection must be 250 characters or fewer')
   if (Object.keys(errors).length) {
     return renderActiveCaseResultReview(req, res, 'checker', errors, { decision, rejectionReason })
   }
@@ -13323,7 +13324,7 @@ function getCloseAccountViewData(req, activeCase, id) {
     blockers.push({ text: 'resolve any active court cases' })
   }
   return {
-    accountName: getPlainPersonName(activeCase.respondentName),
+    accountName: getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     accountNumber: activeCase.accountNumber || activeCase.caseReference,
     blockers,
     formAction: `/active-case/${id}/close-account`,
@@ -13432,7 +13433,7 @@ router.get('/active-case/:id/order-details', (req, res) => {
   setOrderDetailsFormData(req, res, orders.details)
 
   return res.render('create-a-case/order-details', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     formAction: `/active-case/${id}/order-details`,
     cancelHref: `/active-case/${id}/order-details/cancel`,
     orderMadeFieldsOptional: true,
@@ -13469,7 +13470,7 @@ router.post('/active-case/:id/order-details', (req, res, next) => {
     Object.assign(res.locals.data, req.body)
 
     return res.render('create-a-case/order-details', {
-      accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+      accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
       formAction: `/active-case/${id}/order-details`,
       cancelHref: `/active-case/${id}/order-details/cancel`,
       orderMadeFieldsOptional: true,
@@ -14113,7 +14114,7 @@ router.get('/active-case/:id/order-term/:index/change', (req, res) => {
   const useMatOrderTermEditLayout = orderTermDefinition?.code === 'MAT'
 
   return res.render('create-a-case/order-term-details', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     showBackLink: false,
     backHref: `/active-case/${id}?tab=orders`,
     formAction: `/active-case/${id}/order-term/${termIndex}/change`,
@@ -14175,7 +14176,7 @@ router.post('/active-case/:id/order-term/:index/change', (req, res, next) => {
 
   if (Object.keys(errors).length) {
     return res.render('create-a-case/order-term-details', {
-      accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+      accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
       showBackLink: false,
       backHref: `/active-case/${id}?tab=orders`,
       formAction: `/active-case/${id}/order-term/${termIndex}/change`,
@@ -14483,7 +14484,7 @@ router.get('/active-case/:id/order-term/:index/review', (req, res) => {
   }
 
   return res.render('active-case/order-term-review', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     backHref: `/active-case/${id}/order-term/${termIndex}/creditor`,
     formAction: `/active-case/${id}/order-term/${termIndex}/review`,
     cancelHref: `/active-case/${id}/order-term/${termIndex}/cancel`,
@@ -14832,7 +14833,7 @@ router.get('/active-case/:id/respondent/edit', (req, res) => {
   Object.assign(res.locals.data, fields)
 
   return res.render('create-a-case/respondent-details', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     backHref: '/active-case/' + id + '?tab=respondent',
     formAction: '/active-case/' + id + '/respondent/edit',
     cancelHref: '/active-case/' + id + '?tab=respondent',
@@ -14919,7 +14920,7 @@ router.get('/active-case/:id/authority/edit', (req, res) => {
   setCentralAuthorityFormData(req, res, centralAuthority)
 
   return res.render('create-a-case/central-authority-details', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     backHref: '/active-case/' + id + '?tab=authority',
     formAction: '/active-case/' + id + '/authority/edit',
     manualHref: '/active-case/' + id + '/authority/edit/manual',
@@ -14957,7 +14958,7 @@ router.get('/active-case/:id/authority/edit/manual', (req, res) => {
   setCentralAuthorityFormData(req, res, centralAuthority)
 
   return res.render('create-a-case/central-authority-details-manual', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     formAction: '/active-case/' + id + '/authority/edit/manual',
     cancelHref: '/active-case/' + id + '/authority/edit',
     submitButtonText: 'Save changes'
@@ -14992,7 +14993,7 @@ router.get('/active-case/:id/authority/edit/remove', (req, res) => {
   }
 
   return res.render('create-a-case/remove-central-authority-details', {
-    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + activeCase.respondentName,
+    accountContextLabel: (activeCase.accountNumber || activeCase.caseReference) + ' — ' + getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
     formAction: '/active-case/' + id + '/authority/edit/remove',
     cancelHref: '/active-case/' + id + '/authority/edit',
     centralAuthorityCardRows: getCentralAuthorityCardRows(centralAuthority)
@@ -15054,7 +15055,7 @@ router.get('/active-case/creditor/:id/applicant/edit', (req, res) => {
   }
 
   return res.render('create-a-case/applicant-details', {
-    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + account.name,
+    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + getAccountHeaderName(account),
     backHref: '/active-case/creditor/' + id + '?tab=applicant',
     formAction: '/active-case/creditor/' + id + '/applicant/edit',
     cancelHref: '/active-case/creditor/' + id + '?tab=applicant',
@@ -15117,7 +15118,7 @@ router.get('/active-case/creditor/:id/creditor/edit', (req, res) => {
   return res.render('create-a-case/minor-creditor-details', {
     creditor,
     countryItems: getCountrySelectItems(creditor.country || ''),
-    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + account.name,
+    accountContextLabel: (account.accountNumber || account.caseReference) + ' — ' + getAccountHeaderName(account),
     backHref: '/active-case/creditor/' + id + '?tab=creditor',
     formAction: '/active-case/creditor/' + id + '/creditor/edit',
     cancelHref: '/active-case/creditor/' + id + '?tab=creditor',
@@ -15957,7 +15958,7 @@ router.get(['/active-case/creditor/:id/payment-hold/:action', '/active-case/majo
   }
   return res.render('active-case/payment-hold', {
     accountNumber: account.accountNumber || account.caseReference,
-    accountName: isMajorCreditor ? account.name : account.organisationName || getPlainPersonName(account.name),
+    accountName: isMajorCreditor ? account.name : getAccountHeaderName(account),
     removing: action === 'remove',
     formAction: `${accountHref}/payment-hold/${action}`,
     cancelHref: accountHref
@@ -17393,7 +17394,7 @@ function renderRecordResultsOrderDetails(req, res, hearing, workingCase, errors 
     : orders.details.applicationCode
   return res.render('create-a-case/order-details', {
     accountContextLabel: (workingCase.accountNumber || workingCase.caseReference) +
-      ' — ' + workingCase.respondentName,
+      ' — ' + getAccountHeaderName(workingCase.respondent, workingCase.respondentName),
     formAction: getRecordResultsHref(hearing, 'order-details'),
     cancelHref: getRecordResultsHref(hearing, 'order-terms'),
     orderMadeFieldsOptional: true,
@@ -17840,7 +17841,7 @@ function renderResultQueue(req, res, inputter, allRejected = false) {
   const pageSize = 25
   const pageCount = Math.ceil(entries.length / pageSize)
   const page = Math.min(pageCount || 1, Math.max(1, Number.parseInt(req.query.page, 10) || 1))
-  const visibleEntries = inputter ? entries.slice((page - 1) * pageSize, page * pageSize) : entries
+  const visibleEntries = entries.slice((page - 1) * pageSize, page * pageSize)
   const rows = visibleEntries.map((entry) => {
     const href = inputter ? `/my-results/${entry.id}/${entry.category}${allRejected ? '?from=all-rejected' : ''}`
       : `/active-case/${entry.id}/${entry.category}/validate-result`
@@ -17880,10 +17881,12 @@ function renderResultQueue(req, res, inputter, allRejected = false) {
   return res.render(allRejected ? 'record-results/all-rejected' : inputter ? 'record-results/index' : 'result-queues/index', {
     inputter, allRejected, tab, rows,
     rejectedCount: inputterEntries.filter((entry) => entry.record.hearingStatus === 'Result rejected').length,
-    pagination: inputter && pageCount > 1 ? {
+    pagination: pageCount > 1 ? {
       items: Array.from({ length: pageCount }, (_, index) => ({
         number: index + 1,
-        href: allRejected ? `/record-results/all-rejected?page=${index + 1}` : `/record-results?tab=${tab}&page=${index + 1}`,
+        href: allRejected ? `/record-results/all-rejected?page=${index + 1}`
+          : inputter ? `/record-results?tab=${tab}&page=${index + 1}`
+          : `/validate-results?tab=${tab}&page=${index + 1}`,
         current: index + 1 === page
       })),
       results: { from: (page - 1) * pageSize + 1, to: Math.min(page * pageSize, entries.length), count: entries.length }
@@ -17943,7 +17946,7 @@ function paySum(items, field = 'amount') {
 function payDate(value, includeTime = false) {
   if (!value) return ''
   const date = new Date(value)
-  const day = date.toLocaleDateString('en-GB', { timeZone: 'Europe/London', day: '2-digit', month: 'short', year: 'numeric' })
+  const day = date.toLocaleDateString('en-GB', { timeZone: 'Europe/London', day: '2-digit', month: 'short', year: 'numeric' }).replace(/\bSept\b/, 'Sep')
   return includeTime ? day + ' at ' + date.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' }) : day
 }
 
@@ -18033,7 +18036,10 @@ function payUnitState(req) {
     }
     // Remove the inherited Fines-only sources from existing prototype sessions too.
     state.automatic.files = state.automatic.files.filter((file) => !/DWP|AEA/i.test(file.source))
-    state.automatic.files.forEach((file) => { delete file.overrideInhibits })
+    state.automatic.files.forEach((file) => {
+      delete file.overrideInhibits
+      if (file.source === 'British Telecom') file.source = 'Telephone'
+    })
     return state.automatic
   }
   if (!state.manual) {
@@ -18057,8 +18063,13 @@ function payRender(req, res, template, view = {}) {
   const flash = unit?.flash
   if (unit) delete unit.flash
   const errors = view.errors || {}
+  const manualTillJourney = req.path.startsWith(payManual + '/') && template !== 'report-list' &&
+    !(template === 'till' && view.editable === false)
+  const automaticProcessJourney = payIsAutomatic(req) && unit.files.some((file) =>
+    ((unit.pendingFiles || []).includes(file.id) && ['to-process', 'failed-process'].includes(file.status)) ||
+    ((unit.processingFiles || []).includes(file.id) && !['allocated', 'ignored'].includes(file.status)))
   return res.render('finance/payments-in/' + template, {
-    primaryNavPath: '/finance',
+    showNav: !(manualTillJourney || automaticProcessJourney),
     payBase, payManual, payAuto, values: {}, errors: {}, ...view,
     errorSummary: Object.entries(errors).map(([field, error]) => ({ href: '#' + field, text: error.text || error })),
     flash
@@ -18115,10 +18126,11 @@ function payPaymentRows(payments, editable) {
   ])
 }
 
-function payCheckRows(payment) {
+function payCheckRows(payment, removing = false) {
   const detailHref = payManual + '/details'
-  const rows = [paySummary('Category', payment.category), paySummary('Amount', payMoney(payment.amount), payment.category === 'Court Fee' ? payManual + '/court-fee' : detailHref)]
-  if (payment.category === 'Maintenance') rows.push(paySummary('Respondent account', payPaymentName(payment), payManual + '/change-account'))
+  const rows = removing ? [paySummary('Payment category', payment.category)] : []
+  if (payment.category === 'Maintenance') rows.push(paySummary('Respondent', payPaymentName(payment), payManual + '/change-account'))
+  rows.push(paySummary('Amount', payMoney(payment.amount), payment.category === 'Court Fee' ? payManual + '/court-fee' : detailHref))
   if (payment.category === 'Court Fee') {
     const fee = payReference.courtFees.find((item) => item.code === payment.feeCode)
     rows.push(paySummary('Court fee', fee ? fee.code + ' – ' + fee.description + ' (' + payMoney(fee.amount) + ')' : '', payManual + '/court-fee'))
@@ -18127,7 +18139,7 @@ function payCheckRows(payment) {
   rows.push(paySummary('Payment received from', payment.receivedFrom, detailHref))
   if (payment.category === 'Maintenance' && payment.receivedFrom === 'Third party') rows.push(paySummary('Third party', payment.thirdPartyName, detailHref))
   rows.push(paySummary('Method of payment', payment.method, detailHref))
-  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source, detailHref))
+  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source === 'British Telecom' ? 'Telephone' : payment.source, detailHref))
   if (payment.method !== 'Notes and coins') rows.push(paySummary('Payment reference', payment.reference, detailHref))
   if (payment.category === 'Suspense') {
     rows.push(paySummary('Suspense reason', payReference.reasons.find((item) => item.value === payment.reason)?.text, detailHref))
@@ -18138,7 +18150,7 @@ function payCheckRows(payment) {
     rows.push(paySummary('Payer name', payPaymentName(payment), payManual + '/payer'))
     rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
   }
-  return rows
+  return removing ? rows.map(({ actions, ...row }) => row) : rows
 }
 
 router.get('/finance', (req, res) => payRender(req, res, 'index', { heading: 'Finance' }))
@@ -18156,15 +18168,18 @@ router.get(payManual, payRequireUnit, (req, res) => {
   const tills = state.tills.filter((till) => till.status !== 'allocated').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const page = payPage(tills, req, payManual)
   const tableError = req.query['selection-error'] && page.items.length ? 'Select 1 or more tills to allocate' : null
-  return payRender(req, res, 'manual-index', { heading: 'Manual cash input', backHref: '/finance', draft: state.draft,
+  return payRender(req, res, 'manual-index', { heading: 'Manual cash input', draft: state.draft,
+    allocationError: tills.some((till) => till.status === 'failed') ? 'There was a problem allocating 1 or more tills. Try allocating the till(s) again or contact the service desk.' : null,
     tableError, errors: tableError ? { ['pay-tills-' + page.items[0].id]: { text: tableError } } : {},
-    ...page, tableCaption: 'Tills awaiting allocation', tableAttributes: { 'data-module': 'moj-multi-select', 'data-id-prefix': 'manual-' },
+    ...page, tableCaption: 'Tills awaiting allocation', tableAttributes: { 'data-module': 'moj-sortable-table' },
     tableHead: [{ html: '<span class="govuk-visually-hidden">Select tills</span>', attributes: { id: 'manual-select-all' } },
-      { text: 'Till number' }, { text: 'Payments' }, { text: 'Amount', format: 'numeric' }, { text: 'Created by' }, { text: 'Date created' }, { text: 'Status' }],
+      ...['Till number', 'Payments', 'Amount', 'Created by', 'Date created'].map((text) => ({ text,
+        ...(text === 'Amount' ? { format: 'numeric' } : {}), attributes: { 'aria-sort': text === 'Date created' ? 'descending' : 'none' } }))],
     tableRows: page.items.map((till) => [paySelection('pay-tills', till.id, 'Select till ' + till.number),
-      payLink(payManual + '/till/' + till.id, till.number), { text: String(till.payments.length) },
-      { text: payMoney(paySum(till.payments)), format: 'numeric' }, { text: till.createdBy }, { text: payDate(till.createdAt) },
-      { text: till.status === 'failed' ? 'Allocation failed – retry' : 'Ready' }]) })
+      till.status === 'failed' ? { html: payLink(payManual + '/till/' + till.id, till.number).html + '<br>Allocation failed – retry' } : payLink(payManual + '/till/' + till.id, till.number),
+      { text: String(till.payments.length), attributes: { 'data-sort-value': till.payments.length } },
+      { text: payMoney(paySum(till.payments)), format: 'numeric', attributes: { 'data-sort-value': paySum(till.payments) } },
+      { text: till.createdBy }, { text: payDate(till.createdAt), attributes: { 'data-sort-value': new Date(till.createdAt).getTime() } }]) })
 })
 
 router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
@@ -18237,7 +18252,9 @@ function paySearch(req) {
   const match = (value, query, exact) => !query || (exact ? normalise(value) === normalise(query) : normalise(value).includes(normalise(query)))
   return payAccounts().filter((account) => {
     if (search.number) return account.ref === search.number.toUpperCase() || account.ref.slice(0, 8) === search.number
-    if (search.type === 'company') return match(account.companyName, search.company, search.companyExact) && Boolean(account.companyName)
+    if (search.type === 'company') return Boolean(account.companyName) && [account.companyName,
+      ...(search.aliases ? account.aliases.map((alias) => typeof alias === 'string' ? alias : alias.companyName || alias.name || '') : [])]
+      .some((name) => match(name, search.company, search.companyExact))
     const names = [{ firstNames: account.firstNames, lastName: account.lastName },
       ...(search.aliases ? account.aliases : [])]
     return names.some((name) => match(name.lastName, search.lastName, search.lastExact) && match(name.firstNames, search.firstNames, search.firstExact))
@@ -18245,7 +18262,7 @@ function paySearch(req) {
 }
 
 router.get(payManual + '/search', payRequireUnit, payRequirePending, (req, res) =>
-  payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category',
+  payRender(req, res, 'search', { heading: 'Search for an account', backHref: payManual + '/category',
     values: payUnitState(req).pending.searchValues || {} }))
 
 router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res, next) => {
@@ -18253,14 +18270,17 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   const values = Object.fromEntries(fields.map((field) => ['pay-' + field, payText(req.body['pay-' + field])]))
   for (const field of ['last-exact', 'first-exact', 'company-exact', 'aliases']) values['pay-' + field] = payChecked(req.body['pay-' + field]).includes('yes')
   const errors = {}
+  // With no JavaScript (or stacked mobile panels), infer the type from the entered name.
+  if (!values['pay-type']) values['pay-type'] = values['pay-company'] && !values['pay-last-name'] && !values['pay-first-names'] ? 'company' : 'individual'
   const number = values['pay-number'].replace(/\s/g, '').toUpperCase()
   const hasName = values['pay-type'] === 'company' ? Boolean(values['pay-company']) : Boolean(values['pay-last-name'] || values['pay-first-names'])
-  if (number && hasName) errors['pay-number'] = { text: 'Search using an account number or a name, not both' }
+  if (values['pay-company'] && (values['pay-last-name'] || values['pay-first-names'])) errors['pay-company'] = { text: 'Search for an individual or a company, not both' }
+  else if (number && hasName) errors['pay-number'] = { text: 'Search using an account number or a name, not both' }
   else if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
   else if (!number && !hasName) errors['pay-number'] = { text: 'Enter an account number or a name to search' }
   else if (!number && values['pay-type'] === 'company' && !values['pay-company']) errors['pay-company'] = { text: 'Enter a company name' }
   else if (!number && values['pay-type'] !== 'company' && !values['pay-last-name'] && !values['pay-first-names']) errors['pay-last-name'] = { text: 'Enter a respondent name' }
-  if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
+  if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for an account', backHref: payManual + '/category', values, errors })
   const pending = payUnitState(req).pending
   pending.searchValues = values
   pending.search = { number, type: values['pay-type'], lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
@@ -18273,10 +18293,24 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
 function payRenderSearchResults(req, res, errors = {}) {
   const results = paySearch(req)
   const page = payPage(results, req, payManual + '/search-results')
+  const firstRadioId = page.items.length ? 'pay-account-' + page.items[0].id : 'pay-account'
+  if (errors['pay-account']) errors = { [firstRadioId]: errors['pay-account'] }
   return payRender(req, res, 'search-results', { heading: 'Search results', backHref: payManual + '/search', ...page, errors,
-    count: results.length, accounts: page.items.map((account) => ({ ...account,
-      displayDob: account.restricted ? 'Restricted' : account.dob, displayAddress: account.restricted ? 'Restricted' : account.address.join(', '),
-      balanceDisplay: payMoney(account.balance) })) })
+    count: results.length, selectionError: errors[firstRadioId],
+    tableCaption: 'Respondent accounts', tableAttributes: { 'data-module': 'moj-sortable-table' },
+    tableHead: [{ html: '<span class="govuk-visually-hidden">Select account</span>' },
+      ...['Account', 'Name', 'Applicant', 'Date of birth', 'Address line 1', 'Postcode', 'Balance'].map((text) => ({ text,
+        ...(text === 'Balance' ? { format: 'numeric' } : {}), attributes: { 'aria-sort': 'none' } }))],
+    tableRows: page.items.map((account) => [
+      { radio: { id: 'pay-account-' + account.id, name: 'pay-account', value: account.id, text: 'Select ' + account.name + ', account ' + account.ref } },
+      payLink('/active-case/' + account.id, account.ref, ' target="_blank" rel="noreferrer noopener" aria-label="View account ' + escapeHtml(account.ref) + ' (opens in new tab)"'),
+      payValue(account.name), payValue(account.applicantName),
+      { ...payValue(account.restricted ? 'Restricted' : account.dob ? payDate(account.dob) : ''),
+        attributes: { 'data-sort-value': account.restricted ? 0 : new Date(account.dob).getTime() || 0 } },
+      payValue(account.restricted ? 'Restricted' : account.address[0]),
+      payValue(account.restricted ? 'Restricted' : account.address.find((line) => /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(line.trim()))),
+      { text: payMoney(account.balance), format: 'numeric', attributes: { 'data-sort-value': account.balance } }
+    ]) })
 }
 
 router.get(payManual + '/search-results', payRequireUnit, payRequirePending, (req, res) => payRenderSearchResults(req, res))
@@ -18292,17 +18326,29 @@ router.get(payManual + '/confirm-account', payRequireUnit, payRequirePending, (r
   const account = payAccounts().find((item) => item.id === req.query.account)
   if (!account) return res.redirect(payManual + '/search')
   const hold = getRespondentPayoutHolds(req, account.id).applyPayments === 'no'
+  const linkedApplicant = Object.values(minorCreditorAccounts).find((item) => item.accountNumber === account.applicantRef)
+  const applicant = { ...linkedApplicant, ...account.account.applicant }
+  const applicantRestricted = linkedApplicant?.restricted || applicant.restricted
+  const applicantAddress = applicant.address || linkedApplicant?.address || []
+  const terms = getActiveCaseOrders(account.account).terms.filter((term) => term.code.startsWith('M')).map((term) => {
+    const definition = getResultDefinition(term.code, 'orders')
+    const amount = definition?.responses.find(isOrderTermAmountField)
+    const frequency = definition?.responses.find(isOrderTermFrequencyField)
+    return { code: term.code, amount: formatCurrency(term.responses?.[amount?.id]), frequency: getOrderTermFrequencySummaryText(term.responses?.[frequency?.id]) }
+  })
+  const addressRow = (address) => ({ key: { text: 'Address' }, value: address.length
+    ? { html: address.map((line) => escapeHtml(line)).join('<br>') } : payValue('') })
   return payRender(req, res, 'confirm-account', { heading: 'Confirm account', backHref: payManual + '/search-results',
     account, hold, rows: [
       paySummary('Account number', account.ref), paySummary('Name', account.name),
-      paySummary('Aliases', account.aliases.slice(0, 5).map((alias) => [alias.firstNames, alias.lastName].filter(Boolean).join(' ')).join(', ')),
-      paySummary('Date of birth', account.restricted ? 'Restricted' : account.dob),
-      paySummary('Address', account.restricted ? 'Restricted' : account.address.join(', ')),
-      paySummary('Balance', payMoney(account.balance)), paySummary('Total arrears', account.arrears),
-      paySummary('Applicant', account.applicantName), paySummary('Applicant account', account.applicantRef),
-      paySummary('Enforcement action', account.account.enforcementAction?.type),
+      account.restricted ? paySummary('Address', 'Restricted') : addressRow(account.address),
+      paySummary('Total arrears', account.arrears),
+      paySummary('Ordered to pay', terms.map((term) => terms.length > 1
+        ? term.code + ' – ' + [term.amount, term.frequency].filter(Boolean).join(' ') : term.amount).filter(Boolean).join('; ')),
+      paySummary('Frequency', [...new Set(terms.map((term) => term.frequency).filter(Boolean))].join('; ')),
       paySummary('Comments', account.account.comment)
-    ] })
+    ], applicantRows: [paySummary('Account number', account.applicantRef), paySummary('Name', account.applicantName),
+      applicantRestricted ? paySummary('Address', 'Restricted') : addressRow(applicantAddress)] })
 })
 
 router.post(payManual + '/confirm-account', payRequireUnit, payRequirePending, (req, res, next) => {
@@ -18434,12 +18480,13 @@ router.post(payManual + '/fee-difference', payRequireUnit, payRequirePending, (r
 
 function payRenderDetails(req, res, values, errors = {}) {
   const pending = payUnitState(req).pending
+  if (values.source === 'British Telecom') values.source = 'Telephone'
   const account = payAccounts().find((item) => item.id === pending.accountId)
   return payRender(req, res, 'details', { heading: pending.category === 'Suspense' ? 'Suspense details' : 'Payment details',
     backHref: pending.category === 'Maintenance' ? payManual + '/confirm-account?account=' + pending.accountId :
       pending.category === 'Court Fee' ? payManual + '/court-fee' : payManual + '/category',
     category: pending.category, values, errors, reasons: payReference.reasons, sources: payReference.sources,
-    balance: account?.balance, feeRows: pending.category === 'Court Fee' ? [
+    balance: account && BigInt(account.balance) > 0n ? account.balance : null, feeRows: pending.category === 'Court Fee' ? [
       paySummary('Court fee', pending.feeCode), paySummary('Amount', payMoney(pending.amount)), paySummary('Number of items', pending.items)
     ] : null })
 }
@@ -18530,7 +18577,7 @@ function payRenderCheck(req, res, errors = {}, note) {
       ? (BigInt(pending.amount) - BigInt(pending.expected)).toString() : null
   return payRender(req, res, 'check-payment', { heading: pending.id ? 'Check payment changes' : 'Check payment',
     backHref: pending.category === 'Suspense' && pending.reason !== 'UN' ? payManual + '/payer' : payManual + '/details',
-    errors, rows: payCheckRows(pending), needsNote: pending.category !== 'Maintenance',
+    errors, paymentTitle: pending.category === 'Court Fee' ? 'Court fee payment' : pending.category + ' payment', rows: payCheckRows(pending), needsNote: pending.category !== 'Maintenance',
     values: { note: note === undefined ? payFormValues(pending, 'check-payment', { note: pending.note }).note : note }, excess: excess && payMoney(excess),
     receiptHold: account && getRespondentPayoutHolds(req, account.id).applyPayments === 'no' })
 }
@@ -18578,8 +18625,8 @@ router.get(payManual + '/payment/:paymentId/remove', payRequireUnit, payRequireD
   const payment = payUnitState(req).draft.payments.find((item) => item.id === req.params.paymentId)
   if (!payment) return res.redirect(payManual + '/new-till')
   return payRender(req, res, 'confirm-action', { heading: 'Are you sure you want to remove this payment?',
-    backHref: payManual + '/new-till', cancelHref: payManual + '/new-till', buttonText: 'Remove payment',
-    formAction: payManual + '/payment/' + encodeURIComponent(payment.id) + '/remove', rows: payCheckRows(payment) })
+    backHref: payManual + '/new-till', cancelHref: payManual + '/new-till', buttonText: 'Yes – remove', cancelText: 'No – cancel',
+    formAction: payManual + '/payment/' + encodeURIComponent(payment.id) + '/remove', rows: payCheckRows(payment, true) })
 })
 
 router.post(payManual + '/payment/:paymentId/remove', payRequireUnit, payRequireDraft, (req, res, next) => {
@@ -18593,8 +18640,8 @@ router.post(payManual + '/payment/:paymentId/remove', payRequireUnit, payRequire
 
 router.get(payManual + '/delete-till', payRequireUnit, payRequireDraft, (req, res) =>
   payRender(req, res, 'confirm-action', { heading: 'Are you sure you want to delete this till?', backHref: payManual + '/new-till',
-    cancelHref: payManual + '/new-till', buttonText: 'Delete till', formAction: payManual + '/delete-till',
-    text: 'All payments in this draft till will be deleted.' }))
+    cancelHref: payManual + '/new-till', buttonText: 'Yes – delete till', cancelText: 'No – cancel', formAction: payManual + '/delete-till',
+    text: 'You will lose any payments you have added and will need to start again.' }))
 
 router.post(payManual + '/delete-till', payRequireUnit, payRequireDraft, (req, res, next) => {
   const state = payUnitState(req)
@@ -18624,10 +18671,10 @@ router.get(payManual + '/till/:tillId', payRequireUnit, (req, res) => {
   const till = payUnitState(req).tills.find((item) => item.id === req.params.tillId)
   if (!till) return res.redirect(payManual)
   const page = payPage(till.payments, req, payManual + '/till/' + till.id)
-  return payRender(req, res, 'till', { heading: 'Till ' + till.number, backHref: payManual, editable: false,
+  return payRender(req, res, 'till', { heading: till.number, caption: 'Till', backHref: payManual, editable: false,
     ...page, total: payMoney(paySum(till.payments)), count: till.payments.length,
     detailsRows: [paySummary('Created by', till.createdBy),
-      paySummary('Date created', payDate(till.createdAt, true)), paySummary('Status', till.status === 'allocated' ? 'Allocated' : till.status === 'failed' ? 'Allocation failed' : 'Ready to allocate')],
+      paySummary('Date created', payDate(till.createdAt, true)), paySummary('Payments', till.payments.length), paySummary('Total amount', payMoney(paySum(till.payments)))],
     tableCaption: 'Payments in till ' + till.number, tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
       { text: 'Received from' }, { text: 'Method' }], tableRows: payPaymentRows(page.items, false) })
 })
@@ -18674,7 +18721,8 @@ function payAutomaticView(req, res) {
   const files = state.files.filter((file) => tab === 'process' ? ['to-process', 'failed-process'].includes(file.status)
     : tab === 'allocate' ? ['ready', 'failed-allocation'].includes(file.status)
       : file.status === 'ignored' && Date.now() - new Date(file.processedAt).getTime() <= 14 * 86400000)
-    .sort((a, b) => tab === 'process' ? a.uploadedAt.localeCompare(b.uploadedAt) : a.processedAt.localeCompare(b.processedAt))
+    .sort((a, b) => tab === 'process' ? a.uploadedAt.localeCompare(b.uploadedAt)
+      : tab === 'ignored' ? b.processedAt.localeCompare(a.processedAt) : a.processedAt.localeCompare(b.processedAt))
   const page = payPage(files, req, payAuto + '?tab=' + tab)
   const selecting = tab !== 'ignored'
   const selectionName = tab === 'process' ? 'pay-files' : 'pay-auto-tills'
@@ -18685,8 +18733,8 @@ function payAutomaticView(req, res) {
   if (tab === 'allocate') head.push({ text: 'Amount', format: 'numeric' }, { text: 'Processed by' })
   head.push({ text: tab === 'process' ? 'Date uploaded' : 'Date processed' })
   head.forEach((cell, index) => {
-    if (!selecting || index > 0) cell.attributes = { 'aria-sort': index === head.length - 1 ? 'ascending' : 'none' }
-    if (tab === 'process' && index > 0) cell.classes = 'govuk-!-width-one-third'
+    if (!selecting || index > 0) cell.attributes = { 'aria-sort': index === head.length - 1 ? (tab === 'ignored' ? 'descending' : 'ascending') : 'none' }
+    if (tab === 'ignored' || tab === 'process' && index > 0) cell.classes = 'govuk-!-width-one-third'
   })
   return payRender(req, res, 'automatic', { heading: 'Automatic cash input', backHref: payAuto, tab, selecting, ...page, tableError,
     errors: tableError ? { [selectionName + '-' + page.items[0].id]: { text: tableError } } : {},
@@ -18752,6 +18800,7 @@ router.post(payAuto + '/confirm-processing', payRequireUnit, (req, res, next) =>
   const state = payUnitState(req)
   const files = state.files.filter((file) => (state.pendingFiles || []).includes(file.id) && ['to-process', 'failed-process'].includes(file.status))
   if (!files.length) return res.redirect(payAuto + '?tab=process')
+  state.processingFiles = [...new Set([...(state.processingFiles || []), ...files.map((file) => file.id)])]
   files.forEach((file) => {
     file.status = 'processing'
     file.queuedAt = new Date().toISOString()
@@ -18761,8 +18810,17 @@ router.post(payAuto + '/confirm-processing', payRequireUnit, (req, res, next) =>
 })
 
 router.get(payAuto + '/cancel-processing', payRequireUnit, (req, res) => {
-  delete payUnitState(req).pendingFiles
+  const state = payUnitState(req)
+  delete state.pendingFiles
+  delete state.processingFiles
   return res.redirect(payAuto + '?tab=process')
+})
+
+router.get(payAuto + '/cancel-journey', payRequireUnit, (req, res) => {
+  const state = payUnitState(req)
+  delete state.pendingFiles
+  delete state.processingFiles
+  return res.redirect('/finance')
 })
 
 router.post(payAuto + '/allocate', payRequireUnit, (req, res, next) => {
@@ -18844,7 +18902,7 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
       { text: 'Value', format: 'numeric' }, { text: 'Terms of order' }], creditRows,
     creditTotalRows: [paySummary('Total value to be written to maintenance accounts', payMoney(paySum(creditAccounts, 'value')))],
     errorRows: file.errorCount ? {
-      court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary('Beneficiary name', ''),
+      court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary(file.ignored ? 'Creditor name' : 'Beneficiary name', ''),
         paySummary('Transaction', ''), paySummary('Amount', payMoney(file.ignored ? file.amount : file.suspenseAmount)), paySummary('Transaction account', '')],
       respondent: [paySummary('Sort code', ''), paySummary('Bank account number', ''), paySummary('Account number', ''), paySummary('Respondent name', ''),
         paySummary('Error', file.ignored ? 'Bank details not recognised – record ignored' : 'No Opal account – payment held in suspense')]

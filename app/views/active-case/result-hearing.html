@@ -12,7 +12,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ hearing.activeCase.respondentName }}</span>
+      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ accountCaptionName(hearing.activeCase.respondent, hearing.activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-l">Result a hearing</h1>
 
       <h2 class="govuk-heading-s govuk-!-margin-bottom-0">{{ hearing.hearingType }}</h2>

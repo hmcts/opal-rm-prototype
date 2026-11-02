@@ -17,7 +17,7 @@
       {% if errorSummary.length %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
-      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ hearing.activeCase.respondentName }}</span>
+      <span class="govuk-caption-l">{{ hearing.activeCase.accountNumber or hearing.activeCase.caseReference }} – {{ accountCaptionName(hearing.activeCase.respondent, hearing.activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-l">MADJ - Maintenance Adjourned</h1>
 
       <form method="post" action="{{ formAction }}" novalidate>

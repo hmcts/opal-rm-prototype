@@ -9,22 +9,23 @@
 </div></div>
 <h2 class="govuk-heading-m">Summary</h2>
 <h3 class="govuk-heading-s">Total records</h3>
+<hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
 {{ govukTable({ caption: "Record counts and values", captionClasses: "govuk-visually-hidden", head: totalHead, rows: totalRows }) }}
-{% if not ignored %}
   <h3 class="govuk-heading-s">Maintenance accounts with credit balance</h3>
+  <hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
   {% if creditRows.length %}
     <div class="moj-scrollable-pane" tabindex="0" role="region" aria-label="Maintenance accounts with credit balance">
       {{ govukTable({ caption: "Maintenance accounts with credit balance", captionClasses: "govuk-visually-hidden", head: creditHead, rows: creditRows, firstCellIsHeader: false }) }}
     </div>
     {{ govukSummaryList({ rows: creditTotalRows }) }}
-  {% else %}<p class="govuk-body">There are no maintenance accounts with credit balances.</p>{% endif %}
-{% endif %}
+  {% else %}<p class="govuk-body">No records found.</p>{% endif %}
 <h3 class="govuk-heading-s">Errors in record details</h3>
+<hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
 {% if errorRows %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Court bank details", headingLevel: 4 } }, rows: errorRows.court }) }}</div>
     <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Respondent bank details", headingLevel: 4 } }, rows: errorRows.respondent }) }}</div>
   </div>
-{% else %}<p class="govuk-body">There are no errors.</p>{% endif %}
+{% else %}<p class="govuk-body">No records found.</p>{% endif %}
 {{ govukSummaryList({ rows: outcomeRows }) }}
 {% endblock %}

@@ -1,19 +1,31 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
-{% if detailsRows %}{{ govukSummaryList({ rows: detailsRows }) }}{% endif %}
-{% if editable %}
-  <div class="govuk-button-group">{{ govukButton({ text: "Add payment", href: payManual + "/add-payment", classes: "govuk-button--secondary" }) }}</div>
+{% if detailsRows %}
+  <h2 class="govuk-heading-m">Summary</h2>
+  <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{{ govukSummaryList({ rows: detailsRows }) }}</div></div>
 {% endif %}
+<h2 class="govuk-heading-m">Payments</h2>
 {% if count %}
   {% include "finance/payments-in/_table.html" %}
-  {{ govukSummaryList({ rows: [{ key: { text: "Payments" }, value: { text: count } }, { key: { text: "Total amount" }, value: { text: total } }] }) }}
-  {% if editable %}
-    <form method="post" action="{{ payManual }}/new-till">{{ govukButton({ text: "Create till", preventDoubleClick: true }) }}</form>
-  {% endif %}
-  {% include "finance/payments-in/_print.html" %}
 {% else %}
   <p class="govuk-body">There are no payments.</p>
-  <p class="govuk-body">You must add at least 1 payment to the till.</p>
 {% endif %}
-{% if editable %}<p class="govuk-body"><a class="govuk-link" href="{{ payManual }}/delete-till">Delete till</a></p>{% endif %}
+{% if editable %}
+  {{ govukButton({ text: "Add payment", href: payManual + "/add-payment", classes: "govuk-button--secondary" }) }}
+  {% if count %}
+    <h2 class="govuk-heading-m">Summary</h2>
+    <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+      {{ govukSummaryList({ rows: [{ key: { text: "Payments" }, value: { text: count } }, { key: { text: "Total amount" }, value: { text: total } }] }) }}
+    </div></div>
+  {% endif %}
+  <h2 class="govuk-heading-m">Create till</h2>
+  {% if count %}
+    <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds"><p class="govuk-body">You cannot change these details after you have created the till. You can download the till details to share for review before you create the till.</p></div></div>
+    <form method="post" action="{{ payManual }}/new-till"><div class="govuk-button-group">
+      {{ govukButton({ text: "Create till", preventDoubleClick: true }) }}
+      {{ govukButton({ text: "Export to PDF", type: "button", classes: "govuk-button--secondary", attributes: { "data-pay-print": "true" } }) }}
+    </div></form>
+  {% else %}<p class="govuk-body">You must add at least one payment to the till.</p>{% endif %}
+  <p class="govuk-body"><a class="govuk-link" href="{{ payManual }}/delete-till">Delete till</a></p>
+{% endif %}
 {% endblock %}

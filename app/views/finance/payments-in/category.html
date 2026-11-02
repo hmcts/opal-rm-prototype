@@ -3,7 +3,7 @@
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
 <form method="post" action="{{ payManual }}/category" novalidate>
   {{ govukRadios({ name: "pay-category", value: values["pay-category"], errorMessage: errors["pay-category"],
-    fieldset: { legend: { text: "Select payment category", classes: "govuk-fieldset__legend--m" } },
+    fieldset: { legend: { text: "Select payment category", classes: "govuk-visually-hidden" } },
     items: [{ value: "Maintenance", text: "Maintenance" }, { value: "Court Fee", text: "Court fee" }, { value: "Suspense", text: "Suspense" }] }) }}
   <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}<a class="govuk-link" href="{{ payManual }}/new-till">Cancel</a></div>
 </form>

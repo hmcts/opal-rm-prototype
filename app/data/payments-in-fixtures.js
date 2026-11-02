@@ -90,9 +90,9 @@ module.exports = {
   ],
   "sources": [
     "allpay",
-    "NatWest",
-    "British Telecom",
     "Barclaycard",
+    "Telephone",
+    "NatWest",
     "Other"
   ],
   "methods": [

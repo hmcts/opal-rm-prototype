@@ -5,7 +5,7 @@
 {% if rows %}{{ govukSummaryList({ rows: rows }) }}{% endif %}
 <form method="post" action="{{ formAction }}"><div class="govuk-button-group">
   {{ govukButton({ text: buttonText, classes: "govuk-button--warning", preventDoubleClick: true }) }}
-  <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+  <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText or "Cancel" }}</a>
 </div></form>
 </div></div>
 {% endblock %}
