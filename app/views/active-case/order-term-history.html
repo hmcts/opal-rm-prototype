@@ -16,7 +16,7 @@
         href: backHref
       }) }}
 
-      <span class="govuk-caption-xl">{{ activeCase.accountNumber or activeCase.caseReference }} - {{ activeCase.respondentName }}</span>
+      <span class="govuk-caption-xl">{{ activeCase.accountNumber or activeCase.caseReference }} - {{ accountCaptionName(activeCase.respondent, activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-xl">{{ termTitle }}</h1>
 
       <table class="govuk-table" data-module="moj-sortable-table">

@@ -21,7 +21,7 @@
       {% if stage === 'details' or stage === 'change' %}
         {{ govukBackLink({ text: "Back", href: backHref }) }}
       {% endif %}
-      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ accountCaptionName(activeCase.respondent, activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-l">{{ pageHeading }}</h1>
 
       {% if errorSummary %}

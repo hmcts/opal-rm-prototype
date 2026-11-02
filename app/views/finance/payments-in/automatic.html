@@ -1,22 +1,28 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
+{% set emptyAllocation = tab === "allocate" and not items.length %}
+{% set emptyIgnored = tab === "ignored" and not items.length %}
+{% set emptyProcess = tab === "process" and not items.length %}
+{% set ignoredTabHtml %}Ignored files {{ mojNotificationBadge({ text: ignoredCount, visuallyHiddenText: "ignored files" }) }}{% endset %}
 {{ mojSubNavigation({ label: "Automatic cash input", items: [
   { text: "Process", href: payAuto + "?tab=process", active: tab === "process" },
   { text: "Allocate", href: payAuto + "?tab=allocate", active: tab === "allocate" },
-  { text: "Ignored files", href: payAuto + "?tab=ignored", active: tab === "ignored" }] }) }}
+  { html: ignoredTabHtml, href: payAuto + "?tab=ignored", active: tab === "ignored" }] }) }}
 {% if processingCount %}
   {% set processingHtml %}<p class="govuk-body">{{ processingCount }} {{ "file is" if processingCount === 1 else "files are" }} still being processed.</p><p class="govuk-body">Refresh the page to see the latest status.</p>{% endset %}
   {{ mojAlert({ variant: "information", html: processingHtml, disableAutoFocus: true }) }}
 {% endif %}
 <h2 class="govuk-heading-m">{{ tableCaption }}</h2>
+{% if emptyAllocation %}<p class="govuk-body">{{ "There are no tills ready to allocate yet." if processingCount else "There are no outstanding tills to allocate." }}</p>{% endif %}
+{% if emptyProcess %}<p class="govuk-body">There are no uploaded files to process.</p>{% endif %}
 {% if tab === "ignored" %}<p class="govuk-body">Showing ignored files for the past 14 days.</p>
 {% elif items.length %}<p class="govuk-hint">Select the {{ "files you want to process" if tab === "process" else "tills you want to allocate" }}</p>{% endif %}
 {% if hasFailed %}<p class="govuk-body">Select the failed {{ "files" if tab === "process" else "tills" }} to try again.</p>{% endif %}
 <form method="post" action="{{ payAuto }}/{{ 'process' if tab === 'process' else 'allocate' }}?page={{ page }}"{% if selecting and items.length %} data-pay-multi-select data-module="moj-multi-select" data-id-prefix="automatic-"{% endif %} novalidate>
   <input type="hidden" name="pay-tab" value="{{ tab }}">
-  <div class="govuk-form-group{% if tableError %} govuk-form-group--error{% endif %}">
+  <div class="govuk-form-group{% if emptyAllocation or emptyProcess %} govuk-!-margin-bottom-2{% elif emptyIgnored %} govuk-!-margin-bottom-0{% endif %}{% if tableError %} govuk-form-group--error{% endif %}">
     {% if tableError %}<p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
-    <div class="govuk-button-group">
+    <div class="govuk-button-group{% if emptyIgnored %} govuk-!-margin-bottom-1{% endif %}">
       {{ govukButton({ text: "Refresh", classes: "govuk-button--secondary", attributes: { formaction: payAuto + "/refresh" } }) }}
       {% if selecting and items.length %}{{ govukButton({ text: "Process" if tab === "process" else "Allocate", preventDoubleClick: true }) }}{% endif %}
     </div>
@@ -24,10 +30,8 @@
       {% if selecting %}<p class="govuk-hint" aria-live="polite"><span data-pay-selection-count>0</span> of {{ items.length }} selected</p>{% endif %}
       {% include "finance/payments-in/_table.html" %}
       {% if pagination %}<p class="govuk-hint">Selection and sorting apply to this page.</p>{% endif %}
-    {% else %}<p class="govuk-body">{{ "There are no files to process." if tab === "process" else ("There are no tills to allocate." if tab === "allocate" else "There are no ignored files in the last 14 days.") }}</p>{% endif %}
+    {% endif %}
   </div>
 </form>
-<p class="govuk-body"><a class="govuk-link" href="/finance">Cancel</a></p>
-<p class="govuk-body"><a class="govuk-link" href="{{ payAuto }}/reports">View cash till reports</a></p>
-<p class="govuk-body"><a class="govuk-link" href="{{ payAuto }}/reports?type=cash-list">View cash list report</a></p>
+<p class="govuk-body"><a class="govuk-link" href="{{ payAuto }}/cancel-journey">Cancel</a></p>
 {% endblock %}

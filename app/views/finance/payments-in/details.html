@@ -11,7 +11,7 @@
       errorMessage: errors["pay-amount"], prefix: { text: "£" }, inputmode: "decimal", spellcheck: false, classes: "govuk-input--width-10",
       attributes: { "data-pay-balance": balance } if balance else {} }) }}
     {% if balance and balance !== "0" %}
-      <div hidden data-pay-overpayment>{{ govukInsetText({ html: 'This amount includes an overpayment of <span data-pay-overpayment-amount></span>.' }) }}</div>
+      <div hidden data-pay-overpayment>{{ mojAlert({ variant: "information", role: "status", disableAutoFocus: true, html: 'This amount contains a <span data-pay-overpayment-amount></span> overpayment.' }) }}</div>
     {% endif %}
   {% endif %}
   {% set thirdPartyHtml %}

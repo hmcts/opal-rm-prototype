@@ -14,7 +14,7 @@
       {% if errorSummary.length %}
         {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
       {% endif %}
-      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ accountCaptionName(activeCase.respondent, activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-l">Manage hearing</h1>
       <h2 class="govuk-heading-m">{{ hearingType }}</h2>
       <form method="post" action="{{ formAction }}" novalidate data-module="rm-route-guard">

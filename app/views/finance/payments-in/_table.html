@@ -9,6 +9,13 @@
         items: [{ id: cell.select.id, value: cell.select.value, html: labelHtml }]
       }) }}{% endset %}
       {% set unused = renderedRow.push({ html: checkboxHtml }) %}
+    {% elif cell.radio %}
+      {% set radioLabelHtml %}<span class="govuk-visually-hidden">{{ cell.radio.text }}</span>{% endset %}
+      {% set radioHtml %}{{ govukRadios({
+        name: cell.radio.name, classes: "govuk-radios--small", formGroup: { classes: "govuk-!-margin-bottom-0" },
+        items: [{ id: cell.radio.id, value: cell.radio.value, html: radioLabelHtml }]
+      }) }}{% endset %}
+      {% set unused = renderedRow.push({ html: radioHtml }) %}
     {% else %}{% set unused = renderedRow.push(cell) %}{% endif %}
   {% endfor %}
   {% set unused = renderedRows.push(renderedRow) %}

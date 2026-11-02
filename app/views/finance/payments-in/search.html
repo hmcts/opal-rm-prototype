@@ -1,22 +1,31 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
-<p class="govuk-body">Search active respondent accounts using an account number or a name.</p>
-<form method="post" action="{{ payManual }}/search" novalidate>
-  {{ govukInput({ id: "pay-number", name: "pay-number", label: { text: "Account number", classes: "govuk-label--s" }, hint: { text: "8 digits, followed by the check letter if known" }, value: values["pay-number"], errorMessage: errors["pay-number"], spellcheck: false, classes: "govuk-input--width-10" }) }}
-  <h2 class="govuk-heading-m">Or search by name</h2>
+<p class="govuk-body">Use quick search to search by account number or advanced search to search by name.</p>
+<form method="post" action="{{ payManual }}/search" data-pay-account-search data-initial-type="{{ values['pay-type'] }}" novalidate>
+  <input type="hidden" name="pay-type" value="">
+  <h2 class="govuk-heading-m">Quick search</h2>
+  {{ govukInput({ id: "pay-number", name: "pay-number", label: { text: "Account number", classes: "govuk-label--s" }, hint: { text: "For example, 12345678 or 12345678A" }, value: values["pay-number"], errorMessage: errors["pay-number"], spellcheck: false, classes: "govuk-input--width-10" }) }}
+  <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+  <h2 class="govuk-heading-m">Advanced search</h2>
   {% set individualHtml %}
-    {{ govukInput({ id: "pay-last-name", name: "pay-last-name", label: { text: "Last name" }, value: values["pay-last-name"], errorMessage: errors["pay-last-name"] }) }}
-    {{ govukCheckboxes({ name: "pay-last-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for last name", checked: values["pay-last-exact"] }] }) }}
-    {{ govukInput({ id: "pay-first-names", name: "pay-first-names", label: { text: "First names" }, value: values["pay-first-names"] }) }}
-    {{ govukCheckboxes({ name: "pay-first-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for first names", checked: values["pay-first-exact"] }] }) }}
-    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
+    <h2 class="govuk-heading-m">Individuals</h2>
+    {{ govukInput({ id: "pay-last-name", name: "pay-last-name", label: { text: "Last name", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-last-name"], errorMessage: errors["pay-last-name"] }) }}
+    {{ govukCheckboxes({ name: "pay-last-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-last-exact"] }] }) }}
+    {{ govukInput({ id: "pay-first-names", name: "pay-first-names", label: { text: "First names", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-first-names"] }) }}
+    {{ govukCheckboxes({ name: "pay-first-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-first-exact"] }] }) }}
+    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ id: "pay-individual-aliases", value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
   {% endset %}
   {% set companyHtml %}
-    {{ govukInput({ id: "pay-company", name: "pay-company", label: { text: "Company name" }, value: values["pay-company"], errorMessage: errors["pay-company"] }) }}
-    {{ govukCheckboxes({ name: "pay-company-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Exact match for company name", checked: values["pay-company-exact"] }] }) }}
+    <h2 class="govuk-heading-m">Companies</h2>
+    {{ govukInput({ id: "pay-company", name: "pay-company", label: { text: "Company name", classes: "govuk-label--s" }, classes: "govuk-input--width-20", value: values["pay-company"], errorMessage: errors["pay-company"] }) }}
+    {{ govukCheckboxes({ name: "pay-company-exact", classes: "govuk-checkboxes--small", items: [{ value: "yes", text: "Search exact match", checked: values["pay-company-exact"] }] }) }}
+    {{ govukCheckboxes({ name: "pay-aliases", classes: "govuk-checkboxes--small", items: [{ id: "pay-company-aliases", value: "yes", text: "Include aliases", checked: values["pay-aliases"] }] }) }}
   {% endset %}
-  {{ govukRadios({ name: "pay-type", value: values["pay-type"] or "individual", fieldset: { legend: { text: "Respondent type", classes: "govuk-fieldset__legend--s" } }, items: [{ value: "individual", text: "Individual", conditional: { html: individualHtml } }, { value: "company", text: "Company", conditional: { html: companyHtml } }] }) }}
+  {{ govukTabs({ id: "pay-search-tabs", items: [
+    { label: "Individuals", id: "pay-individuals", panel: { html: individualHtml } },
+    { label: "Companies", id: "pay-companies", panel: { html: companyHtml } }
+  ] }) }}
   <div class="govuk-button-group">{{ govukButton({ text: "Search" }) }}<a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></div>
 </form>
 </div></div>

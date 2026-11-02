@@ -24,7 +24,7 @@
         attributes: { "data-route-guard-link": "vary-or-revoke-order-form" }
       }) }}
 
-      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ activeCase.respondentName }}</span>
+      <span class="govuk-caption-l">{{ activeCase.accountNumber or activeCase.caseReference }} &ndash; {{ accountCaptionName(activeCase.respondent, activeCase.respondentName) }}</span>
       <h1 class="govuk-heading-l">Application to vary or revoke an order</h1>
 
       {% if errorSummary %}
