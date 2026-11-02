@@ -255,26 +255,6 @@ window.GOVUKPrototypeKit.documentReady(() => {
 })
 
 window.GOVUKPrototypeKit.documentReady(function () {
-  document.querySelectorAll('form[data-pay-account-search]').forEach(function (form) {
-    var tabs = form.querySelector('#pay-search-tabs')
-    var type = form.querySelector('[name="pay-type"]')
-    var initialTab = form.getAttribute('data-initial-type') === 'company' ? '#pay-companies' : '#pay-individuals'
-    var initialLink = tabs.querySelector('a[href="' + initialTab + '"][role="tab"]')
-    if (initialLink && !window.location.hash) initialLink.click()
-    function syncSearchType () {
-      var selectedTab = tabs.querySelector('[role="tab"][aria-selected="true"]')
-      type.value = selectedTab ? (selectedTab.hash === '#pay-companies' ? 'company' : 'individual') : ''
-      tabs.querySelectorAll('.govuk-tabs__panel').forEach(function (panel) {
-        panel.querySelectorAll('input').forEach(function (input) {
-          input.disabled = Boolean(selectedTab) && panel.id !== selectedTab.hash.slice(1)
-        })
-      })
-    }
-    // Native GOV.UK tabs also change mode on small screens and on keyboard navigation.
-    new MutationObserver(syncSearchType).observe(tabs, { attributes: true, subtree: true, attributeFilter: ['aria-selected', 'role'] })
-    syncSearchType()
-  })
-
   document.querySelectorAll('[data-pay-print]').forEach(function (button) {
     button.addEventListener('click', function () { window.print() })
   })

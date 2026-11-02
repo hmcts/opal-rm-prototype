@@ -17963,9 +17963,9 @@ function paySummary(label, value, href) {
     ...(href ? { actions: { items: [{ text: 'Change', href, visuallyHiddenText: label.toLowerCase() }] } } : {}) }
 }
 
-function payAccounts() {
+function payAccounts(activeOnly = false) {
   return Object.entries(activeCases).filter(([, account]) =>
-    account.respondent && !isInactiveCaseAccount(account)
+    account.respondent && (!activeOnly || !isInactiveCaseAccount(account))
   ).map(([id, account]) => ({
     id, ref: account.accountNumber || accountRef(id, 'RP'), name: getAccountHeaderName(account.respondent, account.respondentName),
     firstNames: account.respondent.firstNames || '', lastName: account.respondent.lastName || '',
@@ -17988,7 +17988,7 @@ function payState(req) {
 
 function payNewUnit(unit, scenario, automatic = false) {
   const state = { draft: null, pending: null, tills: [], nextTillNumber: 5576, nextPaymentId: 1, files: [], reports: [] }
-  const accounts = payAccounts()
+  const accounts = payAccounts(true)
   const account = (automatic && accounts.find((item) => item.balance === '0')) || accounts[0]
   const now = Date.now()
   const sources = ['NatWest', 'Telephone', 'Barclaycard', 'allpay']
@@ -18248,44 +18248,40 @@ router.post(payManual + '/category', payRequireUnit, payRequireDraft, (req, res,
 
 function paySearch(req) {
   const search = payUnitState(req).pending.search || {}
-  const normalise = (value) => String(value || '').toLocaleLowerCase('en-GB')
-  const match = (value, query, exact) => !query || (exact ? normalise(value) === normalise(query) : normalise(value).includes(normalise(query)))
-  return payAccounts().filter((account) => {
+  const match = (value, query) => !query || normaliseSearchText(value).includes(normaliseSearchText(query))
+  return payAccounts(search.activeOnly !== false).filter((account) => {
     if (search.number) return account.ref === search.number.toUpperCase() || account.ref.slice(0, 8) === search.number
-    if (search.type === 'company') return Boolean(account.companyName) && [account.companyName,
-      ...(search.aliases ? account.aliases.map((alias) => typeof alias === 'string' ? alias : alias.companyName || alias.name || '') : [])]
-      .some((name) => match(name, search.company, search.companyExact))
-    const names = [{ firstNames: account.firstNames, lastName: account.lastName },
-      ...(search.aliases ? account.aliases : [])]
-    return names.some((name) => match(name.lastName, search.lastName, search.lastExact) && match(name.firstNames, search.firstNames, search.firstExact))
+    const postcode = getAddressFormFields(account.address, 'respondent')['respondent-postal-or-zip-code']
+    return match(account.lastName, search.lastName) && match(account.firstNames, search.firstNames) &&
+      (!search.dateOfBirth || normaliseDateSearchText(account.dob) === normaliseDateSearchText(search.dateOfBirth)) &&
+      (!search.postcode || normaliseCompactSearchText(postcode).includes(normaliseCompactSearchText(search.postcode)))
   })
 }
 
 router.get(payManual + '/search', payRequireUnit, payRequirePending, (req, res) =>
-  payRender(req, res, 'search', { heading: 'Search for an account', backHref: payManual + '/category',
+  payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category',
     values: payUnitState(req).pending.searchValues || {} }))
 
 router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res, next) => {
-  const fields = ['number', 'last-name', 'first-names', 'company', 'type', 'last-exact', 'first-exact', 'company-exact', 'aliases']
+  const fields = ['number', 'last-name', 'first-names', 'date-of-birth', 'postcode']
   const values = Object.fromEntries(fields.map((field) => ['pay-' + field, payText(req.body['pay-' + field])]))
-  for (const field of ['last-exact', 'first-exact', 'company-exact', 'aliases']) values['pay-' + field] = payChecked(req.body['pay-' + field]).includes('yes')
+  values['pay-active-only'] = payChecked(req.body['pay-active-only']).includes('yes')
   const errors = {}
-  // With no JavaScript (or stacked mobile panels), infer the type from the entered name.
-  if (!values['pay-type']) values['pay-type'] = values['pay-company'] && !values['pay-last-name'] && !values['pay-first-names'] ? 'company' : 'individual'
   const number = values['pay-number'].replace(/\s/g, '').toUpperCase()
-  const hasName = values['pay-type'] === 'company' ? Boolean(values['pay-company']) : Boolean(values['pay-last-name'] || values['pay-first-names'])
-  if (values['pay-company'] && (values['pay-last-name'] || values['pay-first-names'])) errors['pay-company'] = { text: 'Search for an individual or a company, not both' }
-  else if (number && hasName) errors['pay-number'] = { text: 'Search using an account number or a name, not both' }
+  const hasAdvanced = Boolean(values['pay-last-name'] || values['pay-first-names'] || values['pay-date-of-birth'] || values['pay-postcode'])
+  if (number && hasAdvanced) errors['pay-number'] = { text: 'Search using an account number or advanced search, not both' }
   else if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
-  else if (!number && !hasName) errors['pay-number'] = { text: 'Enter an account number or a name to search' }
-  else if (!number && values['pay-type'] === 'company' && !values['pay-company']) errors['pay-company'] = { text: 'Enter a company name' }
-  else if (!number && values['pay-type'] !== 'company' && !values['pay-last-name'] && !values['pay-first-names']) errors['pay-last-name'] = { text: 'Enter a respondent name' }
-  if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for an account', backHref: payManual + '/category', values, errors })
+  else if (!number && !hasAdvanced) errors['pay-number'] = { text: 'Enter an account number or respondent details to search' }
+  if (values['pay-date-of-birth']) {
+    const dateOfBirth = parseDateInput(values['pay-date-of-birth'])
+    if (dateOfBirth.kind !== 'valid') errors['pay-date-of-birth'] = { text: 'Enter a valid date of birth' }
+    else if (isFutureDate(dateOfBirth.date)) errors['pay-date-of-birth'] = { text: 'Date of birth must be today or in the past' }
+  }
+  if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
   const pending = payUnitState(req).pending
   pending.searchValues = values
-  pending.search = { number, type: values['pay-type'], lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
-    company: values['pay-company'], lastExact: values['pay-last-exact'], firstExact: values['pay-first-exact'],
-    companyExact: values['pay-company-exact'], aliases: values['pay-aliases'] }
+  pending.search = { number, lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
+    dateOfBirth: values['pay-date-of-birth'], postcode: values['pay-postcode'], activeOnly: values['pay-active-only'] }
   const results = paySearch(req)
   return redirectWithSessionSave(req, res, next, number && results.length === 1 ? payManual + '/confirm-account?account=' + results[0].id : payManual + '/search-results')
 })
@@ -18877,7 +18873,7 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
     ['Records in suspense', suspenseCount, suspense],
     ['Records ignored', ignoredCount, ignored]
   ]
-  const accounts = payAccounts()
+  const accounts = payAccounts(true)
   const creditAccounts = (file.creditAccounts || []).map((credit) => ({ ...credit, account: accounts.find((item) => item.id === credit.accountId) }))
     .filter((credit) => credit.account)
   const creditRows = creditAccounts.map((credit) => {
