@@ -75,13 +75,17 @@
               href: "/active-case/" + caseId + "/note",
               classes: "govuk-button--secondary"
             }) }}
+            {% set accountActions = [{ text: "Export as PDF", href: "#" }] %}
+            {% if accountInactive %}
+              {% set accountActions = accountActions.concat([{
+                text: "Reactivate an account",
+                href: "/active-case/" + caseId + "/reactivate-account"
+              }]) %}
+            {% endif %}
             {{ mojButtonMenu({
               button: { text: "More actions", classes: "govuk-button--secondary" },
               alignMenu: "right",
-              items: [
-                { text: "Export as PDF", href: "#" },
-                { text: "Deactivate account", href: "/active-case/" + caseId + "/close-account" }
-              ]
+              items: accountActions
             }) }}
           </div>
         </div>

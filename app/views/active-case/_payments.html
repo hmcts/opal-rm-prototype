@@ -14,13 +14,15 @@
         title: { text: "Payments received" },
         actions: { items: [{ text: "Change", href: "/active-case/" + caseId + "/payments-received", visuallyHiddenText: "how payments received are handled" }] }
       },
-      rows: [{ key: { text: "Status" }, value: { text: "Payments received are being held in suspense." if payoutHolds.applyPayments === 'no' else "Payments received are added to the account balance." } }]
+      rows: [{ key: { text: "Payments held in suspense" }, value: { text: "Yes" if payoutHolds.applyPayments === 'no' else "No" } }]
     }) }}
 
-    {% set payoutRows = [{ key: { text: "Status" }, value: { text: "Payouts to creditors are on hold." if payoutHolds.holdAll else ("Payout overrides apply." if payoutHolds.overrideRules === 'yes' else "Standard payout rules apply.") } }] %}
-    {% if not payoutHolds.holdAll %}
-      {% set chequeDays = payoutHolds.chequeDays if payoutHolds.overrideRules === 'yes' else '10' %}
-      {% set bankDays = payoutHolds.bankDays if payoutHolds.overrideRules === 'yes' else '0' %}
+    {% set payoutRows = [] %}
+    {% if payoutHolds.holdAll %}
+      {% set unused = payoutRows.push({ value: { text: "Payouts to creditors are on hold." } }) %}
+    {% else %}
+      {% set chequeDays = payoutHolds.chequeDays %}
+      {% set bankDays = payoutHolds.bankDays %}
       {% set unused = payoutRows.push({ key: { text: "Cheque payments held for" }, value: { text: chequeDays + (" day" if chequeDays === '1' else " days") } }) %}
       {% set unused = payoutRows.push({ key: { text: "Bank payments held for" }, value: { text: bankDays + (" day" if bankDays === '1' else " days") } }) %}
     {% endif %}

@@ -22,7 +22,7 @@
       classes: "govuk-input--width-20", value: values["pay-first-names"], errorMessage: errors["pay-first-names"]
     }) }}
     {{ mojDatePicker({
-      leadingZeros: true, id: "pay-date-of-birth", name: "pay-date-of-birth",
+      leadingZeros: false, id: "pay-date-of-birth", name: "pay-date-of-birth",
       label: { text: "Date of birth", classes: "govuk-label--s" },
       hint: { text: "For example, 31/01/2023" },
       value: values["pay-date-of-birth"], errorMessage: errors["pay-date-of-birth"]

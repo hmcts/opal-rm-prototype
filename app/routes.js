@@ -11,6 +11,11 @@ const router = govukPrototypeKit.requests.setupRouter()
 router.use((req, res, next) => {
   res.locals.primaryNavPath = req.path.replace(/\/+$/, '') || '/'
   res.locals.accountCaptionName = getAccountHeaderName
+  const respondentId = req.path.match(/^\/active-case\/(\d+)(?:\/|$)/)?.[1]
+  const creditorId = req.path.match(/^\/active-case\/creditor\/(\d+)(?:\/|$)/)?.[1]
+  const relatedCase = activeCases[respondentId] || getCreditorRelatedCase(minorCreditorAccounts[creditorId])
+  res.locals.simulatePaymentRunHref = '/prototype-admin/simulate-payment-run' +
+    (relatedCase ? `?account-number=${encodeURIComponent(relatedCase.accountNumber || relatedCase.caseReference)}` : '')
   next()
 })
 
@@ -50,6 +55,90 @@ router.post('/prototype-admin/clear-data', (req, res) => {
   resetPrototypeState()
 
   return res.render('manage-prototype/clear-data-success')
+})
+
+function findPaymentRunAccount(accountNumber) {
+  const normalised = accountNumber.replace(/\s/g, '').toUpperCase()
+  return Object.entries(activeCases).find(([, account]) =>
+    String(account.accountNumber || account.caseReference).toUpperCase() === normalised
+  )
+}
+
+function renderSimulatedPaymentRun(res, accountNumber, errors = {}) {
+  return res.render('manage-prototype/simulate-payment-run', {
+    accountNumber,
+    errors,
+    errorSummary: buildErrorSummary(errors)
+  })
+}
+
+router.get('/prototype-admin/simulate-payment-run', (req, res) =>
+  renderSimulatedPaymentRun(res, String(req.query['account-number'] || ''))
+)
+
+router.post('/prototype-admin/simulate-payment-run', (req, res, next) => {
+  const accountNumber = String(getSingleValue(req.body['simulation-account-number']) || '').trim()
+  const match = accountNumber ? findPaymentRunAccount(accountNumber) : null
+  if (!match) {
+    return renderSimulatedPaymentRun(res, accountNumber, {
+      'simulation-account-number': buildFieldError(accountNumber
+        ? 'Enter an existing respondent account number'
+        : 'Enter a respondent account number')
+    })
+  }
+  const [caseId, activeCase] = match
+  const relatedAccounts = Object.entries(minorCreditorAccounts)
+    .filter(([, account]) => getCreditorRelatedCase(account) === activeCase)
+  const respondentBalancePence = Math.max(0, getArrearsPence(activeCase.balance))
+  if (respondentBalancePence > 0 && !relatedAccounts.length) {
+    return renderSimulatedPaymentRun(res, accountNumber, {
+      'simulation-account-number': buildFieldError('This respondent account needs a linked creditor before its balance can be distributed')
+    })
+  }
+  const sharePence = relatedAccounts.length ? Math.floor(respondentBalancePence / relatedAccounts.length) : 0
+  const remainingPence = relatedAccounts.length ? respondentBalancePence % relatedAccounts.length : 0
+  let totalPence = 0
+  // These balance transfers and payouts are a prototype-only shortcut, including accounts on hold.
+  const creditorResults = relatedAccounts.map(([id, account], index) => {
+    const allocatedPence = sharePence + (index < remainingPence ? 1 : 0)
+    const payoutPence = Math.max(0, getArrearsPence(account.awaitingPayout)) + allocatedPence
+    totalPence += payoutPence
+    account.awaitingPayout = '£0.00'
+    return {
+      text: `${account.type === 'creditor' ? 'Minor creditor' : 'Applicant'} account ${account.accountNumber}`,
+      href: `/active-case/creditor/${id}`,
+      allocatedBalance: formatCurrency(allocatedPence / 100),
+      payout: formatCurrency(payoutPence / 100)
+    }
+  })
+  activeCase.balance = '£0.00'
+  if (isEligibleForAutomaticDeactivation(activeCase)) {
+    activeCase.automaticallyDeactivated = true
+    delete activeCase.manuallyReactivated
+  }
+  req.session.data.simulatedPaymentRun = {
+    accountNumber: activeCase.accountNumber || activeCase.caseReference,
+    distributedBalance: formatCurrency(respondentBalancePence / 100),
+    totalPayout: formatCurrency(totalPence / 100),
+    accountInactive: isInactiveCaseAccount(activeCase),
+    successMessage: 'Simulated payment run completed.',
+    accounts: [
+      { text: `Respondent account ${activeCase.accountNumber || activeCase.caseReference}`, href: `/active-case/${caseId}` },
+      ...creditorResults
+    ]
+  }
+  return redirectWithSessionSave(req, res, next, '/prototype-admin/simulate-payment-run/results')
+})
+
+router.get('/prototype-admin/simulate-payment-run/results', (req, res) => {
+  const simulation = req.session.data.simulatedPaymentRun
+  if (!simulation) return res.redirect('/prototype-admin/simulate-payment-run')
+  if (simulation.distributedBalance === undefined) {
+    return res.redirect(`/prototype-admin/simulate-payment-run?account-number=${encodeURIComponent(simulation.accountNumber)}`)
+  }
+  const successMessage = simulation.successMessage
+  delete simulation.successMessage
+  return res.render('manage-prototype/simulated-payment-run-results', { simulation, successMessage })
 })
 
 const applicationDefinitionList = [
@@ -3538,7 +3627,7 @@ function parseStrictDateInput(dateString) {
     return { kind: 'missing' }
   }
 
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+  if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
     return { kind: 'format' }
   }
 
@@ -3575,7 +3664,7 @@ function getResultDateError(field, dateResult) {
   const label = fieldName === 'child dob' ? 'Date of birth' : field.prompt
 
   if (dateResult.kind === 'format') {
-    return `${label} must be in the format DD/MM/YYYY`
+    return `Enter ${label.toLowerCase()} in day/month/year format, for example 1/4/2026`
   }
 
   if (dateResult.kind === 'invalid') {
@@ -3621,7 +3710,7 @@ function validateAlternativeOrderDetails(body, caseType, options = {}) {
   if (orderMadeDate.kind === 'missing' && !orderMadeFieldsOptional) {
     errors['order-date-order-made'] = buildFieldError('Enter the date order made')
   } else if (orderMadeDate.kind === 'invalid') {
-    errors['order-date-order-made'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+    errors['order-date-order-made'] = buildFieldError('Enter a real date, for example 1/4/2026')
   } else if (orderMadeDate.kind === 'valid') {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -3636,7 +3725,7 @@ function validateAlternativeOrderDetails(body, caseType, options = {}) {
   if (arrearsLastUpdatedDate.kind === 'missing') {
     errors['order-date-arrears-last-updated'] = buildFieldError('Enter the date arrears last updated')
   } else if (arrearsLastUpdatedDate.kind === 'invalid') {
-    errors['order-date-arrears-last-updated'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+    errors['order-date-arrears-last-updated'] = buildFieldError('Enter a real date, for example 1/4/2026')
   } else {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -5715,6 +5804,7 @@ function ensureApprovedAccountsForReviewCase(caseEntry) {
     businessUnit,
     dateOfLastMovement: 'Today',
     balance: arrears,
+    payoutPeriods: activeCases[ids.respondent]?.payoutPeriods || createAccountPayoutPeriods(),
     arrears,
     centralAuthority: {
       'central-authority-remo-reference': caseData['central-authority-remo-reference'] || '',
@@ -10431,16 +10521,26 @@ function isZeroAccountAmount(value) {
 }
 
 function isInactiveCaseAccount(activeCase) {
-  if (!activeCase || !isZeroAccountAmount(getActiveCaseTotalArrears(activeCase)) || !isZeroAccountAmount(activeCase.balance)) {
+  return Boolean(activeCase?.automaticallyDeactivated && !activeCase.manuallyReactivated)
+}
+
+function isEligibleForAutomaticDeactivation(activeCase) {
+  if (!activeCase) return false
+  if (!isZeroAccountAmount(getActiveCaseTotalArrears(activeCase)) || !isZeroAccountAmount(activeCase.balance)) {
     return false
   }
+  const relatedAccounts = Object.values(minorCreditorAccounts).filter((account) =>
+    getCreditorRelatedCase(account) === activeCase ||
+    (account.caseReference && account.caseReference === activeCase.caseReference)
+  )
+  if (relatedAccounts.some((account) => !isZeroAccountAmount(account.awaitingPayout))) return false
   const todayParts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
   }).formatToParts(new Date())
   const today = Object.fromEntries(todayParts.map(({ type, value }) => [type, value]))
   const todayKey = `${today.year}${today.month}${today.day}`
   const terms = getActiveCaseOrders(activeCase).terms
-  return (terms.length > 0 || Boolean(activeCase.closedAt)) && terms.every((term) => {
+  const eligible = terms.length > 0 && terms.every((term) => {
     const definition = getResultDefinition(term.code, 'orders')
     const amountField = definition?.responses.find(isOrderTermAmountField)
     const expiryField = definition?.responses.find((field) => hasFieldText(field, ['expiry date']))
@@ -10453,6 +10553,7 @@ function isInactiveCaseAccount(activeCase) {
     const expiryKey = `${expiry.date.getFullYear()}${String(expiry.date.getMonth() + 1).padStart(2, '0')}${String(expiry.date.getDate()).padStart(2, '0')}`
     return expiryKey <= todayKey
   })
+  return eligible
 }
 
 function getCreditorRelatedCase(account) {
@@ -11559,7 +11660,7 @@ function addActiveCaseVaryOrderDateError(errors, values, field, label, options =
     errors[field] = buildFieldError(options.missingMessage || `Enter ${label.toLowerCase()}`)
   } else if (dateResult.kind === 'invalid') {
     errors[field] = buildFieldError(
-      options.invalidMessage || `Enter a real ${label.toLowerCase()} in the format DD/MM/YYYY`
+      options.invalidMessage || `Enter a real ${label.toLowerCase()}, for example 1/4/2026`
     )
   } else if (options.futureNotAllowed && isFutureDate(dateResult.date)) {
     errors[field] = buildFieldError('Date must be in the past')
@@ -11580,7 +11681,7 @@ function validateActiveCaseVaryOrder(values) {
     'Date of application',
     {
       futureNotAllowed: true,
-      invalidMessage: 'Enter a real application date in the format DD/MM/YYYY'
+      invalidMessage: 'Enter a real application date, for example 1/4/2026'
     }
   )
 
@@ -11632,7 +11733,7 @@ function validateActiveCaseVaryOrder(values) {
     {
       optional: true,
       futureNotAllowed: true,
-      invalidMessage: 'Enter a real order date in the format DD/MM/YYYY'
+      invalidMessage: 'Enter a real order date, for example 1/4/2026'
     }
   )
 
@@ -12006,7 +12107,7 @@ function validateActiveCaseEnforcementAction(values) {
   if (hearingDate.kind === 'missing') {
     errors['enforcement-hearing-date'] = buildFieldError('Select a hearing date')
   } else if (hearingDate.kind === 'invalid') {
-    errors['enforcement-hearing-date'] = buildFieldError('Enter a real date in the format DD/MM/YYYY')
+    errors['enforcement-hearing-date'] = buildFieldError('Enter a real date, for example 1/4/2026')
   }
   if (values['enforcement-hearing-time'] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(values['enforcement-hearing-time'])) {
     errors['enforcement-hearing-time'] = buildFieldError('Enter time using the 24-hour clock, such as 09:00')
@@ -12372,51 +12473,16 @@ function clearInactiveAccountOrderDraft(req, caseId) {
   if (req.session.data.inactiveAccountOrderDrafts) delete req.session.data.inactiveAccountOrderDrafts[caseId]
 }
 
-function needsOrderTermReactivationConfirmation(req, caseId, proposedCase, action, termIndex) {
-  if (getActiveCaseResultContext(req, caseId) || !isInactiveCaseAccount(activeCases[caseId]) ||
-    isInactiveCaseAccount(proposedCase)) return false
-  const draft = req.session.data.inactiveAccountOrderDrafts?.[caseId]
-  if (!draft || draft.confirmed) return false
-  draft.confirmation = { action, termIndex }
-  return true
-}
-
 function commitInactiveAccountOrderDraft(req, caseId, workingCase) {
   const draft = req.session.data.inactiveAccountOrderDrafts?.[caseId]
   if (!draft || getActiveCaseResultContext(req, caseId)) return
-  const wasInactive = isInactiveCaseAccount(activeCases[caseId])
   activeCases[caseId].orders = cloneData(getActiveCaseOrders(workingCase))
-  if (wasInactive && !isInactiveCaseAccount(activeCases[caseId])) {
-    activeCases[caseId].accountClosureHistory = [{
-      date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName,
-      type: 'Amendments', details: 'Account reactivated | Order terms updated.'
-    }, ...(activeCases[caseId].accountClosureHistory || [])]
-  }
   clearInactiveAccountOrderDraft(req, caseId)
 }
 
-router.get('/active-case/:id/order-term/reactivate', (req, res) => {
-  const id = Number(req.params.id)
-  const draft = req.session.data.inactiveAccountOrderDrafts?.[id]
-  if (!activeCases[id] || !draft?.confirmation) return res.redirect(`/active-case/${id}?tab=orders`)
-  return res.render('active-case/reactivate-account', {
-    accountNumber: activeCases[id].accountNumber || activeCases[id].caseReference,
-    accountName: getAccountHeaderName(activeCases[id].respondent, activeCases[id].respondentName),
-    formAction: `/active-case/${id}/order-term/reactivate`,
-    cancelHref: `/active-case/${id}/order-term/reactivate/cancel`
-  })
-})
-
-router.post('/active-case/:id/order-term/reactivate', (req, res, next) => {
-  const id = Number(req.params.id)
-  const draft = req.session.data.inactiveAccountOrderDrafts?.[id]
-  if (!activeCases[id] || !draft?.confirmation) return res.redirect(`/active-case/${id}?tab=orders`)
-  const { action, termIndex } = draft.confirmation
-  draft.confirmed = true
-  if (action === 'add') return saveAddedActiveCaseOrderTerm(req, res, next)
-  req.params.index = String(termIndex)
-  return saveAmendedActiveCaseOrderTerm(req, res, next)
-})
+router.all('/active-case/:id/order-term/reactivate', (req, res) =>
+  res.redirect(`/active-case/${req.params.id}?tab=orders`)
+)
 
 router.get('/active-case/:id/order-term/reactivate/cancel', (req, res, next) => {
   const id = Number(req.params.id)
@@ -13146,17 +13212,43 @@ router.post('/active-case/:id/alternate-payment-references/:referenceId/remove',
   return redirectWithSessionSave(req, res, next, returnHref)
 })
 
+function createAccountPayoutPeriods() {
+  // Copy the creation defaults; existing accounts never read them again.
+  return { chequeDays: '10', bankDays: '0' }
+}
+
 function getRespondentPayoutHolds(req, id) {
+  const account = activeCases[id]
+  if (!account.payoutPeriods) account.payoutPeriods = createAccountPayoutPeriods()
   const saved = req.session.data.respondentPayoutHolds?.[id]
-  const overrideRules = saved?.overrideRules ||
-    (saved?.chequeDays && saved?.bankDays ? 'yes' : 'no')
+  const useSavedPeriods = saved?.overrideRules !== 'no'
   return {
     applyPayments: saved?.applyPayments || 'yes',
-    overrideRules,
-    chequeDays: overrideRules === 'yes' ? saved.chequeDays : '',
-    bankDays: overrideRules === 'yes' ? saved.bankDays : '',
-    holdAll: saved?.holdAll || false
+    chequeDays: useSavedPeriods && saved?.chequeDays !== undefined && saved.chequeDays !== ''
+      ? String(saved.chequeDays) : account.payoutPeriods.chequeDays,
+    bankDays: useSavedPeriods && saved?.bankDays !== undefined && saved.bankDays !== ''
+      ? String(saved.bankDays) : account.payoutPeriods.bankDays,
+    holdAll: saved?.holdAll || false,
+    history: saved?.history || []
   }
+}
+
+function recordRespondentPaymentChanges(previous, values) {
+  const changes = [
+    ['applyPayments', 'Payments held in suspense', value => value === 'no' ? 'True' : 'False'],
+    ['holdAll', 'Payouts to creditors on hold', value => value ? 'True' : 'False'],
+    ['chequeDays', 'Cheque payments held for (days)', value => value],
+    ['bankDays', 'Bank payments held for (days)', value => value]
+  ].filter(([field]) => previous[field] !== values[field])
+  const now = Date.now()
+  values.history = [
+    ...changes.map(([field, label, display]) => ({
+      date: getHistoryDateToday(), sortValue: now, user: prototypeCurrentUserName,
+      type: 'Amendments',
+      details: `${label}\nOld: ${display(previous[field])}\nNew: ${display(values[field])}`
+    })),
+    ...previous.history
+  ]
 }
 
 function renderRespondentPayoutHolds(req, res, activeCase, id, values, errors = {}, settingsSection = 'payouts') {
@@ -13164,7 +13256,7 @@ function renderRespondentPayoutHolds(req, res, activeCase, id, values, errors = 
     activeCase, caseId: id,
     settingsSection,
     heading: settingsSection === 'received' ? 'Change payments received' : 'Change payout holds',
-    values: { ...values, overrideRules: values.holdAll ? 'hold-all' : values.overrideRules },
+    values: { ...values, payoutOption: values.payoutOption || (values.holdAll ? 'hold-all' : 'specified') },
     errors,
     errorSummary: Object.keys(errors).length ? buildErrorSummary(errors) : null,
     cancelHref: `/active-case/${id}?tab=payments`,
@@ -13182,15 +13274,17 @@ router.get('/active-case/:id/payments-received', (req, res) => {
 router.post('/active-case/:id/payments-received', (req, res, next) => {
   const id = Number(req.params.id)
   if (!activeCases[id]) return res.redirect('/search')
-  const values = { ...getRespondentPayoutHolds(req, id),
+  const previous = getRespondentPayoutHolds(req, id)
+  const values = { ...previous,
     applyPayments: String(getSingleValue(req.body.applyPayments) || '') }
   if (!['yes', 'no'].includes(values.applyPayments)) {
     return renderRespondentPayoutHolds(req, res, activeCases[id], id, values, {
       applyPayments: buildFieldError('Select whether you want to stop payments from the respondent being added to the account')
     }, 'received')
   }
+  recordRespondentPaymentChanges(previous, values)
   getActiveCaseVaryOrderStore(req, 'respondentPayoutHolds')[id] = values
-  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Payments received settings updated.')
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Payments received status updated.')
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=payments`)
 })
 
@@ -13206,19 +13300,19 @@ router.post('/active-case/:id/payout-holds', (req, res, next) => {
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
   const previous = getRespondentPayoutHolds(req, id)
-  const choice = String(getSingleValue(req.body.overrideRules) || '')
+  const choice = String(getSingleValue(req.body.payoutOption) || '')
   const values = {
     applyPayments: previous.applyPayments || 'yes',
-    overrideRules: choice === 'hold-all' ? previous.overrideRules : choice,
+    payoutOption: choice,
     chequeDays: choice === 'hold-all' ? previous.chequeDays : String(getSingleValue(req.body.chequeDays) || '').trim(),
     bankDays: choice === 'hold-all' ? previous.bankDays : String(getSingleValue(req.body.bankDays) || '').trim(),
     holdAll: choice === 'hold-all'
   }
   const errors = {}
-  if (!['yes', 'no', 'hold-all'].includes(choice)) {
-    errors.overrideRules = buildFieldError('Select a payout option')
+  if (!['specified', 'hold-all'].includes(choice)) {
+    errors.payoutOption = buildFieldError('Select a payout option')
   }
-  if (choice === 'yes') {
+  if (choice === 'specified') {
     for (const [field, label] of [['chequeDays', 'cheque payments'], ['bankDays', 'bank payments']]) {
       if (!values[field]) {
         errors[field] = buildFieldError(`Enter the number of days to hold ${label}`)
@@ -13226,21 +13320,14 @@ router.post('/active-case/:id/payout-holds', (req, res, next) => {
         errors[field] = buildFieldError(`Enter a whole number of days, 0 or more, for ${label}`)
       }
     }
-  } else if (choice === 'no') {
-    values.chequeDays = ''
-    values.bankDays = ''
   }
   if (Object.keys(errors).length) return renderRespondentPayoutHolds(req, res, activeCase, id, values, errors)
   for (const field of ['chequeDays', 'bankDays']) {
     if (values[field]) values[field] = String(Number(values[field]))
   }
-  const store = getActiveCaseVaryOrderStore(req, 'respondentPayoutHolds')
-  store[id] = values
-  const message = previous.holdAll && !values.holdAll ? 'Payout hold removed.'
-    : !values.holdAll && (previous.chequeDays !== '' || previous.bankDays !== '') &&
-      values.chequeDays === '' && values.bankDays === '' ? 'Payout overrides removed.'
-      : 'Payout holds updated.'
-  setActiveCaseSuccessMessage(req, `/active-case/${id}`, message)
+  recordRespondentPaymentChanges(previous, values)
+  getActiveCaseVaryOrderStore(req, 'respondentPayoutHolds')[id] = values
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Payout holds updated.')
   return redirectWithSessionSave(req, res, next, `/active-case/${id}?tab=payments`)
 })
 
@@ -13264,6 +13351,7 @@ router.get('/active-case/:id', (req, res) => {
   const previousVaryOrderApplications = getActiveCaseVaryOrderApplicationHistory(req, id)
   const historyRows = [
     ...getActiveCaseHearingHistory(req, id),
+    ...getRespondentPayoutHolds(req, id).history,
     ...getAccountHistoryRows(activeCase)
   ].sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0))
   const historyPageCount = Math.max(1, Math.ceil(historyRows.length / 25))
@@ -13314,63 +13402,42 @@ router.get('/active-case/:id', (req, res) => {
   })
 })
 
-function getCloseAccountViewData(req, activeCase, id) {
-  const blockers = []
-  if (!isZeroAccountAmount(activeCase.balance)) {
-    blockers.push({ text: 'reduce the account balance to £0.00' })
-  }
-  const application = getActiveCaseVaryOrderApplication(req, id)
-  if (hasActiveCourtHearing(activeCase, [application])) {
-    blockers.push({ text: 'resolve any active court cases' })
-  }
-  return {
-    accountName: getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
-    accountNumber: activeCase.accountNumber || activeCase.caseReference,
-    blockers,
-    formAction: `/active-case/${id}/close-account`,
-    cancelHref: `/active-case/${id}`
-  }
-}
-
-router.get('/active-case/:id/close-account', (req, res) => {
+router.get('/active-case/:id/reactivate-account', (req, res) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  return res.render('active-case/close-account', getCloseAccountViewData(req, activeCase, id))
+  if (!isInactiveCaseAccount(activeCase)) return res.redirect(`/active-case/${id}`)
+
+  return res.render('active-case/reactivate-account', {
+    accountNumber: activeCase.accountNumber || activeCase.caseReference,
+    accountName: getAccountHeaderName(activeCase.respondent, activeCase.respondentName),
+    manualReactivation: true,
+    formAction: `/active-case/${id}/reactivate-account`,
+    cancelHref: `/active-case/${id}`
+  })
 })
 
-router.post('/active-case/:id/close-account', (req, res, next) => {
+router.post('/active-case/:id/reactivate-account', (req, res, next) => {
   const id = Number(req.params.id)
   const activeCase = activeCases[id]
   if (!activeCase) return res.redirect('/create-cases?tab=approved')
-  const viewData = getCloseAccountViewData(req, activeCase, id)
-  if (viewData.blockers.length) return res.render('active-case/close-account', viewData)
+  if (!isInactiveCaseAccount(activeCase)) return res.redirect(`/active-case/${id}`)
 
-  const today = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London',
-    day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date())
-  getActiveCaseOrders(activeCase).terms.forEach((term) => {
-    const previousTerm = cloneData(term)
-    const fields = getResultDefinition(term.code, 'orders')?.responses || []
-    term.responses = term.responses || {}
-    fields.forEach((field) => {
-      if (isOrderTermAmountField(field) || hasFieldText(field, ['arrears', 'amount of arrears'])) {
-        term.responses[field.id] = '0.00'
-      }
-      if (hasFieldText(field, ['expiry date'])) term.responses[field.id] = today
-    })
-    if (!fields.some(isOrderTermAmountField)) term.closureAmount = '0.00'
-    if (!fields.some((field) => hasFieldText(field, ['expiry date']))) term.closureExpiryDate = today
-    retainPreviousActiveCaseOrderTerm(previousTerm, term)
-  })
-  activeCase.arrears = '£0.00'
-  activeCase.closedAt = today
-  getActiveCaseOrders(activeCase).details.dateArrearsLastUpdated = today
-  activeCase.dateArrearsUpdated = getHistoryDateToday()
+  activeCase.manuallyReactivated = true
+  delete activeCase.automaticallyDeactivated
   activeCase.accountClosureHistory = [{
     date: getHistoryDateToday(), sortValue: Date.now(), user: prototypeCurrentUserName,
-    type: 'Amendments', details: 'Account deactivated | Order amounts and arrears set to £0.00 | All order terms expire today.'
+    type: 'Amendments', details: 'Account reactivated.'
   }, ...(activeCase.accountClosureHistory || [])]
+  setActiveCaseSuccessMessage(req, `/active-case/${id}`, 'Account reactivated.')
   return redirectWithSessionSave(req, res, next, `/active-case/${id}`)
+})
+
+router.all('/active-case/:id/close-account', (req, res) => {
+  const id = Number(req.params.id)
+  const activeCase = activeCases[id]
+  if (!activeCase) return res.redirect('/create-cases?tab=approved')
+  return res.redirect(`/active-case/${id}`)
 })
 
 router.get('/active-case/:id/change-case-type', (req, res) => {
@@ -14030,12 +14097,6 @@ function saveAddedActiveCaseOrderTerm(req, res, next) {
     previousTerms: orderTerm.previousTerms || []
   }
 
-  const proposedCase = cloneData(activeCase)
-  getActiveCaseOrders(proposedCase).terms.push(cloneData(completedOrderTerm))
-  if (needsOrderTermReactivationConfirmation(req, id, proposedCase, 'add')) {
-    return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/reactivate`)
-  }
-
   applyCreditorToAllActiveOrderTerms(activeCase, completedOrderTerm)
   getActiveCaseOrders(activeCase).terms.push(completedOrderTerm)
   const resultContext = getActiveCaseResultContext(req, id)
@@ -14506,10 +14567,6 @@ function saveAmendedActiveCaseOrderTerm(req, res, next) {
 
   if (!activeCase || !orderTerm) {
     return res.redirect('/create-cases?tab=approved')
-  }
-
-  if (needsOrderTermReactivationConfirmation(req, id, activeCase, 'amend', termIndex)) {
-    return redirectWithSessionSave(req, res, next, `/active-case/${id}/order-term/reactivate`)
   }
 
   const snapshots = getActiveCaseOrderTermAmendSnapshotState(req)
@@ -16427,6 +16484,7 @@ searchData.forEach((d) => {
       caseType: d.ct, remoReference: d.remoRef, businessUnit: d.bu,
       dateOfLastMovement: d.dolm, dateArrearsUpdated: d.dateArrearsUpdated || d.dolm,
       arrears: d.arrears, balance: d.arrears,
+      payoutPeriods: createAccountPayoutPeriods(),
       respondent: {
         name: rName, title: d.r.ti, firstNames: d.r.fn, lastName: d.r.ln,
         dateOfBirth: rDob, nationalInsuranceNumber: d.r.ni,
@@ -16476,6 +16534,7 @@ searchData.forEach((d) => {
 })
 
 const inactiveSampleOrders = getActiveCaseOrders(activeCases[40])
+activeCases[40].automaticallyDeactivated = true
 inactiveSampleOrders.details.court = 'Reading County Court and Family Court'
 inactiveSampleOrders.details.dateOrderMade = '01/01/2026'
 inactiveSampleOrders.details.dateArrearsLastUpdated = '14/10/2026'
@@ -16670,6 +16729,10 @@ seedSampleResultReview(32, 'enforcement', 'Result validated', {
     timestamp: new Date().toISOString() },
   sampleSubmittedEvent('30 September 2026 at 10:45am', '2026-09-30T09:45:00.000Z')
 ])
+
+Object.values(activeCases).forEach(account => {
+  if (!account.payoutPeriods) account.payoutPeriods = createAccountPayoutPeriods()
+})
 
 const initialPrototypeState = {
   activeCases: cloneData(activeCases),

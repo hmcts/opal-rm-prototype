@@ -1,0 +1,41 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+
+{% block pageTitle %}Payment run simulated - {{ serviceName }}{% endblock %}
+
+{% block content %}
+  {% if successMessage %}
+    {{ mojAlert({ variant: "success", title: successMessage, dismissible: true }) }}
+  {% endif %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">Prototype controls</span>
+      <h1 class="govuk-heading-l">Payment run simulated</h1>
+      {{ govukSummaryList({ rows: [
+        { key: { text: "Respondent account" }, value: { text: simulation.accountNumber } },
+        { key: { text: "Respondent balance distributed" }, value: { text: simulation.distributedBalance } },
+        { key: { text: "Simulated payout" }, value: { text: simulation.totalPayout } },
+        { key: { text: "Account status" }, value: { text: "Inactive" if simulation.accountInactive else "Active" } }
+      ] }) }}
+      <p class="govuk-body">The respondent’s balance and the linked applicant and minor creditor accounts’ amounts awaiting payout are all £0.00. This is a simulation shortcut; a real payment run would not zero the respondent’s balance.</p>
+      {% if simulation.accountInactive %}
+        <p class="govuk-body">The respondent, applicant and minor creditor accounts are inactive. They can only be reactivated manually through the respondent account.</p>
+      {% else %}
+        <p class="govuk-body">The accounts remain active because one or more order-term conditions are not met.</p>
+      {% endif %}
+      <h2 class="govuk-heading-m">View the accounts</h2>
+      <ul class="govuk-list">
+        {% for account in simulation.accounts %}
+          <li>
+            <a class="govuk-link" href="{{ account.href }}">{{ account.text }}</a>
+            {% if account.allocatedBalance %}
+              <p class="govuk-body">Allocated from respondent: {{ account.allocatedBalance }}. Simulated payout: {{ account.payout }}.</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="govuk-body"><a class="govuk-link" href="/prototype-admin/simulate-payment-run">Simulate another payment run</a></p>
+    </div>
+  </div>
+{% endblock %}
