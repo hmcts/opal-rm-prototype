@@ -255,6 +255,20 @@ window.GOVUKPrototypeKit.documentReady(() => {
 })
 
 window.GOVUKPrototypeKit.documentReady(function () {
+  document.querySelectorAll('form[action^="/finance/payments-in/"]').forEach(function (form) {
+    // GOV.UK's conditional radios add unsupported aria-expanded (upstream issue #979).
+    // Keep the native reveal and aria-controls association; describe it in the group hint.
+    function removeUnsupportedRadioExpanded () {
+      form.querySelectorAll('input[type="radio"][aria-controls][aria-expanded]').forEach(function (input) {
+        input.removeAttribute('aria-expanded')
+      })
+    }
+    new MutationObserver(removeUnsupportedRadioExpanded).observe(form, {
+      attributes: true, subtree: true, attributeFilter: ['aria-expanded']
+    })
+    removeUnsupportedRadioExpanded()
+  })
+
   document.querySelectorAll('[data-pay-print]').forEach(function (button) {
     button.addEventListener('click', function () { window.print() })
   })

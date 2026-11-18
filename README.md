@@ -32,6 +32,12 @@ The prototype demonstrates a multi-page flow for creating and reviewing a case, 
 
 Prototype data is stored in the session only. There is no database or persistent backend.
 
+### Payments In ownership
+
+This RM repository is the master for the RM Manual cash input and Automatic cash input journeys under `/finance/payments-in/`. Make future changes to those journeys here.
+
+The latest reconciliation with [the UCD prototype](https://github.com/Cogworx-UCD/opal-prototype) covers its `main` revision [`5ed3bee`](https://github.com/Cogworx-UCD/opal-prototype/commit/5ed3bee78610f6e8676c76de0716821dc14de6af), following the original import at `086c8ed`. Shared journey improvements are adapted to RM's routes, accounts and GOV.UK/MOJ components. RM decisions take precedence, including no business-unit selection, accepting incoming maintenance at a £0 balance, and allocation as a status demonstration. Other UCD finance journeys remain separate scope.
+
 ## Read this first
 
 Before you install anything, make sure you have:

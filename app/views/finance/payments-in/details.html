@@ -20,6 +20,7 @@
     {% endif %}
   {% endset %}
   {{ govukRadios({ name: "pay-receivedFrom", value: values.receivedFrom, errorMessage: errors["pay-receivedFrom"],
+    hint: { text: "Selecting third party shows a name field." } if category === "Maintenance" else {},
     fieldset: { legend: { text: "Payment received from", classes: "govuk-fieldset__legend--s" } },
     items: [{ value: "Applicant" if category === "Court Fee" else "Respondent", text: "Applicant" if category === "Court Fee" else "Respondent" },
       { value: "Third party", text: "Third party", conditional: { html: thirdPartyHtml } if category === "Maintenance" else {} }] }) }}
@@ -29,6 +30,7 @@
     {{ paymentReference("transfer-reference", "Credit transfer") }}
   {% endset %}
   {{ govukRadios({ name: "pay-method", value: values.method, errorMessage: errors["pay-method"],
+    hint: { text: "Selecting postal order, cheque or credit transfer shows more payment details." },
     fieldset: { legend: { text: "Method of payment", classes: "govuk-fieldset__legend--s" } },
     items: [{ value: "Notes and coins", text: "Notes and coins" },
       { value: "Postal order", text: "Postal order", conditional: { html: paymentReference("postal-reference", "Postal order") } },
@@ -37,7 +39,7 @@
   {% if category === "Suspense" %}
     {% set relevantHtml %}{{ govukCharacterCount({ id: "pay-relevantDetails", name: "pay-relevantDetails", maxlength: 1000, label: { text: "Relevant details (optional)" }, value: values.relevantDetails, errorMessage: errors["pay-relevantDetails"] }) }}{% endset %}
     {% set reasonItems = [] %}{% for reason in reasons %}{% set unused = reasonItems.push({ value: reason.value, text: reason.text, conditional: { html: relevantHtml } if reason.value === "UN" else {} }) %}{% endfor %}
-    {{ govukRadios({ name: "pay-reason", value: values.reason, errorMessage: errors["pay-reason"], fieldset: { legend: { text: "Reason for suspense", classes: "govuk-fieldset__legend--s" } }, items: reasonItems }) }}
+    {{ govukRadios({ name: "pay-reason", value: values.reason, errorMessage: errors["pay-reason"], hint: { text: "Selecting unidentified amount shows a field for relevant details." }, fieldset: { legend: { text: "Reason for suspense", classes: "govuk-fieldset__legend--s" } }, items: reasonItems }) }}
   {% elif category === "Court Fee" %}
     <h2 class="govuk-heading-m">Payer details</h2>
     {% include "finance/payments-in/_payer-fields.html" %}
