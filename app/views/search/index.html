@@ -237,7 +237,7 @@
             idPrefix: "active-accounts-only",
             name: "active-accounts-only",
             classes: "govuk-checkboxes--small",
-            items: [{ value: "yes", text: "Active accounts only", checked: formValues["active-accounts-only"] != "no" }]
+            items: [{ value: "yes", text: "Only accounts with active order terms", checked: formValues["active-accounts-only"] == "yes" }]
           }) }}
         {% endset %}
 

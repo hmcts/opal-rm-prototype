@@ -10509,6 +10509,9 @@ function getActiveCaseOrders(activeCase) {
     activeCase.orders = buildDefaultActiveCaseOrders(activeCase)
   }
 
+  activeCase.orders.terms.forEach(term => {
+    if (!term.status) updateOrderTermStatus(term)
+  })
   activeCase.orders.terms = sortActiveCaseOrderTerms(activeCase.orders.terms)
 
   return activeCase.orders
@@ -10534,26 +10537,27 @@ function isEligibleForAutomaticDeactivation(activeCase) {
     (account.caseReference && account.caseReference === activeCase.caseReference)
   )
   if (relatedAccounts.some((account) => !isZeroAccountAmount(account.awaitingPayout))) return false
-  const todayParts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(new Date())
-  const today = Object.fromEntries(todayParts.map(({ type, value }) => [type, value]))
-  const todayKey = `${today.year}${today.month}${today.day}`
   const terms = getActiveCaseOrders(activeCase).terms
-  const eligible = terms.length > 0 && terms.every((term) => {
-    const definition = getResultDefinition(term.code, 'orders')
-    const amountField = definition?.responses.find(isOrderTermAmountField)
-    const expiryField = definition?.responses.find((field) => hasFieldText(field, ['expiry date']))
-    const amount = amountField ? term.responses?.[amountField.id] : term.closureAmount
-    if (!isZeroAccountAmount(amount)) {
-      return false
-    }
-    const expiry = parseDateInput(expiryField ? term.responses?.[expiryField.id] : term.closureExpiryDate)
-    if (expiry.kind !== 'valid') return false
-    const expiryKey = `${expiry.date.getFullYear()}${String(expiry.date.getMonth() + 1).padStart(2, '0')}${String(expiry.date.getDate()).padStart(2, '0')}`
-    return expiryKey <= todayKey
-  })
-  return eligible
+  return terms.length > 0 && terms.every(term => term.status === 'Closed')
+}
+
+function updateOrderTermStatus(term) {
+  const fields = getResultDefinition(term.code, 'orders')?.responses || []
+  const amountField = fields.find(isOrderTermAmountField)
+  const expiryField = fields.find(field => hasFieldText(field, ['expiry date']))
+  const amount = amountField ? term.responses?.[amountField.id] : term.closureAmount
+  const expiry = parseDateInput(expiryField ? term.responses?.[expiryField.id] : term.closureExpiryDate)
+  const today = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date()).map(part => [part.type, part.value]))
+  const expiryKey = expiry.kind === 'valid'
+    ? `${expiry.date.getFullYear()}${String(expiry.date.getMonth() + 1).padStart(2, '0')}${String(expiry.date.getDate()).padStart(2, '0')}` : ''
+  term.status = isZeroAccountAmount(amount) && getOrderTermArrearsPence(term) === 0 &&
+    expiryKey && expiryKey <= `${today.year}${today.month}${today.day}` ? 'Closed' : 'Active'
+}
+
+function hasActiveOrderTerms(activeCase) {
+  return Boolean(activeCase && getActiveCaseOrders(activeCase).terms.some(term => term.status !== 'Closed'))
 }
 
 function getCreditorRelatedCase(account) {
@@ -11021,7 +11025,7 @@ function getActiveCaseOrderTermHistoryItems(orderTerm) {
     })),
     {
       ...orderTerm,
-      status: 'Active'
+      status: orderTerm.status || 'Active'
     }
   ].sort((left, right) => {
     const dateDifference =
@@ -11194,7 +11198,7 @@ function getActiveCaseOrderTermCard(orderTerm, index, caseId, activeCase) {
     !creditorAccount?.accountNumber
 
   return {
-    title: `${orderTerm.code} - ${orderTerm.title}`,
+    title: `${orderTerm.code} - ${orderTerm.title}${orderTerm.status === 'Closed' ? ' — CLOSED' : ''}`,
     rows: getActiveCaseOrderTermRows(orderTerm, activeCase, caseId),
     creditorDetailsRows: newMinorCreditorWithoutAccount
       ? getOrderTermMinorCreditorDetailsRows(orderTerm, {}) : [],
@@ -12872,7 +12876,10 @@ router.post('/active-case/:id/:category/validate-result', (req, res, next) => {
 
   if (pending.proposedOrders) {
     activeCase.orders = cloneData(pending.proposedOrders)
-    for (const term of activeCase.orders.terms || []) ensureActiveCaseMinorCreditorAccount(term, activeCase, id)
+    for (const term of activeCase.orders.terms || []) {
+      updateOrderTermStatus(term)
+      ensureActiveCaseMinorCreditorAccount(term, activeCase, id)
+    }
   }
   updateActiveCaseArrearsForResult(activeCase, { remitArrears: pending.remitArrears, remitAmount: pending.remitArrearsAmount }, pending.arrearsAdjustmentPence || 0)
   if (pending.proposedHearing) {
@@ -14097,6 +14104,7 @@ function saveAddedActiveCaseOrderTerm(req, res, next) {
     previousTerms: orderTerm.previousTerms || []
   }
 
+  updateOrderTermStatus(completedOrderTerm)
   applyCreditorToAllActiveOrderTerms(activeCase, completedOrderTerm)
   getActiveCaseOrders(activeCase).terms.push(completedOrderTerm)
   const resultContext = getActiveCaseResultContext(req, id)
@@ -14576,6 +14584,7 @@ function saveAmendedActiveCaseOrderTerm(req, res, next) {
     retainPreviousActiveCaseOrderTerm(previousOrderTerm, orderTerm)
   }
 
+  updateOrderTermStatus(orderTerm)
   applyCreditorToAllActiveOrderTerms(activeCase, orderTerm)
   const resultContext = getActiveCaseResultContext(req, id)
   if (resultContext && previousOrderTerm) {
@@ -16456,7 +16465,7 @@ const searchData = [
     mc: [] }
 ]
 
-// Inactive account fixture: search TURNER with "Active accounts only" unchecked.
+// Case with closed order terms: TURNER is included in the default search.
 searchData.push({
   id: 40, caseRef: '40003101A', remoRef: '2026/REMO/40003101',
   status: 'Inactive', bu: 'Reading', arrears: '£0.00', ct: 'REMO In', dolm: '14 October 2026',
@@ -16777,7 +16786,7 @@ function performSearch(params) {
   }
 
   return searchData.filter((c) => {
-    if (activeOnly && isInactiveCaseAccount(activeCases[c.id])) return false
+    if (activeOnly && !accountNumber && !hasActiveOrderTerms(activeCases[c.id])) return false
 
     if (accountNumber) {
       const accountNumbers = [
@@ -16901,7 +16910,7 @@ function mapSearchRows(results) {
       { html: buildSearchAccountHtml(`/active-case/${c.id}`, rRef, rLabel), text: rLabel },
       { html: buildSearchAccountHtml(`/active-case/creditor/${c.a.id}`, aRef, aLabel), sortValue: aLabel },
       { html: minorCreditorHtml, sortValue: c.mc.map((mc) => `${mc.ln}, ${mc.fn}`).join(' ') },
-      { text: isInactiveCaseAccount(activeCases[c.id]) ? 'Inactive' : 'Active' },
+      { text: hasActiveOrderTerms(activeCases[c.id]) ? 'Active' : 'Inactive' },
       { text: activeCases[c.id] ? getActiveCaseTotalArrears(activeCases[c.id]) : c.arrears }
     ]
   })
@@ -18028,7 +18037,7 @@ function paySummary(label, value, href) {
 
 function payAccounts(activeOnly = false) {
   return Object.entries(activeCases).filter(([, account]) =>
-    account.respondent && (!activeOnly || !isInactiveCaseAccount(account))
+    account.respondent && (!activeOnly || hasActiveOrderTerms(account))
   ).map(([id, account]) => ({
     id, ref: account.accountNumber || accountRef(id, 'RP'), name: getAccountHeaderName(account.respondent, account.respondentName),
     firstNames: account.respondent.firstNames || '', lastName: account.respondent.lastName || '',
@@ -18312,7 +18321,7 @@ router.post(payManual + '/category', payRequireUnit, payRequireDraft, (req, res,
 function paySearch(req) {
   const search = payUnitState(req).pending.search || {}
   const match = (value, query) => !query || normaliseSearchText(value).includes(normaliseSearchText(query))
-  return payAccounts(search.activeOnly !== false).filter((account) => {
+  return payAccounts(!search.number && search.activeOnly === true).filter((account) => {
     if (search.number) return account.ref === search.number.toUpperCase() || account.ref.slice(0, 8) === search.number
     const postcode = getAddressFormFields(account.address, 'respondent')['respondent-postal-or-zip-code']
     return match(account.lastName, search.lastName) && match(account.firstNames, search.firstNames) &&

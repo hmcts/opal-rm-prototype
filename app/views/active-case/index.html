@@ -18,14 +18,14 @@
   {% if accountInactive %}
     {{ mojAlert({
       variant: "information",
-      title: "Account is inactive",
-      html: '<h2 class="moj-alert__heading">Account is inactive</h2>',
+      title: "Case has no active order terms",
+      html: '<h2 class="moj-alert__heading">Case has no active order terms</h2>',
       dismissible: false,
       disableAutoFocus: true
     }) }}
   {% endif %}
 
-  {% if successMessage and not accountInactive %}
+  {% if successMessage %}
     {{ mojAlert({
       variant: "success",
       title: successMessage,
@@ -33,7 +33,7 @@
     }) }}
   {% endif %}
 
-  {% if (payoutHolds.applyPayments === 'no' or payoutHolds.holdAll) and not accountInactive %}
+  {% if (payoutHolds.applyPayments === 'no' or payoutHolds.holdAll) %}
     {% if payoutHolds.applyPayments === 'no' and payoutHolds.holdAll %}
       {% set holdMessage = "Payments received are being held in suspense. Payouts to creditors are on hold." %}
     {% elif payoutHolds.applyPayments === 'no' %}
@@ -49,7 +49,7 @@
     }) }}
   {% endif %}
 
-  {% if hasActiveCourtHearing and not accountInactive %}
+  {% if hasActiveCourtHearing %}
     {{ mojAlert({
       variant: "information",
       title: "Account has one or more active court cases."
@@ -132,7 +132,7 @@
           </div>
         </div>
 
-        {% if activeCase.respondent.restricted and not accountInactive %}
+        {% if activeCase.respondent.restricted %}
           <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
               {{ mojAlert({

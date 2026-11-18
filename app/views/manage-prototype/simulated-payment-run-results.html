@@ -20,9 +20,9 @@
       ] }) }}
       <p class="govuk-body">The respondent’s balance and the linked applicant and minor creditor accounts’ amounts awaiting payout are all £0.00. This is a simulation shortcut; a real payment run would not zero the respondent’s balance.</p>
       {% if simulation.accountInactive %}
-        <p class="govuk-body">The respondent, applicant and minor creditor accounts are inactive. They can only be reactivated manually through the respondent account.</p>
+        <p class="govuk-body">Case has no active order terms. The case file remains available for applications and other case work.</p>
       {% else %}
-        <p class="govuk-body">The accounts remain active because one or more order-term conditions are not met.</p>
+        <p class="govuk-body">The case has one or more active order terms.</p>
       {% endif %}
       <h2 class="govuk-heading-m">View the accounts</h2>
       <ul class="govuk-list">
