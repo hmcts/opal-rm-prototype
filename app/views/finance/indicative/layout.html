@@ -1,0 +1,10 @@
+{% extends "finance/payments-in/layout.html" %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% block paymentContent %}
+  {{ govukInsetText({ text: "Indicative journey. This is based on the Fines prototype and will be reviewed for RM. Actions demonstrate an outcome using example data." }) }}
+  {% if applicability %}<p class="govuk-body">{{ applicability }}</p>{% endif %}
+  {% block financeContent %}{% endblock %}
+{% endblock %}

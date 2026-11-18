@@ -6,7 +6,7 @@
       {% set labelHtml %}<span class="govuk-visually-hidden">{{ cell.select.text }}</span>{% endset %}
       {% set checkboxHtml %}{{ govukCheckboxes({
         name: cell.select.name, classes: "govuk-checkboxes--small", formGroup: { classes: "govuk-!-margin-bottom-0" },
-        items: [{ id: cell.select.id, value: cell.select.value, html: labelHtml }]
+        items: [{ id: cell.select.id, value: cell.select.value, html: labelHtml, checked: cell.select.checked }]
       }) }}{% endset %}
       {% set unused = renderedRow.push({ html: checkboxHtml }) %}
     {% elif cell.radio %}

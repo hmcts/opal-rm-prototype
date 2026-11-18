@@ -1,0 +1,15 @@
+{% extends "finance/indicative/layout.html" %}
+{% block financeContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  {% if intro %}<p class="govuk-body">{{ intro }}</p>{% endif %}
+  {% if summaryRows.length %}{{ govukSummaryList({ rows: summaryRows }) }}{% endif %}
+  <form method="post" action="{{ action }}" novalidate>
+    {% include "finance/indicative/_fields.html" %}
+    <div class="govuk-button-group">
+      {{ govukButton({ text: buttonText or "Continue", preventDoubleClick: true }) }}
+      <a class="govuk-link" href="{{ cancelHref }}">Cancel</a>
+    </div>
+  </form>
+  {% if exampleHtml %}{{ govukDetails({ summaryText: "Example data for this prototype", html: exampleHtml }) }}{% endif %}
+</div></div>
+{% endblock %}

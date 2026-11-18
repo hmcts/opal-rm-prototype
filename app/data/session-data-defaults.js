@@ -1,5 +1,6 @@
 module.exports = {
   paymentsIn: null,
+  financeIndicative: null,
   'case-type': 'remo-in',
   'applicant-title': '',
   'applicant-first-names': '',

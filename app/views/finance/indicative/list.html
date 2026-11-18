@@ -1,0 +1,14 @@
+{% extends "finance/indicative/layout.html" %}
+{% block financeContent %}
+{% if intro %}<p class="govuk-body">{{ intro }}</p>{% endif %}
+{% if summaryRows.length %}<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{{ govukSummaryList({ rows: summaryRows }) }}</div></div>{% endif %}
+{% if fields.length or action %}<form method="post" action="{{ action }}" novalidate>{% endif %}
+{% if fields.length %}<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{% include "finance/indicative/_fields.html" %}</div></div>{% endif %}
+{% if tableRows.length %}
+  {% if tableError %}<div class="govuk-form-group govuk-form-group--error"><p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
+  {% include "finance/payments-in/_table.html" %}
+  {% if tableError %}</div>{% endif %}
+{% else %}<p class="govuk-body">{{ emptyText or "There are no items to show." }}</p>{% endif %}
+{% if action %}<div class="govuk-button-group govuk-!-margin-top-4">{{ govukButton({ text: buttonText or "Continue", preventDoubleClick: true }) }}{% if saveSelection %}{{ govukButton({ text: "Save selection", name: "fi-intent", value: "save", classes: "govuk-button--secondary" }) }}{% endif %}<a class="govuk-link" href="{{ cancelHref }}">Cancel</a></div></form>{% endif %}
+{% if links.length %}<ul class="govuk-list govuk-list--spaced">{% for link in links %}<li><a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a></li>{% endfor %}</ul>{% endif %}
+{% endblock %}

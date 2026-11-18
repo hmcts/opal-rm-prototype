@@ -1,0 +1,9 @@
+{% extends "finance/indicative/layout.html" %}
+{% block financeContent %}
+{% if intro %}<p class="govuk-body">{{ intro }}</p>{% endif %}
+{% if summaryRows.length %}<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{{ govukSummaryList({ rows: summaryRows }) }}</div></div>{% endif %}
+{% if links.length %}<nav aria-label="{{ heading }} actions"><ul class="govuk-list govuk-list--spaced">{% for link in links %}<li><a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a></li>{% endfor %}</ul></nav>{% endif %}
+{% if tableRows.length %}<h2 class="govuk-heading-m">{{ tableCaption }}</h2>{% include "finance/payments-in/_table.html" %}{% endif %}
+{% if notes.length %}<h2 class="govuk-heading-m">Notes</h2><ul class="govuk-list govuk-list--spaced">{% for note in notes %}<li><p class="govuk-body govuk-!-margin-bottom-1">{{ note.text }}</p><p class="govuk-body-s">{{ note.by }} · {{ note.date }}</p></li>{% endfor %}</ul>{% endif %}
+{% if returnHref %}<p class="govuk-body"><a class="govuk-link" href="{{ returnHref }}">{{ returnText or "Return to finance" }}</a></p>{% endif %}
+{% endblock %}
