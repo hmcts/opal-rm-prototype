@@ -6,6 +6,7 @@
 {% endset %}
 {% set companyHtml %}{{ govukInput({ id: "pay-companyName", name: "pay-companyName", label: { text: "Company name" }, value: values.companyName, errorMessage: errors["pay-companyName"], attributes: { maxlength: 50 } }) }}{% endset %}
 {{ govukRadios({ name: "pay-payerType", value: values.payerType, errorMessage: errors["pay-payerType"],
+  hint: { text: "Selecting a payer type shows the fields for that payer." },
   fieldset: { legend: { text: "Payer type", classes: "govuk-fieldset__legend--s" } },
   items: [{ value: "Individual", text: "Individual", conditional: { html: individualHtml } }, { value: "Company", text: "Company", conditional: { html: companyHtml } }] }) }}
 <fieldset class="govuk-fieldset">

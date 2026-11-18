@@ -10,7 +10,7 @@
     <div class="govuk-form-group{% if tableError %} govuk-form-group--error{% endif %}">
       {% if tableError %}<p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
       <p class="govuk-hint">Select the tills you want to allocate</p>
-      {{ govukButton({ text: "Allocate", preventDoubleClick: true }) }}
+      {{ govukButton({ text: "Allocate", classes: "govuk-button--secondary", preventDoubleClick: true }) }}
       <p class="govuk-hint" aria-live="polite"><span data-pay-selection-count>0</span> of {{ items.length }} selected</p>
       {% include "finance/payments-in/_table.html" %}
       {% if pagination %}<p class="govuk-hint">Selection and sorting apply to this page.</p>{% endif %}

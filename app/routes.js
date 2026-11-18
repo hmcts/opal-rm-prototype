@@ -18351,9 +18351,10 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   }
   if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
   const pending = payUnitState(req).pending
-  pending.searchValues = values
-  pending.search = { number, lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
-    dateOfBirth: values['pay-date-of-birth'], postcode: values['pay-postcode'], activeOnly: values['pay-active-only'] }
+  // A new search must be followed by account confirmation, including from a stale tab.
+  payUnitState(req).pending = { category: 'Maintenance', id: pending.id, searchValues: values,
+    search: { number, lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
+      dateOfBirth: values['pay-date-of-birth'], postcode: values['pay-postcode'], activeOnly: values['pay-active-only'] } }
   const results = paySearch(req)
   return redirectWithSessionSave(req, res, next, number && results.length === 1 ? payManual + '/confirm-account?account=' + results[0].id : payManual + '/search-results')
 })
@@ -18440,12 +18441,22 @@ function payReadFields(body, fields) {
   return Object.fromEntries(fields.map((field) => [field, payText(body['pay-' + field])]))
 }
 
-function payCancelForm(req, res, next, step) {
-  const pending = payUnitState(req).pending
+function payStoreFormDraft(pending, step, body) {
   pending.formDrafts = pending.formDrafts || {}
-  pending.formDrafts[step] = Object.fromEntries(Object.entries(req.body)
+  pending.formDrafts[step] = Object.fromEntries(Object.entries(body)
     .filter(([field]) => field.startsWith('pay-') && field !== 'pay-action')
     .map(([field, value]) => [field.slice(4), payText(value)]))
+}
+
+function payInvalidForm(pending, step, body, errors) {
+  payStoreFormDraft(pending, step, body)
+  pending.formErrors = pending.formErrors || {}
+  pending.formErrors[step] = errors
+}
+
+function payCancelForm(req, res, next, step) {
+  const pending = payUnitState(req).pending
+  payStoreFormDraft(pending, step, req.body)
   pending.cancelStep = step
   return redirectWithSessionSave(req, res, next, payManual + '/cancel-payment')
 }
@@ -18461,6 +18472,7 @@ function payFormValues(pending, step, fallback) {
 
 function payClearFormDraft(pending, step) {
   if (pending.formDrafts) delete pending.formDrafts[step]
+  if (pending.formErrors) delete pending.formErrors[step]
   delete pending.cancelStep
 }
 
@@ -18507,7 +18519,7 @@ function payRenderCourtFee(req, res, values, errors = {}) {
 router.get(payManual + '/court-fee', payRequireUnit, payRequirePending, (req, res) => {
   const pending = payUnitState(req).pending
   if (pending.category !== 'Court Fee') return res.redirect(payManual + '/details')
-  return payRenderCourtFee(req, res, payFormValues(pending, 'court-fee', { feeCode: pending.feeCode, amount: pending.amount ? payDecimal(pending.amount) : '', items: pending.items }))
+  return payRenderCourtFee(req, res, payFormValues(pending, 'court-fee', { feeCode: pending.feeCode, amount: pending.amount ? payDecimal(pending.amount) : '', items: pending.items }), pending.formErrors?.['court-fee'])
 })
 
 router.post(payManual + '/court-fee', payRequireUnit, payRequirePending, (req, res, next) => {
@@ -18521,7 +18533,10 @@ router.post(payManual + '/court-fee', payRequireUnit, payRequirePending, (req, r
   if (!fee) errors['pay-feeCode'] = { text: 'Select a valid court fee' }
   if (amount === null || BigInt(amount) <= 0n) errors['pay-amount'] = { text: 'Enter an amount greater than £0.00, with up to 18 digits before the decimal point and 2 after' }
   if (!/^[1-9]\d{0,17}$/.test(values.items)) errors['pay-items'] = { text: 'Enter a whole number of items greater than 0, with no more than 18 digits' }
-  if (Object.keys(errors).length) return payRenderCourtFee(req, res, values, errors)
+  if (Object.keys(errors).length) {
+    payInvalidForm(pending, 'court-fee', req.body, errors)
+    return payRenderCourtFee(req, res, values, errors)
+  }
   payClearFormDraft(pending, 'court-fee')
   Object.assign(pending, { feeCode: fee.code, amount, items: values.items,
     expected: (BigInt(fee.amount) * BigInt(values.items)).toString(), detailsComplete: false, feeConfirmed: false })
@@ -18564,7 +18579,7 @@ router.get(payManual + '/details', payRequireUnit, payRequirePending, (req, res)
   if (pending.category === 'Maintenance' && !payAccounts().some((account) => account.id === pending.accountId)) return res.redirect(payManual + '/search')
   if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.amount || !pending.items)) return res.redirect(payManual + '/court-fee')
   if (pending.category === 'Court Fee' && BigInt(pending.amount) !== BigInt(pending.expected) && !pending.feeConfirmed) return res.redirect(payManual + '/fee-difference')
-  return payRenderDetails(req, res, payFormValues(pending, 'details', { ...pending, amount: pending.amount ? payDecimal(pending.amount) : '' }))
+  return payRenderDetails(req, res, payFormValues(pending, 'details', { ...pending, amount: pending.amount ? payDecimal(pending.amount) : '' }), pending.formErrors?.details)
 })
 
 router.post(payManual + '/details', payRequireUnit, payRequirePending, (req, res, next) => {
@@ -18589,7 +18604,10 @@ router.post(payManual + '/details', payRequireUnit, payRequirePending, (req, res
   if (pending.category === 'Suspense' && !payReference.reasons.some((reason) => reason.value === values.reason)) errors['pay-reason'] = { text: 'Select a reason for the suspense' }
   if (pending.category === 'Suspense' && values.reason === 'UN' && values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
   if (pending.category === 'Court Fee') Object.assign(errors, payPayerErrors(values))
-  if (Object.keys(errors).length) return payRenderDetails(req, res, values, errors)
+  if (Object.keys(errors).length) {
+    payInvalidForm(pending, 'details', req.body, errors)
+    return payRenderDetails(req, res, values, errors)
+  }
   payClearFormDraft(pending, 'details')
   Object.assign(pending, { amount, receivedFrom: values.receivedFrom, method: values.method, reference: values.reference,
     thirdPartyName: pending.category === 'Maintenance' && values.receivedFrom === 'Third party' ? values.thirdPartyName : '',
@@ -18610,7 +18628,8 @@ router.get(payManual + '/payer', payRequireUnit, payRequirePending, (req, res) =
   const pending = payUnitState(req).pending
   if (!pending.detailsComplete) return res.redirect(payManual + '/details')
   if (pending.category === 'Maintenance' || (pending.category === 'Suspense' && pending.reason === 'UN')) return res.redirect(payManual + '/check-payment')
-  return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details', values: payFormValues(pending, 'payer', pending) })
+  return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details',
+    values: payFormValues(pending, 'payer', pending), errors: pending.formErrors?.payer || {} })
 })
 
 router.post(payManual + '/payer', payRequireUnit, payRequirePending, (req, res, next) => {
@@ -18619,7 +18638,10 @@ router.post(payManual + '/payer', payRequireUnit, payRequirePending, (req, res, 
   if (!pending.detailsComplete || pending.category === 'Maintenance' || pending.reason === 'UN') return res.redirect(payManual + '/details')
   const values = payReadFields(req.body, payPayerFields)
   const errors = payPayerErrors(values)
-  if (Object.keys(errors).length) return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details', values, errors })
+  if (Object.keys(errors).length) {
+    payInvalidForm(pending, 'payer', req.body, errors)
+    return payRender(req, res, 'payer', { heading: 'Payer details', backHref: payManual + '/details', values, errors })
+  }
   payClearFormDraft(pending, 'payer')
   payStorePayer(pending, values)
   return redirectWithSessionSave(req, res, next, payManual + '/check-payment')
@@ -18628,6 +18650,8 @@ router.post(payManual + '/payer', payRequireUnit, payRequirePending, (req, res, 
 function payMissingStep(req) {
   const pending = payUnitState(req).pending
   if (pending.category === 'Maintenance' && !payAccounts().some((account) => account.id === pending.accountId)) return '/search'
+  const invalidStep = ['court-fee', 'details', 'payer'].find((step) => Object.keys(pending.formErrors?.[step] || {}).length)
+  if (invalidStep) return '/' + invalidStep
   if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.items || !pending.amount ||
     (BigInt(pending.amount) !== BigInt(pending.expected || '0') && !pending.feeConfirmed))) return '/court-fee'
   if (!pending.detailsComplete || !payReference.methods.includes(pending.method) || !pending.amount) return '/details'
@@ -18665,7 +18689,7 @@ router.post(payManual + '/check-payment', payRequireUnit, payRequirePending, (re
   const note = payText(req.body['pay-note'])
   if (pending.category !== 'Maintenance' && (!note || note.length > 1000)) return payRenderCheck(req, res,
     { 'pay-note': { text: !note ? 'Add a suspense note' : 'Suspense note must be 1,000 characters or fewer' } }, note)
-  const { search, searchValues, formDrafts, cancelStep, ...payment } = pending
+  const { search, searchValues, formDrafts, formErrors, cancelStep, ...payment } = pending
   if (payment.category !== 'Maintenance') payment.note = note
   const editing = Boolean(payment.id)
   if (editing) {
@@ -18804,7 +18828,7 @@ function payAutomaticView(req, res) {
     if (!selecting || index > 0) cell.attributes = { 'aria-sort': index === head.length - 1 ? (tab === 'ignored' ? 'descending' : 'ascending') : 'none' }
     if (tab === 'ignored' || tab === 'process' && index > 0) cell.classes = 'govuk-!-width-one-third'
   })
-  return payRender(req, res, 'automatic', { heading: 'Automatic cash input', backHref: payAuto, tab, selecting, ...page, tableError,
+  return payRender(req, res, 'automatic', { heading: 'Automatic cash input', tab, selecting, ...page, tableError,
     errors: tableError ? { [selectionName + '-' + page.items[0].id]: { text: tableError } } : {},
     ignoredCount: state.files.filter((file) => file.status === 'ignored' && Date.now() - new Date(file.processedAt).getTime() <= 14 * 86400000).length,
     processingCount: state.files.filter((file) => file.status === 'processing').length,
@@ -18829,14 +18853,8 @@ function payAutomaticView(req, res) {
 }
 
 router.get(payAuto, payRequireUnit, (req, res) => {
-  if (req.query.tab) return payAutomaticView(req, res)
-  payAdvanceFiles(req)
-  const files = payUnitState(req).files
-  const filesToProcess = files.filter((file) => ['to-process', 'failed-process'].includes(file.status)).length
-  const tillsToAllocate = files.filter((file) => ['ready', 'failed-allocation'].includes(file.status)).length
-  return payRender(req, res, 'automatic-start', { heading: 'Automatic cash input', backHref: '/finance',
-    rows: [paySummary('Files to process', filesToProcess), paySummary('Tills to allocate', tillsToAllocate)],
-    continueHref: payAuto + '?tab=' + (filesToProcess ? 'process' : 'allocate') })
+  if (!req.query.tab) return res.redirect(payAuto + '?tab=process')
+  return payAutomaticView(req, res)
 })
 
 router.post(payAuto + '/refresh', payRequireUnit, (req, res, next) => {

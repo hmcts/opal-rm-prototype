@@ -20,7 +20,7 @@
   {% endfor %}
   {% set unused = renderedRows.push(renderedRow) %}
 {% endfor %}
-<div class="moj-scrollable-pane" tabindex="0" role="region" aria-label="{{ tableCaption }}">
+<div class="moj-scrollable-pane govuk-!-padding-2" tabindex="0" role="region" aria-label="{{ tableCaption }}">
   {{ govukTable({ caption: tableCaption, captionClasses: "govuk-visually-hidden", head: tableHead, rows: renderedRows, attributes: tableAttributes }) }}
 </div>
 {% if pagination %}{{ mojPagination(pagination) }}{% endif %}
