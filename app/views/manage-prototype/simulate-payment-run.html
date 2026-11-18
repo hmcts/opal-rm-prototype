@@ -1,0 +1,37 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block pageTitle %}{% if errorSummary.length %}Error: {% endif %}Simulate payment run - {{ serviceName }}{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({ text: "Back", href: "/search" }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% if errorSummary.length %}
+        {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorSummary }) }}
+      {% endif %}
+      <span class="govuk-caption-l">Prototype controls</span>
+      <h1 class="govuk-heading-l">Simulate payment run</h1>
+      <p class="govuk-body">This distributes the respondent’s balance evenly between the linked applicant and minor creditor accounts, then simulates paying out their full amounts awaiting payout. The respondent’s balance and the linked accounts’ amounts awaiting payout will all be £0.00.</p>
+      <p class="govuk-body">This is a simulation shortcut. A real payment run would not zero the respondent’s balance. Payout holds do not stop this simulation, but the hold settings are unchanged.</p>
+      <p class="govuk-body">Order amounts, arrears and expiry dates are unchanged. Shared major creditor accounts are excluded. No real payments are made. The simulation then checks whether the accounts can become inactive.</p>
+      <form method="post" action="/prototype-admin/simulate-payment-run">
+        {{ govukInput({
+          id: "simulation-account-number",
+          name: "simulation-account-number",
+          value: accountNumber,
+          label: { text: "Respondent account number" },
+          classes: "govuk-input--width-20",
+          errorMessage: errors["simulation-account-number"]
+        }) }}
+        {{ govukButton({ text: "Simulate payment run" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -65,11 +65,13 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
     {% set footerItems = [
       { href: "/manage-prototype", text: "Manage your prototype" },
       { href: "/create-data", text: "Create data" },
+      { href: simulatePaymentRunHref or "/prototype-admin/simulate-payment-run", text: "Simulate payment run" },
       { href: "/prototype-admin/clear-data", text: "Clear data" }
     ] %}
   {% else %}
     {% set footerItems = [
       { href: "/create-data", text: "Create data" },
+      { href: simulatePaymentRunHref or "/prototype-admin/simulate-payment-run", text: "Simulate payment run" },
       { href: "/prototype-admin/clear-data", text: "Clear data" }
     ] %}
   {% endif %}

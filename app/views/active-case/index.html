@@ -18,14 +18,14 @@
   {% if accountInactive %}
     {{ mojAlert({
       variant: "information",
-      title: "Account is inactive",
-      html: '<h2 class="moj-alert__heading">Account is inactive</h2>',
+      title: "Case has no active order terms",
+      html: '<h2 class="moj-alert__heading">Case has no active order terms</h2>',
       dismissible: false,
       disableAutoFocus: true
     }) }}
   {% endif %}
 
-  {% if successMessage and not accountInactive %}
+  {% if successMessage %}
     {{ mojAlert({
       variant: "success",
       title: successMessage,
@@ -33,7 +33,7 @@
     }) }}
   {% endif %}
 
-  {% if (payoutHolds.applyPayments === 'no' or payoutHolds.holdAll) and not accountInactive %}
+  {% if (payoutHolds.applyPayments === 'no' or payoutHolds.holdAll) %}
     {% if payoutHolds.applyPayments === 'no' and payoutHolds.holdAll %}
       {% set holdMessage = "Payments received are being held in suspense. Payouts to creditors are on hold." %}
     {% elif payoutHolds.applyPayments === 'no' %}
@@ -49,7 +49,7 @@
     }) }}
   {% endif %}
 
-  {% if hasActiveCourtHearing and not accountInactive %}
+  {% if hasActiveCourtHearing %}
     {{ mojAlert({
       variant: "information",
       title: "Account has one or more active court cases."
@@ -75,13 +75,17 @@
               href: "/active-case/" + caseId + "/note",
               classes: "govuk-button--secondary"
             }) }}
+            {% set accountActions = [{ text: "Export as PDF", href: "#" }] %}
+            {% if accountInactive %}
+              {% set accountActions = accountActions.concat([{
+                text: "Reactivate an account",
+                href: "/active-case/" + caseId + "/reactivate-account"
+              }]) %}
+            {% endif %}
             {{ mojButtonMenu({
               button: { text: "More actions", classes: "govuk-button--secondary" },
               alignMenu: "right",
-              items: [
-                { text: "Export as PDF", href: "#" },
-                { text: "Deactivate account", href: "/active-case/" + caseId + "/close-account" }
-              ]
+              items: accountActions
             }) }}
           </div>
         </div>
@@ -128,7 +132,7 @@
           </div>
         </div>
 
-        {% if activeCase.respondent.restricted and not accountInactive %}
+        {% if activeCase.respondent.restricted %}
           <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
               {{ mojAlert({

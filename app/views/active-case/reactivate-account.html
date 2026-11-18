@@ -7,7 +7,7 @@
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">{{ accountNumber }} &ndash; {{ accountName }}</span>
       <h1 class="govuk-heading-l">This account will be reactivated</h1>
-      <p class="govuk-body">If you continue with the changes you have made, it will reactivate the respondent, applicant and any minor creditor accounts.</p>
+      <p class="govuk-body">{% if manualReactivation %}If you continue, it will reactivate the respondent, applicant and any minor creditor accounts.{% else %}If you continue with the changes you have made, it will reactivate the respondent, applicant and any minor creditor accounts.{% endif %}</p>
       <form method="post" action="{{ formAction }}">
         <div class="govuk-button-group">
           {{ govukButton({ text: "Continue and reactivate" }) }}
