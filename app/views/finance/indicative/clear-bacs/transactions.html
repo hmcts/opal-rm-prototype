@@ -9,7 +9,6 @@
     <h2 class="govuk-heading-m">Select BACS transactions you want to clear</h2>
     {% if tableError %}<p class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span> {{ tableError }}</p>{% endif %}
     <p class="govuk-hint" aria-live="polite" aria-atomic="true"><span data-clear-bacs-count>{{ selected }}</span> of {{ total }} selected</p>
-    {% set tableClasses = "govuk-!-margin-bottom-0" %}
     {% include "finance/payments-in/_table.html" %}
     <noscript><p class="govuk-body">Save your selection before changing page.</p>{{ govukButton({ text: "Save selection", name: "fi-save-selection", value: "save", classes: "govuk-button--secondary" }) }}</noscript>
   </div>
