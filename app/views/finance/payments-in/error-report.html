@@ -1,0 +1,9 @@
+{% extends "finance/payments-in/layout.html" %}
+{% block paymentContent %}
+{% include "finance/payments-in/_print.html" %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{{ govukSummaryList({ rows: summaryRows }) }}</div></div>
+<h2 class="govuk-heading-m">Errors in record details</h2>
+{% set recordHeadingLevel = 3 %}
+{% include "finance/payments-in/_record-errors.html" %}
+{% if pagination %}{{ mojPagination(pagination) }}{% endif %}
+{% endblock %}

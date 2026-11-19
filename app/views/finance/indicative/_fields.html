@@ -1,0 +1,23 @@
+{% for field in fields %}
+  {% if field.type === "radios" %}
+    {{ govukRadios({ idPrefix: field.id, name: field.id, fieldset: { legend: { text: field.label, classes: "govuk-fieldset__legend--s" } },
+      items: field.items, value: values[field.id], hint: { text: field.hint } if field.hint, errorMessage: errors[field.id] }) }}
+  {% elif field.type === "checkboxes" %}
+    {{ govukCheckboxes({ idPrefix: field.id, name: field.id, fieldset: { legend: { text: field.label, classes: "govuk-fieldset__legend--s" } },
+      items: field.items, values: values[field.id], hint: { text: field.hint } if field.hint, errorMessage: errors[field.id] }) }}
+  {% elif field.type === "date" %}
+    {{ mojDatePicker({ id: field.id, name: field.id, label: { text: field.label, classes: "govuk-label--s" },
+      hint: { text: field.hint or "For example, 06/11/2026" }, value: values[field.id], errorMessage: errors[field.id] }) }}
+  {% elif field.type === "textarea" %}
+    {{ govukCharacterCount({ id: field.id, name: field.id, maxlength: field.maxlength or 1000, rows: 4,
+      label: { text: field.label, classes: "govuk-label--s" }, value: values[field.id], hint: { text: field.hint } if field.hint, errorMessage: errors[field.id] }) }}
+  {% elif field.type === "select" %}
+    {{ govukSelect({ id: field.id, name: field.id, label: { text: field.label, classes: "govuk-label--s" },
+      items: field.items, value: values[field.id], hint: { text: field.hint } if field.hint, errorMessage: errors[field.id] }) }}
+  {% else %}
+    {{ govukInput({ id: field.id, name: field.id, label: { text: field.label, classes: "govuk-label--s" },
+      value: values[field.id], classes: field.classes or "govuk-input--width-20", inputmode: field.inputmode,
+      prefix: { text: "£" } if field.type === "money", hint: { text: field.hint } if field.hint,
+      attributes: { maxlength: field.maxlength or 100 }, errorMessage: errors[field.id], spellcheck: false }) }}
+  {% endif %}
+{% endfor %}

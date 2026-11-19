@@ -1,0 +1,12 @@
+{% extends "finance/indicative/layout.html" %}
+{% block financeContent %}
+<p class="govuk-body">Example report content for discussion. Figures are illustrative.</p>
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">{{ govukSummaryList({ rows: summaryRows }) }}</div></div>
+{% if tableRows.length %}{% include "finance/payments-in/_table.html" %}{% else %}<p class="govuk-body">No records matched these report parameters.</p>{% endif %}
+<div class="govuk-button-group govuk-!-margin-top-4">
+  {{ govukButton({ text: "Print report", type: "button", classes: "govuk-button--secondary", attributes: { "data-pay-print": "true" } }) }}
+  <a class="govuk-link" href="{{ exportHref }}">Download example report (CSV)</a>
+  <a class="govuk-link" href="{{ returnHref }}">Return to reports</a>
+</div>
+{% if deleteHref %}<p class="govuk-body"><a class="govuk-link" href="{{ deleteHref }}">Review zero-balance suspense items for deletion</a></p>{% endif %}
+{% endblock %}

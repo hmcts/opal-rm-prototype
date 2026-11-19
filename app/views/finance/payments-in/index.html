@@ -1,10 +1,33 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  {{ govukInsetText({ text: "Apart from Manual cash input and Automatic cash input, these finance journeys are indicative. They are based on the Fines prototype and will be reviewed for RM individually." }) }}
+  <h2 class="govuk-heading-m">Checks</h2>
+  <ul class="govuk-list govuk-list--spaced">
+    <li><a class="govuk-link" href="/finance/daily-checks">Daily checks</a></li>
+    <li><a class="govuk-link" href="/finance/month-end">Month end</a></li>
+    <li><a class="govuk-link" href="/finance/quarter-year-end">Quarter and year end</a></li>
+  </ul>
   <h2 class="govuk-heading-m">Payments in</h2>
   <ul class="govuk-list govuk-list--spaced">
     <li><a class="govuk-link" href="{{ payManual }}">Manual cash input</a></li>
     <li><a class="govuk-link" href="{{ payAuto }}">Automatic cash input</a></li>
+    <li><a class="govuk-link" href="/finance/reissue-bacs-payments">Reissue BACS payments</a></li>
+    <li><a class="govuk-link" href="/finance/clear-bacs-transactions">Clear BACS transactions</a></li>
+    <li><a class="govuk-link" href="/finance/cancel-cheques">Cancel cheques</a></li>
+  </ul>
+  <h2 class="govuk-heading-m">Payments out</h2>
+  <p class="govuk-body"><a class="govuk-link" href="/finance/repayment">Repayment</a></p>
+  <h2 class="govuk-heading-m">Suspense</h2>
+  <ul class="govuk-list govuk-list--spaced">
+    <li><a class="govuk-link" href="/finance/suspense">Manage suspense items</a></li>
+    <li><a class="govuk-link" href="/finance/suspense/advance">Transfer maintenance paid in advance</a></li>
+  </ul>
+  <h2 class="govuk-heading-m">Financial movements</h2>
+  <ul class="govuk-list govuk-list--spaced">
+    <li><a class="govuk-link" href="/finance/reverse-payment">Reverse a payment</a></li>
+    <li><a class="govuk-link" href="/finance/dishonour-cheque">Dishonour a cheque</a></li>
+    <li><a class="govuk-link" href="/finance/reversed-payments">Reversed payments report</a></li>
   </ul>
 </div></div>
 {% endblock %}

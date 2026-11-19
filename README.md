@@ -36,7 +36,19 @@ Prototype data is stored in the session only. There is no database or persistent
 
 This RM repository is the master for the RM Manual cash input and Automatic cash input journeys under `/finance/payments-in/`. Make future changes to those journeys here.
 
-The latest reconciliation with [the UCD prototype](https://github.com/Cogworx-UCD/opal-prototype) covers its `main` revision [`5ed3bee`](https://github.com/Cogworx-UCD/opal-prototype/commit/5ed3bee78610f6e8676c76de0716821dc14de6af), following the original import at `086c8ed`. Shared journey improvements are adapted to RM's routes, accounts and GOV.UK/MOJ components. RM decisions take precedence, including no business-unit selection, accepting incoming maintenance at a £0 balance, and allocation as a status demonstration. Other UCD finance journeys remain separate scope.
+The latest reconciliation with [the UCD prototype](https://github.com/Cogworx-UCD/opal-prototype) covers its `main` revision [`5ed3bee`](https://github.com/Cogworx-UCD/opal-prototype/commit/5ed3bee78610f6e8676c76de0716821dc14de6af), following the original import at `086c8ed`. Shared journey improvements are adapted to RM's routes, accounts and GOV.UK/MOJ components. RM decisions take precedence, including no business-unit selection, accepting incoming maintenance at a £0 balance, and allocation as a status demonstration.
+
+### Indicative finance journeys
+
+The other UCD finance journeys are now adapted here for case-by-case RM design work. Start at `/finance`. Each new journey displays an indicative notice. Future RM changes belong in this repository.
+
+- Suspense: search, notes, respondent and HMCTS transfers, respondent and third-party repayments, reversals, and advance maintenance transfers.
+- Payments: repayment, cheque cancellation, single and multiple BACS reissue, BACS clearing, payment reversal and cheque dishonour with maintenance order term selection and amounts.
+- Checks: daily checks, month end, quarter/year end, example reports, cheque printing steps, presented-cheques processing, court fee transfers, payouts and remittances.
+
+These journeys use RM layouts, GOV.UK/MOJ macros and separate session examples in `financeIndicative`. They do not post to RM account balances, payment history, bank integrations or Payments In tills. Report content, printer choices, payout groups and financial rules are illustrative. A new private browsing session starts fresh; the existing Clear data journey also resets session examples.
+
+There are no business-unit pickers or captions, DWP/AEA sources or override options. Respondent terminology and RM account identities replace the Fines examples. Fines-specific witness expenses, major creditor rules, write-off reports and the Fines enforcement MIS report are explicitly flagged for applicability review. Fines-only victim surcharge and criminal court charge repayment reasons are omitted. Closed-account payment eligibility, exact RM payout rules and financial posting remain decisions for individual journey work.
 
 ## Read this first
 

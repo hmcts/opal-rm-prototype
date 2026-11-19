@@ -21,11 +21,6 @@
   {% else %}<p class="govuk-body">No records found.</p>{% endif %}
 <h3 class="govuk-heading-s">Errors in record details</h3>
 <hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
-{% if errorRows %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Court bank details", headingLevel: 4 } }, rows: errorRows.court }) }}</div>
-    <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Respondent bank details", headingLevel: 4 } }, rows: errorRows.respondent }) }}</div>
-  </div>
-{% else %}<p class="govuk-body">No records found.</p>{% endif %}
+{% include "finance/payments-in/_record-errors.html" %}
 {{ govukSummaryList({ rows: outcomeRows }) }}
 {% endblock %}

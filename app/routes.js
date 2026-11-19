@@ -18049,6 +18049,11 @@ function payAccounts(activeOnly = false) {
   }))
 }
 
+function payCanReceiveMaintenance(account) {
+  return Boolean(account && (hasActiveOrderTerms(account.account) ||
+    BigInt(payParseMoney(getActiveCaseTotalArrears(account.account), true) || '0') > 0n))
+}
+
 function payState(req) {
   if (!req.session.data.paymentsIn || typeof req.session.data.paymentsIn !== 'object') {
     req.session.data.paymentsIn = { units: {} }
@@ -18063,20 +18068,22 @@ function payNewUnit(unit, scenario, automatic = false) {
   const accounts = payAccounts(true)
   const account = (automatic && accounts.find((item) => item.balance === '0')) || accounts[0]
   const now = Date.now()
-  const sources = ['NatWest', 'Telephone', 'Barclaycard', 'allpay']
+  const sources = ['NatWest', 'British Telecom', 'Barclaycard', 'allpay']
   const count = scenario === 'pagination' ? 30 : automatic ? 15 : 6
   for (let index = 0; index < count; index++) {
     const oldIgnored = index === (automatic ? count - 1 : 5)
-    const ignored = index === 4 || oldIgnored
+    const ignored = index === 4 || index === 6 || oldIgnored
+    const hasError = ignored || [0, 2, 5].includes(index)
     const file = {
       id: 'file-' + (index + 1), fileName: 'RM_' + String(index + 1).padStart(3, '0') + '.dat',
       source: sources[index % sources.length], uploadedAt: new Date(now - (count - index) * 60000).toISOString(),
       amount: ignored ? (index === 4 ? '5000' : '0') : '25000', records: ignored ? 1 : 10,
-      errorCount: index === 0 || index === 4 ? 1 : 0, suspenseAmount: index === 0 ? '2500' : '0',
+      errorCount: hasError ? 1 : 0, suspenseAmount: hasError && !ignored ? '2500' : '0',
+      errorType: ignored ? (index === 4 ? 'unknown-bank' : 'zero-value') : index === 2 ? 'transaction-code' : index === 5 ? 'complete-account' : 'no-account',
       ignored, status: oldIgnored ? 'ignored' : 'to-process',
       processedAt: oldIgnored ? new Date(now - 16 * 86400000).toISOString() : null,
       failNextProcess: index === 3, failNextAllocation: index === 1, accountId: account?.id,
-      creditAccounts: automatic && index === 0 && account ? [{ accountId: account.id, balance: '-1000', value: '1000' }] : []
+      creditAccounts: automatic && index === 0 && account ? [{ accountId: account.id, balance: '-1000', value: '1000', updatedAt: new Date(now - 86400000).toISOString() }] : []
     }
     if (oldIgnored) file.uploadedAt = new Date(now - 17 * 86400000).toISOString()
     state.files.push(file)
@@ -18110,7 +18117,7 @@ function payUnitState(req) {
     state.automatic.files = state.automatic.files.filter((file) => !/DWP|AEA/i.test(file.source))
     state.automatic.files.forEach((file) => {
       delete file.overrideInhibits
-      if (file.source === 'British Telecom') file.source = 'Telephone'
+      if (file.source === 'Telephone') file.source = 'British Telecom'
     })
     return state.automatic
   }
@@ -18159,8 +18166,17 @@ function payRequireDraft(req, res, next) {
 }
 
 function payRequirePending(req, res, next) {
-  if (!payUnitState(req)?.draft) return res.redirect(payManual)
-  if (!payUnitState(req).pending?.category) return res.redirect(payManual + '/category')
+  const state = payUnitState(req)
+  if (!state.draft) return res.redirect(payManual)
+  if (!['Maintenance', 'Suspense'].includes(state.pending?.category)) {
+    state.pending = null
+    return res.redirect(payManual + '/category')
+  }
+  if (state.pending.category === 'Maintenance' && state.pending.accountId &&
+    [payManual + '/details', payManual + '/check-payment'].includes(req.path) && req.body?.['pay-action'] !== 'cancel' &&
+    !payCanReceiveMaintenance(payAccounts().find((account) => account.id === state.pending.accountId))) {
+    return res.redirect(payManual + '/confirm-account?account=' + encodeURIComponent(state.pending.accountId))
+  }
   next()
 }
 
@@ -18211,7 +18227,7 @@ function payCheckRows(payment, removing = false) {
   rows.push(paySummary('Payment received from', payment.receivedFrom, detailHref))
   if (payment.category === 'Maintenance' && payment.receivedFrom === 'Third party') rows.push(paySummary('Third party', payment.thirdPartyName, detailHref))
   rows.push(paySummary('Method of payment', payment.method, detailHref))
-  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source === 'British Telecom' ? 'Telephone' : payment.source, detailHref))
+  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source === 'Telephone' ? 'British Telecom' : payment.source, detailHref))
   if (payment.method !== 'Notes and coins') rows.push(paySummary('Payment reference', payment.reference, detailHref))
   if (payment.category === 'Suspense') {
     rows.push(paySummary('Suspense reason', payReference.reasons.find((item) => item.value === payment.reason)?.text, detailHref))
@@ -18220,7 +18236,8 @@ function payCheckRows(payment, removing = false) {
   if (payment.category === 'Court Fee' || (payment.category === 'Suspense' && payment.reason !== 'UN')) {
     rows.push(paySummary('Payer type', payment.payerType, payManual + '/payer'))
     rows.push(paySummary('Payer name', payPaymentName(payment), payManual + '/payer'))
-    rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
+    rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.address4, payment.address5, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
+    rows.push(paySummary('Country', payment.country ? getCountryLabel(payment.country) : '', payManual + '/payer'))
   }
   return removing ? rows.map(({ actions, ...row }) => row) : rows
 }
@@ -18251,7 +18268,7 @@ router.get(payManual, payRequireUnit, (req, res) => {
       till.status === 'failed' ? { html: payLink(payManual + '/till/' + till.id, till.number).html + '<br>Allocation failed – retry' } : payLink(payManual + '/till/' + till.id, till.number),
       { text: String(till.payments.length), attributes: { 'data-sort-value': till.payments.length } },
       { text: payMoney(paySum(till.payments)), format: 'numeric', attributes: { 'data-sort-value': paySum(till.payments) } },
-      { text: till.createdBy }, { text: payDate(till.createdAt), attributes: { 'data-sort-value': new Date(till.createdAt).getTime() } }]) })
+      { text: till.createdBy }, { text: payDate(till.createdAt, true), attributes: { 'data-sort-value': new Date(till.createdAt).getTime() } }]) })
 })
 
 router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
@@ -18269,19 +18286,38 @@ router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
   return redirectWithSessionSave(req, res, next, payManual)
 })
 
-router.get(payManual + '/new-till', payRequireUnit, (req, res) => {
+function payRenderDraftTill(req, res, errors = {}) {
   const state = payUnitState(req)
   state.draft = state.draft || { payments: [] }
   const page = payPage(state.draft.payments, req, payManual + '/new-till')
-  return payRender(req, res, 'till', { heading: 'Till details', backHref: payManual, editable: true, ...page,
+  return payRender(req, res, 'till', { heading: 'Till details', backHref: state.draft.payments.length ? payManual + '/leave-till' : payManual, editable: true, ...page, errors,
     total: payMoney(paySum(state.draft.payments)), count: state.draft.payments.length,
-    tableCaption: 'Payments in this till', tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
+    tableCaption: 'Payments in this till', tableAttributes: { id: 'pay-payments' }, tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
       { text: 'Received from' }, { text: 'Method' }, { text: 'Actions' }], tableRows: payPaymentRows(page.items, true) })
+}
+
+router.get(payManual + '/new-till', payRequireUnit, (req, res) => payRenderDraftTill(req, res))
+
+router.get(payManual + '/leave-till', payRequireUnit, payRequireDraft, (req, res) =>
+  payRender(req, res, 'confirm-action', { heading: 'Leave this draft till?',
+    intro: 'The payments you have added will be saved. You can continue this draft till from Manual cash input.',
+    backHref: payManual + '/new-till', cancelHref: payManual + '/new-till', formAction: payManual + '/leave-till',
+    buttonText: 'Yes – leave till', buttonClasses: '', cancelText: 'No – return to till',
+    rows: [paySummary('Payments', payUnitState(req).draft.payments.length)] }))
+
+router.post(payManual + '/leave-till', payRequireUnit, payRequireDraft, (req, res, next) => {
+  payUnitState(req).pending = null
+  return redirectWithSessionSave(req, res, next, payManual)
 })
 
 router.post(payManual + '/new-till', payRequireUnit, payRequireDraft, (req, res, next) => {
   const state = payUnitState(req)
   if (!state.draft.payments.length) return res.redirect(payManual + '/new-till')
+  const needsReview = state.draft.payments.some((payment) =>
+    !['Maintenance', 'Suspense'].includes(payment.category) || !payReference.methods.includes(payment.method) ||
+    (payment.category === 'Maintenance' && !payCanReceiveMaintenance(payAccounts().find((account) => account.id === payment.accountId))) ||
+    (payment.category === 'Suspense' && (payment.reason === 'UN' ? !payment.relevantDetails : !Object.hasOwn(countryLabels, payment.country))))
+  if (needsReview) return payRenderDraftTill(req, res, { 'pay-payments': { text: 'Review or remove payments that use an unsupported option, need payer details or can no longer be paid into the selected account' } })
   const id = String(state.nextTillNumber++)
   state.tills.push({ id, number: id.padStart(6, '0'), createdAt: new Date().toISOString(), createdBy: prototypeCurrentUserName,
     payments: state.draft.payments, status: 'ready' })
@@ -18311,11 +18347,11 @@ router.get(payManual + '/category', payRequireUnit, payRequireDraft, (req, res) 
 
 router.post(payManual + '/category', payRequireUnit, payRequireDraft, (req, res, next) => {
   const category = payText(req.body['pay-category'])
-  if (!['Maintenance', 'Court Fee', 'Suspense'].includes(category)) return payRender(req, res, 'category', {
+  if (!['Maintenance', 'Suspense'].includes(category)) return payRender(req, res, 'category', {
     heading: 'Payment category', backHref: payManual + '/new-till', errors: { 'pay-category': { text: 'Select payment category' } } })
   const state = payUnitState(req)
   if (state.pending?.category !== category) state.pending = { category }
-  return redirectWithSessionSave(req, res, next, payManual + (category === 'Maintenance' ? '/search' : category === 'Court Fee' ? '/court-fee' : '/details'))
+  return redirectWithSessionSave(req, res, next, payManual + (category === 'Maintenance' ? '/search' : '/details'))
 })
 
 function paySearch(req) {
@@ -18341,16 +18377,25 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   const errors = {}
   const number = values['pay-number'].replace(/\s/g, '').toUpperCase()
   const hasAdvanced = Boolean(values['pay-last-name'] || values['pay-first-names'] || values['pay-date-of-birth'] || values['pay-postcode'])
-  if (number && hasAdvanced) errors['pay-number'] = { text: 'Search using an account number or advanced search, not both' }
-  else if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
+  const pending = payUnitState(req).pending
+  pending.searchValues = values
+  if (number && (hasAdvanced || values['pay-active-only'])) {
+    pending.searchCombinationError = true
+    return redirectWithSessionSave(req, res, next, payManual + '/search-combination-error')
+  }
+  delete pending.searchCombinationError
+  if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
   else if (!number && !hasAdvanced) errors['pay-number'] = { text: 'Enter an account number or respondent details to search' }
+  if (values['pay-first-names'] && !values['pay-last-name']) errors['pay-last-name'] = { text: 'Enter last name' }
+  for (const [field, label, limit] of [['last-name', 'Last name', 30], ['first-names', 'First names', 20], ['postcode', 'Postal or zip code', 10]]) {
+    if (values['pay-' + field].length > limit) errors['pay-' + field] = { text: label + ' must be ' + limit + ' characters or fewer' }
+  }
   if (values['pay-date-of-birth']) {
     const dateOfBirth = parseDateInput(values['pay-date-of-birth'])
     if (dateOfBirth.kind !== 'valid') errors['pay-date-of-birth'] = { text: 'Enter a valid date of birth' }
     else if (isFutureDate(dateOfBirth.date)) errors['pay-date-of-birth'] = { text: 'Date of birth must be today or in the past' }
   }
   if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
-  const pending = payUnitState(req).pending
   // A new search must be followed by account confirmation, including from a stale tab.
   payUnitState(req).pending = { category: 'Maintenance', id: pending.id, searchValues: values,
     search: { number, lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
@@ -18359,7 +18404,12 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   return redirectWithSessionSave(req, res, next, number && results.length === 1 ? payManual + '/confirm-account?account=' + results[0].id : payManual + '/search-results')
 })
 
-function payRenderSearchResults(req, res, errors = {}) {
+router.get(payManual + '/search-combination-error', payRequireUnit, payRequirePending, (req, res) => {
+  if (!payUnitState(req).pending.searchCombinationError) return res.redirect(payManual + '/search')
+  return payRender(req, res, 'search-combination-error', { heading: 'There is a problem' })
+})
+
+function payRenderSearchResults(req, res, errors = {}, selected = []) {
   const results = paySearch(req)
   const page = payPage(results, req, payManual + '/search-results')
   const firstRadioId = page.items.length ? 'pay-account-' + page.items[0].id : 'pay-account'
@@ -18371,7 +18421,7 @@ function payRenderSearchResults(req, res, errors = {}) {
       ...['Account', 'Name', 'Applicant', 'Date of birth', 'Address line 1', 'Postcode', 'Balance'].map((text) => ({ text,
         ...(text === 'Balance' ? { format: 'numeric' } : {}), attributes: { 'aria-sort': 'none' } }))],
     tableRows: page.items.map((account) => [
-      { radio: { id: 'pay-account-' + account.id, name: 'pay-account', value: account.id, text: 'Select ' + account.name + ', account ' + account.ref } },
+      { select: { id: 'pay-account-' + account.id, name: 'pay-account', value: account.id, text: 'Select ' + account.name + ', account ' + account.ref, checked: selected.includes(account.id) } },
       payLink('/active-case/' + account.id, account.ref, ' target="_blank" rel="noreferrer noopener" aria-label="View account ' + escapeHtml(account.ref) + ' (opens in new tab)"'),
       payValue(account.name), payValue(account.applicantName),
       { ...payValue(account.restricted ? 'Restricted' : account.dob ? payDate(account.dob) : ''),
@@ -18386,8 +18436,9 @@ router.get(payManual + '/search-results', payRequireUnit, payRequirePending, (re
 
 router.post(payManual + '/search-results', payRequireUnit, payRequirePending, (req, res, next) => {
   const results = paySearch(req)
-  const account = payPage(results, req, payManual + '/search-results').items.find((item) => item.id === payText(req.body['pay-account']))
-  if (!account || results.length > 100) return payRenderSearchResults(req, res, { 'pay-account': { text: 'Select an account' } })
+  const selected = payChecked(req.body['pay-account'])
+  const account = selected.length === 1 && payPage(results, req, payManual + '/search-results').items.find((item) => item.id === selected[0])
+  if (!account || results.length > 100) return payRenderSearchResults(req, res, { 'pay-account': { text: selected.length > 1 ? 'Select only 1 account' : 'Select 1 account' } }, selected)
   return redirectWithSessionSave(req, res, next, payManual + '/confirm-account?account=' + account.id)
 })
 
@@ -18408,7 +18459,7 @@ router.get(payManual + '/confirm-account', payRequireUnit, payRequirePending, (r
   const addressRow = (address) => ({ key: { text: 'Address' }, value: address.length
     ? { html: address.map((line) => escapeHtml(line)).join('<br>') } : payValue('') })
   return payRender(req, res, 'confirm-account', { heading: 'Confirm account', backHref: payManual + '/search-results',
-    account, hold, rows: [
+    account, hold, cannotReceive: !payCanReceiveMaintenance(account), rows: [
       paySummary('Account number', account.ref), paySummary('Name', account.name),
       account.restricted ? paySummary('Address', 'Restricted') : addressRow(account.address),
       paySummary('Total arrears', account.arrears),
@@ -18424,6 +18475,11 @@ router.post(payManual + '/confirm-account', payRequireUnit, payRequirePending, (
   const account = payAccounts().find((item) => item.id === payText(req.body['pay-account']))
   if (!account) return res.redirect(payManual + '/search')
   const state = payUnitState(req)
+  if (!payCanReceiveMaintenance(account)) {
+    if (req.body['pay-action'] !== 'suspense') return res.redirect(payManual + '/confirm-account?account=' + encodeURIComponent(account.id))
+    state.pending = { category: 'Suspense', id: state.pending.id }
+    return redirectWithSessionSave(req, res, next, payManual + '/details')
+  }
   state.pending = { category: 'Maintenance', id: state.pending.id, search: state.pending.search,
     searchValues: state.pending.searchValues, accountId: account.id }
   return redirectWithSessionSave(req, res, next, payManual + '/details')
@@ -18487,16 +18543,20 @@ function payPayerErrors(values) {
   for (const field of values.payerType === 'Company' ? ['companyName'] : ['payerFirstNames', 'payerLastName']) {
     if (values[field]?.length > 50) errors['pay-' + field] = { text: 'Name must be 50 characters or fewer' }
   }
-  for (const field of ['address1', 'address2', 'address3']) {
+  for (const field of ['address1', 'address2', 'address3', 'address4', 'address5']) {
     if (values[field]?.length > 30) errors['pay-' + field] = { text: 'Address line must be 30 characters or fewer' }
   }
-  if (values.postcode && (values.postcode.length > 8 || !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(values.postcode))) {
+  // Address optionality conflicts between the reviewed overview and field table.
+  // Keep it optional pending a decision; Country is unambiguously required.
+  if (!Object.hasOwn(countryLabels, values.country)) errors['pay-country'] = { text: 'Select a country' }
+  if (values.postcode?.length > 8) errors['pay-postcode'] = { text: 'Postcode must be 8 characters or fewer' }
+  else if (values.postcode && values.country === 'united-kingdom' && !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(values.postcode)) {
     errors['pay-postcode'] = { text: 'Enter a valid UK postcode' }
   }
   return errors
 }
 
-const payPayerFields = ['payerType', 'payerTitle', 'payerFirstNames', 'payerLastName', 'companyName', 'address1', 'address2', 'address3', 'postcode']
+const payPayerFields = ['payerType', 'payerTitle', 'payerFirstNames', 'payerLastName', 'companyName', 'address1', 'address2', 'address3', 'address4', 'address5', 'postcode', 'country']
 
 function payStorePayer(pending, values) {
   for (const field of payPayerFields) pending[field] = values[field] || ''
@@ -18563,7 +18623,7 @@ router.post(payManual + '/fee-difference', payRequireUnit, payRequirePending, (r
 
 function payRenderDetails(req, res, values, errors = {}) {
   const pending = payUnitState(req).pending
-  if (values.source === 'British Telecom') values.source = 'Telephone'
+  if (values.source === 'Telephone') values.source = 'British Telecom'
   const account = payAccounts().find((item) => item.id === pending.accountId)
   return payRender(req, res, 'details', { heading: pending.category === 'Suspense' ? 'Suspense details' : 'Payment details',
     backHref: pending.category === 'Maintenance' ? payManual + '/confirm-account?account=' + pending.accountId :
@@ -18602,7 +18662,10 @@ router.post(payManual + '/details', payRequireUnit, payRequirePending, (req, res
   if (values.method === 'Credit transfer' && !payReference.sources.includes(values.source)) errors['pay-source'] = { text: 'Select a source' }
   if (values.reference.length > 50) errors['pay-' + referenceField] = { text: 'Payment reference must be 50 characters or fewer' }
   if (pending.category === 'Suspense' && !payReference.reasons.some((reason) => reason.value === values.reason)) errors['pay-reason'] = { text: 'Select a reason for the suspense' }
-  if (pending.category === 'Suspense' && values.reason === 'UN' && values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
+  if (pending.category === 'Suspense' && values.reason === 'UN') {
+    if (!values.relevantDetails) errors['pay-relevantDetails'] = { text: 'Add relevant details' }
+    else if (values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
+  }
   if (pending.category === 'Court Fee') Object.assign(errors, payPayerErrors(values))
   if (Object.keys(errors).length) {
     payInvalidForm(pending, 'details', req.body, errors)
@@ -18655,7 +18718,8 @@ function payMissingStep(req) {
   if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.items || !pending.amount ||
     (BigInt(pending.amount) !== BigInt(pending.expected || '0') && !pending.feeConfirmed))) return '/court-fee'
   if (!pending.detailsComplete || !payReference.methods.includes(pending.method) || !pending.amount) return '/details'
-  if ((pending.category === 'Court Fee' || (pending.category === 'Suspense' && pending.reason !== 'UN')) && !pending.payerComplete) return '/payer'
+  if (pending.category === 'Suspense' && (!payReference.reasons.some((reason) => reason.value === pending.reason) || pending.reason === 'UN' && !pending.relevantDetails)) return '/details'
+  if (pending.category === 'Suspense' && pending.reason !== 'UN' && (!pending.payerComplete || !Object.hasOwn(countryLabels, pending.country))) return '/payer'
   return null
 }
 
@@ -18847,7 +18911,7 @@ function payAutomaticView(req, res) {
       row.push(fileCell, { text: file.source })
       if (tab === 'allocate') row.push({ text: payMoney(file.amount), format: 'numeric', attributes: { 'data-sort-value': file.amount } }, payValue(file.processedBy))
       const date = tab === 'process' ? file.uploadedAt : file.processedAt
-      row.push({ text: payDate(date), attributes: { 'data-sort-value': new Date(date).getTime() } })
+      row.push({ text: payDate(date, true), attributes: { 'data-sort-value': new Date(date).getTime() } })
       return row
     }) })
 }
@@ -18930,21 +18994,60 @@ router.post(payAuto + '/allocate', payRequireUnit, (req, res, next) => {
   })
   const failed = tills.length - allocated
   payFlash(req, allocated + (allocated === 1 ? ' till allocated.' : ' tills allocated.') + (failed ? ' ' + failed + ' failed to allocate. Select the failed tills to try again.' : ''),
-    failed ? 'warning' : 'success', [{ text: 'View cash till reports', href: payAuto + '/reports' }, { text: 'View cash list report', href: payAuto + '/reports?type=cash-list' }])
+    failed ? 'warning' : 'success', [{ text: 'View cash till reports', href: payAuto + '/reports' }, { text: 'View error details report', href: payAuto + '/reports?type=error-details' }])
   return redirectWithSessionSave(req, res, next, payAuto + '?tab=allocate')
 })
 
 router.get(payAuto + '/reports', payRequireUnit, (req, res) => {
   payAdvanceFiles(req)
+  const errorDetails = req.query.type === 'error-details'
   const cashList = req.query.type === 'cash-list'
-  const files = payUnitState(req).files.filter((file) => cashList ? file.status === 'allocated' : ['ready', 'failed-allocation', 'allocated'].includes(file.status))
+  const files = payUnitState(req).files.filter((file) => cashList || errorDetails ? file.status === 'allocated' : ['ready', 'failed-allocation', 'allocated'].includes(file.status))
     .sort((a, b) => b.processedAt.localeCompare(a.processedAt))
-  const page = payPage(files, req, payAuto + '/reports' + (cashList ? '?type=cash-list' : ''))
+  const page = payPage(files, req, payAuto + '/reports' + (errorDetails ? '?type=error-details' : cashList ? '?type=cash-list' : ''))
+  if (errorDetails) return payRender(req, res, 'report-list', { heading: 'Error details reports', backHref: payAuto + '?tab=allocate', ...page,
+    summaryRows: [paySummary('Tills', files.length), paySummary('Errors', files.reduce((total, file) => total + file.errorCount, 0))],
+    tableCaption: 'Error details reports for allocated tills',
+    tableHead: [{ text: 'Till' }, { text: 'File' }, { text: 'Errors', format: 'numeric' }, { text: 'Date allocated' }],
+    tableRows: page.items.map((file) => [payLink(payAuto + '/file/' + file.id + '/errors', file.tillNumber), { text: file.fileName },
+      { text: String(file.errorCount), format: 'numeric' }, { text: payDate(file.allocatedAt, true) }]) })
   return payRender(req, res, 'report-list', { heading: cashList ? 'Cash list report' : 'Cash till reports', backHref: payAuto + '?tab=allocate', ...page,
     summaryRows: [paySummary('Tills', files.length), paySummary('Total records', files.reduce((total, file) => total + file.records, 0)), paySummary('Total amount', payMoney(paySum(files)))],
     tableCaption: 'Automatic cash tills', tableHead: [{ text: 'Till' }, { text: 'File' }, { text: 'Source' }, { text: 'Amount', format: 'numeric' }, { text: 'Date processed' }, { text: 'Status' }],
     tableRows: page.items.map((file) => [payLink(payAuto + '/file/' + file.id, file.tillNumber), { text: file.fileName }, { text: file.source },
-      { text: payMoney(file.amount), format: 'numeric' }, { text: payDate(file.processedAt) }, { text: file.status === 'allocated' ? 'Allocated' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready' }]) })
+      { text: payMoney(file.amount), format: 'numeric' }, { text: payDate(file.processedAt, true) }, { text: file.status === 'allocated' ? 'Allocated' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready' }]) })
+})
+
+function payFileErrorRows(file) {
+  if (!file.errorCount && !file.ignored) return []
+  const account = payAccounts().find((item) => item.id === file.accountId)
+  const descriptions = {
+    'no-account': 'No Opal Account',
+    'transaction-code': 'Invalid credit transfer transaction code',
+    'unknown-bank': 'Unknown bank details – records ignored',
+    'complete-account': 'Opal account is complete (No active order terms or outstanding arrears)',
+    'zero-value': 'Zero-value payment – record ignored'
+  }
+  const type = file.errorType || (file.ignored ? BigInt(file.amount) === 0n ? 'zero-value' : 'unknown-bank' : 'no-account')
+  return [{
+    court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary('Beneficiary name', ''),
+      paySummary('Transaction', 'Credit transfer'), paySummary('Amount', payMoney(file.ignored ? file.amount : file.suspenseAmount)),
+      paySummary('Transaction account', type === 'no-account' ? '' : account?.ref)],
+    respondent: [paySummary('Sort code', ''), paySummary('Bank account number', ''),
+      paySummary('Account number', type === 'no-account' ? '' : account?.ref),
+      paySummary('Respondent name', type === 'no-account' || account?.restricted ? '' : account?.name),
+      paySummary('Error', descriptions[type] || descriptions['no-account'])]
+  }]
+}
+
+router.get(payAuto + '/file/:fileId/errors', payRequireUnit, (req, res) => {
+  const file = payUnitState(req).files.find((item) => item.id === req.params.fileId && item.status === 'allocated')
+  if (!file) return res.redirect(payAuto + '?tab=allocate')
+  const page = payPage(payFileErrorRows(file), req, payAuto + '/file/' + encodeURIComponent(file.id) + '/errors')
+  return payRender(req, res, 'error-report', { heading: 'Error details report', caption: 'Till ' + file.tillNumber,
+    backHref: payAuto + '/reports?type=error-details', ...page,
+    summaryRows: [paySummary('File name', file.fileName), paySummary('Source', file.source), paySummary('Date allocated', payDate(file.allocatedAt, true)),
+      paySummary('Errors', file.errorCount)], printLabel: 'Export to PDF', recordErrors: page.items })
 })
 
 router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
@@ -18974,11 +19077,11 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
       return amount ? formatOrderTermAmountWithFrequency(term.responses?.[amount.id], term.responses?.[frequency?.id]) : ''
     }).filter(Boolean).join('; ')
     return [payLink('/active-case/' + credit.account.id, credit.account.ref), payValue(credit.account.lastName || credit.account.companyName),
-      { text: payMoney(credit.balance), format: 'numeric' }, { text: payDate(file.processedAt) },
+      { text: payMoney(credit.balance), format: 'numeric' }, payValue(payDate(credit.updatedAt)),
       { text: payMoney(credit.value), format: 'numeric' }, payValue(terms)]
   })
   return payRender(req, res, 'file-report', { heading: file.ignored ? file.fileName : file.tillNumber,
-    caption: file.ignored ? 'File' : 'Till', ignored: file.ignored, printLabel: 'Export as PDF',
+    caption: file.ignored ? 'File' : 'Till', ignored: file.ignored, printLabel: 'Export to PDF',
     backHref: payAuto + '?tab=' + (file.ignored ? 'ignored' : 'allocate'),
     detailsRows: [paySummary('File name', file.fileName), paySummary('Source', file.source)],
     recordRows: [paySummary('Total amount', payMoney(file.amount)), paySummary('Total records', file.records), paySummary('Total errors', file.errorCount)],
@@ -18987,14 +19090,1329 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
     creditHead: [{ text: 'Case number' }, { text: 'Surname' }, { text: 'Amount in credit', format: 'numeric' }, { text: 'Date last updated' },
       { text: 'Value', format: 'numeric' }, { text: 'Terms of order' }], creditRows,
     creditTotalRows: [paySummary('Total value to be written to maintenance accounts', payMoney(paySum(creditAccounts, 'value')))],
-    errorRows: file.errorCount ? {
-      court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary(file.ignored ? 'Creditor name' : 'Beneficiary name', ''),
-        paySummary('Transaction', ''), paySummary('Amount', payMoney(file.ignored ? file.amount : file.suspenseAmount)), paySummary('Transaction account', '')],
-      respondent: [paySummary('Sort code', ''), paySummary('Bank account number', ''), paySummary('Account number', ''), paySummary('Respondent name', ''),
-        paySummary('Error', file.ignored ? 'Bank details not recognised – record ignored' : 'No Opal account – payment held in suspense')]
-    } : null,
+    recordErrors: payFileErrorRows(file),
     outcomeRows: [paySummary('Total value to be written to suspense', payMoney(suspense)), paySummary('Total value of records ignored', payMoney(ignored))] })
 })
 
 // Prevent the kit's automatic template routing from rendering partials or unguarded views.
 router.get(payBase + '/:template', (req, res) => res.redirect('/finance'))
+
+// Indicative finance journeys: RM is the master; Fines behaviour is a starting point.
+// All example outcomes are session-only and do not post to RM accounts or tills.
+const fiReference = require('./data/finance-fixtures')
+const fiBase = '/finance'
+const fiJourneys = {
+  suspense: 'Manage suspense items', repayment: 'Repayment', 'cancel-cheques': 'Cancel cheques',
+  'reissue-bacs-payments': 'Reissue BACS payments', 'clear-bacs-transactions': 'Clear BACS transactions',
+  'reverse-payment': 'Reverse a payment', 'dishonour-cheque': 'Dishonour a cheque',
+  ...Object.fromEntries(Object.entries(fiReference.checks).map(([key, value]) => [key, value.title])),
+  'reversed-payments': 'Reversed payments report'
+}
+
+function fiState(req) {
+  if (!req.session.data.financeIndicative) {
+    req.session.data.financeIndicative = { flows: {}, outcomes: [], reports: [], completedTasks: {}, nextId: 1,
+      suspense: fiReference.suspense.map((item) => ({ ...item, notes: [], history: [] })) }
+  }
+  return req.session.data.financeIndicative
+}
+
+function fiFlow(req, key) {
+  const state = fiState(req)
+  if (!state.flows[key]) state.flows[key] = { values: {} }
+  return state.flows[key]
+}
+
+function fiRender(req, res, template, view) {
+  const state = fiState(req)
+  const flash = state.flash
+  delete state.flash
+  const errors = Object.fromEntries(Object.entries(view.errors || {}).filter(([id]) =>
+    !view.fields?.length || view.fields.some((field) => field.id === id)))
+  return res.render('finance/indicative/' + template, {
+    showNav: false, values: {}, errors: {}, fields: [], summaryRows: [], links: [], tableRows: [],
+    cancelHref: fiBase, ...view, errors, flash,
+    errorSummary: Object.entries(errors).map(([id, error]) => ({ href: '#' + id, text: error.text }))
+  })
+}
+
+function fiFlash(req, text) {
+  fiState(req).flash = { variant: 'success', text }
+}
+
+function fiRecord(req, type, description, extra = {}) {
+  const state = fiState(req)
+  const record = { id: String(state.nextId++), type, description, date: new Date().toISOString(),
+    by: prototypeCurrentUserName, ...extra }
+  state.outcomes.unshift(record)
+  return record
+}
+
+function fiOptions(labels) {
+  return labels.map((text) => typeof text === 'string' ? { value: text, text } : text)
+}
+
+function fiField(id, label, type = 'text', extra = {}) {
+  return { id: 'fi-' + id, label, type, ...extra }
+}
+
+function fiRead(req, fields) {
+  return Object.fromEntries(fields.map((field) => [field.id,
+    field.type === 'checkboxes' ? payChecked(req.body[field.id]) : payText(req.body[field.id])]))
+}
+
+function fiErrors(fields, values) {
+  const errors = {}
+  fields.forEach((field) => {
+    const value = values[field.id]
+    let text
+    if ((!value || (Array.isArray(value) && !value.length)) && field.required !== false) {
+      text = (['radios', 'select', 'checkboxes'].includes(field.type) ? 'Select ' : 'Enter ') + field.label.toLowerCase().replace(' (optional)', '')
+    } else if (value && field.type === 'money' && (payParseMoney(value) === null || BigInt(payParseMoney(value)) < (field.allowZero ? 0n : 1n))) {
+      text = 'Enter an amount ' + (field.allowZero ? 'of £0 or more' : 'greater than £0') + ', with no more than 2 decimal places'
+    } else if (value && field.type === 'date') {
+      const date = parseStrictDateInput(value)
+      if (date.kind !== 'valid') text = 'Enter a real date in the format DD/MM/YYYY'
+      else if (field.past && isFutureDate(date.date)) text = field.label + ' must be today or in the past'
+    } else if (value && field.items && (Array.isArray(value) ? value : [value]).some((item) => !field.items.some((option) => option.value === item))) {
+      text = 'Select a valid ' + field.label.toLowerCase()
+    } else if (value && field.pattern && !field.pattern.test(value)) {
+      text = field.formatError || 'Enter a valid ' + field.label.toLowerCase()
+    } else if (value && value.length > (field.maxlength || (field.type === 'textarea' ? 1000 : 100))) {
+      text = field.label + ' must be ' + (field.maxlength || (field.type === 'textarea' ? 1000 : 100)) + ' characters or fewer'
+    }
+    if (text) errors[field.id] = { text }
+  })
+  return errors
+}
+
+function fiSubmit(req, key, fields) {
+  const flow = fiFlow(req, key)
+  const values = fiRead(req, fields)
+  Object.assign(flow.values, values)
+  delete flow.reviewed
+  const errors = fiErrors(fields, values)
+  flow.errors = errors
+  return { flow, values: flow.values, errors }
+}
+
+function fiCancel(key, returnPath) {
+  return fiBase + '/indicative/abandon?journey=' + encodeURIComponent(key) + (returnPath ? '&return=' + encodeURIComponent(returnPath) : '')
+}
+
+function fiAccount(number) {
+  const input = String(number || '').replace(/\s/g, '').toUpperCase()
+  return payAccounts().find((account) => account.ref.toUpperCase() === input ||
+    (/^\d{8}$/.test(input) && account.ref.slice(0, 8) === input))
+}
+
+function fiAccountRows(account) {
+  return [paySummary('Respondent account', account.ref), paySummary('Respondent', account.name),
+    paySummary('Address', account.restricted ? 'Restricted' : account.address.join(', ')),
+    paySummary('Balance', payMoney(account.balance)), paySummary('Applicant', account.applicantName)]
+}
+
+function fiAccountField() {
+  return fiField('account', 'Respondent account number', 'text', { classes: 'govuk-input--width-10',
+    pattern: /^\d{8}[A-Z]?$/i, hint: 'For example, ' + (payAccounts()[0]?.ref || '12345678A') })
+}
+
+function fiHistoryRows(records) {
+  return records.map((item) => [payValue(payDate(item.date)), payValue(item.description),
+    payValue(item.amount ? payMoney(item.amount) : ''), payValue(item.by)])
+}
+
+function fiTable(records, req, href, head, rows, caption) {
+  const page = payPage(records, req, href)
+  return { ...page, tableCaption: caption, tableHead: head.map((text) => ({ text })), tableRows: page.items.map(rows) }
+}
+
+router.get(fiBase + '/indicative/abandon', (req, res) => {
+  const key = payText(req.query.journey)
+  if (!fiJourneys[key]) return res.redirect(fiBase)
+  return fiRender(req, res, 'review', { heading: 'Abandon this journey?',
+    summaryRows: [paySummary('Journey', fiJourneys[key])],
+    intro: 'Your unfinished changes in this journey will be discarded.', destructive: true,
+    action: req.originalUrl, buttonText: 'Abandon journey',
+    cancelHref: req.query.return && String(req.query.return).startsWith('/finance/') && !String(req.query.return).includes('\\')
+      ? String(req.query.return) : fiBase + '/' + key })
+})
+
+router.post(fiBase + '/indicative/abandon', (req, res) => {
+  const key = payText(req.query.journey)
+  if (!fiJourneys[key]) return res.redirect(fiBase)
+  delete fiState(req).flows[key]
+  fiFlash(req, 'Unfinished ' + fiJourneys[key].toLowerCase() + ' changes discarded')
+  return res.redirect(fiBase + '/' + key)
+})
+
+// Suspense: search, notes, transfers, repayments and reversals.
+const fiSuspense = fiBase + '/suspense'
+function fiSuspenseItem(req) {
+  return fiState(req).suspense.find((item) => item.ref === req.params.ref)
+}
+
+router.get(fiSuspense, (req, res) => fiRender(req, res, 'form', { heading: 'Search for a suspense item', showNav: true,
+  fields: [fiField('reference', 'Suspense reference number')], action: fiSuspense, buttonText: 'Search',
+  exampleHtml: '<p class="govuk-body">Use 234, 567, 890, 123 (zero balance) or 456.</p>' }))
+
+router.post(fiSuspense, (req, res) => {
+  const fields = [fiField('reference', 'Suspense reference number')]
+  const { values, errors } = fiSubmit(req, 'suspense', fields)
+  if (Object.keys(errors).length) return fiRender(req, res, 'form', { heading: 'Search for a suspense item',
+    showNav: true, fields, values, errors, action: fiSuspense, buttonText: 'Search' })
+  const item = fiState(req).suspense.find((entry) => entry.ref === values['fi-reference'])
+  if (!item) return fiRender(req, res, 'detail', { heading: 'Suspense item not found', showNav: true,
+    intro: 'No suspense item matches reference ' + values['fi-reference'] + '.', links: [{ href: fiSuspense, text: 'Search again' }] })
+  delete fiState(req).flows.suspense
+  return res.redirect(fiSuspense + '/item/' + item.ref)
+})
+
+router.get(fiSuspense + '/item/:ref', (req, res) => {
+  const item = fiSuspenseItem(req)
+  if (!item) return res.redirect(fiSuspense)
+  const href = fiSuspense + '/item/' + item.ref
+  return fiRender(req, res, 'detail', { heading: 'Suspense item ' + item.ref, showNav: true, backHref: fiSuspense,
+    summaryRows: [paySummary('Reference', item.ref), paySummary('Balance', payMoney(item.amount)),
+      paySummary('Category', item.reason), paySummary('Method of payment', item.method)],
+    links: [{ href: href + '/transfer', text: 'Transfer to a respondent' },
+      { href: href + '/hmcts', text: 'Transfer to HMCTS/Other' }, { href: href + '/repay-respondent', text: 'Repay to a respondent' },
+      { href: href + '/repay-third-party', text: 'Repay to a third party' }, { href: href + '/reverse', text: 'Reverse' },
+      { href: href + '/note', text: 'Add suspense note' }],
+    notes: item.notes.map((note) => ({ ...note, date: payDate(note.date) })),
+    ...fiTable(item.history, req, href, ['Date', 'Action', 'Amount', 'User'], (entry) => fiHistoryRows([entry])[0], 'History') })
+})
+
+const fiSuspenseActions = {
+  transfer: 'Transfer to a respondent', hmcts: 'Transfer to HMCTS/Other',
+  'repay-respondent': 'Repay to a respondent', 'repay-third-party': 'Repay to a third party', reverse: 'Reverse suspense payment', note: 'Add suspense note'
+}
+
+function fiSuspenseFields(action) {
+  if (action === 'note') return [fiField('note', 'Suspense note', 'textarea')]
+  return [
+    ...(['transfer', 'repay-respondent'].includes(action) ? [fiAccountField()] : []),
+    ...(action === 'repay-third-party' ? [fiField('payee-type', 'Payee type', 'radios', { items: fiOptions(['Individual', 'Company']) }),
+      fiField('payee', 'Payee name'), fiField('address', 'Address', 'textarea'), fiField('postcode', 'Postal or zip code')] : []),
+    fiField('amount', action === 'reverse' ? 'Amount to reverse' : action.startsWith('repay') ? 'Amount to repay' : 'Amount to transfer', 'money'),
+    ...(action.startsWith('repay') ? [fiField('method', 'Payment method', 'radios', { items: fiOptions(['Cheque', 'BACS']) })] : []),
+    ...(action === 'reverse' ? [fiField('dishonoured', 'Is this a dishonoured cheque?', 'radios', { items: fiOptions(['Yes', 'No']) })] : []),
+    fiField('note', 'Suspense note (optional)', 'textarea', { required: false })
+  ]
+}
+
+function fiBankFields() {
+  return [fiField('bank-name', 'Name on the bank account'),
+    fiField('sort-code', 'Sort code', 'text', { pattern: /^(?:\d{6}|\d{2}-\d{2}-\d{2})$/, classes: 'govuk-input--width-10' }),
+    fiField('bank-number', 'Bank account number', 'text', { pattern: /^\d{8}$/, inputmode: 'numeric', classes: 'govuk-input--width-10' }),
+    fiField('bank-reference', 'Payment reference (optional)', 'text', { required: false, maxlength: 18 })]
+}
+
+function fiSuspenseView(req, res, errors) {
+  const item = fiSuspenseItem(req)
+  const action = req.params.action
+  if (!item || !fiSuspenseActions[action]) return res.redirect(fiSuspense)
+  const flow = fiFlow(req, 'suspense')
+  if (flow.ref !== item.ref || flow.action !== action) {
+    flow.ref = item.ref; flow.action = action; flow.values = {}; delete flow.reviewed
+  }
+  const href = fiSuspense + '/item/' + item.ref
+  if (action !== 'note' && BigInt(item.amount) <= 0n) return fiRender(req, res, 'detail', {
+    heading: 'You cannot action this suspense item', intro: 'This suspense item has no available balance.',
+    backHref: href, returnHref: href, returnText: 'Return to suspense item' })
+  return fiRender(req, res, 'form', { heading: fiSuspenseActions[action], caption: 'Suspense item ' + item.ref,
+    summaryRows: [paySummary('Suspense balance', payMoney(item.amount))], fields: fiSuspenseFields(action),
+    values: flow.values, errors: errors || flow.errors, action: href + '/' + action,
+    backHref: href, cancelHref: fiCancel('suspense', req.originalUrl), buttonText: action === 'note' ? 'Save note' : 'Continue' })
+}
+
+router.get(fiSuspense + '/item/:ref/:action(transfer|hmcts|repay-respondent|repay-third-party|reverse|note)', (req, res) => fiSuspenseView(req, res))
+
+router.post(fiSuspense + '/item/:ref/:action(transfer|hmcts|repay-respondent|repay-third-party|reverse|note)', (req, res) => {
+  const item = fiSuspenseItem(req)
+  const action = req.params.action
+  const flow = fiFlow(req, 'suspense')
+  if (!item || flow.ref !== item.ref || flow.action !== action) return res.redirect(fiSuspense)
+  const fields = fiSuspenseFields(action)
+  const result = fiSubmit(req, 'suspense', fields)
+  const amount = payParseMoney(result.values['fi-amount'])
+  if (action !== 'note' && (BigInt(item.amount) <= 0n || (amount && BigInt(amount) > BigInt(item.amount)))) result.errors['fi-amount'] = { text: 'Amount must not exceed the available suspense balance' }
+  if (['transfer', 'repay-respondent'].includes(action) && !fiAccount(result.values['fi-account'])) result.errors['fi-account'] = { text: 'No respondent account matches this number' }
+  if (Object.keys(result.errors).length) return fiSuspenseView(req, res, result.errors)
+  const href = fiSuspense + '/item/' + item.ref
+  if (action === 'note') {
+    item.notes.unshift(fiRecord(req, 'suspense-note', 'Suspense note added', { text: result.values['fi-note'] }))
+    delete fiState(req).flows.suspense
+    fiFlash(req, 'Suspense note added')
+    return res.redirect(href)
+  }
+  flow.valid = true
+  return res.redirect(href + '/' + action + (result.values['fi-method'] === 'BACS' ? '/bank' : '/review'))
+})
+
+router.get(fiSuspense + '/item/:ref/:action/bank', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  if (!fiSuspenseItem(req) || !flow.valid || flow.ref !== req.params.ref || flow.action !== req.params.action || flow.values['fi-method'] !== 'BACS') return res.redirect(fiSuspense)
+  return fiRender(req, res, 'form', { heading: 'Bank details', fields: fiBankFields(), values: flow.values,
+    errors: flow.errors, action: req.path, backHref: req.path.replace('/bank', ''), cancelHref: fiCancel('suspense', req.path) })
+})
+
+router.post(fiSuspense + '/item/:ref/:action/bank', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  if (!fiSuspenseItem(req) || !flow.valid || flow.ref !== req.params.ref || flow.action !== req.params.action || flow.values['fi-method'] !== 'BACS') return res.redirect(fiSuspense)
+  const result = fiSubmit(req, 'suspense', fiBankFields())
+  if (Object.keys(result.errors).length) return res.redirect(req.path)
+  return res.redirect(req.path.replace('/bank', '/review'))
+})
+
+function fiSuspenseReady(req) {
+  const item = fiSuspenseItem(req)
+  const flow = fiFlow(req, 'suspense')
+  if (!item || !flow.valid || flow.ref !== req.params.ref || flow.action !== req.params.action || !fiSuspenseActions[flow.action] || flow.action === 'note') return false
+  const fields = [...fiSuspenseFields(flow.action), ...(flow.values['fi-method'] === 'BACS' ? fiBankFields() : [])]
+  if (Object.keys(fiErrors(fields, flow.values)).length) return false
+  const amount = payParseMoney(flow.values['fi-amount'])
+  return amount && BigInt(amount) <= BigInt(item.amount) && (!['transfer', 'repay-respondent'].includes(flow.action) || Boolean(fiAccount(flow.values['fi-account'])))
+}
+
+router.get(fiSuspense + '/item/:ref/:action/review', (req, res) => {
+  if (!fiSuspenseReady(req)) return res.redirect(fiSuspense + '/item/' + req.params.ref)
+  const flow = fiFlow(req, 'suspense')
+  flow.reviewed = true
+  return fiRender(req, res, 'review', { heading: 'Check suspense action', caption: 'Suspense item ' + req.params.ref,
+    summaryRows: [paySummary('Action', fiSuspenseActions[flow.action]), ...fiReviewRows(fiSuspenseFields(flow.action), flow.values, req.path.replace('/review', '')),
+      ...(flow.values['fi-method'] === 'BACS' ? fiReviewRows(fiBankFields(), flow.values, req.path.replace('/review', '/bank')) : [])],
+    action: req.path, backHref: req.path.replace('/review', flow.values['fi-method'] === 'BACS' ? '/bank' : ''),
+    cancelHref: fiCancel('suspense', req.path), buttonText: 'Confirm ' + (flow.action === 'reverse' ? 'reversal' : flow.action.startsWith('repay') ? 'repayment' : 'transfer') })
+})
+
+router.post(fiSuspense + '/item/:ref/:action/review', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  if (!flow.reviewed || !fiSuspenseReady(req)) return res.redirect(fiSuspense)
+  const item = fiSuspenseItem(req)
+  const amount = payParseMoney(flow.values['fi-amount'])
+  item.amount = (BigInt(item.amount) - BigInt(amount)).toString()
+  const outcome = fiRecord(req, 'suspense', fiSuspenseActions[flow.action], { amount, ref: item.ref,
+    account: flow.values['fi-account'], payee: flow.values['fi-payee'], method: flow.values['fi-method'] })
+  item.history.unshift(outcome)
+  if (flow.values['fi-note']) item.notes.unshift({ ...outcome, text: flow.values['fi-note'] })
+  delete fiState(req).flows.suspense
+  fiFlash(req, outcome.description + ' completed')
+  return res.redirect(fiSuspense + '/item/' + item.ref)
+})
+
+function fiReviewRows(fields, values, href) {
+  return fields.map((field) => paySummary(field.label, field.type === 'money' ? payMoney(payParseMoney(values[field.id]) || '0')
+    : Array.isArray(values[field.id]) ? values[field.id].join(', ') : values[field.id], href))
+}
+
+router.get(fiSuspense + '/advance', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  const items = fiState(req).suspense.filter((item) => item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
+  if (!items.length) return fiRender(req, res, 'detail', { heading: 'Transfer maintenance paid in advance', showNav: true,
+    intro: 'There are no maintenance payments in advance to transfer.', returnHref: fiBase })
+  return fiRender(req, res, 'form', { heading: 'Transfer maintenance paid in advance', showNav: true,
+    applicability: 'The timing and rules for transferring advance maintenance in RM need to be confirmed.',
+    fields: [fiField('advance', 'Maintenance suspense items', 'checkboxes', { items: items.map((item) => ({ value: item.ref, text: item.ref + ' – ' + payMoney(item.amount) })), required: Boolean(items.length) })],
+    intro: items.length ? 'Select maintenance suspense items to demonstrate a transfer.' : 'There are no maintenance payments in advance to transfer.',
+    action: req.path, values: flow.values, errors: flow.errors, buttonText: 'Continue' })
+})
+
+router.post(fiSuspense + '/advance', (req, res) => {
+  const items = fiState(req).suspense.filter((item) => item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
+  const fields = [fiField('advance', 'Maintenance suspense items', 'checkboxes', { items: items.map((item) => ({ value: item.ref, text: item.ref })) })]
+  const { flow, errors } = fiSubmit(req, 'suspense', fields)
+  flow.action = 'advance'
+  delete flow.ref
+  delete flow.valid
+  if (Object.keys(errors).length) return res.redirect(req.path)
+  flow.advance = true
+  return res.redirect(req.path + '/review')
+})
+
+router.get(fiSuspense + '/advance/review', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  if (!flow.advance || !flow.values['fi-advance']?.length || Object.keys(flow.errors || {}).length) return res.redirect(fiSuspense + '/advance')
+  flow.reviewed = true
+  return fiRender(req, res, 'review', { heading: 'Check advance maintenance transfer',
+    summaryRows: [paySummary('Suspense references', flow.values['fi-advance'].join(', '), fiSuspense + '/advance')],
+    action: req.path, backHref: fiSuspense + '/advance', cancelHref: fiCancel('suspense', req.path), buttonText: 'Confirm and transfer' })
+})
+
+router.post(fiSuspense + '/advance/review', (req, res) => {
+  const flow = fiFlow(req, 'suspense')
+  const items = fiState(req).suspense.filter((item) => flow.values['fi-advance']?.includes(item.ref) && item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
+  if (!flow.advance || !flow.reviewed || !items.length || Object.keys(flow.errors || {}).length) return res.redirect(fiSuspense + '/advance')
+  items.forEach((item) => {
+    item.history.unshift(fiRecord(req, 'advance', 'Maintenance paid in advance transferred', { amount: item.amount, ref: item.ref }))
+    item.amount = '0'
+  })
+  delete fiState(req).flows.suspense
+  fiFlash(req, 'Maintenance paid in advance transferred')
+  return res.redirect(fiSuspense + '/advance')
+})
+
+// Repayment: source, payee, optional bank details, review and outcome.
+const fiRepayment = fiBase + '/repayment'
+const fiRepaymentSourceFields = [fiField('source', 'Source of repayment', 'radios', { items: fiOptions(['HMCTS/Other', 'Major creditor']) })]
+function fiRepaymentFields() {
+  return [fiField('reason', 'Reason for repayment', 'radios', { items: fiOptions(['Maintenance', 'Court fees', 'HMCTS/Other', 'Witness expenses']) }),
+    fiField('date', 'Date of payment', 'date', { past: true }),
+    fiField('payee-type', 'Payee type', 'radios', { items: fiOptions(['Individual', 'Company']) }),
+    fiField('payee', 'Payee name'), fiField('address', 'Address', 'textarea'), fiField('postcode', 'Postal or zip code'),
+    fiField('method', 'Payment method', 'radios', { items: fiOptions(['Cheque', 'BACS']) }), fiField('amount', 'Amount to repay', 'money')]
+}
+
+router.get(fiRepayment, (req, res) => fiRender(req, res, 'form', { heading: 'Repayment', showNav: true,
+  applicability: 'Repayment sources and reasons are indicative. Fines-only victim surcharge and criminal court charge options have been omitted.',
+  fields: fiRepaymentSourceFields, values: fiFlow(req, 'repayment').values, errors: fiFlow(req, 'repayment').errors, action: fiRepayment }))
+
+router.post(fiRepayment, (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'repayment', fiRepaymentSourceFields)
+  flow.valid = !Object.keys(errors).length
+  return res.redirect(Object.keys(errors).length ? fiRepayment : fiRepayment + '/details')
+})
+
+router.get(fiRepayment + '/:step(details|bank|review)', (req, res) => {
+  const flow = fiFlow(req, 'repayment')
+  const step = req.params.step
+  if (!flow.valid || Object.keys(fiErrors(fiRepaymentSourceFields, flow.values)).length) return res.redirect(fiRepayment)
+  if (step === 'bank' && (flow.values['fi-method'] !== 'BACS' || Object.keys(fiErrors(fiRepaymentFields(), flow.values)).length)) return res.redirect(fiRepayment + '/details')
+  const fields = step === 'bank' ? fiBankFields() : fiRepaymentFields()
+  const allFields = [...fiRepaymentSourceFields, ...fiRepaymentFields(), ...(flow.values['fi-method'] === 'BACS' ? fiBankFields() : [])]
+  if (step === 'review') {
+    if (Object.keys(fiErrors(allFields, flow.values)).length) return res.redirect(fiRepayment + '/details')
+    flow.reviewed = true
+    return fiRender(req, res, 'review', { heading: 'Check repayment', summaryRows: [...fiReviewRows(fiRepaymentSourceFields, flow.values, fiRepayment),
+      ...fiReviewRows(fiRepaymentFields(), flow.values, fiRepayment + '/details'), ...(flow.values['fi-method'] === 'BACS' ? fiReviewRows(fiBankFields(), flow.values, fiRepayment + '/bank') : [])],
+      action: req.path, backHref: fiRepayment + (flow.values['fi-method'] === 'BACS' ? '/bank' : '/details'),
+      cancelHref: fiCancel('repayment', req.path), buttonText: 'Confirm and repay' })
+  }
+  return fiRender(req, res, 'form', { heading: step === 'bank' ? 'Bank details' : 'Repayment details', fields,
+    values: flow.values, errors: flow.errors, action: req.path, backHref: step === 'bank' ? fiRepayment + '/details' : fiRepayment,
+    cancelHref: fiCancel('repayment', req.path) })
+})
+
+router.post(fiRepayment + '/:step(details|bank|review)', (req, res) => {
+  const flow = fiFlow(req, 'repayment')
+  if (!flow.valid || Object.keys(fiErrors(fiRepaymentSourceFields, flow.values)).length) return res.redirect(fiRepayment)
+  const step = req.params.step
+  if (step === 'review') {
+    const fields = [...fiRepaymentSourceFields, ...fiRepaymentFields(), ...(flow.values['fi-method'] === 'BACS' ? fiBankFields() : [])]
+    if (!flow.reviewed || Object.keys(fiErrors(fields, flow.values)).length) return res.redirect(fiRepayment + '/details')
+    const result = fiRecord(req, 'repayment', 'Repayment recorded', { amount: payParseMoney(flow.values['fi-amount']),
+      payee: flow.values['fi-payee'], method: flow.values['fi-method'] })
+    flow.result = result
+    delete flow.reviewed
+    flow.valid = false
+    fiFlash(req, 'Repayment recorded')
+    return res.redirect(fiRepayment + '/confirmation')
+  }
+  if (step === 'bank' && (flow.values['fi-method'] !== 'BACS' || Object.keys(fiErrors(fiRepaymentFields(), flow.values)).length)) return res.redirect(fiRepayment + '/details')
+  const result = fiSubmit(req, 'repayment', step === 'bank' ? fiBankFields() : fiRepaymentFields())
+  if (Object.keys(result.errors).length) return res.redirect(req.path)
+  return res.redirect(fiRepayment + (step === 'details' && flow.values['fi-method'] === 'BACS' ? '/bank' : '/review'))
+})
+
+router.get(fiRepayment + '/confirmation', (req, res) => {
+  const result = fiFlow(req, 'repayment').result
+  if (!result) return res.redirect(fiRepayment)
+  return fiRender(req, res, 'detail', { heading: 'Repayment recorded', showNav: true,
+    summaryRows: [paySummary('Reference', result.id), paySummary('Payee', result.payee),
+      paySummary('Amount', payMoney(result.amount)), paySummary('Payment method', result.method)], returnHref: fiBase,
+    links: [{ href: fiRepayment, text: 'Make another repayment' }] })
+})
+
+// Cheque and BACS examples use current RM account identities, not Fines account fixtures.
+function fiPayments() {
+  const accounts = payAccounts()
+  const account = accounts[0]
+  if (!account) return { cheques: [], bacs: [] }
+  const recipient = (entry) => ({ accountId: entry.id, accountRef: entry.applicantRef || '', name: entry.applicantName || 'Example payee' })
+  return {
+    cheques: fiReference.chequeNumbers.map((number, index) => ({ id: number, ...recipient(accounts[index] || account),
+      amount: index ? '7550' : '1000', date: '2026-11-06T12:00:00Z' })),
+    bacs: fiReference.bankAccounts.flatMap((bank, bankIndex) => bank.transactions.map((id, index) => ({ id,
+      bankNumber: bank.number, sortCode: bank.sortCode, ...recipient(accounts[index] || account),
+      amount: bankIndex ? ['4500', '12000', '7850'][index] : '250', date: '2026-11-06T12:00:00Z' })))
+  }
+}
+
+function fiPaymentRows(payment) {
+  return [paySummary('Reference', payment.id), paySummary('Payee account', payment.accountRef), paySummary('Payee', payment.name),
+    paySummary('Date written', payDate(payment.date)), paySummary('Amount', payMoney(payment.amount))]
+}
+
+const fiCheque = fiBase + '/cancel-cheques'
+const fiChequeSearchFields = [fiField('cheque', 'Cheque number', 'text', { pattern: /^(?:\d{3}|\d{6}|\d{10})$/, classes: 'govuk-input--width-10' })]
+const fiChequeDestinations = ['Issue a new cheque', 'Pay to HMCTS/Other', 'Move the funds to suspense']
+function fiDestinationFields(destinations, reason = 'Reason for payment', allowReallocate = false) {
+  return [fiField('destination', 'Where should the funds go?', 'radios', { items: fiOptions(destinations) }),
+    ...(allowReallocate ? [fiField('recipient-account', 'New payee account number (if reallocating)', 'text', {
+      required: false, hint: 'Use an applicant or minor creditor account already in this RM prototype.' })] : []),
+    fiField('note', reason, 'textarea')]
+}
+
+router.get(fiCheque, (req, res) => fiRender(req, res, 'form', { heading: 'Cancel cheques', showNav: true,
+  fields: fiChequeSearchFields, values: fiFlow(req, 'cancel-cheques').values, errors: fiFlow(req, 'cancel-cheques').errors,
+  action: fiCheque, exampleHtml: '<p class="govuk-body">Use cheque number 524589 or 125.</p>' }))
+
+router.post(fiCheque, (req, res) => {
+  const { flow, values, errors } = fiSubmit(req, 'cancel-cheques', fiChequeSearchFields)
+  delete flow.paymentId
+  delete flow.values['fi-destination']
+  delete flow.values['fi-note']
+  if (Object.keys(errors).length) return res.redirect(fiCheque)
+  const payment = fiPayments().cheques.find((item) => item.id === values['fi-cheque'])
+  if (!payment || fiState(req).outcomes.some((item) => item.type === 'cancel-cheques' && item.paymentId === payment.id)) return fiRender(req, res, 'detail', {
+    heading: 'Cheque not found', showNav: true, intro: 'No outstanding cheque matches this number.', links: [{ href: fiCheque, text: 'Search again' }] })
+  flow.paymentId = payment.id
+  return res.redirect(fiCheque + '/details')
+})
+
+router.get(fiCheque + '/:step(details|destination|review|confirmation|history)', (req, res) => {
+  const flow = fiFlow(req, 'cancel-cheques')
+  const step = req.params.step
+  const payment = fiPayments().cheques.find((item) => item.id === flow.paymentId)
+  if (step === 'confirmation' && flow.result) return fiOutcome(req, res, 'Cheque cancelled', flow.result, fiCheque)
+  if (step === 'history' && payment) return fiRender(req, res, 'detail', { heading: 'Cheque history', showNav: true,
+    summaryRows: fiPaymentRows(payment),
+    ...fiTable(fiState(req).outcomes.filter((item) => item.type === 'cancel-cheques' && item.paymentId === payment.id), req, req.path,
+      ['Date', 'Action', 'Amount', 'User'], (item) => fiHistoryRows([item])[0], 'Cheque actions'),
+    links: [{ href: '/active-case/' + payment.accountId, text: 'View linked RM case' }, { href: fiCheque, text: 'Return to cheque search' }] })
+  if (!payment || fiState(req).outcomes.some((item) => item.type === 'cancel-cheques' && item.paymentId === payment.id)) return res.redirect(fiCheque)
+  if (step === 'details') return fiRender(req, res, 'review', { heading: 'Cheque details',
+    summaryRows: fiPaymentRows(payment), action: req.path, backHref: fiCheque, cancelHref: fiCancel('cancel-cheques', req.path), buttonText: 'Continue',
+    links: [{ href: fiCheque + '/history', text: 'View cheque history' }] })
+  const fields = fiDestinationFields(fiChequeDestinations, 'Reason for cancellation')
+  if (step === 'review') {
+    if (Object.keys(fiErrors(fields, flow.values)).length) return res.redirect(fiCheque + '/destination')
+    flow.reviewed = true
+    return fiRender(req, res, 'review', { heading: 'Check cheque cancellation', summaryRows: [...fiPaymentRows(payment), ...fiReviewRows(fields, flow.values, fiCheque + '/destination')],
+      action: req.path, backHref: fiCheque + '/destination', cancelHref: fiCancel('cancel-cheques', req.path), buttonText: 'Confirm cancellation', destructive: true })
+  }
+  return fiRender(req, res, 'form', { heading: 'Cancel cheque', summaryRows: fiPaymentRows(payment), fields,
+    values: flow.values, errors: flow.errors, action: req.path, backHref: fiCheque + '/details', cancelHref: fiCancel('cancel-cheques', req.path) })
+})
+
+router.post(fiCheque + '/:step(details|destination|review)', (req, res) => {
+  const flow = fiFlow(req, 'cancel-cheques')
+  const payment = fiPayments().cheques.find((item) => item.id === flow.paymentId)
+  if (!payment || fiState(req).outcomes.some((item) => item.type === 'cancel-cheques' && item.paymentId === payment.id)) return res.redirect(fiCheque)
+  if (req.params.step === 'details') return res.redirect(fiCheque + '/destination')
+  const fields = fiDestinationFields(fiChequeDestinations, 'Reason for cancellation')
+  if (req.params.step === 'destination') {
+    const { errors } = fiSubmit(req, 'cancel-cheques', fields)
+    return res.redirect(fiCheque + (Object.keys(errors).length ? '/destination' : '/review'))
+  }
+  if (!flow.reviewed || Object.keys(fiErrors(fields, flow.values)).length) return res.redirect(fiCheque + '/destination')
+  flow.result = fiRecord(req, 'cancel-cheques', 'Cheque cancelled', { paymentId: payment.id,
+    amount: payment.amount, destination: flow.values['fi-destination'], note: flow.values['fi-note'] })
+  delete flow.reviewed
+  fiFlash(req, 'Cheque ' + payment.id + ' cancelled')
+  return res.redirect(fiCheque + '/confirmation')
+})
+
+function fiOutcome(req, res, heading, result, href) {
+  return fiRender(req, res, 'detail', { heading, showNav: true,
+    summaryRows: [paySummary('Reference', result.paymentId || result.id), paySummary('Amount', payMoney(result.amount)),
+      paySummary('Destination', result.destination), paySummary('Reason', result.note)],
+    links: [{ href, text: 'Return to search' }, ...(href === fiCheque ? [{ href: fiCheque + '/history', text: 'View cheque history' }] : [])], returnHref: fiBase })
+}
+
+const fiBacs = fiBase + '/reissue-bacs-payments'
+const fiBacsSearchFields = fiBankFields().filter((field) => ['fi-sort-code', 'fi-bank-number'].includes(field.id))
+const fiBacsDestinations = ['Pay to existing payee by BACS', 'Issue a new cheque', 'Move to suspense', 'Reallocate to a payee account', 'Pay to HMCTS/Other']
+
+function fiBacsRemaining(req) {
+  const flow = fiFlow(req, 'reissue-bacs-payments')
+  return fiPayments().bacs.filter((payment) => payment.bankNumber === flow.values['fi-bank-number'] &&
+    payment.sortCode === flow.values['fi-sort-code']?.replace(/-/g, '') &&
+    !fiState(req).outcomes.some((item) => item.type === 'reissue-bacs-payments' && item.paymentId === payment.id))
+}
+
+router.get(fiBacs, (req, res) => fiRender(req, res, 'form', { heading: 'Reissue BACS payments', showNav: true,
+  fields: fiBacsSearchFields, values: fiFlow(req, 'reissue-bacs-payments').values, errors: fiFlow(req, 'reissue-bacs-payments').errors,
+  action: fiBacs, exampleHtml: '<p class="govuk-body">Single payment: account 90233765, sort code 123456. Multiple payments: account 27614589, sort code 654321.</p>' }))
+
+router.post(fiBacs, (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'reissue-bacs-payments', fiBacsSearchFields)
+  delete flow.paymentId
+  delete flow.values['fi-destination']
+  delete flow.values['fi-note']
+  delete flow.values['fi-recipient-account']
+  if (Object.keys(errors).length) return res.redirect(fiBacs)
+  const payments = fiBacsRemaining(req)
+  if (!payments.length) return fiRender(req, res, 'detail', { heading: 'BACS payment not found', showNav: true,
+    intro: 'No outstanding BACS payments match these bank details.', links: [{ href: fiBacs, text: 'Search again' }] })
+  if (payments.length === 1) { flow.paymentId = payments[0].id; return res.redirect(fiBacs + '/details') }
+  return res.redirect(fiBacs + '/payments')
+})
+
+router.get(fiBacs + '/payments', (req, res) => {
+  const items = fiBacsRemaining(req)
+  if (!items.length) return res.redirect(fiBacs)
+  return fiRender(req, res, 'list', { heading: 'Select a BACS payment', backHref: fiBacs,
+    ...fiTable(items, req, req.path, ['Transaction', 'Payee account', 'Payee', 'Date', 'Amount', 'Action'],
+      (payment) => [payValue(payment.id), payValue(payment.accountRef), payValue(payment.name), payValue(payDate(payment.date)),
+        payValue(payMoney(payment.amount)), payLink(fiBacs + '/select/' + payment.id, 'Select payment ' + payment.id)], 'BACS payments'),
+    links: [{ href: fiCancel('reissue-bacs-payments', req.path), text: 'Cancel' }] })
+})
+
+router.get(fiBacs + '/select/:id', (req, res) => {
+  const payment = fiBacsRemaining(req).find((item) => item.id === req.params.id)
+  if (!payment) return res.redirect(fiBacs)
+  const flow = fiFlow(req, 'reissue-bacs-payments')
+  flow.paymentId = payment.id
+  delete flow.reviewed
+  delete flow.values['fi-destination']
+  return res.redirect(fiBacs + '/details')
+})
+
+function fiPayeeExists(reference) {
+  const input = String(reference || '').trim().toUpperCase()
+  return payAccounts().some((account) => account.applicantRef?.toUpperCase() === input) ||
+    Object.values(minorCreditorAccounts).some((account) => account.accountNumber?.toUpperCase() === input)
+}
+
+function fiBacsDestinationErrors(values) {
+  const errors = fiErrors(fiDestinationFields(fiBacsDestinations, 'Reason for payment', true), values)
+  if (values['fi-destination'] === 'Reallocate to a payee account' && !fiPayeeExists(values['fi-recipient-account'])) {
+    errors['fi-recipient-account'] = { text: 'Enter an applicant or minor creditor account number from this RM prototype' }
+  }
+  return errors
+}
+
+router.get(fiBacs + '/:step(details|destination|review|confirmation|payee|history)', (req, res) => {
+  const flow = fiFlow(req, 'reissue-bacs-payments')
+  const step = req.params.step
+  const payment = fiBacsRemaining(req).find((item) => item.id === flow.paymentId)
+  if (step === 'confirmation' && flow.result) return fiOutcome(req, res, 'BACS payment reissued', flow.result, fiBacs)
+  if (!payment) return res.redirect(fiBacs)
+  if (['payee', 'history'].includes(step)) return fiRender(req, res, 'detail', { heading: step === 'payee' ? 'Payee details' : 'Payment history',
+    summaryRows: fiPaymentRows(payment), backHref: fiBacs + '/details',
+    ...fiTable(fiState(req).outcomes.filter((item) => item.paymentId === payment.id), req, req.path,
+      ['Date', 'Action', 'Amount', 'User'], (item) => fiHistoryRows([item])[0], 'Payment history'),
+    links: [{ href: '/active-case/' + payment.accountId, text: 'View linked RM case' }, { href: fiBacs + '/details', text: 'Return to payment' }] })
+  if (step === 'details') return fiRender(req, res, 'review', { heading: 'BACS payment details',
+    summaryRows: [...fiPaymentRows(payment), paySummary('Bank account number', payment.bankNumber), paySummary('Sort code', payment.sortCode)],
+    action: req.path, backHref: fiBacs + '/payments', cancelHref: fiCancel('reissue-bacs-payments', req.path), buttonText: 'Continue',
+    links: [{ href: fiBacs + '/payee', text: 'View payee details' }, { href: fiBacs + '/history', text: 'View payment history' }] })
+  const fields = fiDestinationFields(fiBacsDestinations, 'Reason for payment', true)
+  if (step === 'review') {
+    if (Object.keys(fiBacsDestinationErrors(flow.values)).length) return res.redirect(fiBacs + '/destination')
+    flow.reviewed = true
+    return fiRender(req, res, 'review', { heading: 'Check BACS reissue', summaryRows: [...fiPaymentRows(payment), ...fiReviewRows(fields, flow.values, fiBacs + '/destination')],
+      action: req.path, backHref: fiBacs + '/destination', cancelHref: fiCancel('reissue-bacs-payments', req.path), buttonText: 'Reissue BACS payment' })
+  }
+  return fiRender(req, res, 'form', { heading: 'Reallocate BACS payment', summaryRows: fiPaymentRows(payment), fields,
+    values: flow.values, errors: flow.errors, action: req.path, backHref: fiBacs + '/details', cancelHref: fiCancel('reissue-bacs-payments', req.path) })
+})
+
+router.post(fiBacs + '/:step(details|destination|review)', (req, res) => {
+  const flow = fiFlow(req, 'reissue-bacs-payments')
+  const payment = fiBacsRemaining(req).find((item) => item.id === flow.paymentId)
+  if (!payment) return res.redirect(fiBacs)
+  if (req.params.step === 'details') return res.redirect(fiBacs + '/destination')
+  if (req.params.step === 'destination') {
+    fiSubmit(req, 'reissue-bacs-payments', fiDestinationFields(fiBacsDestinations, 'Reason for payment', true))
+    flow.errors = fiBacsDestinationErrors(flow.values)
+    return res.redirect(fiBacs + (Object.keys(flow.errors).length ? '/destination' : '/review'))
+  }
+  if (!flow.reviewed || Object.keys(fiBacsDestinationErrors(flow.values)).length) return res.redirect(fiBacs + '/destination')
+  flow.result = fiRecord(req, 'reissue-bacs-payments', 'BACS payment reissued', { paymentId: payment.id,
+    amount: payment.amount, destination: flow.values['fi-destination'], recipientAccount: flow.values['fi-recipient-account'], note: flow.values['fi-note'] })
+  delete flow.reviewed
+  fiFlash(req, 'BACS payment ' + payment.id + ' reissued')
+  return res.redirect(fiBacs + '/confirmation')
+})
+
+// Clear BACS: date search, paginated selection, review and a session-only outcome.
+const fiClear = fiBase + '/clear-bacs-transactions'
+const fiClearDateFields = [fiField('date', 'BACS transaction date', 'date', { past: true, hint: 'Use 06/11/2026 for example transactions.' })]
+function fiClearTransactions(req) {
+  const date = parseDateInput(fiFlow(req, 'clear-bacs-transactions').values['fi-date'])
+  if (date.kind !== 'valid' || date.date.getDate() !== 6 || date.date.getMonth() !== 10 || date.date.getFullYear() !== 2026) return []
+  const accounts = payAccounts()
+  return Array.from({ length: 30 }, (_, index) => ({ id: String(1037241 + index), name: accounts[index % accounts.length]?.applicantName || 'Example payee',
+    bankNumber: index % 2 ? '27614589' : '90233765', amount: String(1000 + index * 125) }))
+    .filter((item) => !fiState(req).outcomes.some((outcome) => outcome.type === 'clear-bacs-transactions' && outcome.paymentIds.includes(item.id)))
+}
+
+router.get(fiClear, (req, res) => fiRender(req, res, 'form', { heading: 'Clear BACS transactions', showNav: true,
+  fields: fiClearDateFields, action: fiClear, values: fiFlow(req, 'clear-bacs-transactions').values, errors: fiFlow(req, 'clear-bacs-transactions').errors }))
+
+router.post(fiClear, (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'clear-bacs-transactions', fiClearDateFields)
+  flow.selection = []
+  flow.valid = !Object.keys(errors).length
+  return res.redirect(fiClear + (flow.valid ? '/transactions' : ''))
+})
+
+router.get(fiClear + '/transactions', (req, res) => {
+  const flow = fiFlow(req, 'clear-bacs-transactions')
+  if (!flow.valid) return res.redirect(fiClear)
+  const items = fiClearTransactions(req)
+  const page = payPage(items, req, req.path)
+  const errors = flow.errors || {}
+  const selectionError = errors['fi-transactions']
+  const firstId = page.items.length ? 'fi-transactions-' + page.items[0].id : 'fi-transactions'
+  return fiRender(req, res, 'list', { heading: 'Select BACS transactions', backHref: fiClear,
+    intro: (flow.selection || []).length + ' selected across all pages. Save your selection before changing page.',
+    summaryRows: [paySummary('BACS transaction date', flow.values['fi-date'])],
+    errors: selectionError ? { [firstId]: selectionError } : {},
+    ...page, tableCaption: 'BACS transactions', tableHead: [{ text: 'Select' }, ...['BACS number', 'Payee', 'Bank account number', 'Amount'].map((text) => ({ text }))],
+    tableRows: page.items.map((item) => [{ select: { name: 'fi-transactions', id: 'fi-transactions-' + item.id,
+      value: item.id, text: 'Select BACS transaction ' + item.id, checked: (flow.selection || []).includes(item.id) } },
+      payValue(item.id), payValue(item.name), payValue(item.bankNumber), payValue(payMoney(item.amount))]),
+    tableError: selectionError?.text, action: items.length ? req.path + '?page=' + page.page : null, saveSelection: true,
+    cancelHref: fiCancel('clear-bacs-transactions', req.originalUrl),
+    emptyText: 'There are no BACS transactions to clear for this date.', links: [{ href: fiClear, text: 'Choose a different date' }] })
+})
+
+router.post(fiClear + '/transactions', (req, res) => {
+  const flow = fiFlow(req, 'clear-bacs-transactions')
+  if (!flow.valid) return res.redirect(fiClear)
+  delete flow.reviewed
+  const items = fiClearTransactions(req)
+  const page = payPage(items, req, req.path)
+  const onPage = page.items.map((item) => item.id)
+  const selected = payChecked(req.body['fi-transactions']).filter((id) => onPage.includes(id))
+  flow.selection = [...new Set([...(flow.selection || []).filter((id) => !onPage.includes(id) && items.some((item) => item.id === id)), ...selected])]
+  flow.errors = {}
+  if (req.body['fi-intent'] === 'save') return res.redirect(req.path + '?page=' + page.page)
+  if (!flow.selection.length) { flow.errors['fi-transactions'] = { text: 'Select at least 1 BACS transaction' }; return res.redirect(req.path + '?page=' + page.page) }
+  return res.redirect(fiClear + '/review')
+})
+
+router.get(fiClear + '/review', (req, res) => {
+  const flow = fiFlow(req, 'clear-bacs-transactions')
+  const items = fiClearTransactions(req).filter((item) => flow.selection?.includes(item.id))
+  if (!flow.valid || !items.length) return res.redirect(fiClear)
+  flow.reviewed = true
+  return fiRender(req, res, 'review', { heading: 'Check BACS transactions to clear', summaryRows: [
+    paySummary('Date', flow.values['fi-date'], fiClear), paySummary('Transactions', items.map((item) => item.id).join(', '), fiClear + '/transactions'),
+    paySummary('Total amount', payMoney(paySum(items)))], action: req.path, backHref: fiClear + '/transactions',
+    cancelHref: fiCancel('clear-bacs-transactions', req.path), buttonText: 'Clear BACS transactions' })
+})
+
+router.post(fiClear + '/review', (req, res) => {
+  const flow = fiFlow(req, 'clear-bacs-transactions')
+  const items = fiClearTransactions(req).filter((item) => flow.selection?.includes(item.id))
+  if (!flow.valid || !flow.reviewed || !items.length) return res.redirect(fiClear)
+  flow.result = fiRecord(req, 'clear-bacs-transactions', 'BACS transactions cleared', { paymentIds: items.map((item) => item.id), amount: paySum(items) })
+  flow.selection = []
+  delete flow.reviewed
+  fiFlash(req, items.length + ' BACS transaction' + (items.length === 1 ? '' : 's') + ' cleared')
+  return res.redirect(fiClear + '/confirmation')
+})
+
+router.get(fiClear + '/confirmation', (req, res) => {
+  const result = fiFlow(req, 'clear-bacs-transactions').result
+  if (!result) return res.redirect(fiClear)
+  return fiRender(req, res, 'detail', { heading: 'BACS transactions cleared', showNav: true,
+    summaryRows: [paySummary('Transactions cleared', String(result.paymentIds.length)), paySummary('Total amount', payMoney(result.amount))],
+    links: [{ href: fiClear + '/transactions', text: 'Return to transactions' }], returnHref: fiBase })
+})
+
+// Reversal and dishonour: find an example payment, select RM order terms, review.
+function fiMovementFields() {
+  return [fiAccountField(), fiField('amount', 'Amount to reverse or dishonour', 'money'), fiField('date', 'Date of payment', 'date', { past: true })]
+}
+
+function fiMovementAvailable(req, key) {
+  const flow = fiFlow(req, key)
+  const used = fiState(req).outcomes.filter((item) => item.type === key && item.account === flow.values['fi-account'])
+  const amount = key === 'dishonour-cheque' ? 10000n : 25000n
+  return (amount - BigInt(paySum(used))).toString()
+}
+
+function fiMovementTerms(req, key) {
+  const account = fiAccount(fiFlow(req, key).values['fi-account'])
+  return account ? getActiveCaseOrders(account.account).terms.filter((term) => term.code.startsWith('M')).map((term, index) => ({
+    value: String(index), text: (term.title || term.code) + ' – ' + (term.creditorLabel || account.applicantName || 'Maintenance')
+  })) : []
+}
+
+function fiMovementOrderFields(req, key) {
+  return [fiField('orders', 'Maintenance order terms', 'checkboxes', { items: fiMovementTerms(req, key) }), fiField('note', 'Account note', 'textarea')]
+}
+
+function fiDistributionFields(req, key) {
+  const values = fiFlow(req, key).values
+  return fiMovementTerms(req, key).filter((term) => values['fi-orders']?.includes(term.value))
+    .map((term) => fiField('allocation-' + term.value, 'Amount for ' + term.text, 'money', { allowZero: true }))
+}
+
+function fiDistributionErrors(req, key) {
+  const fields = fiDistributionFields(req, key)
+  const values = fiFlow(req, key).values
+  const errors = fiErrors(fields, values)
+  if (!fields.length) return { 'fi-orders': { text: 'Select maintenance order terms' } }
+  if (!Object.keys(errors).length && fields.reduce((total, field) => total + BigInt(payParseMoney(values[field.id])), 0n) !== BigInt(payParseMoney(values['fi-amount']) || '0')) {
+    errors[fields[0].id] = { text: 'The order term amounts must add up to ' + payMoney(payParseMoney(values['fi-amount']) || '0') }
+  }
+  return errors
+}
+
+for (const key of ['reverse-payment', 'dishonour-cheque']) {
+  const href = fiBase + '/' + key
+  const verb = key === 'reverse-payment' ? 'reverse' : 'dishonour'
+  router.get(href, (req, res) => {
+    const flow = fiFlow(req, key)
+    return fiRender(req, res, 'form', { heading: fiJourneys[key], showNav: true,
+      intro: 'Find the example payment by respondent account and payment date.', fields: fiMovementFields(),
+      values: flow.values, errors: flow.errors, action: href, buttonText: 'Find payment',
+      exampleHtml: '<p class="govuk-body">Use an RM respondent account number and payment date 06/11/2026. The example payment is ' + (key === 'dishonour-cheque' ? '£100.00 by cheque' : '£250.00 by credit transfer') + '.</p>' })
+  })
+  router.post(href, (req, res) => {
+    const { flow, values, errors } = fiSubmit(req, key, fiMovementFields())
+    delete flow.valid; delete flow.partial; delete flow.partialAccepted; delete flow.distributed
+    delete flow.values['fi-orders']; delete flow.values['fi-note']
+    const account = fiAccount(values['fi-account'])
+    if (!account) errors['fi-account'] = { text: 'No respondent account matches this number' }
+    if (Object.keys(errors).length) return res.redirect(href)
+    flow.values['fi-account'] = account.ref
+    const date = parseDateInput(values['fi-date']).date
+    if (date.getDate() !== 6 || date.getMonth() !== 10 || date.getFullYear() !== 2026 || BigInt(fiMovementAvailable(req, key)) <= 0n) return fiRender(req, res, 'detail', {
+      heading: 'Payment not found', showNav: true, intro: 'No available example payment matches this account and date.', links: [{ href, text: 'Search again' }] })
+    flow.valid = true
+    flow.partial = BigInt(payParseMoney(values['fi-amount'])) > BigInt(fiMovementAvailable(req, key))
+    return res.redirect(href + (flow.partial ? '/amount-exceeded' : '/orders'))
+  })
+  router.get(href + '/amount-exceeded', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || !flow.partial) return res.redirect(href)
+    return fiRender(req, res, 'review', { heading: 'Amount exceeds the available payment',
+      intro: 'You can ' + verb + ' the available amount or go back and change your request.',
+      summaryRows: [paySummary('Requested amount', payMoney(payParseMoney(flow.values['fi-amount']))),
+        paySummary('Available amount', payMoney(fiMovementAvailable(req, key)))], action: req.path, backHref: href,
+      cancelHref: fiCancel(key, req.path), buttonText: 'Yes, ' + verb + ' the available amount' })
+  })
+  router.post(href + '/amount-exceeded', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || !flow.partial || BigInt(fiMovementAvailable(req, key)) <= 0n) return res.redirect(href)
+    flow.partialAccepted = true
+    flow.values['fi-amount'] = payDecimal(fiMovementAvailable(req, key))
+    return res.redirect(href + '/orders')
+  })
+  router.get(href + '/orders', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || (flow.partial && !flow.partialAccepted)) return res.redirect(href)
+    if (!fiMovementTerms(req, key).length) return fiRender(req, res, 'detail', { heading: 'No maintenance order terms available',
+      intro: 'This respondent has no order terms to demonstrate this action against.', links: [{ href, text: 'Choose another respondent' }] })
+    return fiRender(req, res, 'form', { heading: 'Select maintenance order terms',
+      applicability: 'How a reversal is distributed across RM maintenance order terms needs case-by-case review.',
+      summaryRows: fiAccountRows(fiAccount(flow.values['fi-account'])), fields: fiMovementOrderFields(req, key),
+      values: flow.values, errors: flow.errors, action: req.path, backHref: href, cancelHref: fiCancel(key, req.path) })
+  })
+  router.post(href + '/orders', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || (flow.partial && !flow.partialAccepted)) return res.redirect(href)
+    const { errors } = fiSubmit(req, key, fiMovementOrderFields(req, key))
+    delete flow.distributed
+    if (!Object.keys(errors).length) {
+      const fields = fiDistributionFields(req, key)
+      const amount = BigInt(payParseMoney(flow.values['fi-amount']))
+      fields.forEach((field, index) => { flow.values[field.id] = payDecimal((amount / BigInt(fields.length) + (index === 0 ? amount % BigInt(fields.length) : 0n)).toString()) })
+    }
+    return res.redirect(href + (Object.keys(errors).length ? '/orders' : '/distribution'))
+  })
+  router.get(href + '/distribution', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || (flow.partial && !flow.partialAccepted) || Object.keys(fiErrors(fiMovementOrderFields(req, key), flow.values)).length) return res.redirect(href + '/orders')
+    return fiRender(req, res, 'form', { heading: 'Adjust amounts across order terms',
+      intro: 'The example starts with an equal split. Change it to demonstrate how the payment should be distributed.',
+      summaryRows: [paySummary('Total amount', payMoney(payParseMoney(flow.values['fi-amount'])))], fields: fiDistributionFields(req, key),
+      values: flow.values, errors: flow.errors, action: req.path, backHref: href + '/orders', cancelHref: fiCancel(key, req.path) })
+  })
+  router.post(href + '/distribution', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.valid || (flow.partial && !flow.partialAccepted) || Object.keys(fiErrors(fiMovementOrderFields(req, key), flow.values)).length) return res.redirect(href + '/orders')
+    fiSubmit(req, key, fiDistributionFields(req, key))
+    flow.errors = fiDistributionErrors(req, key)
+    flow.distributed = !Object.keys(flow.errors).length
+    return res.redirect(href + (flow.distributed ? '/review' : '/distribution'))
+  })
+  router.get(href + '/review', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!fiMovementReady(req, key)) return res.redirect(href)
+    flow.reviewed = true
+    const labels = fiMovementTerms(req, key).filter((item) => flow.values['fi-orders'].includes(item.value)).map((item) => item.text)
+    return fiRender(req, res, 'review', { heading: 'Check payment ' + (verb === 'reverse' ? 'reversal' : 'dishonour'),
+      summaryRows: [paySummary('Respondent account', flow.values['fi-account']), paySummary('Amount', payMoney(payParseMoney(flow.values['fi-amount']))),
+        paySummary('Date of payment', flow.values['fi-date']), paySummary('Order terms', labels.join(', '), href + '/orders'),
+        ...fiReviewRows(fiDistributionFields(req, key), flow.values, href + '/distribution'),
+        paySummary('Account note', flow.values['fi-note'], href + '/orders')],
+      action: req.path, backHref: href + '/distribution', cancelHref: fiCancel(key, req.path), buttonText: verb === 'reverse' ? 'Reverse payment' : 'Dishonour cheque' })
+  })
+  router.post(href + '/review', (req, res) => {
+    const flow = fiFlow(req, key)
+    if (!flow.reviewed || !fiMovementReady(req, key)) return res.redirect(href)
+    flow.result = fiRecord(req, key, verb === 'reverse' ? 'Payment reversed' : 'Cheque dishonoured', {
+      account: flow.values['fi-account'], amount: payParseMoney(flow.values['fi-amount']), note: flow.values['fi-note'],
+      allocations: fiDistributionFields(req, key).map((field) => ({ term: field.label, amount: payParseMoney(flow.values[field.id]) })) })
+    flow.valid = false; delete flow.reviewed
+    fiFlash(req, flow.result.description)
+    return res.redirect(href + '/confirmation')
+  })
+  router.get(href + '/confirmation', (req, res) => {
+    const result = fiFlow(req, key).result
+    if (!result) return res.redirect(href)
+    return fiRender(req, res, 'detail', { heading: result.description, showNav: true,
+      summaryRows: [paySummary('Respondent account', result.account), paySummary('Amount', payMoney(result.amount)), paySummary('Account note', result.note)],
+      links: [{ href, text: 'Find another payment' }, { href: fiBase + '/reversed-payments', text: 'View reversed payments report' }], returnHref: fiBase })
+  })
+}
+
+function fiMovementReady(req, key) {
+  const flow = fiFlow(req, key)
+  if (!flow.valid || !flow.distributed || (flow.partial && !flow.partialAccepted) || Object.keys(fiDistributionErrors(req, key)).length) return false
+  const errors = fiErrors([...fiMovementFields(), ...fiMovementOrderFields(req, key)], flow.values)
+  const amount = payParseMoney(flow.values['fi-amount'])
+  return !Object.keys(errors).length && fiAccount(flow.values['fi-account']) && amount && BigInt(amount) <= BigInt(fiMovementAvailable(req, key))
+}
+
+// Daily, month, quarter and year end. Reports are snapshots of example records.
+function fiCheckConfig(req) {
+  return fiReference.checks[req.params.check]
+}
+
+function fiTaskAllowed(req) {
+  return fiCheckConfig(req)?.tasks.includes(req.params.task)
+}
+
+function fiCheckHref(req) {
+  return fiBase + '/' + req.params.check
+}
+
+function fiTaskHref(req) {
+  return fiCheckHref(req) + '/' + req.params.task
+}
+
+function fiCompleted(req, check, task) {
+  fiState(req).completedTasks[check + '/' + task] = true
+}
+
+function fiQuarterFields() {
+  return [fiField('period', 'Select check', 'radios', { items: fiOptions(['Quarter end only', 'Quarter and year end']) })]
+}
+
+router.use(fiBase + '/quarter-year-end', (req, res, next) => {
+  if (req.path === '/' || req.path === '/tasks') return next()
+  const flow = fiFlow(req, 'quarter-year-end')
+  if (!flow.valid) return res.redirect(fiBase + '/quarter-year-end')
+  if (['Major creditors', 'HMCTS/Other'].some((group) => !fiState(req).completedTasks['month-end/payout/' + group])) {
+    return res.redirect(fiBase + '/quarter-year-end/tasks')
+  }
+  next()
+})
+
+router.get(fiBase + '/:check(daily-checks|month-end|quarter-year-end)', (req, res) => {
+  const config = fiCheckConfig(req)
+  const flow = fiFlow(req, req.params.check)
+  if (req.params.check === 'quarter-year-end') return fiRender(req, res, 'form', { heading: config.title, showNav: true,
+    fields: fiQuarterFields(), values: flow.values, errors: flow.errors, action: req.path })
+  return res.redirect(req.path + '/tasks')
+})
+
+router.post(fiBase + '/quarter-year-end', (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'quarter-year-end', fiQuarterFields())
+  flow.valid = !Object.keys(errors).length
+  return res.redirect(fiBase + '/quarter-year-end' + (flow.valid ? '/tasks' : ''))
+})
+
+router.get(fiBase + '/:check(daily-checks|month-end|quarter-year-end)/tasks', (req, res) => {
+  const check = req.params.check
+  const flow = fiFlow(req, check)
+  if (check === 'quarter-year-end') {
+    if (!flow.valid) return res.redirect(fiBase + '/' + check)
+    const outstanding = ['Major creditors', 'HMCTS/Other'].filter((group) => !fiState(req).completedTasks['month-end/payout/' + group])
+    if (outstanding.length) return fiRender(req, res, 'detail', { heading: 'You cannot start ' + flow.values['fi-period'].toLowerCase(), showNav: true,
+      intro: 'Complete the example month end payouts first: ' + outstanding.join(' and ') + '.',
+      applicability: 'These prerequisite checks are carried over from Fines and need to be confirmed for RM.',
+      links: [{ href: fiBase + '/month-end/payout', text: 'Go to month end payouts' }], returnHref: fiBase })
+  }
+  return fiRender(req, res, 'checks', { heading: fiCheckConfig(req).title, showNav: true,
+    summaryRows: check === 'quarter-year-end' ? [paySummary('Check', flow.values['fi-period'], fiBase + '/' + check)] : [],
+    tasks: fiCheckConfig(req).tasks.map((task) => ({ title: { text: fiReference.taskNames[task] },
+      href: fiBase + '/' + check + '/' + task,
+      hint: fiReference.applicability[task] ? { text: fiReference.applicability[task] } : undefined,
+      status: fiState(req).completedTasks[check + '/' + task] ? { text: 'Completed' } : { tag: { text: 'Not started', classes: 'govuk-tag--grey' } }
+    })) })
+})
+
+function fiReportFields(task, check) {
+  const fields = []
+  if (task === 'suspense') fields.push(
+    fiField('report-type', 'Report type', 'radios', { items: fiOptions(['All', 'Selected', 'Outstanding', 'Movements', ...(check === 'month-end' ? ['List and delete'] : [])]) }),
+    fiField('categories', 'Categories', 'checkboxes', { required: false, items: fiOptions(['Maintenance', 'Overpayments', 'Unidentified', 'Court fees', 'Miscellaneous']), hint: 'Leave blank to include all categories.' }))
+  if (task === 'court-fees-report') fields.push(fiField('report-type', 'Court fees', 'radios', { items: fiOptions(['Received', 'Transferred']) }),
+    fiField('fee-code', 'Court fee code', 'select', { items: [{ value: 'all', text: 'All court fees' }, ...payReference.courtFees.map((fee) => ({ value: fee.code, text: fee.code + ' – ' + fee.description }))] }))
+  if (task === 'cheques-report') fields.push(fiField('report-type', 'Cheques', 'radios', { items: fiOptions(['Unpresented', 'Presented']) }))
+  if (task === 'bacs-payments') fields.push(fiField('report-type', 'BACS payments', 'radios', { items: fiOptions(['Processed', 'Unprocessed']) }))
+  if (task === 'quarter-year-end-report') fields.push(fiField('report-type', 'Report type', 'radios', { items: fiOptions(['Quarter end', 'Year end']) }))
+  fields.push(fiField('from', 'Date from (optional)', 'date', { required: false }), fiField('to', 'Date to (optional)', 'date', { required: false }))
+  return fields
+}
+
+function fiReportErrors(fields, values) {
+  const errors = fiErrors(fields, values)
+  const from = parseDateInput(values['fi-from'])
+  const to = parseDateInput(values['fi-to'])
+  if (from.kind === 'valid' && to.kind === 'valid' && from.date > to.date) errors['fi-to'] = { text: 'Date to must be on or after date from' }
+  if (values['fi-report-type'] === 'Selected' && !values['fi-categories']?.length) errors['fi-categories'] = { text: 'Select at least 1 category for a selected suspense report' }
+  return errors
+}
+
+function fiReportRecords(req, task, values) {
+  const snapshot = fiReportExampleRecords(req, task, values)
+  const from = parseDateInput(values['fi-from'])
+  const to = parseDateInput(values['fi-to'])
+  const dateIndex = snapshot.head.findIndex((label) => label === 'Date' || label === 'Date written')
+  snapshot.rows = snapshot.rows.filter((row) => {
+    // The imported fictional payment examples are dated 06 Nov 2026; outcomes use their recorded date.
+    const date = dateIndex >= 0 ? new Date(row[dateIndex].text) : new Date('2026-11-06T12:00:00Z')
+    return (from.kind !== 'valid' || date >= from.date) && (to.kind !== 'valid' || date < new Date(to.date.getTime() + 86400000))
+  })
+  return snapshot
+}
+
+function fiReportExampleRecords(req, task, values) {
+  const state = fiState(req)
+  if (task === 'suspense') {
+    const categories = values['fi-categories'] || []
+    const category = (item) => item.reason === 'Overpayment' ? 'Overpayments' : item.reason
+    const items = state.suspense.filter((item) => !categories.length || categories.includes(category(item)))
+    if (values['fi-report-type'] === 'Movements') return { head: ['Date', 'Action', 'Amount', 'User'],
+      rows: fiHistoryRows(items.flatMap((item) => item.history)) }
+    const filtered = items.filter((item) => values['fi-report-type'] !== 'Outstanding' || BigInt(item.amount) > 0n)
+    return { head: ['Reference', 'Category', 'Balance'], rows: filtered.map((item) => [payValue(item.ref), payValue(item.reason), payValue(payMoney(item.amount))]) }
+  }
+  if (task === 'outstanding-payment') return { head: ['Date', 'Action', 'Amount', 'User'],
+    rows: fiHistoryRows(state.outcomes.filter((item) => ['reverse-payment', 'dishonour-cheque'].includes(item.type))) }
+  if (['witnesses', 'fines-enforcement-mis', 'major-creditor-negative-balance', 'write-off-report', 'write-off-analysis', 'cumulative-annual-write-off'].includes(task)) return { head: ['Reference', 'Description', 'Amount'], rows: [] }
+  if (['unpresented-cheques', 'presented-cheques', 'cheques-report'].includes(task)) {
+    const presented = task === 'presented-cheques' || values['fi-report-type'] === 'Presented'
+    const processed = Boolean(state.completedTasks['daily-checks/process-presented-cheques'])
+    const items = fiPayments().cheques.filter((payment) => !state.outcomes.some((item) => item.type === 'cancel-cheques' && item.paymentId === payment.id) && (presented ? processed : !processed))
+    return { head: ['Cheque number', 'Payee', 'Date written', 'Amount'], rows: items.map((item) => [payValue(item.id), payValue(item.name), payValue(payDate(item.date)), payValue(payMoney(item.amount))]) }
+  }
+  if (['bacs-payments', 'bacs-file', 'bank-list'].includes(task)) {
+    const processed = state.outcomes.some((item) => item.type === 'payout' && item.method === 'BACS')
+    const items = task === 'bacs-payments' && ((values['fi-report-type'] === 'Processed') !== processed) ? [] : fiPayments().bacs
+    return { head: ['Transaction', 'Payee', 'Date', 'Amount'],
+      rows: items.map((item) => [payValue(item.id), payValue(item.name), payValue(payDate(item.date)), payValue(payMoney(item.amount))]) }
+  }
+  if (task === 'court-fees-report') {
+    const transfers = state.outcomes.filter((item) => item.type === 'court-fees-transfer')
+    return { head: ['Court fee code', 'Description', 'Amount'], rows: values['fi-report-type'] === 'Transferred'
+      ? transfers.map((item) => [payValue(payReference.courtFees[0]?.code), payValue('Example court fees transferred'), payValue(payMoney(item.amount))])
+      : [[payValue(values['fi-fee-code'] === 'all' ? payReference.courtFees[0]?.code : values['fi-fee-code']), payValue('Example court fee received'), payValue('£50.00')]] }
+  }
+  if (task === 'dishonoured-cheques') return { head: ['Date', 'Action', 'Amount', 'User'], rows: fiHistoryRows(state.outcomes.filter((item) => item.type === 'dishonour-cheque')) }
+  return { head: ['Category', 'Example records', 'Example amount'], rows: [
+    [payValue('Maintenance'), payValue('4'), payValue('£246.00')], [payValue('Court fees'), payValue('1'), payValue('£50.00')],
+    [payValue('Suspense'), payValue(String(state.suspense.length)), payValue(payMoney(paySum(state.suspense, 'amount')))]] }
+}
+
+function fiReportList(req, res, check, task) {
+  const href = check === 'reversed-payments' ? fiBase + '/reversed-payments' : fiBase + '/' + check + '/' + task
+  const filterFields = [fiField('from', 'Date created from (optional)', 'date', { required: false }), fiField('to', 'Date created to (optional)', 'date', { required: false })]
+  const values = { 'fi-from': payText(req.query['fi-from']), 'fi-to': payText(req.query['fi-to']) }
+  const errors = fiReportErrors(filterFields, values)
+  const from = parseDateInput(values['fi-from'])
+  const to = parseDateInput(values['fi-to'])
+  const records = fiState(req).reports.filter((report) => report.check === check && report.task === task &&
+    (Object.keys(errors).length || ((from.kind !== 'valid' || new Date(report.date) >= from.date) &&
+      (to.kind !== 'valid' || new Date(report.date) < new Date(to.date.getTime() + 86400000)))))
+  return fiRender(req, res, 'list', { heading: fiReference.reports[task], showNav: true, backHref: check === 'reversed-payments' ? fiBase : fiBase + '/' + check + '/tasks',
+    applicability: fiReference.applicability[task], fields: filterFields, values, errors, action: href + '/filter', buttonText: 'Apply filters',
+    ...fiTable(records, req, href + '?' + new URLSearchParams(values).toString(), ['Date created', 'Report', 'Created by', 'Status'],
+      (report) => [payValue(payDate(report.date)), payLink(fiBase + '/indicative/reports/' + report.id, report.title), payValue(report.by), payValue(report.status)], 'Reports'),
+    links: [{ href: href + '/create', text: 'Create report' }, { href, text: 'Refresh reports' }],
+    emptyText: 'There are no reports matching these filters.', cancelHref: check === 'reversed-payments' ? fiBase : fiBase + '/' + check + '/tasks' })
+}
+
+function fiCreateReportView(req, res, check, task) {
+  const key = check === 'reversed-payments' ? check : req.params.check
+  const flow = fiFlow(req, key)
+  const href = check === 'reversed-payments' ? fiBase + '/' + check : fiBase + '/' + check + '/' + task
+  return fiRender(req, res, 'form', { heading: 'Create ' + fiReference.reports[task].toLowerCase(), applicability: fiReference.applicability[task],
+    fields: fiReportFields(task, check), values: flow.values, errors: flow.errors, action: href + '/create',
+    buttonText: 'Create report', backHref: href, cancelHref: fiCancel(key, req.path) })
+}
+
+function fiCreateReport(req, res, check, task) {
+  const key = check === 'reversed-payments' ? check : req.params.check
+  const fields = fiReportFields(task, check)
+  const result = fiSubmit(req, key, fields)
+  result.flow.errors = fiReportErrors(fields, result.values)
+  if (Object.keys(result.flow.errors).length) return fiCreateReportView(req, res, check, task)
+  const snapshot = fiReportRecords(req, task, result.values)
+  const state = fiState(req)
+  const report = { id: String(state.nextId++), check, task, title: fiReference.reports[task], date: new Date().toISOString(),
+    by: prototypeCurrentUserName, status: snapshot.rows.length ? 'Ready' : 'No records', ...snapshot,
+    parameters: Object.fromEntries(fields.map((field) => [field.id, result.values[field.id]])) }
+  state.reports.unshift(report)
+  // A list-and-delete report offers a separate confirmation. Creating it cannot delete records.
+  if (task === 'suspense' && result.values['fi-report-type'] === 'List and delete') report.deleteRefs = state.suspense.filter((item) => BigInt(item.amount) === 0n &&
+    snapshot.rows.some((row) => row[0].text === item.ref)).map((item) => item.ref)
+  fiCompleted(req, check, task)
+  fiFlash(req, report.title + ' created')
+  return res.redirect(fiBase + '/indicative/reports/' + report.id)
+}
+
+router.get(fiBase + '/:check(daily-checks|month-end|quarter-year-end)/:task', (req, res, next) => {
+  if (!fiTaskAllowed(req) || !fiReference.reports[req.params.task]) return next()
+  return fiReportList(req, res, req.params.check, req.params.task)
+})
+
+router.post(fiBase + '/:check(daily-checks|month-end|quarter-year-end)/:task/filter', (req, res) => {
+  if (!fiTaskAllowed(req) || !fiReference.reports[req.params.task]) return res.redirect(fiBase)
+  return res.redirect(fiTaskHref(req) + '?' + new URLSearchParams(fiRead(req, [fiField('from', '', 'date'), fiField('to', '', 'date')])).toString())
+})
+
+router.get(fiBase + '/:check(daily-checks|month-end|quarter-year-end)/:task/create', (req, res) => {
+  if (!fiTaskAllowed(req) || !fiReference.reports[req.params.task]) return res.redirect(fiBase)
+  return fiCreateReportView(req, res, req.params.check, req.params.task)
+})
+
+router.post(fiBase + '/:check(daily-checks|month-end|quarter-year-end)/:task/create', (req, res) => {
+  if (!fiTaskAllowed(req) || !fiReference.reports[req.params.task]) return res.redirect(fiBase)
+  return fiCreateReport(req, res, req.params.check, req.params.task)
+})
+
+router.get(fiBase + '/reversed-payments', (req, res) => fiReportList(req, res, 'reversed-payments', 'outstanding-payment'))
+router.post(fiBase + '/reversed-payments/filter', (req, res) => res.redirect(fiBase + '/reversed-payments?' +
+  new URLSearchParams(fiRead(req, [fiField('from', '', 'date'), fiField('to', '', 'date')])).toString()))
+router.get(fiBase + '/reversed-payments/create', (req, res) => fiCreateReportView(req, res, 'reversed-payments', 'outstanding-payment'))
+router.post(fiBase + '/reversed-payments/create', (req, res) => fiCreateReport(req, res, 'reversed-payments', 'outstanding-payment'))
+
+router.get(fiBase + '/indicative/reports/:id', (req, res) => {
+  const report = fiState(req).reports.find((item) => item.id === req.params.id)
+  if (!report) return res.redirect(fiBase)
+  const href = report.check === 'reversed-payments' ? fiBase + '/reversed-payments' : fiBase + '/' + report.check + '/' + report.task
+  return fiRender(req, res, 'report', { heading: report.title, applicability: fiReference.applicability[report.task],
+    summaryRows: [paySummary('Status', report.status), paySummary('Date created', payDate(report.date)), paySummary('Created by', report.by),
+      ...fiReviewRows(fiReportFields(report.task, report.check), report.parameters)],
+    ...fiTable(report.rows, req, req.path, report.head, (row) => row, report.title),
+    exportHref: req.path + '/csv', backHref: href, returnHref: href,
+    deleteHref: report.deleteRefs?.length ? req.path + '/delete-suspense' : null })
+})
+
+router.get(fiBase + '/indicative/reports/:id/csv', (req, res) => {
+  const report = fiState(req).reports.find((item) => item.id === req.params.id)
+  if (!report) return res.redirect(fiBase)
+  const csv = (value) => '"' + String(value || '').replace(/^[\s]*[=+@-]/, (match) => "'" + match).replace(/"/g, '""') + '"'
+  const rows = [report.head, ...report.rows.map((row) => row.map((cell) => cell.text || 'No data'))]
+  res.set('Content-Disposition', 'attachment; filename="example-finance-report-' + report.id + '.csv"')
+  return res.type('text/csv').send(rows.map((row) => row.map(csv).join(',')).join('\r\n'))
+})
+
+router.get(fiBase + '/indicative/reports/:id/delete-suspense', (req, res) => {
+  const report = fiState(req).reports.find((item) => item.id === req.params.id)
+  const items = fiState(req).suspense.filter((item) => report?.deleteRefs?.includes(item.ref) && BigInt(item.amount) === 0n)
+  if (!items.length) return res.redirect(fiBase + '/month-end/suspense')
+  return fiRender(req, res, 'review', { heading: 'Delete zero-balance suspense items?',
+    summaryRows: [paySummary('References', items.map((item) => item.ref).join(', '))], destructive: true,
+    intro: 'Only the listed example suspense items with a zero balance will be deleted.',
+    action: req.path, backHref: req.path.replace('/delete-suspense', ''), cancelHref: req.path.replace('/delete-suspense', ''), buttonText: 'Delete suspense items' })
+})
+
+router.post(fiBase + '/indicative/reports/:id/delete-suspense', (req, res) => {
+  const state = fiState(req)
+  const report = state.reports.find((item) => item.id === req.params.id)
+  const refs = state.suspense.filter((item) => report?.deleteRefs?.includes(item.ref) && BigInt(item.amount) === 0n).map((item) => item.ref)
+  if (!refs.length) return res.redirect(fiBase + '/month-end/suspense')
+  state.suspense = state.suspense.filter((item) => !refs.includes(item.ref))
+  delete report.deleteRefs
+  fiFlash(req, refs.length + ' zero-balance suspense item' + (refs.length === 1 ? '' : 's') + ' deleted')
+  return res.redirect(fiBase + '/month-end/suspense')
+})
+
+// Printing and processing demonstrate file/printer steps without a real integration.
+function fiPrintFields(step) {
+  if (step === 'printer') return [fiField('printer', 'Select printer', 'radios', { items: fiOptions(['RM example printer 1', 'RM example printer 2']) })]
+  return [fiField('next-cheque', 'Next cheque number', 'text', { classes: 'govuk-input--width-10', pattern: /^\d{3,10}$/ })]
+}
+
+router.get(fiBase + '/:check(daily-checks|month-end)/print-cheques', (req, res) => {
+  const check = req.params.check
+  const completed = fiState(req).completedTasks[check + '/print-cheques']
+  return fiRender(req, res, 'review', { heading: 'Print cheques', showNav: true,
+    summaryRows: [paySummary('Cheques to print', completed ? '0' : '2'), paySummary('Example total', completed ? '£0.00' : '£85.50')],
+    intro: completed ? 'There are no further cheques to print in this example.' : 'Choose a printer and confirm the next cheque number.',
+    action: req.path, backHref: fiCheckHref(req) + '/tasks', cancelHref: fiCheckHref(req) + '/tasks', buttonText: completed ? 'Return to checks' : 'Continue' })
+})
+
+router.post(fiBase + '/:check(daily-checks|month-end)/print-cheques', (req, res) => {
+  if (fiState(req).completedTasks[req.params.check + '/print-cheques']) return res.redirect(fiCheckHref(req) + '/tasks')
+  const flow = fiFlow(req, req.params.check)
+  delete flow.reviewed
+  flow.printing = true
+  return res.redirect(req.path + '/printer')
+})
+
+router.get(fiBase + '/:check(daily-checks|month-end)/print-cheques/:step(printer|number|review)', (req, res) => {
+  const flow = fiFlow(req, req.params.check)
+  const href = fiCheckHref(req) + '/print-cheques'
+  const step = req.params.step
+  if (!flow.printing || fiState(req).completedTasks[req.params.check + '/print-cheques']) return res.redirect(href)
+  if (step === 'review') {
+    const fields = [...fiPrintFields('printer'), ...fiPrintFields('number')]
+    if (Object.keys(fiErrors(fields, flow.values)).length) return res.redirect(href + '/printer')
+    flow.reviewed = 'print'
+    return fiRender(req, res, 'review', { heading: 'Confirm next cheque',
+      intro: Number(flow.values['fi-next-cheque']) === 2884 ? 'All cheque numbers are in sequence.' : 'This number is out of sequence. Check it before confirming.',
+      summaryRows: [paySummary('Last cheque number', '0000002883'), ...fiReviewRows(fields, flow.values, href + '/printer')],
+      action: req.path, backHref: href + '/number', cancelHref: fiCancel(req.params.check, req.path), buttonText: 'Confirm and print',
+      fields: Number(flow.values['fi-next-cheque']) === 2884 ? [] : [fiField('sequence', 'Cheque number check', 'checkboxes', { items: [{ value: 'checked', text: 'I have checked the out-of-sequence cheque number' }] })],
+      errors: flow.errors, values: flow.values })
+  }
+  if (step === 'number' && Object.keys(fiErrors(fiPrintFields('printer'), flow.values)).length) return res.redirect(href + '/printer')
+  return fiRender(req, res, 'form', { heading: step === 'printer' ? 'Select printer' : 'Enter next cheque number',
+    fields: fiPrintFields(step), summaryRows: step === 'number' ? [paySummary('Last cheque number', '0000002883')] : [],
+    values: flow.values, errors: flow.errors, action: req.path,
+    backHref: href + (step === 'number' ? '/printer' : ''), cancelHref: fiCancel(req.params.check, req.path) })
+})
+
+router.post(fiBase + '/:check(daily-checks|month-end)/print-cheques/:step(printer|number|review)', (req, res) => {
+  const flow = fiFlow(req, req.params.check)
+  const href = fiCheckHref(req) + '/print-cheques'
+  const step = req.params.step
+  if (!flow.printing || fiState(req).completedTasks[req.params.check + '/print-cheques']) return res.redirect(href)
+  if (step === 'review') {
+    if (flow.reviewed !== 'print' || Object.keys(fiErrors([...fiPrintFields('printer'), ...fiPrintFields('number')], flow.values)).length) return res.redirect(href + '/printer')
+    if (Number(flow.values['fi-next-cheque']) !== 2884 && !payChecked(req.body['fi-sequence']).includes('checked')) {
+      flow.errors = { 'fi-sequence': { text: 'Confirm you have checked the out-of-sequence cheque number' } }
+      return res.redirect(req.path)
+    }
+    fiCompleted(req, req.params.check, 'print-cheques')
+    fiRecord(req, 'print-cheques', 'Example cheques printed', { printer: flow.values['fi-printer'], nextNumber: flow.values['fi-next-cheque'] })
+    delete flow.printing; delete flow.reviewed
+    fiFlash(req, 'Example cheques printed')
+    return res.redirect(fiCheckHref(req) + '/tasks')
+  }
+  const { errors } = fiSubmit(req, req.params.check, fiPrintFields(step))
+  return res.redirect(href + (Object.keys(errors).length ? '/' + step : step === 'printer' ? '/number' : '/review'))
+})
+
+router.get(fiBase + '/daily-checks/process-presented-cheques', (req, res) => {
+  const completed = fiState(req).completedTasks['daily-checks/process-presented-cheques']
+  const flow = fiFlow(req, 'daily-checks')
+  return fiRender(req, res, completed ? 'detail' : 'form', { heading: 'Automated presented cheques', showNav: true,
+    intro: completed ? 'The example presented-cheques file has been processed.' : 'Select the presented-cheques file to process.',
+    fields: [fiField('file', 'File name', 'radios', { items: [{ value: 'RM_presented_001.txt', text: 'RM_presented_001.txt' }] })],
+    values: flow.values, errors: flow.errors, action: req.path, buttonText: 'Continue', backHref: fiBase + '/daily-checks/tasks',
+    links: completed ? [{ href: fiBase + '/daily-checks/presented-cheques', text: 'View presented cheques reports' }] : [],
+    returnHref: completed ? fiBase + '/daily-checks/tasks' : null, returnText: 'Return to daily checks' })
+})
+
+router.post(fiBase + '/daily-checks/process-presented-cheques', (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'daily-checks', [fiField('file', 'File name', 'radios', { items: [{ value: 'RM_presented_001.txt', text: 'RM_presented_001.txt' }] })])
+  flow.processing = !Object.keys(errors).length
+  return res.redirect(req.path + (flow.processing ? '/review' : ''))
+})
+
+router.get(fiBase + '/daily-checks/process-presented-cheques/review', (req, res) => {
+  const flow = fiFlow(req, 'daily-checks')
+  if (!flow.processing || flow.values['fi-file'] !== 'RM_presented_001.txt' || fiState(req).completedTasks['daily-checks/process-presented-cheques']) return res.redirect(fiBase + '/daily-checks/process-presented-cheques')
+  flow.reviewed = 'processing'
+  return fiRender(req, res, 'review', { heading: 'Check presented-cheques file', summaryRows: [paySummary('File name', flow.values['fi-file'])],
+    action: req.path, backHref: fiBase + '/daily-checks/process-presented-cheques', cancelHref: fiCancel('daily-checks', req.path), buttonText: 'Process file' })
+})
+
+router.post(fiBase + '/daily-checks/process-presented-cheques/review', (req, res) => {
+  const flow = fiFlow(req, 'daily-checks')
+  if (!flow.processing || flow.reviewed !== 'processing' || flow.values['fi-file'] !== 'RM_presented_001.txt' || fiState(req).completedTasks['daily-checks/process-presented-cheques']) return res.redirect(fiBase + '/daily-checks/process-presented-cheques')
+  fiCompleted(req, 'daily-checks', 'process-presented-cheques')
+  fiRecord(req, 'process-presented-cheques', 'Presented-cheques file processed')
+  delete flow.processing; delete flow.reviewed
+  fiFlash(req, 'Presented-cheques file processed')
+  return res.redirect(fiBase + '/daily-checks/process-presented-cheques')
+})
+
+// Month end payouts, court fees and major creditor remittances.
+const fiPayoutGroups = ['Applicants and minor creditors', 'Major creditors', 'HMCTS/Other']
+function fiPayoutFields() {
+  return [fiField('group', 'Pay out to', 'radios', { items: fiOptions(fiPayoutGroups) }),
+    fiField('payout-type', 'Payout type', 'radios', { items: fiOptions(['Normal', 'Demand']), hint: 'Normal and demand payout rules are carried over from Fines and need RM review.' }),
+    fiField('method', 'Payout method', 'radios', { items: fiOptions(['Cheque', 'BACS']) }),
+    fiField('minimum', 'Minimum payment', 'money', { allowZero: true })]
+}
+
+router.get(fiBase + '/month-end/payout', (req, res) => {
+  const flow = fiFlow(req, 'month-end')
+  return fiRender(req, res, 'form', { heading: 'Pay out', showNav: true,
+    applicability: 'Payee groups, payout thresholds and demand payout rules are indicative and need RM review.',
+    fields: fiPayoutFields(), values: flow.values, errors: flow.errors, action: req.path,
+    cancelHref: fiBase + '/month-end/tasks', backHref: fiBase + '/month-end/tasks' })
+})
+
+router.post(fiBase + '/month-end/payout', (req, res) => {
+  const { flow, errors } = fiSubmit(req, 'month-end', fiPayoutFields())
+  flow.payout = !Object.keys(errors).length
+  return res.redirect(req.path + (flow.payout ? '/review' : ''))
+})
+
+router.get(fiBase + '/month-end/payout/review', (req, res) => {
+  const flow = fiFlow(req, 'month-end')
+  if (!flow.payout || Object.keys(fiErrors(fiPayoutFields(), flow.values)).length) return res.redirect(fiBase + '/month-end/payout')
+  const group = flow.values['fi-group']
+  if (fiState(req).completedTasks['month-end/payout/' + group]) return fiRender(req, res, 'detail', { heading: 'Payout already completed',
+    intro: 'This example payee group has already been paid out in this session.', links: [{ href: fiBase + '/month-end/payout', text: 'Choose another payee group' }] })
+  flow.reviewed = 'payout'
+  return fiRender(req, res, 'review', { heading: 'Check payout',
+    intro: 'This records an example payout. No bank file will be sent.', summaryRows: fiReviewRows(fiPayoutFields(), flow.values, fiBase + '/month-end/payout'),
+    action: req.path, backHref: fiBase + '/month-end/payout', cancelHref: fiCancel('month-end', req.path), buttonText: 'Confirm payout' })
+})
+
+router.post(fiBase + '/month-end/payout/review', (req, res) => {
+  const flow = fiFlow(req, 'month-end')
+  if (!flow.payout || flow.reviewed !== 'payout' || Object.keys(fiErrors(fiPayoutFields(), flow.values)).length) return res.redirect(fiBase + '/month-end/payout')
+  const group = flow.values['fi-group']
+  if (fiState(req).completedTasks['month-end/payout/' + group]) return res.redirect(fiBase + '/month-end/payout')
+  fiCompleted(req, 'month-end', 'payout/' + group)
+  if (fiPayoutGroups.every((item) => fiState(req).completedTasks['month-end/payout/' + item])) fiCompleted(req, 'month-end', 'payout')
+  fiRecord(req, 'payout', 'Example payout to ' + group, { method: flow.values['fi-method'], minimum: payParseMoney(flow.values['fi-minimum']) })
+  delete flow.payout; delete flow.reviewed
+  fiFlash(req, 'Example payout to ' + group + ' completed')
+  return res.redirect(fiBase + '/month-end/tasks')
+})
+
+router.get(fiBase + '/month-end/court-fees-transfer', (req, res) => {
+  const completed = fiState(req).completedTasks['month-end/court-fees-transfer']
+  const flow = fiFlow(req, 'month-end')
+  if (completed) return fiRender(req, res, 'detail', { heading: 'Court fees transferred', showNav: true,
+    intro: 'The example court fees have already been transferred.', returnHref: fiBase + '/month-end/tasks', returnText: 'Return to month end' })
+  flow.courtFees = true
+  return fiRender(req, res, 'review', { heading: 'Transfer court fees', summaryRows: [paySummary('Example balance', '£50.00')],
+    action: req.path, backHref: fiBase + '/month-end/tasks', cancelHref: fiCancel('month-end', req.path), buttonText: 'Confirm and transfer' })
+})
+
+router.post(fiBase + '/month-end/court-fees-transfer', (req, res) => {
+  const flow = fiFlow(req, 'month-end')
+  if (!flow.courtFees || fiState(req).completedTasks['month-end/court-fees-transfer']) return res.redirect(req.path)
+  fiCompleted(req, 'month-end', 'court-fees-transfer')
+  fiRecord(req, 'court-fees-transfer', 'Court fees transferred', { amount: '5000' })
+  delete flow.courtFees
+  fiFlash(req, 'Example court fees transferred')
+  return res.redirect(fiBase + '/month-end/tasks')
+})
+
+router.get(fiBase + '/month-end/major-c-bacs', (req, res) => {
+  const records = fiState(req).outcomes.filter((item) => item.type === 'payout' && item.description.includes('Major creditors'))
+  return fiRender(req, res, 'detail', { heading: 'Major creditor remittances', showNav: true,
+    applicability: 'The RM use of major creditor remittances needs to be confirmed.',
+    intro: records.length ? 'Example major creditor payouts recorded in this session.' : 'Complete an example major creditor payout to see a remittance.',
+    ...fiTable(records, req, req.path, ['Date', 'Action', 'Amount', 'User'], (item) => fiHistoryRows([item])[0], 'Remittances'),
+    links: [{ href: fiBase + '/month-end/payout', text: 'Go to payouts' }], returnHref: fiBase + '/month-end/tasks', returnText: 'Return to month end' })
+})
+
+// Retired BU entry URLs cannot reintroduce a picker in RM.
+router.all(fiBase + '/:journey(daily-checks|month-end|quarter-year-end|repayment|clear-bacs-transactions)/:picker(select-business-unit|business-unit)',
+  (req, res) => res.redirect(fiBase + '/' + req.params.journey))
+
+// Keep unguarded kit template rendering out of the indicative finance area.
+router.get(fiBase + '/indicative/:template', (req, res) => res.redirect(fiBase))
