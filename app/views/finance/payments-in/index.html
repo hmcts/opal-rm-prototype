@@ -1,33 +1,34 @@
 {% extends "finance/payments-in/layout.html" %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
   {{ govukInsetText({ text: "Apart from Manual cash input and Automatic cash input, these finance journeys are indicative. They are based on the Fines prototype and will be reviewed for RM individually." }) }}
   <h2 class="govuk-heading-m">Checks</h2>
   <ul class="govuk-list govuk-list--spaced">
-    <li><a class="govuk-link" href="/finance/daily-checks">Daily checks</a></li>
-    <li><a class="govuk-link" href="/finance/month-end">Month end</a></li>
-    <li><a class="govuk-link" href="/finance/quarter-year-end">Quarter and year end</a></li>
+    <li><a class="govuk-link" href="/finance/daily-checks">Daily checks</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/month-end">Month end</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/quarter-year-end">Quarter and year end</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
   </ul>
   <h2 class="govuk-heading-m">Payments in</h2>
   <ul class="govuk-list govuk-list--spaced">
     <li><a class="govuk-link" href="{{ payManual }}">Manual cash input</a></li>
     <li><a class="govuk-link" href="{{ payAuto }}">Automatic cash input</a></li>
-    <li><a class="govuk-link" href="/finance/reissue-bacs-payments">Reissue BACS payments</a></li>
-    <li><a class="govuk-link" href="/finance/clear-bacs-transactions">Clear BACS transactions</a></li>
-    <li><a class="govuk-link" href="/finance/cancel-cheques">Cancel cheques</a></li>
+    <li><a class="govuk-link" href="/finance/reissue-bacs-payments">Reissue BACS payments</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/clear-bacs-transactions">Clear BACS transactions</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/cancel-cheques">Cancel cheques</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
   </ul>
   <h2 class="govuk-heading-m">Payments out</h2>
-  <p class="govuk-body"><a class="govuk-link" href="/finance/repayment">Repayment</a></p>
+  <p class="govuk-body"><a class="govuk-link" href="/finance/repayment">Repayment</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</p>
   <h2 class="govuk-heading-m">Suspense</h2>
   <ul class="govuk-list govuk-list--spaced">
-    <li><a class="govuk-link" href="/finance/suspense">Manage suspense items</a></li>
-    <li><a class="govuk-link" href="/finance/suspense/advance">Transfer maintenance paid in advance</a></li>
+    <li><a class="govuk-link" href="/finance/suspense">Manage suspense items</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/suspense/advance">Transfer maintenance paid in advance</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
   </ul>
   <h2 class="govuk-heading-m">Financial movements</h2>
   <ul class="govuk-list govuk-list--spaced">
-    <li><a class="govuk-link" href="/finance/reverse-payment">Reverse a payment</a></li>
-    <li><a class="govuk-link" href="/finance/dishonour-cheque">Dishonour a cheque</a></li>
-    <li><a class="govuk-link" href="/finance/reversed-payments">Reversed payments report</a></li>
+    <li><a class="govuk-link" href="/finance/reverse-payment">Reverse a payment</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/dishonour-cheque">Dishonour a cheque</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
+    <li><a class="govuk-link" href="/finance/reversed-payments">Reversed payments report</a> {{ govukTag({ text: "To review", classes: "govuk-tag--grey govuk-!-margin-left-2" }) }}</li>
   </ul>
 </div></div>
 {% endblock %}
