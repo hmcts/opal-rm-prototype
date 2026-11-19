@@ -1,6 +1,5 @@
 {% set individualHtml %}
-  {{ govukSelect({ id: "pay-payerTitle", name: "pay-payerTitle", label: { text: "Title (optional)" }, value: values.payerTitle,
-    errorMessage: errors["pay-payerTitle"], items: [{ value: "", text: "Select title" }, { value: "Mr", text: "Mr", selected: values.payerTitle === "Mr" }, { value: "Mrs", text: "Mrs", selected: values.payerTitle === "Mrs" }, { value: "Miss", text: "Miss", selected: values.payerTitle === "Miss" }, { value: "Ms", text: "Ms", selected: values.payerTitle === "Ms" }] }) }}
+  {{ govukInput({ id: "pay-payerTitle", name: "pay-payerTitle", label: { text: "Title (optional)" }, classes: "govuk-!-width-one-quarter", autocomplete: "honorific-prefix", value: values.payerTitle, errorMessage: errors["pay-payerTitle"] }) }}
   {{ govukInput({ id: "pay-payerFirstNames", name: "pay-payerFirstNames", label: { text: "First names (optional)" }, value: values.payerFirstNames, errorMessage: errors["pay-payerFirstNames"], autocomplete: "given-name", attributes: { maxlength: 50 } }) }}
   {{ govukInput({ id: "pay-payerLastName", name: "pay-payerLastName", label: { text: "Last name" }, value: values.payerLastName, errorMessage: errors["pay-payerLastName"], autocomplete: "family-name", attributes: { maxlength: 50 } }) }}
 {% endset %}

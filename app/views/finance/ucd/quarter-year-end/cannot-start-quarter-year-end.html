@@ -1,0 +1,35 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "You cannot start quarter and year end" if data['quarterOrYear'] == "Quarter and year end" else "You cannot start quarter end" %}
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+      <p class="govuk-body">You need to:</p>
+
+      <ul class="govuk-list govuk-list--bullet">
+        <li>payout HMCTS/Other</li>
+        <li>pay out major creditors</li>
+      </ul>
+
+      <p class="govuk-body">
+        <a href="/finance" class="govuk-link govuk-link--no-visited-state">Return to finance</a>
+      </p>
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

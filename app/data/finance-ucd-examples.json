@@ -1,0 +1,698 @@
+{
+  "suspenseItems": [
+    {
+      "id": "susp-004",
+      "referenceNumber": "234",
+      "businessUnit": "RM",
+      "balance": 150,
+      "balanceFormatted": "\u00a31.50",
+      "transactions": [
+        {
+          "id": "txn-004",
+          "authorName": "Emma Thompson",
+          "date": "2025-12-05T08:30:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "MS",
+          "typeLabel": "Miscellaneous",
+          "paymentInType": "Manual",
+          "receivedFrom": "",
+          "accountNumber": "",
+          "source": "",
+          "amount": 150,
+          "amountFormatted": "\u00a31.50",
+          "paymentMethod": "Cheque",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-004",
+          "text": "Payment received in envelope. Unable to identify payer.",
+          "author": "emma.thompson",
+          "authorName": "Emma Thompson",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T09:30:00Z"
+    },
+    {
+      "id": "susp-005",
+      "referenceNumber": "567",
+      "businessUnit": "RM",
+      "balance": 3200,
+      "balanceFormatted": "\u00a332.00",
+      "transactions": [
+        {
+          "id": "txn-005-1",
+          "authorName": "Michael Robinson",
+          "date": "2025-11-02T09:15:00Z",
+          "dateFormatted": "02 Nov 2025",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "accountNumber": "33456789B",
+          "source": "Barclays",
+          "amount": 3200,
+          "amountFormatted": "\u00a332.00",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-005",
+          "text": "Payment identified. Payer is Sarah Williams\u2013Jones. Acc no. is 23456789B",
+          "author": "david.wilson",
+          "authorName": "David Wilson",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T14:20:00Z"
+    },
+    {
+      "id": "susp-006",
+      "referenceNumber": "890",
+      "businessUnit": "RM",
+      "balance": 750,
+      "balanceFormatted": "\u00a37.50",
+      "transactions": [
+        {
+          "id": "txn-006",
+          "date": "2025-12-05T10:45:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "authorName": "Rachel Green",
+          "type": "OF",
+          "typeLabel": "Fines overpayment",
+          "paymentInType": "Auto",
+          "receivedFrom": "Third party",
+          "accountNumber": "1234567GH",
+          "source": "Other",
+          "amount": 750,
+          "amountFormatted": "\u00a37.50",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-006",
+          "text": "Payment received from Employer, TechCorp Ltd. Respondent balance is 0. Repay to employer.",
+          "author": "peter.jones",
+          "authorName": "Peter Jones",
+          "dateAdded": "2025-12-05T10:50:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T10:45:00Z"
+    },
+    {
+      "id": "susp-007",
+      "referenceNumber": "345",
+      "businessUnit": "RM",
+      "balance": 220,
+      "balanceFormatted": "\u00a32.20",
+      "transactions": [
+        {
+          "id": "txn-007",
+          "authorName": "Oliver Harris",
+          "date": "2025-12-05T08:30:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "MS",
+          "typeLabel": "Miscellaneous",
+          "paymentInType": "Manual",
+          "receivedFrom": "",
+          "accountNumber": "",
+          "source": "",
+          "amount": 220,
+          "amountFormatted": "\u00a32.20",
+          "paymentMethod": "Cheque",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-007",
+          "text": "Payment received in envelope. Unable to identify payer.",
+          "author": "oliver.harris",
+          "authorName": "Oliver Harris",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T09:30:00Z"
+    },
+    {
+      "id": "susp-008",
+      "referenceNumber": "678",
+      "businessUnit": "RM",
+      "balance": 1800,
+      "balanceFormatted": "\u00a318.00",
+      "transactions": [
+        {
+          "id": "txn-008-1",
+          "authorName": "Sophie Martin",
+          "date": "2025-12-05T09:15:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "accountNumber": "44567890C",
+          "source": "HSBC",
+          "amount": 1800,
+          "amountFormatted": "\u00a318.00",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-008",
+          "text": "Payment identified. Payer is Robert Taylor\u2013Brown. Acc no. is 34567890C",
+          "author": "hannah.taylor",
+          "authorName": "Hannah Taylor",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T14:20:00Z"
+    },
+    {
+      "id": "susp-009",
+      "referenceNumber": "901",
+      "businessUnit": "RM",
+      "balance": 950,
+      "balanceFormatted": "\u00a39.50",
+      "transactions": [
+        {
+          "id": "txn-009",
+          "date": "2025-12-05T10:45:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "authorName": "Thomas Clark",
+          "type": "OF",
+          "typeLabel": "Fines overpayment",
+          "paymentInType": "Auto",
+          "receivedFrom": "Third party",
+          "accountNumber": "2345678IJ",
+          "source": "Other",
+          "amount": 950,
+          "amountFormatted": "\u00a39.50",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-009",
+          "text": "Payment received from Employer, Global Solutions Inc. Respondent balance is 0. Repay to employer.",
+          "author": "lucy.james",
+          "authorName": "Lucy James",
+          "dateAdded": "2025-12-05T10:50:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T10:45:00Z"
+    },
+    {
+      "id": "susp-010",
+      "referenceNumber": "10112",
+      "businessUnit": "RM",
+      "balance": 320,
+      "balanceFormatted": "\u00a33.20",
+      "transactions": [
+        {
+          "id": "txn-010",
+          "authorName": "Charlotte Davies",
+          "date": "2025-12-05T08:30:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "receivedFrom": "",
+          "accountNumber": "55123456E",
+          "source": "NatWest",
+          "amount": 320,
+          "amountFormatted": "\u00a33.20",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [],
+      "lastUpdated": "2025-12-05T09:30:00Z"
+    },
+    {
+      "id": "susp-011",
+      "referenceNumber": "20223",
+      "businessUnit": "RM",
+      "balance": 4100,
+      "balanceFormatted": "\u00a341.00",
+      "transactions": [
+        {
+          "id": "txn-011-1",
+          "authorName": "James Walker",
+          "date": "2025-12-05T09:15:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "accountNumber": "55678901D",
+          "source": "Lloyds",
+          "amount": 4100,
+          "amountFormatted": "\u00a341.00",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [],
+      "lastUpdated": "2025-12-05T14:20:00Z"
+    },
+    {
+      "id": "susp-012",
+      "referenceNumber": "30334",
+      "businessUnit": "RM",
+      "balance": 1250,
+      "balanceFormatted": "\u00a312.50",
+      "transactions": [
+        {
+          "id": "txn-012",
+          "date": "2025-12-05T10:45:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "authorName": "Amelia White",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "receivedFrom": "",
+          "accountNumber": "3456789F",
+          "source": "Barclays",
+          "amount": 1250,
+          "amountFormatted": "\u00a312.50",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [],
+      "lastUpdated": "2025-12-05T10:45:00Z"
+    },
+    {
+      "id": "susp-013",
+      "referenceNumber": "123",
+      "businessUnit": "RM",
+      "balance": 80,
+      "balanceFormatted": "\u00a30.80",
+      "transactions": [
+        {
+          "authorName": "Emma Thompson",
+          "date": "2025-12-05T08:30:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "MS",
+          "typeLabel": "Miscellaneous",
+          "paymentInType": "Manual",
+          "receivedFrom": "",
+          "accountNumber": "",
+          "source": "",
+          "amount": 80,
+          "amountFormatted": "\u00a30.80",
+          "paymentMethod": "Cheque",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-001",
+          "text": "Payment received in envelope. Unable to identify payer. Recommended to pay to HMCTS.",
+          "author": "john.major",
+          "authorName": "John Major",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T09:30:00Z"
+    },
+    {
+      "id": "susp-014",
+      "referenceNumber": "456",
+      "businessUnit": "RM",
+      "balance": 2500,
+      "balanceFormatted": "\u00a325.00",
+      "transactions": [
+        {
+          "id": "txn-002-1",
+          "authorName": "Freddy Clarke",
+          "date": "2025-12-05T09:15:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "type": "UN",
+          "typeLabel": "Unidentified amount",
+          "paymentInType": "Auto",
+          "accountNumber": "22345678A",
+          "source": "NatWest",
+          "amount": 2500,
+          "amountFormatted": "\u00a325.00",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-001",
+          "text": "Payment identified. Payer is Terrance Conway\u2013Johnson. Acc no. is 12345678A",
+          "author": "sally.smith",
+          "authorName": "Coleman McBride",
+          "dateAdded": "2025-12-05T15:30:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T14:20:00Z"
+    },
+    {
+      "id": "susp-015",
+      "referenceNumber": "789",
+      "businessUnit": "RM",
+      "balance": 500,
+      "balanceFormatted": "\u00a35.00",
+      "transactions": [
+        {
+          "id": "txn-003",
+          "date": "2025-12-05T10:45:00Z",
+          "dateFormatted": "05 Dec 2025",
+          "authorName": "Sally Hughes",
+          "type": "OF",
+          "typeLabel": "Fines overpayment",
+          "paymentInType": "Auto",
+          "receivedFrom": "Third party",
+          "accountNumber": "0098765EF",
+          "source": "Other",
+          "amount": 500,
+          "amountFormatted": "\u00a35.00",
+          "paymentMethod": "Credit transfer",
+          "firstPayment": true
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-001",
+          "text": "Payment received from Employer, Acme Org. Respondent balance is 0. Repay to employer.",
+          "author": "jane.doe",
+          "authorName": "Jane Doe",
+          "dateAdded": "2025-12-05T10:50:00Z",
+          "dateAddedFormatted": "05 Dec 2025"
+        }
+      ],
+      "lastUpdated": "2025-12-05T10:45:00Z"
+    }
+  ],
+  "cheques": [
+    {
+      "chequeNumber": "524589",
+      "accountNumber": "06000427N",
+      "accountName": "Mr Terrence JOHNSON",
+      "accountType": "Maintenance account",
+      "pcr": "PCR0012345",
+      "businessUnit": "RM",
+      "dateWritten": "01 August 2025",
+      "dateWrittenShort": "01 Aug 2025",
+      "amount": "\u00a310.00",
+      "imposed": "\u00a3600.00",
+      "arrears": "\u00a30.00",
+      "paidWrittenOff": "\u00a30.00",
+      "balance": "\u00a3600.00"
+    },
+    {
+      "chequeNumber": "125",
+      "accountNumber": "09001234K",
+      "accountName": "Ms Eleanor CASEY",
+      "accountType": "Maintenance account",
+      "pcr": "PCR0056789",
+      "businessUnit": "RM",
+      "dateWritten": "15 March 2025",
+      "dateWrittenShort": "15 Mar 2025",
+      "amount": "\u00a375.50",
+      "imposed": "\u00a3350.00",
+      "arrears": "\u00a30.00",
+      "paidWrittenOff": "\u00a375.50",
+      "balance": "\u00a3274.50"
+    }
+  ],
+  "bacsPayments": [
+    {
+      "bankAccountId": "90233765-123456",
+      "bankAccountNumber": "90233765",
+      "sortCode": "123456",
+      "businessUnit": "RM",
+      "payments": [
+        {
+          "transactionNumber": "1388875",
+          "paymentReference": "12747581H",
+          "creditorAccountId": "17175995W",
+          "transactionDate": "30 June 2026",
+          "transactionDateShort": "30 Jun 2026",
+          "transactionDateSort": "2026-06-30",
+          "amount": "\u00a32.50"
+        }
+      ]
+    },
+    {
+      "bankAccountId": "27614589-654321",
+      "bankAccountNumber": "27614589",
+      "sortCode": "654321",
+      "businessUnit": "RM",
+      "payments": [
+        {
+          "transactionNumber": "2045981",
+          "paymentReference": "20459811J",
+          "creditorAccountId": "28004471P",
+          "transactionDate": "02 July 2026",
+          "transactionDateShort": "02 Jul 2026",
+          "transactionDateSort": "2026-07-02",
+          "amount": "\u00a345.00"
+        },
+        {
+          "transactionNumber": "2045982",
+          "paymentReference": "20459822K",
+          "creditorAccountId": "28004481E",
+          "transactionDate": "05 July 2026",
+          "transactionDateShort": "05 Jul 2026",
+          "transactionDateSort": "2026-07-05",
+          "amount": "\u00a3120.00"
+        },
+        {
+          "transactionNumber": "2045983",
+          "paymentReference": "20459833M",
+          "creditorAccountId": "28004481Y",
+          "transactionDate": "06 July 2026",
+          "transactionDateShort": "06 Jul 2026",
+          "transactionDateSort": "2026-07-06",
+          "amount": "\u00a378.50"
+        }
+      ]
+    }
+  ],
+  "minorCreditorAccounts": [
+    {
+      "accountId": "17175995W",
+      "accountName": "Mr Cristian GELDENHUIS",
+      "accountType": "Minor creditor",
+      "businessUnit": "RM",
+      "awarded": "\u00a3250.00",
+      "paidOut": "\u00a3247.50",
+      "awaitingPayment": "\u00a32.50",
+      "outstanding": "\u00a30.00",
+      "address": [
+        "24 High Street",
+        "Twyford",
+        "Berkshire",
+        "RG10 9RT"
+      ],
+      "respondentAccountNumber": "51002233K",
+      "respondentName": "Mr Terrence CONWAY-JONES",
+      "bacsDetailsProvided": true
+    },
+    {
+      "accountId": "28004471P",
+      "accountName": "Mr John SMITH",
+      "accountType": "Minor creditor",
+      "businessUnit": "RM",
+      "awarded": "\u00a345.00",
+      "paidOut": "\u00a30.00",
+      "awaitingPayment": "\u00a345.00",
+      "outstanding": "\u00a30.00",
+      "address": [
+        "8 Orchard Road",
+        "Bury St. Edmunds",
+        "Suffolk",
+        "IP33 2AB"
+      ],
+      "respondentAccountNumber": "33871042F",
+      "respondentName": "Mr Liam O\u2019CONNOR",
+      "bacsDetailsProvided": true
+    },
+    {
+      "accountId": "28004481E",
+      "accountName": "Mrs Sarah SMITH",
+      "accountType": "Minor creditor",
+      "businessUnit": "RM",
+      "awarded": "\u00a3120.00",
+      "paidOut": "\u00a30.00",
+      "awaitingPayment": "\u00a3120.00",
+      "outstanding": "\u00a30.00",
+      "address": [
+        "12 Mill Lane",
+        "Bury St. Edmunds",
+        "Suffolk",
+        "IP33 1XY"
+      ],
+      "respondentAccountNumber": "22458871P",
+      "respondentName": "Ms Rebecca HUGHES",
+      "bacsDetailsProvided": true
+    },
+    {
+      "accountId": "28004481Y",
+      "accountName": "Mr Trevor CANDY",
+      "accountType": "Minor creditor",
+      "businessUnit": "RM",
+      "awarded": "\u00a378.50",
+      "paidOut": "\u00a30.00",
+      "awaitingPayment": "\u00a378.50",
+      "outstanding": "\u00a30.00",
+      "address": [
+        "45 Station Approach",
+        "Bury St. Edmunds",
+        "Suffolk",
+        "IP33 3CD"
+      ],
+      "respondentAccountNumber": "44982210R",
+      "respondentName": "Miss Amelia FOSTER",
+      "bacsDetailsProvided": true
+    }
+  ],
+  "staticReports": [
+    {
+      "date": "2026-01-01T12:30",
+      "displayDate": "01 Jan 2026 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "olivia.smith",
+      "status": "Ready"
+    },
+    {
+      "date": "2026-01-01T12:30",
+      "displayDate": "01 Jan 2026 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "benjamin.miller",
+      "status": "Ready"
+    },
+    {
+      "date": "2026-01-01T12:30",
+      "displayDate": "01 Jan 2026 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "isabella.garcia",
+      "status": "Ready"
+    },
+    {
+      "date": "2026-01-01T12:30",
+      "displayDate": "01 Jan 2026 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "daniel.jackson",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-10-01T12:30",
+      "displayDate": "01 Oct 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "olivia.smith",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-10-01T12:30",
+      "displayDate": "01 Oct 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "charles.rodriguez",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-10-01T12:30",
+      "displayDate": "01 Oct 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "maria.jones",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-10-01T12:30",
+      "displayDate": "01 Oct 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "david.taylor",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-07-01T12:30",
+      "displayDate": "01 Jul 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "olivia.smith",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-07-01T12:30",
+      "displayDate": "01 Jul 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "robert.miller",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-07-01T12:30",
+      "displayDate": "01 Jul 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "patricia.wilson",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-07-01T12:30",
+      "displayDate": "01 Jul 2025 at 12:30",
+      "title": "Quarter end report",
+      "unit": "RM",
+      "author": "jason.hall",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-04-01T12:30",
+      "displayDate": "01 Apr 2025 at 12:30",
+      "title": "Quarter and year end report",
+      "unit": "RM",
+      "author": "olivia.smith",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-04-01T12:30",
+      "displayDate": "01 Apr 2025 at 12:30",
+      "title": "Quarter and year end report",
+      "unit": "RM",
+      "author": "karen.white",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-04-01T12:30",
+      "displayDate": "01 Apr 2025 at 12:30",
+      "title": "Quarter and year end report",
+      "unit": "RM",
+      "author": "matthew.harris",
+      "status": "Ready"
+    },
+    {
+      "date": "2025-04-01T12:30",
+      "displayDate": "01 Apr 2025 at 12:30",
+      "title": "Quarter and year end report",
+      "unit": "RM",
+      "author": "laura.clark",
+      "status": "Ready"
+    }
+  ]
+}

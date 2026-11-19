@@ -1,0 +1,267 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Add details and repay 3rd party" %}
+
+
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/suspense/confirm-repay-third-party">
+
+      <input type="hidden" name="suspenseRef" value="{{ suspenseRef }}">
+
+
+      {% set 3rdPartyTypeIndividualHTML %}
+        {{ govukInput({ id: "3rdPartyTypeIndividualTitle", name: "3rdPartyTypeIndividualTitle", label: { text: "Title", classes: "govuk-label--s" }, classes: "govuk-!-width-one-quarter", autocomplete: "honorific-prefix", value: data["3rdPartyTypeIndividualTitle"], errorMessage: fieldErrors["3rdPartyTypeIndividualTitle"] }) }}
+
+        {{ govukInput({
+          id: "3rdPartyTypeIndividualFirstName",
+          name: "3rdPartyTypeIndividualFirstName",
+          classes: "govuk-input--width-20",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          }
+        , value: data["3rdPartyTypeIndividualFirstName"], errorMessage: fieldErrors["3rdPartyTypeIndividualFirstName"]}) }}
+
+        {{ govukInput({
+          id: "3rdPartyTypeIndividualLastName",
+          name: "3rdPartyTypeIndividualLastName",
+          classes: "govuk-input--width-20",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          }
+        , value: data["3rdPartyTypeIndividualLastName"], errorMessage: fieldErrors["3rdPartyTypeIndividualLastName"]}) }}
+      {% endset -%}
+
+      {% set 3rdPartyTypeCompanyHTML %}
+      {{ govukInput({
+        id: "3rdPartyTypeIndividualCompanyName",
+        name: "3rdPartyTypeIndividualCompanyName",
+        classes: "govuk-input--width-30",
+        type: "text",
+        label: {
+          text: "Company name",
+          classes: "govuk-label--s"
+        }
+      , value: data["3rdPartyTypeIndividualCompanyName"], errorMessage: fieldErrors["3rdPartyTypeIndividualCompanyName"]}) }}
+
+      {% endset -%}
+
+      {{ govukRadios({
+        name: "3rdPartyType",
+        id: "3rdPartyType",
+        fieldset: {
+          legend: {
+            text: "Select creditor type",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        items: [
+          {
+            value: "Individual",
+            text: "Individual",
+            conditional: {
+              html: 3rdPartyTypeIndividualHTML
+            }
+          },
+          {
+            value: "Company",
+            text: "Company",
+            conditional: {
+              html: 3rdPartyTypeCompanyHTML
+            }
+          }
+        ]
+      , value: data["3rdPartyType"], errorMessage: fieldErrors["3rdPartyType"]}) }}
+
+
+
+      {% call govukFieldset({
+        legend: {
+          text: "Address",
+          classes: "govuk-fieldset__legend--m"
+        }
+      }) %}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label"
+          },
+          id: "3rdPartyAddressL1",
+          name: "3rdPartyAddressL1",
+          classes: "govuk-input--width-30"
+        , value: data["3rdPartyAddressL1"], errorMessage: fieldErrors["3rdPartyAddressL1"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label"
+          },
+          id: "3rdPartyAddressL2",
+          name: "3rdPartyAddressL2",
+          classes: "govuk-input--width-30"
+        , value: data["3rdPartyAddressL2"], errorMessage: fieldErrors["3rdPartyAddressL2"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-30",
+          id: "3rdPartyAddressL3",
+          name: "3rdPartyAddressL3"
+        , value: data["3rdPartyAddressL3"], errorMessage: fieldErrors["3rdPartyAddressL3"]}) }}
+
+
+        {{ govukInput({
+          label: {
+            text: "Postcode",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-10",
+          id: "3rdPartyPostCode",
+          name: "3rdPartyPostCode"
+        , value: data["3rdPartyPostCode"], errorMessage: fieldErrors["3rdPartyPostCode"]}) }}
+
+      {% endcall %}
+
+
+
+      {% set BACSHTML %}
+
+      {{ govukInput({
+        id: "3rdPartAccountName",
+        name: "3rdPartAccountName",
+        label: {
+          text: "Name on the account",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-30"
+      , value: data["3rdPartAccountName"], errorMessage: fieldErrors["3rdPartAccountName"]}) }}
+
+      {{ govukInput({
+        id: "3rdPartSortCode",
+        name: "3rdPartSortCode",
+        label: {
+          text: "Sort code",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-5"
+      , value: data["3rdPartSortCode"], errorMessage: fieldErrors["3rdPartSortCode"]}) }}
+
+      {{ govukInput({
+        id: "3rdPartAccountNumber",
+        name: "3rdPartAccountNumber",
+        value: data['3rdPartAccountNumber'],
+        label: {
+          text: "Account number",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-10"
+      , value: data["3rdPartAccountNumber"], errorMessage: fieldErrors["3rdPartAccountNumber"]}) }}
+
+      {{ govukInput({
+        id: "3rdPartPaymentReference",
+        name: "3rdPartPaymentReference",
+        label: {
+          text: "Payment reference",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-10"
+      , value: data["3rdPartPaymentReference"], errorMessage: fieldErrors["3rdPartPaymentReference"]}) }}
+
+      {% endset -%}
+
+      {{ govukRadios({
+        name: "partyPaymentMethod",
+        id: "partyPaymentMethod",
+        fieldset: {
+          legend: {
+            text: "Payment method",
+            isPageHeading: false,
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        items: [
+          {
+            value: "Pay by cheque",
+            text: "Pay by cheque"
+          },
+          {
+            value: "Pay by BACS",
+            text: "Pay by BACS",
+            conditional: {
+              html: BACSHTML
+            }
+          }
+        ]
+      , value: data["partyPaymentMethod"], errorMessage: fieldErrors["partyPaymentMethod"]}) }}
+
+      {# Size modifiers: xl, l, m #}
+
+
+      <h2 class="govuk-heading-m">Repay</h2>
+
+      <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-2">Suspense balance</p>
+      <p class="govuk-body">{{ item.balanceFormatted }}</p>
+
+      {{ govukInput({
+        id: "amountToRepay",
+        name: "amountToRepay",
+        label: {
+          text: "Amoun to repay",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        prefix: {
+          text: "£"
+        },
+        classes: "govuk-input--width-5",
+        spellcheck: false
+      , value: data["amountToRepay"], errorMessage: fieldErrors["amountToRepay"]}) }}
+
+      {# Size modifiers: xl, l, m #}
+
+
+      {{ govukCharacterCount({
+        name: "suspenseNote",
+        id: "suspense-note",
+        maxlength: 1000,
+        label: {
+          text: "Enter suspense note",
+          classes: "govuk-label--m",
+          isPageHeading: "false"
+        }
+      , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Confirm and repay"
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" href="/finance/suspense/item?ref={{ suspenseRef }}">Cancel</a></p>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

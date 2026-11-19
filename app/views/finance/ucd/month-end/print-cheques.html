@@ -1,0 +1,135 @@
+{% extends "finance/ucd/layout" %}
+
+{% set journeyName = "Daily checks" %}
+
+{% set pageName = "Print cheques" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./task-list?printChequesReturn=true"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+
+
+        <form data-finance-form novalidate class="govuk-form-group" action="check-print-number" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+
+            <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+            <nav class="moj-sub-navigation" aria-label="Sub navigation">
+            <ul class="moj-sub-navigation__list">
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" aria-current="page" href="./print-cheques">
+                    To print
+                </a>
+                </li>
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" href="./print-report">
+                    Print report
+                </a>
+                </li>
+            </ul>
+            </nav>
+
+            {% if data['printChequesReturn'] == "true" %}
+
+        {% else %}
+
+        {% if data['chequesPrinted'] == "true" %}
+
+        {{ mojAlert({
+            variant: "success",
+            title: "",
+            showTitleAsHeading: false,
+            dismissible: false,
+            html: 'Success message.'
+        }) }}
+
+        {% else %}
+
+        {% endif %}
+
+        {% endif %}
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+
+
+
+            <h2 class="govuk-heading-m">To print</h2>
+
+            {% if data['chequesPrinted'] == "true" %}
+
+            <p class="govuk-body">There are no cheques to print.</p>
+
+            {% else %}
+
+             {% set financeHead1 = [] %}
+
+
+                    {% set financeCellHtml %}Creditors{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+                    {% set financeCellHtml %}Cheques{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+
+
+{% set financeRows1 = [] %}
+
+                    {% set financeRow1 = [] %}
+
+                    {% set financeCellHtml %}Major creditor{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}5{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% set financeRow1 = [] %}
+
+                    {% set financeCellHtml %}Minor creditor{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}14{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1 }) }}
+
+
+            <div class="govuk-button-group">
+                <button type="submit" class="govuk-button">
+                   Continue
+                </button>
+
+
+            </div>
+
+            </div>
+            </div>
+
+            {% endif %}
+
+
+
+
+        </form>
+
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

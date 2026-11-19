@@ -1,0 +1,77 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Reissue BACS payments" %}
+
+
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if errors %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: errors
+      }) }}
+    {% endif %}
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/reissue-bacs-payments">
+
+      {{ govukInput({
+        id: "enterBankAccountNumber",
+        name: "enterBankAccountNumber",
+        label: {
+          text: "Bank account number",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        classes: "govuk-input--width-10",
+        spellcheck: false,
+        value: bankAccountNumber,
+        errorMessage: { text: accountNumberError } if accountNumberError
+      , value: data["enterBankAccountNumber"], errorMessage: fieldErrors["enterBankAccountNumber"]}) }}
+
+      {{ govukInput({
+        id: "enterSortCode",
+        name: "enterSortCode",
+        label: {
+          text: "Sort code",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        classes: "govuk-input--width-5",
+        spellcheck: false,
+        value: sortCode,
+        errorMessage: { text: sortCodeError } if sortCodeError
+      , value: data["enterSortCode"], errorMessage: fieldErrors["enterSortCode"]}) }}
+
+      <div class="govuk-button-group">
+
+        {{ govukButton({
+          text: "Continue",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel</a></p>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

@@ -1,0 +1,13 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = "Transfer maintenance paid in advance" %}
+{% block content %}
+<h1 class="govuk-heading-l">{{ pageName }}</h1>
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{{ govukTable({head: [{text: "Balance"}], rows: [[{text: "£875.50"}]]}) }}
+<form data-finance-form novalidate method="post" action="/finance/suspense/transfer-maintenance-paid-in-advance">
+{{ govukButton({text: "Transfer"}) }}
+<a class="govuk-link" href="/finance">Cancel</a>
+</form></div></div>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "BACS payment not found" %}
+
+
+
+{% block beforeContent %}
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <p class="govuk-body">There is no BACS payment matching the details entered. </p>
+
+    <p class="govuk-body">
+      <a class="govuk-link govuk-link--no-visited-state" id="goBackLink" href="/finance/reissue-bacs-payments">Go back</a>
+    </p>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

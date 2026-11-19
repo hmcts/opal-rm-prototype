@@ -1,0 +1,90 @@
+{% extends "finance/ucd/layout" %}
+
+
+{% set pageName = "Dishonoured cheques report" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./dishonoured-cheques"
+}) }}
+
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+        <h2 class="govuk-heading-m">General</h2>
+
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Status"
+              },
+              value: {
+                text: "No records"
+              }
+            },
+            {
+              key: {
+                text: "Date created"
+              },
+              value: {
+                text: "19 Mar 2025 at 09:10"
+              }
+            },
+
+            {
+              key: {
+                text: "Created by"
+              },
+              value: {
+                text: "jane.smith"
+              }
+            }
+          ]
+        }) }}
+
+
+       <h2 class="govuk-heading-m">Errors</h2>
+
+       {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Error description"
+              },
+              value: {
+                text: "No dishonoured cheques logged since last report"
+              }
+            }
+          ]
+        }) }}
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

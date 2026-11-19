@@ -1,0 +1,168 @@
+{% extends "finance/ucd/layout" %}
+
+
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="moj-page-header-actions govuk-!-margin-bottom-2"><div class="moj-page-header-actions__title">
+
+    <h1 class="govuk-heading-l govuk-!-margin-bottom-4">{{ cheque.accountName }}</h1>
+  </div><div class="moj-page-header-actions__actions">
+
+    {{ govukButton({
+      text: "Add account note",
+      href: "#",
+      classes: "govuk-button--secondary"
+    }) }}
+
+    {{ mojButtonMenu({
+      button: {
+        text: "More actions",
+        classes: "govuk-button--secondary"
+      },
+      items: [
+        {
+          text: "Print",
+          href: "#"
+        },
+        {
+          text: "Export",
+          href: "#"
+        }
+      ]
+    }) }}
+
+  </div>
+
+</div>
+
+<div class="govuk-!-margin-bottom-4">
+
+  <div>
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Account type</p>
+    <p class="govuk-body-s govuk-!-margin-bottom-2">{{ cheque.accountType }}</p>
+  </div>
+
+  <div>
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">PCR or case number</p>
+    <p class="govuk-body-s govuk-!-margin-bottom-2">{{ cheque.pcr }}</p>
+  </div>
+
+  <div>
+
+  </div>
+
+</div>
+
+<div class="rm-case-summary-bar govuk-!-margin-bottom-4" role="region" aria-label="Account summary">
+
+  <div class="rm-case-summary-tile rm-case-summary-tile--light">
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Imposed</p>
+    <p class="govuk-body govuk-!-margin-bottom-0">{{ cheque.imposed }}</p>
+  </div>
+
+  <div class="rm-case-summary-tile rm-case-summary-tile--light">
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrears</p>
+    <p class="govuk-body govuk-!-margin-bottom-0">{{ cheque.arrears }}</p>
+  </div>
+
+  <div class="rm-case-summary-tile rm-case-summary-tile--light">
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Paid/Written off</p>
+    <p class="govuk-body govuk-!-margin-bottom-0">{{ cheque.paidWrittenOff }}</p>
+  </div>
+
+  <div class="rm-case-summary-tile rm-case-summary-tile--light">
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Balance</p>
+    <p class="govuk-body govuk-!-margin-bottom-0">{{ cheque.balance }}</p>
+  </div>
+
+</div>
+
+<nav class="moj-sub-navigation govuk-!-margin-bottom-6" aria-label="Account sub navigation">
+  <ul class="moj-sub-navigation__list">
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" href="#">At a glance</a>
+    </li>
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" href="#">Respondent</a>
+    </li>
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" href="#">Payment terms</a>
+    </li>
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" href="#">Enforcement</a>
+    </li>
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" href="#">Order terms</a>
+    </li>
+    <li class="moj-sub-navigation__item">
+      <a class="moj-sub-navigation__link" aria-current="page" href="/finance/cancel-cheques/cheque-history">History and notes</a>
+    </li>
+  </ul>
+</nav>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <h2 class="govuk-heading-m">History and notes</h2>
+
+    {{ govukDetails({
+      summaryText: "Show filter",
+      text: "Sorry, there aren't any filters in this prototype.",
+      classes: "govuk-!-margin-bottom-4"
+    }) }}
+
+
+      {% set financeHead1 = [] %}
+
+
+            {% set financeCellHtml %}Date{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "descending" } }) %}
+            {% set financeCellHtml %}User{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+            {% set financeCellHtml %}Type{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+            {% set financeCellHtml %}Details{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+            {% set financeCellHtml %}Amount{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, format: "numeric", attributes: { "aria-sort": "none" } }) %}
+
+
+{% set financeRows1 = [] %}
+
+          {% for row in historyRows %}
+          {% set financeRow1 = [] %}
+
+            {% set financeCellHtml %}{{ row.date }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+            {% set financeCellHtml %}{{ row.user }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+            {% set financeCellHtml %}{{ row.type }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+            {% set financeCellHtml %}{{ row.detail | safe }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+            {% set financeCellHtml %}
+              {% if row.amount %}
+                {{ row.amount }}
+                {% if row.tag == 'DR' %}<span class="govuk-tag govuk-tag--red">DR</span>{% endif %}
+                {% if row.tag == 'CR' %}<span class="govuk-tag govuk-tag--green">CR</span>{% endif %}
+              {% endif %}
+            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+          {% endfor %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+
+  </div>
+</div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Quarter and year end report" %}
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <form data-finance-form novalidate method="post" action="./quarter-year-end-report">
+
+        <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+
+
+        {{ govukRadios({
+          idPrefix: "createReportReportType",
+          name: "createReportReportType",
+          fieldset: {
+            legend: {
+              text: "Report type",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          items: [
+            {
+              value: "Quarter end",
+              text: "Quarter end"
+            },
+            {
+              value: "Year end",
+              text: "Year end"
+            }
+          ]
+        , value: data["createReportReportType"], errorMessage: fieldErrors["createReportReportType"]}) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+          text: "Create report"
+        }) }}
+
+        <p><a href="./quarter-year-end-report" class="govuk-link">Cancel</a></p>
+        </div>
+
+
+
+      </form>
+
+    </div>
+  </div>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

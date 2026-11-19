@@ -1,0 +1,20 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = heading %}
+{% block beforeContent %}{{ govukBackLink({text: "Back", href: backHref}) }}{% endblock %}
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if account %}<span class="govuk-caption-l">{{ account.ref }} – {{ account.name }}</span>{% endif %}
+<h1 class="govuk-heading-l">Confirm {{ "reversal" if verb === "reverse" else "dishonour" }}</h1>
+{{ govukSummaryList({rows: [{key: {text: "Payment received"}, value: {text: paymentAmount} }]}) }}
+<form data-finance-form method="post" action="{{ href }}/review" novalidate>
+{% for term in terms %}{% if selected.includes(term.value) %}
+{{ govukTable({caption: term.text, captionClasses: "govuk-visually-hidden", head: [{text: "Order term ID"}, {text: "Order term"}, {text: "Creditor"}], rows: [[{text: term.term.code}, {text: term.text}, {text: term.creditor}]]}) }}
+{{ govukInput({id: "fi-allocation-" + term.value, name: "fi-allocation-" + term.value, label: {text: "Amount to " + verb + " for " + term.text, classes: "govuk-label--s"}, prefix: {text: "£"}, value: values["fi-allocation-" + term.value], errorMessage: errors["fi-allocation-" + term.value], classes: "govuk-input--width-5"}) }}
+{% endif %}{% endfor %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{{ govukCharacterCount({id: "fi-note", name: "fi-note", maxlength: 1000, label: {text: "Enter account note", classes: "govuk-label--m"}, value: values["fi-note"], errorMessage: errors["fi-note"]}) }}
+</div></div>
+<div class="govuk-button-group">{{ govukButton({text: "Reverse" if verb === "reverse" else "Dishonour"}) }}<a class="govuk-link" href="{{ cancelHref }}">Cancel</a></div>
+</form>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Presented cheques report" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./task-list"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+                {% if data['presentedChequesReturning'] == "true" %}
+
+                {% else %}
+                {% if (data['presentedCheques'] == "in-progress" or data['presentedCheques'] == "ready") %}
+                    {{ mojAlert({
+                        variant: "success",
+                        dismissible: false,
+                        html: 'Report created'
+                    }) }}
+                {% else %}
+                {% endif %}
+
+                {% endif %}
+
+
+
+            <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+            <div class="govuk-button-group">
+
+                {{ govukButton({
+                    text: "Create report",
+                    classes: "",
+                    href: "./presented-cheques?presentedCheques=in-progress&presentedChequesCreated=true"
+                }) }}
+
+
+            </div>
+
+
+
+            {% if data['presentedCheques'] == "ready" %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+            {{ govukButton({
+                    text: "Refresh",
+                    classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+                    href: "./presented-cheques?presentedCheques=ready"
+                }) }}
+
+
+            {% set financeHead1 = [] %}
+
+
+                    {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}Title{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+                    {% set financeCellHtml %}Created by{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}Status{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}<span class="govuk-visually-hidden">Actions</span>{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+
+
+{% set financeRows1 = [] %}
+
+                {% set financeRow1 = [] %}
+
+                    {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}Presented cheques report{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                    {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}Ready{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">Download</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+            {% elseif data['presentedCheques'] == "in-progress" %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+            {{ govukButton({
+                    text: "Refresh",
+                    classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+                    href: "./presented-cheques?presentedCheques=ready"
+            }) }}
+
+
+                {% set financeHead2 = [] %}
+
+
+                        {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead2.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                        {% set financeCellHtml %}Title{% endset %}
+{% set ignored = financeHead2.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+                        {% set financeCellHtml %}Created by{% endset %}
+{% set ignored = financeHead2.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                        {% set financeCellHtml %}Status{% endset %}
+{% set ignored = financeHead2.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+
+{% set financeRows2 = [] %}
+
+                    {% set financeRow2 = [] %}
+
+                        {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow2.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}Presented cheques report{% endset %}
+{% set ignored = financeRow2.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                        {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow2.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}In progress{% endset %}
+{% set ignored = financeRow2.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows2.push(financeRow2) %}
+
+{{ govukTable({ head: financeHead2, rows: financeRows2, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+            {% else %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+
+            <p class="govuk-body">No presented cheques reports have been created.</p>
+            {% endif %}
+
+
+
+
+
+    </div>
+  </div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

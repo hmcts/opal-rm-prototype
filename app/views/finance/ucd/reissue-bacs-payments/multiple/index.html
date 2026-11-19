@@ -1,0 +1,74 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Reissue BACS payments" %}
+
+
+
+{% block beforeContent %}
+  <a href="/finance/reissue-bacs-payments" class="govuk-back-link" id="backLink">Back</a>
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <h2 class="govuk-heading-m">Bank account details</h2>
+
+    {{ govukSummaryList({
+      rows: [
+          {
+              key: {
+                  text: "Bank account number"
+              },
+              value: {
+                  text: account.bankAccountNumber
+              }
+          },
+          {
+              key: {
+                  text: "Sort code"
+              },
+              value: {
+                  text: account.sortCode
+              }
+          }
+      ]
+    }) }}
+
+  </div>
+
+  <div class="govuk-grid-column-full">
+
+    <h2 class="govuk-heading-m">Select BACS payments to reissue</h2>
+
+    <p class="govuk-body">Choose the transaction number you want to cancel.</p>
+
+    {{ govukTable({
+      head: [
+        { text: "Transaction number" },
+        { text: "Creditor account" },
+        { text: "Transaction date" },
+        { text: "Amount" }
+      ],
+      rows: rows
+    }) }}
+
+    <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel and return to start</a></p>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

@@ -1,0 +1,69 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Confirm and transfer to HMCTS/Other" %}
+
+
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+
+    {{ govukSummaryList({
+      rows: [
+        {
+          key: {
+            text: "Suspense balance"
+          },
+          value: {
+            text: item.balanceFormatted
+          }
+        }
+      ]
+    }) }}
+
+
+
+    <form data-finance-form novalidate method="post" action="/finance/suspense/pay-hmcts">
+
+      <input type="hidden" name="suspenseRef" value="{{ suspenseRef }}">
+
+      <input type="hidden" name="paymentAmount" value="{{ item.balance }}">
+
+      {{ govukCharacterCount({
+        name: "suspenseNote",
+        id: "suspense-note",
+        maxlength: 1000,
+        label: {
+          text: "Enter suspense note",
+          classes: "govuk-label--m",
+          isPageHeading: "false"
+        }
+      , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Confirm and transfer"
+        }) }}
+
+        <a class="govuk-link govuk-link--no-visited-state" href="/finance/suspense/item?ref={{ suspenseRef }}">Cancel</a>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

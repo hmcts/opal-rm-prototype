@@ -1,0 +1,13 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = data['quarterOrYear'] %}
+{% block content %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+<h1 class="govuk-heading-l">{{ pageName }}</h1>
+<h2 class="govuk-heading-m">Checks to do</h2>
+{% set tasks = [{"title": {"text": "Major creditors with negative balances report"}, "href": "./major-creditor-negative-balance"}, {"title": {"text": "Fines enforcement MIS report"}, "href": "./fines-enforcement-mis"}, {"title": {"text": "Quarter end control totals report"}, "href": "./control-totals"}, {"title": {"text": "Quarter end write-off analysis report"}, "href": "./write-off-analysis"}] %}
+{% if data["quarterOrYear"] == "Quarter and year end" %}{% set ignored = tasks.push({"title": {"text": "Cumulative annual write-off analysis report"}, "href": "./cumulative-annual-write-off"}) %}{% endif %}
+{{ govukTaskList({items: tasks}) }}
+<p class="govuk-body"><a class="govuk-link" href="/finance">Return to finance</a></p>
+</div></div>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

@@ -9351,7 +9351,7 @@ const activeCases = {
     applicantName: 'Mrs Elif YILMAZ',
     caseType: 'REMO Out',
     remoReference: '2010/REMO/34567890',
-    businessUnit: 'Bury St. Edmunds',
+    businessUnit: 'Bury St Edmunds',
     dateOfLastMovement: '30 April 2026',
     dateArrearsUpdated: '16 October 2025',
     balance: '£0.00',
@@ -9668,7 +9668,7 @@ const minorCreditorAccounts = {
     firstNames: 'Elif',
     lastName: 'YILMAZ',
     awaitingPayout: '£180.00',
-    businessUnit: 'Bury St. Edmunds',
+    businessUnit: 'Bury St Edmunds',
     dateOfBirth: '14 August 1972 (Age 53)',
     address: ['8 Meadow Lane', 'Brighton', 'East Sussex', 'BN1 7RR', 'United Kingdom'],
     mainEmail: 'elif.yilmaz@example.com',
@@ -9696,7 +9696,7 @@ const minorCreditorAccounts = {
     firstNames: 'Leyla',
     lastName: 'DEMIR',
     awaitingPayout: '£95.00',
-    businessUnit: 'Bury St. Edmunds',
+    businessUnit: 'Bury St Edmunds',
     address: ['22 River Walk', 'Norwich', 'Norfolk', 'NR1 1HD', 'United Kingdom'],
     respondentAccountHref: '/active-case/6',
     respondentAccountNumber: accountRef(6, 'RP'),
@@ -16261,7 +16261,7 @@ const searchData = [
     mc: [{ id: 52, ln: 'POPA', fn: 'Mira', dob: '10 March 2013 (Age 13)', payout: '£0.00' }] },
 
   { id: 6, caseRef: '06000387W', remoRef: '2010/REMO/34567890',
-    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£0.00', ct: 'REMO Out', dolm: '30 April 2026',
+    status: 'Active', bu: 'Bury St Edmunds', arrears: '£0.00', ct: 'REMO Out', dolm: '30 April 2026',
     r: { ln: 'DEMIR', fn: 'Cem', ti: 'Mr', dob: '8 June 1970 (Age 55)', ni: 'CD 11 22 33 B', a1: '22 Victoria Street', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 3HQ', email: 'cem.demir@example.com', tel: '07700 900456', restr: true },
     a: { id: 61, ln: 'YILMAZ', fn: 'Elif', ti: 'Mrs', dob: '14 August 1972 (Age 53)', payout: '£180.00', a1: '8 Meadow Lane', city: 'Brighton', cy: 'East Sussex', pc: 'BN1 7RR', email: 'elif.yilmaz@example.com', tel: '07700 900456', restr: true },
     mc: [{ id: 63, ln: 'DEMIR', fn: 'Leyla', dob: '12 May 2011 (Age 15)', payout: '£95.00' }] },
@@ -16330,9 +16330,9 @@ const searchData = [
     mc: [] },
 
   { id: 19, caseRef: '19001001F', remoRef: '2013/REMO/19001001',
-    status: 'Suspended', bu: 'Bury St. Edmunds', arrears: '£520.00', ct: 'REMO In', dolm: '10 April 2026',
-    r: { ln: 'ZIELINSKI', fn: 'Pawel', ti: 'Mr', dob: '16 December 1969 (Age 56)', ni: 'ST 01 23 45 B', a1: '3 Angel Hill', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 1AA', email: 'pawel.zielinski@example.com', tel: '07700 900190', restr: false },
-    a: { id: 109, ln: 'ZIELINSKI', fn: 'Magda', ti: 'Mrs', dob: '18 August 1972 (Age 53)', payout: '£0.00', a1: '17 Abbeygate Street', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 2AA', email: 'magda.zielinski@example.com', tel: '07700 900191', restr: false },
+    status: 'Suspended', bu: 'Bury St Edmunds', arrears: '£520.00', ct: 'REMO In', dolm: '10 April 2026',
+    r: { ln: 'ZIELINSKI', fn: 'Pawel', ti: 'Mr', dob: '16 December 1969 (Age 56)', ni: 'ST 01 23 45 B', a1: '3 Angel Hill', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 1AA', email: 'pawel.zielinski@example.com', tel: '07700 900190', restr: false },
+    a: { id: 109, ln: 'ZIELINSKI', fn: 'Magda', ti: 'Mrs', dob: '18 August 1972 (Age 53)', payout: '£0.00', a1: '17 Abbeygate Street', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 2AA', email: 'magda.zielinski@example.com', tel: '07700 900191', restr: false },
     mc: [
       { id: 207, ln: 'ZIELINSKI', fn: 'Kasia', dob: '5 August 2010 (Age 15)', payout: '£0.00' },
       { id: 208, ln: 'ZIELINSKI', fn: 'Milosz', dob: '28 March 2014 (Age 12)', payout: '£0.00' }
@@ -16396,9 +16396,9 @@ const searchData = [
     mc: [{ id: 212, ln: 'MOROZ', fn: 'Sofia', dob: '4 June 2018 (Age 7)', payout: '£0.00' }] },
 
   { id: 29, caseRef: '29002001P', remoRef: '2012/REMO/29002001',
-    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£60.00', ct: 'REMO In', dolm: '11 May 2026',
-    r: { ln: 'SHEVCHENKO', fn: 'Mykola', ti: 'Mr', dob: '1 December 1982 (Age 43)', ni: 'MN 01 23 45 D', a1: '9 Cornhill', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 3AA', email: 'mykola.shevchenko@example.com', tel: '07700 900290', restr: false },
-    a: { id: 119, ln: 'BONDAR', fn: 'Oksana', ti: 'Mrs', dob: '27 August 1976 (Age 49)', payout: '£0.00', a1: '28 Risbygate Street', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 4AA', email: 'oksana.bondar@example.com', tel: '07700 900291', restr: false },
+    status: 'Active', bu: 'Bury St Edmunds', arrears: '£60.00', ct: 'REMO In', dolm: '11 May 2026',
+    r: { ln: 'SHEVCHENKO', fn: 'Mykola', ti: 'Mr', dob: '1 December 1982 (Age 43)', ni: 'MN 01 23 45 D', a1: '9 Cornhill', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 3AA', email: 'mykola.shevchenko@example.com', tel: '07700 900290', restr: false },
+    a: { id: 119, ln: 'BONDAR', fn: 'Oksana', ti: 'Mrs', dob: '27 August 1976 (Age 49)', payout: '£0.00', a1: '28 Risbygate Street', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 4AA', email: 'oksana.bondar@example.com', tel: '07700 900291', restr: false },
     mc: [] },
 
   { id: 30, caseRef: '30002101Q', remoRef: '2018/REMO/30002101',
@@ -16459,9 +16459,9 @@ const searchData = [
     mc: [] },
 
   { id: 39, caseRef: '39003001A', remoRef: '2016/REMO/39003001',
-    status: 'Active', bu: 'Bury St. Edmunds', arrears: '£0.00', ct: 'REMO In', dolm: '29 April 2026',
-    r: { ln: 'MIHAILOV', fn: 'Georgi', ti: 'Mr', dob: '17 February 1965 (Age 61)', ni: 'GH 01 23 45 B', a1: '8 Northgate Street', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 5AA', email: 'georgi.mihailov@example.com', tel: '07700 900390', restr: false },
-    a: { id: 129, ln: 'STOYANOVA', fn: 'Milena', ti: 'Mrs', dob: '7 August 1968 (Age 57)', payout: '£0.00', a1: '3 Churchgate Street', city: 'Bury St. Edmunds', cy: 'Suffolk', pc: 'IP33 6AA', email: 'milena.stoyanova@example.com', tel: '07700 900391', restr: false },
+    status: 'Active', bu: 'Bury St Edmunds', arrears: '£0.00', ct: 'REMO In', dolm: '29 April 2026',
+    r: { ln: 'MIHAILOV', fn: 'Georgi', ti: 'Mr', dob: '17 February 1965 (Age 61)', ni: 'GH 01 23 45 B', a1: '8 Northgate Street', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 5AA', email: 'georgi.mihailov@example.com', tel: '07700 900390', restr: false },
+    a: { id: 129, ln: 'STOYANOVA', fn: 'Milena', ti: 'Mrs', dob: '7 August 1968 (Age 57)', payout: '£0.00', a1: '3 Churchgate Street', city: 'Bury St Edmunds', cy: 'Suffolk', pc: 'IP33 6AA', email: 'milena.stoyanova@example.com', tel: '07700 900391', restr: false },
     mc: [] }
 ]
 
@@ -18536,7 +18536,6 @@ function payPayerErrors(values) {
   const errors = {}
   if (!['Individual', 'Company'].includes(values.payerType)) errors['pay-payerType'] = { text: 'Select payer type' }
   if (values.payerType === 'Individual') {
-    if (values.payerTitle && !['Mr', 'Mrs', 'Miss', 'Ms'].includes(values.payerTitle)) errors['pay-payerTitle'] = { text: 'Select a title' }
     if (!values.payerLastName) errors['pay-payerLastName'] = { text: 'Enter last name' }
   }
   if (values.payerType === 'Company' && !values.companyName) errors['pay-companyName'] = { text: 'Enter company name' }
@@ -19096,6 +19095,12 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
 
 // Prevent the kit's automatic template routing from rendering partials or unguarded views.
 router.get(payBase + '/:template', (req, res) => res.redirect('/finance'))
+
+// Preserve UCD screen structure with RM components; Payments In remains separate.
+router.use('/finance', require('./routes/finance-ucd')({
+  parseMoney: payParseMoney, money: payMoney, escapeHtml, accounts: payAccounts, accountRows: fiAccountRows,
+  currentUser: prototypeCurrentUserName, page: payPage, validDate: (value) => parseStrictDateInput(value).kind === 'valid'
+}))
 
 // Indicative finance journeys: RM is the master; Fines behaviour is a starting point.
 // All example outcomes are session-only and do not post to RM accounts or tills.
@@ -19727,24 +19732,35 @@ router.post(fiBacs + '/:step(details|destination|review)', (req, res) => {
   return res.redirect(fiBacs + '/confirmation')
 })
 
-// Clear BACS: date search, paginated selection, review and a session-only outcome.
+// Clear BACS: date, selectable/sortable transactions, then the clearing result.
 const fiClear = fiBase + '/clear-bacs-transactions'
-const fiClearDateFields = [fiField('date', 'BACS transaction date', 'date', { past: true, hint: 'Use 06/11/2026 for example transactions.' })]
+const fiClearDateFields = [fiField('date', 'BACS transaction date', 'date', { past: true, hint: 'For example, 31/01/2023' })]
 function fiClearTransactions(req) {
   const date = parseDateInput(fiFlow(req, 'clear-bacs-transactions').values['fi-date'])
-  if (date.kind !== 'valid' || date.date.getDate() !== 6 || date.date.getMonth() !== 10 || date.date.getFullYear() !== 2026) return []
+  if (date.kind !== 'valid' || date.date.getMonth() !== 10 || date.date.getFullYear() !== 2026) return []
+  const day = date.date.getDate()
+  const count = day === 6 ? 56 : day === 13 ? 31 : 0
   const accounts = payAccounts()
-  return Array.from({ length: 30 }, (_, index) => ({ id: String(1037241 + index), name: accounts[index % accounts.length]?.applicantName || 'Example payee',
+  return Array.from({ length: count }, (_, index) => ({ id: String((day === 13 ? 1038001 : 1037241) + index),
+    name: accounts[index % accounts.length]?.applicantName || 'Example creditor',
     bankNumber: index % 2 ? '27614589' : '90233765', amount: String(1000 + index * 125) }))
     .filter((item) => !fiState(req).outcomes.some((outcome) => outcome.type === 'clear-bacs-transactions' && outcome.paymentIds.includes(item.id)))
 }
 
-router.get(fiClear, (req, res) => fiRender(req, res, 'form', { heading: 'Clear BACS transactions', showNav: true,
+function fiClearDateText(req) {
+  const date = parseDateInput(fiFlow(req, 'clear-bacs-transactions').values['fi-date'])
+  return date.kind === 'valid' ? date.date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : ''
+}
+
+router.get(fiClear, (req, res) => fiRender(req, res, 'clear-bacs/date', { heading: 'Clear BACS transactions', showNav: true,
   fields: fiClearDateFields, action: fiClear, values: fiFlow(req, 'clear-bacs-transactions').values, errors: fiFlow(req, 'clear-bacs-transactions').errors }))
 
 router.post(fiClear, (req, res) => {
   const { flow, errors } = fiSubmit(req, 'clear-bacs-transactions', fiClearDateFields)
+  if (!flow.values['fi-date']) errors['fi-date'] = { text: 'Enter BACS transaction date' }
+  else if (parseStrictDateInput(flow.values['fi-date']).kind !== 'valid') errors['fi-date'] = { text: 'Enter a valid BACS transaction date' }
   flow.selection = []
+  delete flow.result
   flow.valid = !Object.keys(errors).length
   return res.redirect(fiClear + (flow.valid ? '/transactions' : ''))
 })
@@ -19754,223 +19770,169 @@ router.get(fiClear + '/transactions', (req, res) => {
   if (!flow.valid) return res.redirect(fiClear)
   const items = fiClearTransactions(req)
   const page = payPage(items, req, req.path)
-  const errors = flow.errors || {}
-  const selectionError = errors['fi-transactions']
+  flow.selection = (flow.selection || []).filter((id) => items.some((item) => item.id === id))
+  const selectionError = flow.errors?.['fi-transactions']
   const firstId = page.items.length ? 'fi-transactions-' + page.items[0].id : 'fi-transactions'
-  return fiRender(req, res, 'list', { heading: 'Select BACS transactions', backHref: fiClear,
-    intro: (flow.selection || []).length + ' selected across all pages. Save your selection before changing page.',
-    summaryRows: [paySummary('BACS transaction date', flow.values['fi-date'])],
+  return fiRender(req, res, 'clear-bacs/transactions', { heading: 'Clear BACS transactions', backHref: fiClear,
+    summaryRows: [paySummary('BACS transaction date', fiClearDateText(req))],
     errors: selectionError ? { [firstId]: selectionError } : {},
-    ...page, tableCaption: 'BACS transactions', tableHead: [{ text: 'Select' }, ...['BACS number', 'Payee', 'Bank account number', 'Amount'].map((text) => ({ text }))],
+    ...page, total: items.length, selected: flow.selection.length, pageAllSelected: page.items.length > 0 && page.items.every((item) => flow.selection.includes(item.id)),
+    selectedElsewhere: flow.selection.filter((id) => !page.items.some((item) => item.id === id)).length,
+    tableCaption: 'BACS transactions', tableAttributes: { 'data-module': 'moj-sortable-table' },
+    tableSelectionCellClasses: 'govuk-!-padding-top-0 govuk-!-padding-bottom-0',
+    tableHead: [{ html: '<span class="govuk-visually-hidden">Select transactions</span>', classes: 'govuk-!-padding-top-0 govuk-!-padding-bottom-0', attributes: { id: 'clear-bacs-select-all' } },
+      ...['BACS number', 'Creditor', 'Bank account number', 'Amount'].map((text) => ({ text,
+        ...(text === 'Amount' ? { format: 'numeric' } : {}), attributes: { 'aria-sort': 'none' } }))],
     tableRows: page.items.map((item) => [{ select: { name: 'fi-transactions', id: 'fi-transactions-' + item.id,
-      value: item.id, text: 'Select BACS transaction ' + item.id, checked: (flow.selection || []).includes(item.id) } },
-      payValue(item.id), payValue(item.name), payValue(item.bankNumber), payValue(payMoney(item.amount))]),
-    tableError: selectionError?.text, action: items.length ? req.path + '?page=' + page.page : null, saveSelection: true,
-    cancelHref: fiCancel('clear-bacs-transactions', req.originalUrl),
-    emptyText: 'There are no BACS transactions to clear for this date.', links: [{ href: fiClear, text: 'Choose a different date' }] })
+      value: item.id, text: 'Select BACS transaction ' + item.id, checked: flow.selection.includes(item.id) } },
+      { text: item.id, attributes: { 'data-sort-value': item.id } }, payValue(item.name), payValue(item.bankNumber),
+      { text: payMoney(item.amount), format: 'numeric', attributes: { 'data-sort-value': item.amount } }]),
+    tableError: selectionError?.text, action: req.path + '?page=' + page.page, clearHref: fiClear })
 })
 
 router.post(fiClear + '/transactions', (req, res) => {
   const flow = fiFlow(req, 'clear-bacs-transactions')
   if (!flow.valid) return res.redirect(fiClear)
-  delete flow.reviewed
   const items = fiClearTransactions(req)
   const page = payPage(items, req, req.path)
   const onPage = page.items.map((item) => item.id)
   const selected = payChecked(req.body['fi-transactions']).filter((id) => onPage.includes(id))
   flow.selection = [...new Set([...(flow.selection || []).filter((id) => !onPage.includes(id) && items.some((item) => item.id === id)), ...selected])]
   flow.errors = {}
-  if (req.body['fi-intent'] === 'save') return res.redirect(req.path + '?page=' + page.page)
-  if (!flow.selection.length) { flow.errors['fi-transactions'] = { text: 'Select at least 1 BACS transaction' }; return res.redirect(req.path + '?page=' + page.page) }
-  return res.redirect(fiClear + '/review')
-})
-
-router.get(fiClear + '/review', (req, res) => {
-  const flow = fiFlow(req, 'clear-bacs-transactions')
-  const items = fiClearTransactions(req).filter((item) => flow.selection?.includes(item.id))
-  if (!flow.valid || !items.length) return res.redirect(fiClear)
-  flow.reviewed = true
-  return fiRender(req, res, 'review', { heading: 'Check BACS transactions to clear', summaryRows: [
-    paySummary('Date', flow.values['fi-date'], fiClear), paySummary('Transactions', items.map((item) => item.id).join(', '), fiClear + '/transactions'),
-    paySummary('Total amount', payMoney(paySum(items)))], action: req.path, backHref: fiClear + '/transactions',
-    cancelHref: fiCancel('clear-bacs-transactions', req.path), buttonText: 'Clear BACS transactions' })
-})
-
-router.post(fiClear + '/review', (req, res) => {
-  const flow = fiFlow(req, 'clear-bacs-transactions')
-  const items = fiClearTransactions(req).filter((item) => flow.selection?.includes(item.id))
-  if (!flow.valid || !flow.reviewed || !items.length) return res.redirect(fiClear)
-  flow.result = fiRecord(req, 'clear-bacs-transactions', 'BACS transactions cleared', { paymentIds: items.map((item) => item.id), amount: paySum(items) })
+  if (req.body['fi-intent'] === 'page') {
+    const target = Math.min(Math.max(1, Math.ceil(items.length / 25)), Math.max(1, Number.parseInt(req.body['fi-target-page'], 10) || 1))
+    return res.redirect(req.path + '?page=' + target)
+  }
+  if (req.body['fi-save-selection'] === 'save') return res.redirect(req.path + '?page=' + page.page)
+  if (!flow.selection.length) {
+    flow.errors['fi-transactions'] = { text: 'Select at least 1 BACS transaction' }
+    return res.redirect(req.path + '?page=' + page.page)
+  }
+  const clearing = items.filter((item) => flow.selection.includes(item.id))
+  flow.result = fiRecord(req, 'clear-bacs-transactions', 'BACS transactions cleared', {
+    paymentIds: clearing.map((item) => item.id), amount: paySum(clearing), retainedCount: items.length - clearing.length,
+    transactionDate: flow.values['fi-date'] })
   flow.selection = []
   delete flow.reviewed
-  fiFlash(req, items.length + ' BACS transaction' + (items.length === 1 ? '' : 's') + ' cleared')
   return res.redirect(fiClear + '/confirmation')
 })
+
+// Old review links return to selection; a GET or stale review POST cannot clear records.
+router.get(fiClear + '/review', (req, res) => res.redirect(fiClear + '/transactions'))
+router.post(fiClear + '/review', (req, res) => res.redirect(fiClear + '/transactions'))
 
 router.get(fiClear + '/confirmation', (req, res) => {
   const result = fiFlow(req, 'clear-bacs-transactions').result
   if (!result) return res.redirect(fiClear)
-  return fiRender(req, res, 'detail', { heading: 'BACS transactions cleared', showNav: true,
-    summaryRows: [paySummary('Transactions cleared', String(result.paymentIds.length)), paySummary('Total amount', payMoney(result.amount))],
-    links: [{ href: fiClear + '/transactions', text: 'Return to transactions' }], returnHref: fiBase })
+  return fiRender(req, res, 'clear-bacs/success', { heading: 'BACS transactions cleared successfully', showNav: true,
+    clearedCount: result.paymentIds.length, retainedCount: result.retainedCount || 0,
+    clearHref: fiClear, reportHref: fiBase + '/month-end/bacs-payments/create?report-type=Processed' })
 })
 
-// Reversal and dishonour: find an example payment, select RM order terms, review.
+// Reversal/dishonour retain the UCD details → selection → editable confirmation flow.
 function fiMovementFields() {
-  return [fiAccountField(), fiField('amount', 'Amount to reverse or dishonour', 'money'), fiField('date', 'Date of payment', 'date', { past: true })]
+  return [fiAccountField(), fiField('amount', 'Amount', 'money'), fiField('date', 'Date of payment', 'date', { past: true })]
 }
-
 function fiMovementAvailable(req, key) {
-  const flow = fiFlow(req, key)
-  const used = fiState(req).outcomes.filter((item) => item.type === key && item.account === flow.values['fi-account'])
+  const flow = fiFlow(req,key)
   const amount = key === 'dishonour-cheque' ? 10000n : 25000n
-  return (amount - BigInt(paySum(used))).toString()
+  return (amount - BigInt(paySum(fiState(req).outcomes.filter(item => item.type === key && item.account === flow.values['fi-account'])))).toString()
 }
-
 function fiMovementTerms(req, key) {
-  const account = fiAccount(fiFlow(req, key).values['fi-account'])
-  return account ? getActiveCaseOrders(account.account).terms.filter((term) => term.code.startsWith('M')).map((term, index) => ({
-    value: String(index), text: (term.title || term.code) + ' – ' + (term.creditorLabel || account.applicantName || 'Maintenance')
-  })) : []
+  const account = fiAccount(fiFlow(req,key).values['fi-account'])
+  return account ? getActiveCaseOrders(account.account).terms.filter(term => term.code.startsWith('M')).map((term,index) => ({value:String(index), text:(term.title || term.code), creditor:term.creditorLabel || account.applicantName, term})) : []
 }
-
-function fiMovementOrderFields(req, key) {
-  return [fiField('orders', 'Maintenance order terms', 'checkboxes', { items: fiMovementTerms(req, key) }), fiField('note', 'Account note', 'textarea')]
+function fiMovementRender(req,res,key,step,errors={}) {
+  const flow=fiFlow(req,key), account=fiAccount(flow.values['fi-account']), verb=key === 'reverse-payment' ? 'reverse' : 'dishonour'
+  return res.render('finance/ucd/movement/' + step, {showNav:false, verb, key, href:fiBase+'/'+key, heading:verb === 'reverse' ? 'Reverse' : 'Dishonour cheque',
+    values:flow.values, account, terms:fiMovementTerms(req,key), selected:flow.values['fi-orders'] || [], errors,
+    paymentAmount:payMoney(payParseMoney(flow.values['fi-amount']) || '0'), mismatch:flow.mismatch,
+    enteredTotal:payMoney(flow.total || '0'), sourceErrors:Object.entries(errors).map(([id,e])=>({href:'#'+id,text:e.text})),
+    fieldErrors:{}, backHref:fiBase+'/'+key+(step==='confirm'?'/orders':''), sourceFlash:null,
+    cancelHref:fiCancel(key,req.path)})
 }
-
-function fiDistributionFields(req, key) {
-  const values = fiFlow(req, key).values
-  return fiMovementTerms(req, key).filter((term) => values['fi-orders']?.includes(term.value))
-    .map((term) => fiField('allocation-' + term.value, 'Amount for ' + term.text, 'money', { allowZero: true }))
-}
-
-function fiDistributionErrors(req, key) {
-  const fields = fiDistributionFields(req, key)
-  const values = fiFlow(req, key).values
-  const errors = fiErrors(fields, values)
-  if (!fields.length) return { 'fi-orders': { text: 'Select maintenance order terms' } }
-  if (!Object.keys(errors).length && fields.reduce((total, field) => total + BigInt(payParseMoney(values[field.id])), 0n) !== BigInt(payParseMoney(values['fi-amount']) || '0')) {
-    errors[fields[0].id] = { text: 'The order term amounts must add up to ' + payMoney(payParseMoney(values['fi-amount']) || '0') }
-  }
-  return errors
-}
-
-for (const key of ['reverse-payment', 'dishonour-cheque']) {
-  const href = fiBase + '/' + key
-  const verb = key === 'reverse-payment' ? 'reverse' : 'dishonour'
-  router.get(href, (req, res) => {
-    const flow = fiFlow(req, key)
-    return fiRender(req, res, 'form', { heading: fiJourneys[key], showNav: true,
-      intro: 'Find the example payment by respondent account and payment date.', fields: fiMovementFields(),
-      values: flow.values, errors: flow.errors, action: href, buttonText: 'Find payment',
-      exampleHtml: '<p class="govuk-body">Use an RM respondent account number and payment date 06/11/2026. The example payment is ' + (key === 'dishonour-cheque' ? '£100.00 by cheque' : '£250.00 by credit transfer') + '.</p>' })
+for(const key of ['reverse-payment','dishonour-cheque']) {
+  const href=fiBase+'/'+key
+  router.get(href,(req,res,next)=>{
+    const flow=fiFlow(req,key)
+    const requested=payText(req.query.account || req.query.id)
+    const account=fiAccount(requested) || payAccounts().find(a=>a.id===requested)
+    if(account)flow.values['fi-account']=account.ref
+    return fiMovementRender(req,res,key,'details',flow.errors)
   })
-  router.post(href, (req, res) => {
-    const { flow, values, errors } = fiSubmit(req, key, fiMovementFields())
-    delete flow.valid; delete flow.partial; delete flow.partialAccepted; delete flow.distributed
-    delete flow.values['fi-orders']; delete flow.values['fi-note']
-    const account = fiAccount(values['fi-account'])
-    if (!account) errors['fi-account'] = { text: 'No respondent account matches this number' }
-    if (Object.keys(errors).length) return res.redirect(href)
-    flow.values['fi-account'] = account.ref
-    const date = parseDateInput(values['fi-date']).date
-    if (date.getDate() !== 6 || date.getMonth() !== 10 || date.getFullYear() !== 2026 || BigInt(fiMovementAvailable(req, key)) <= 0n) return fiRender(req, res, 'detail', {
-      heading: 'Payment not found', showNav: true, intro: 'No available example payment matches this account and date.', links: [{ href, text: 'Search again' }] })
-    flow.valid = true
-    flow.partial = BigInt(payParseMoney(values['fi-amount'])) > BigInt(fiMovementAvailable(req, key))
-    return res.redirect(href + (flow.partial ? '/amount-exceeded' : '/orders'))
+  router.post(href,(req,res,next)=>{
+    const {flow,values,errors}=fiSubmit(req,key,fiMovementFields())
+    delete flow.valid;delete flow.reviewed;delete flow.values['fi-orders'];delete flow.mismatch
+    const account=fiAccount(values['fi-account'])
+    if(!account)errors['fi-account']={text:'Enter an RM respondent account number'}
+    if(Object.keys(errors).length)return fiMovementRender(req,res,key,'details',errors)
+    values['fi-account']=account.ref
+    const date=parseDateInput(values['fi-date']).date
+    if(date.getDate()!==6 || date.getMonth()!==10 || date.getFullYear()!==2026 || BigInt(fiMovementAvailable(req,key))<=0n)return fiMovementRender(req,res,key,'not-found')
+    flow.valid=true
+    return redirectWithSessionSave(req,res,next,href+'/orders')
   })
-  router.get(href + '/amount-exceeded', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || !flow.partial) return res.redirect(href)
-    return fiRender(req, res, 'review', { heading: 'Amount exceeds the available payment',
-      intro: 'You can ' + verb + ' the available amount or go back and change your request.',
-      summaryRows: [paySummary('Requested amount', payMoney(payParseMoney(flow.values['fi-amount']))),
-        paySummary('Available amount', payMoney(fiMovementAvailable(req, key)))], action: req.path, backHref: href,
-      cancelHref: fiCancel(key, req.path), buttonText: 'Yes, ' + verb + ' the available amount' })
+  router.get(href+'/orders',(req,res,next)=>{
+    if(!fiFlow(req,key).valid)return res.redirect(href)
+    return fiMovementRender(req,res,key,'orders',fiFlow(req,key).errors)
   })
-  router.post(href + '/amount-exceeded', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || !flow.partial || BigInt(fiMovementAvailable(req, key)) <= 0n) return res.redirect(href)
-    flow.partialAccepted = true
-    flow.values['fi-amount'] = payDecimal(fiMovementAvailable(req, key))
-    return res.redirect(href + '/orders')
+  router.post(href+'/orders',(req,res,next)=>{
+    const flow=fiFlow(req,key)
+    if(!flow.valid)return res.redirect(href)
+    const selected=payChecked(req.body['fi-orders'])
+    const terms=fiMovementTerms(req,key)
+    const errors={}
+    if(!selected.length || selected.some(id=>!terms.some(t=>t.value===id)))errors['fi-orders']={text:'Select at least 1 maintenance order term'}
+    flow.values['fi-orders']=selected
+    if(Object.keys(errors).length)return fiMovementRender(req,res,key,'orders',errors)
+    flow.errors={};flow.reviewed=true
+    return redirectWithSessionSave(req,res,next,href+'/review')
   })
-  router.get(href + '/orders', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || (flow.partial && !flow.partialAccepted)) return res.redirect(href)
-    if (!fiMovementTerms(req, key).length) return fiRender(req, res, 'detail', { heading: 'No maintenance order terms available',
-      intro: 'This respondent has no order terms to demonstrate this action against.', links: [{ href, text: 'Choose another respondent' }] })
-    return fiRender(req, res, 'form', { heading: 'Select maintenance order terms',
-      applicability: 'How a reversal is distributed across RM maintenance order terms needs case-by-case review.',
-      summaryRows: fiAccountRows(fiAccount(flow.values['fi-account'])), fields: fiMovementOrderFields(req, key),
-      values: flow.values, errors: flow.errors, action: req.path, backHref: href, cancelHref: fiCancel(key, req.path) })
+  router.get(href+'/distribution',(req,res,next)=>res.redirect(href+'/review'))
+  router.get(href+'/review',(req,res,next)=>{
+    const flow=fiFlow(req,key)
+    if(!flow.valid || !flow.reviewed || !flow.values['fi-orders']?.length)return res.redirect(href+'/orders')
+    return fiMovementRender(req,res,key,'confirm',flow.errors)
   })
-  router.post(href + '/orders', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || (flow.partial && !flow.partialAccepted)) return res.redirect(href)
-    const { errors } = fiSubmit(req, key, fiMovementOrderFields(req, key))
-    delete flow.distributed
-    if (!Object.keys(errors).length) {
-      const fields = fiDistributionFields(req, key)
-      const amount = BigInt(payParseMoney(flow.values['fi-amount']))
-      fields.forEach((field, index) => { flow.values[field.id] = payDecimal((amount / BigInt(fields.length) + (index === 0 ? amount % BigInt(fields.length) : 0n)).toString()) })
-    }
-    return res.redirect(href + (Object.keys(errors).length ? '/orders' : '/distribution'))
+  router.post(href+'/review',(req,res,next)=>{
+    const flow=fiFlow(req,key)
+    if(!flow.valid || !flow.reviewed)return res.redirect(href)
+    const selected=fiMovementTerms(req,key).filter(t=>flow.values['fi-orders']?.includes(t.value))
+    const fields=selected.map(t=>fiField('allocation-'+t.value,'Amount to '+(key==='reverse-payment'?'reverse':'dishonour'),'money',{allowZero:true}))
+    fields.push(fiField('note','Account note','textarea'))
+    const result=fiSubmit(req,key,fields);flow.reviewed=true
+    if(!selected.length)return res.redirect(href+'/orders')
+    if(Object.keys(result.errors).length)return fiMovementRender(req,res,key,'confirm',result.errors)
+    const total=selected.reduce((sum,t)=>sum+BigInt(payParseMoney(flow.values['fi-allocation-'+t.value])),0n)
+    if(total<=0n)return fiMovementRender(req,res,key,'confirm',{['fi-allocation-'+selected[0].value]:{text:'Enter a total greater than £0'}})
+    flow.total=total.toString()
+    flow.mismatch=total>BigInt(payParseMoney(flow.values['fi-amount']))?'over':total<BigInt(payParseMoney(flow.values['fi-amount']))?'under':null
+    if(total>BigInt(fiMovementAvailable(req,key)))flow.mismatch='over'
+    if(flow.mismatch)return redirectWithSessionSave(req,res,next,href+'/amount-exceeded')
+    return fiCompleteMovement(req,res,key,next)
   })
-  router.get(href + '/distribution', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || (flow.partial && !flow.partialAccepted) || Object.keys(fiErrors(fiMovementOrderFields(req, key), flow.values)).length) return res.redirect(href + '/orders')
-    return fiRender(req, res, 'form', { heading: 'Adjust amounts across order terms',
-      intro: 'The example starts with an equal split. Change it to demonstrate how the payment should be distributed.',
-      summaryRows: [paySummary('Total amount', payMoney(payParseMoney(flow.values['fi-amount'])))], fields: fiDistributionFields(req, key),
-      values: flow.values, errors: flow.errors, action: req.path, backHref: href + '/orders', cancelHref: fiCancel(key, req.path) })
+  router.get(href+'/amount-exceeded',(req,res,next)=>{
+    if(!fiFlow(req,key).valid || !fiFlow(req,key).mismatch)return res.redirect(href+'/review')
+    return fiMovementRender(req,res,key,'amount-exceeded')
   })
-  router.post(href + '/distribution', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.valid || (flow.partial && !flow.partialAccepted) || Object.keys(fiErrors(fiMovementOrderFields(req, key), flow.values)).length) return res.redirect(href + '/orders')
-    fiSubmit(req, key, fiDistributionFields(req, key))
-    flow.errors = fiDistributionErrors(req, key)
-    flow.distributed = !Object.keys(flow.errors).length
-    return res.redirect(href + (flow.distributed ? '/review' : '/distribution'))
+  router.post(href+'/amount-exceeded',(req,res,next)=>{
+    const flow=fiFlow(req,key)
+    if(!flow.valid || !flow.reviewed || flow.mismatch!=='under' || !flow.total)return res.redirect(href+'/review')
+    return fiCompleteMovement(req,res,key,next)
   })
-  router.get(href + '/review', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!fiMovementReady(req, key)) return res.redirect(href)
-    flow.reviewed = true
-    const labels = fiMovementTerms(req, key).filter((item) => flow.values['fi-orders'].includes(item.value)).map((item) => item.text)
-    return fiRender(req, res, 'review', { heading: 'Check payment ' + (verb === 'reverse' ? 'reversal' : 'dishonour'),
-      summaryRows: [paySummary('Respondent account', flow.values['fi-account']), paySummary('Amount', payMoney(payParseMoney(flow.values['fi-amount']))),
-        paySummary('Date of payment', flow.values['fi-date']), paySummary('Order terms', labels.join(', '), href + '/orders'),
-        ...fiReviewRows(fiDistributionFields(req, key), flow.values, href + '/distribution'),
-        paySummary('Account note', flow.values['fi-note'], href + '/orders')],
-      action: req.path, backHref: href + '/distribution', cancelHref: fiCancel(key, req.path), buttonText: verb === 'reverse' ? 'Reverse payment' : 'Dishonour cheque' })
-  })
-  router.post(href + '/review', (req, res) => {
-    const flow = fiFlow(req, key)
-    if (!flow.reviewed || !fiMovementReady(req, key)) return res.redirect(href)
-    flow.result = fiRecord(req, key, verb === 'reverse' ? 'Payment reversed' : 'Cheque dishonoured', {
-      account: flow.values['fi-account'], amount: payParseMoney(flow.values['fi-amount']), note: flow.values['fi-note'],
-      allocations: fiDistributionFields(req, key).map((field) => ({ term: field.label, amount: payParseMoney(flow.values[field.id]) })) })
-    flow.valid = false; delete flow.reviewed
-    fiFlash(req, flow.result.description)
-    return res.redirect(href + '/confirmation')
-  })
-  router.get(href + '/confirmation', (req, res) => {
-    const result = fiFlow(req, key).result
-    if (!result) return res.redirect(href)
-    return fiRender(req, res, 'detail', { heading: result.description, showNav: true,
-      summaryRows: [paySummary('Respondent account', result.account), paySummary('Amount', payMoney(result.amount)), paySummary('Account note', result.note)],
-      links: [{ href, text: 'Find another payment' }, { href: fiBase + '/reversed-payments', text: 'View reversed payments report' }], returnHref: fiBase })
+  router.get(href+'/confirmation',(req,res,next)=>{
+    const result=fiFlow(req,key).result
+    if(!result)return res.redirect(href)
+    return fiRender(req,res,'detail',{heading:result.description,showNav:true,summaryRows:[paySummary('Respondent account',result.account),paySummary('Amount',payMoney(result.amount))],returnHref:fiBase})
   })
 }
-
-function fiMovementReady(req, key) {
-  const flow = fiFlow(req, key)
-  if (!flow.valid || !flow.distributed || (flow.partial && !flow.partialAccepted) || Object.keys(fiDistributionErrors(req, key)).length) return false
-  const errors = fiErrors([...fiMovementFields(), ...fiMovementOrderFields(req, key)], flow.values)
-  const amount = payParseMoney(flow.values['fi-amount'])
-  return !Object.keys(errors).length && fiAccount(flow.values['fi-account']) && amount && BigInt(amount) <= BigInt(fiMovementAvailable(req, key))
+function fiCompleteMovement(req,res,key,next) {
+  const flow=fiFlow(req,key)
+  flow.result=fiRecord(req,key,key==='reverse-payment'?'Payment reversed':'Cheque dishonoured',{account:flow.values['fi-account'],amount:flow.total,note:flow.values['fi-note']})
+  flow.valid=false;delete flow.reviewed
+  const account=fiAccount(flow.values['fi-account'])
+  req.session.data[activeCaseSuccessMessageKey]=flow.result.description
+  return redirectWithSessionSave(req,res,next,'/active-case/'+account.id+'?tab=orders')
 }
 
 // Daily, month, quarter and year end. Reports are snapshots of example records.
@@ -20139,7 +20101,7 @@ function fiCreateReportView(req, res, check, task) {
   const flow = fiFlow(req, key)
   const href = check === 'reversed-payments' ? fiBase + '/' + check : fiBase + '/' + check + '/' + task
   return fiRender(req, res, 'form', { heading: 'Create ' + fiReference.reports[task].toLowerCase(), applicability: fiReference.applicability[task],
-    fields: fiReportFields(task, check), values: flow.values, errors: flow.errors, action: href + '/create',
+    fields: fiReportFields(task, check), values: { ...flow.values, ...(task === 'bacs-payments' && req.query['report-type'] === 'Processed' ? { 'fi-report-type': 'Processed' } : {}) }, errors: flow.errors, action: href + '/create',
     buttonText: 'Create report', backHref: href, cancelHref: fiCancel(key, req.path) })
 }
 

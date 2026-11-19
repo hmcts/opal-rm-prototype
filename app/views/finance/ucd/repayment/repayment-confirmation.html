@@ -1,0 +1,42 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Repayment confirmation" %}
+
+
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-5">
+      <h1 class="govuk-panel__title govuk-!-font-size-36">
+        Repayment made successfully
+      </h1>
+      <div class="govuk-panel__body govuk-!-font-size-24">
+        Minor creditor created: 25000083L
+      </div>
+    </div>
+
+
+
+
+    <h2 class="govuk-heading-m">Next steps</h2>
+
+    <p class="govuk-body">
+      <a class="govuk-link govuk-link--no-visited-state" href="/finance/repayment/select-business-unit">Make another repayment</a>
+    </p>
+
+    <p class="govuk-body">
+      <a class="govuk-link govuk-link--no-visited-state" href="/finance">Return to finance</a>
+    </p>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

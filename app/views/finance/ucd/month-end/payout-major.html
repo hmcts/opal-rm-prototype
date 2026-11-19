@@ -1,0 +1,146 @@
+{% extends "finance/ucd/layout" %}
+
+{% set journeyName = "Daily checks" %}
+
+{% set pageName = "Pay out creditors" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./task-list"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+
+
+
+            <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+            <nav class="moj-sub-navigation" aria-label="Sub navigation">
+            <ul class="moj-sub-navigation__list">
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link"  href="./payout-minor">
+                    Minor creditors
+                </a>
+                </li>
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" aria-current="page" href="./payout-major">
+                    Major creditors
+                </a>
+                </li>
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link"  href="./payout-hmcts">
+                    HMCTS/Other
+                </a>
+                </li>
+            </ul>
+            </nav>
+
+            {% if data['majorCreditorReturning'] == "true" %}
+
+            {% else %}
+
+                {% if data['majorCreditorsPaidOut'] == "true" %}
+                    {{ mojAlert({
+                        variant: "success",
+                        dismissible: true,
+                        html: 'Payout made to major creditors.'
+                    }) }}
+                {% else %}
+                {% endif %}
+
+            {% endif %}
+
+            <h2 class="govuk-heading-m">Pay major creditors</h2>
+            <p class="govuk-body">Cheque and BACS payouts will be made at the same time.</p>
+
+            {{ govukButton({
+                text: "Pay out",
+                classes: "",
+                href: "./payout-major?majorCreditorsPaidOut=true"
+            }) }}
+
+
+
+
+
+            {% if data['majorCreditorsPaidOut'] == "true" %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+
+            {% set financeHead1 = [] %}
+
+
+                    {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}Paid by{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}Payouts made{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                    {% set financeCellHtml %}Total amount{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+
+{% set financeRows1 = [] %}
+
+                {% set financeRow1 = [] %}
+
+                    {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}Cheque{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}25{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}£1,500{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                {% set financeRow1 = [] %}
+
+                    {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}BACS{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}1,500{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                    {% set financeCellHtml %}£12,500{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+            {% else %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+            <p class="govuk-body">No minor creditors have been paid out today. </p>
+
+            {% endif %}
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

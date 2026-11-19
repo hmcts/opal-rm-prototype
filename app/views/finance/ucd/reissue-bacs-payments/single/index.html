@@ -1,0 +1,112 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Reissue BACS payments" %}
+
+
+
+{% block beforeContent %}
+  <a href="/finance/reissue-bacs-payments" class="govuk-back-link" id="backLink">Back</a>
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <h2 class="govuk-heading-m">Bank account details</h2>
+
+    {{ govukSummaryList({
+    rows: [
+        {
+            key: {
+                text: "Bank account number"
+            },
+            value: {
+                text: account.bankAccountNumber
+            }
+        },
+        {
+            key: {
+                text: "Sort code"
+            },
+            value: {
+                text: account.sortCode
+            }
+        }
+    ]
+    }) }}
+
+    <h2 class="govuk-heading-m">BACS details</h2>
+
+    {{ govukSummaryList({
+    rows: [
+        {
+            key: {
+                text: "Transaction number"
+            },
+            value: {
+                text: payment.transactionNumber
+            }
+        },
+        {
+            key: {
+                text: "Creditor name"
+            },
+            value: {
+                text: payment.creditorName
+            }
+        },
+        {
+            key: {
+                text: "Transaction date"
+            },
+            value: {
+                text: payment.transactionDate
+            }
+        },
+        {
+            key: {
+                text: "Amount"
+            },
+            value: {
+                text: payment.amount
+            }
+        }
+    ]
+    }) }}
+
+    <p>To see more details, you can <a class="govuk-link govuk-link--no-visited-state" href="/finance/reissue-bacs-payments/at-a-glance?creditor={{ payment.creditorAccountId }}" target="_blank" rel="noopener noreferrer">view this creditor account in a new tab</a>.</p>
+
+    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+    <form data-finance-form novalidate method="post" action="/finance/reissue-bacs-payments/review-single-details">
+
+      <div class="govuk-button-group govuk-!-margin-top-6">
+
+        {{ govukButton({
+          text: "Continue",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel</a></p>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

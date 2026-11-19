@@ -1,0 +1,296 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = item.referenceNumber %}
+{% set partyTerm = "respondent" if data['serviceDomain'] == "Fines" else "respondent" %}
+{% set PartyTerm = "Respondent" if data['serviceDomain'] == "Fines" else "Respondent" %}
+
+
+
+
+
+
+{% block beforeContent %}
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div>
+  <div class="govuk-width-container">
+
+    <a href="/finance/suspense/search" class="govuk-back-link">Back</a>
+
+    <div class="moj-search">
+      <form data-finance-form novalidate action="/finance/suspense/quick-search" method="post" role="search" class="govuk-!-margin-top-4">
+        <input type="hidden" name="currentRef" value="{{ item.referenceNumber }}">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s moj-search__label govuk-!-font-weight-bold" for="search">
+            Find suspense item
+          </label>
+
+          <input class="govuk-input moj-search__input" id="search" name="search" value="{{searchValue}}" type="search" >
+        </div>
+        <button type="submit" class="govuk-button moj-search__button govuk-!-margin-bottom-0" data-module="govuk-button">
+          Search
+        </button>
+      </form>
+    </div>
+
+
+
+  </div>
+</div>
+
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+
+{% if showNoteBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: "Suspense note added."
+  }) }}
+{% endif %}
+
+{% if showTransferBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: transferAmount + " transferred to " + partyTerm + "."
+  }) }}
+{% endif %}
+
+{% if showPaymentBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: paymentAmount + " paid to HMCTS/Other."
+  }) }}
+{% endif %}
+
+{% if showRepayBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: repayAmount + " repaid to " + partyTerm + "."
+  }) }}
+{% endif %}
+
+{% if showRepayThirdPartyBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: repayThirdPartyAmount + " repaid to 3rd party."
+  }) }}
+{% endif %}
+
+{% if showReverseBanner %}
+  {{ mojAlert({
+    variant: "success",
+    dismissible: true,
+    html: reverseAmount + " reversed" + (" – dishonoured cheque." if reverseDishonouredCheque else ".")
+  }) }}
+{% endif %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="moj-page-header-actions govuk-!-margin-bottom-4"><div class="moj-page-header-actions__title">
+
+        <h1 class="govuk-heading-l govuk-!-margin-bottom-0">{{ pageName }}</h1>
+      </div><div class="moj-page-header-actions__actions">
+        {{ mojButtonMenu({
+          button: {
+            text: "Transfer or repay",
+            classes: "govuk-button"
+          },
+          items: [
+            {
+              text: "Transfer to " + partyTerm,
+              href: "/finance/suspense/transfer?ref=" + item.referenceNumber
+            },
+            {
+              text: "Transfer to HMCTS/Other",
+              href: "/finance/suspense/pay-hmcts?ref=" + item.referenceNumber
+            },
+            {
+              text: "Repay to " + partyTerm,
+              href: "/finance/suspense/repay-respondent?ref=" + item.referenceNumber
+            },
+            {
+              text: "Repay to 3rd party",
+              href: "/finance/suspense/confirm-repay-third-party?ref=" + item.referenceNumber
+            }
+          ]
+        }) }}
+
+        {{ govukButton({
+          text: "Reverse",
+          href: "/finance/suspense/reverse?ref=" + item.referenceNumber,
+          classes: "govuk-button"
+        }) }}
+
+        {{ govukButton({
+          text: "Add suspense note",
+          href: "/finance/suspense/add-note?ref=" + item.referenceNumber,
+          classes: "govuk-button--secondary"
+        }) }}
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% set firstPaymentTxn = item.firstPaymentTransaction %}
+
+<div class="govuk-!-margin-bottom-4">
+
+  <div>
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Created</p>
+    <p class="govuk-body-s govuk-!-margin-bottom-3">{{ firstPaymentTxn.dateFormatted if firstPaymentTxn }}</p>
+  </div>
+
+  <div>
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Type</p>
+    <p class="govuk-body-s govuk-!-margin-bottom-3">
+      {% if firstPaymentTxn %}
+        {{ firstPaymentTxn.typeLabel }} ({{ firstPaymentTxn.type }})
+      {% endif %}
+    </p>
+  </div>
+
+  <div>
+    <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">Detail</p>
+    <p class="govuk-body-s govuk-!-margin-bottom-3">
+      {% if firstPaymentTxn %}
+        {% if firstPaymentTxn.detail %}
+          {{ firstPaymentTxn.detail | safe }}
+        {% elif firstPaymentTxn.paymentInType == "Manual adjustment" %}
+          {{ PartyTerm }}: {{ firstPaymentTxn.accountNumber }} <span>|</span> {{ firstPaymentTxn.accountName }}
+        {% elif firstPaymentTxn.paymentInType == "Manual" %}
+          Manual payment <span>|</span> {{ firstPaymentTxn.paymentMethod }}
+        {% elif firstPaymentTxn.paymentInType == "Auto" %}
+          Auto payment <span>|</span> Ref: {{ firstPaymentTxn.accountNumber }} <span>|</span> Source: {{ firstPaymentTxn.source }}
+        {% endif %}
+      {% endif %}
+    </p>
+  </div>
+
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-quarter">
+
+    <div class="rm-case-summary-bar govuk-!-margin-bottom-6" role="region" aria-label="Suspense summary">
+      <div class="rm-case-summary-tile rm-case-summary-tile--light">
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-margin-bottom-1">
+          Balance
+        </p>
+        <p class="govuk-body govuk-!-margin-bottom-0">
+          {{ item.balanceFormatted }}
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <h2 class="govuk-heading-m">History</h2>
+
+    {% if item.transactions and item.transactions.length > 0 %}
+
+        {% set financeHead1 = [] %}
+
+
+              {% set financeCellHtml %}Date{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "descending" } }) %}
+              {% set financeCellHtml %}User{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+              {% set financeCellHtml %}Type{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+              {% set financeCellHtml %}Detail{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+              {% set financeCellHtml %}Amount{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, format: "numeric", attributes: { "aria-sort": "none" } }) %}
+
+
+{% set financeRows1 = [] %}
+
+            {% for transaction in item.transactions %}
+              {% set financeRow1 = [] %}
+
+                {% set financeCellHtml %}{{ transaction.dateFormatted }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                {% set financeCellHtml %}
+                  {% if transaction.authorName %}
+                    {{ transaction.authorName }}
+                  {% elseif transaction.authorName %}
+                    {{ note.authorName }}
+                  {% else %}
+                    Joe Bloggs
+                  {% endif %}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                {% set financeCellHtml %}
+                  {% if transaction.typeLabel %}
+                    {{ transaction.typeLabel }} ({{ transaction.type }})
+                  {% else %}
+                    {{ transaction.type }}
+                  {% endif %}
+                {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                {% set financeCellHtml %}
+                  {% if transaction.detail %}
+                    {{ transaction.detail | safe }}
+                  {% elif transaction.paymentInType == "Manual adjustment" %}
+                  {{ PartyTerm }}: <a href="#">{{ transaction.accountNumber }}</a> <span>|</span> {{ transaction.accountName }}
+                  {% elif transaction.paymentInType == "Manual" %}
+                  Manual payment <span>|</span> {{ transaction.paymentMethod }}
+                  {% elif transaction.paymentInType == "Auto" %}
+                   Auto payment <span>|</span> Ref: {{ transaction.accountNumber }} <span>|</span> Source: {{ transaction.source }}
+                  {% endif %}
+                {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                {% set financeCellHtml %}
+                  {% if transaction.amountFormatted %}
+                    {{ transaction.amountFormatted }}
+                    {% if transaction.amount > 0 %}
+                      {{ govukTag({
+                        text: "CR",
+                        classes: "govuk-tag--turquoise"
+                      }) }}
+                    {% elif transaction.amount < 0 %}
+                      {{ govukTag({
+                        text: "DR",
+                        classes: "govuk-tag--red"
+                      }) }}
+                    {% endif %}
+                  {% endif %}
+                {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+            {% endfor %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+    {% else %}
+      <div class="govuk-inset-text">
+        No history or notes have been recorded for this suspense item
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

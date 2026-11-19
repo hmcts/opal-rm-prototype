@@ -255,7 +255,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
 })
 
 window.GOVUKPrototypeKit.documentReady(function () {
-  document.querySelectorAll('form[action^="/finance/payments-in/"]').forEach(function (form) {
+  document.querySelectorAll('form[action^="/finance/payments-in/"], form[data-finance-form]').forEach(function (form) {
     // GOV.UK's conditional radios add unsupported aria-expanded (upstream issue #979).
     // Keep the native reveal and aria-controls association; describe it in the group hint.
     function removeUnsupportedRadioExpanded () {
@@ -299,5 +299,46 @@ window.GOVUKPrototypeKit.documentReady(function () {
     }
     input.addEventListener('input', updateOverpayment)
     updateOverpayment()
+  })
+})
+
+// Keep Clear BACS selections when following the standard MoJ pagination links.
+window.GOVUKPrototypeKit.documentReady(function () {
+  document.querySelectorAll('form[data-clear-bacs-selection]').forEach(function (form) {
+    var count = form.querySelector('[data-clear-bacs-count]')
+    var elsewhere = Number(form.getAttribute('data-selected-elsewhere')) || 0
+    function updateCount () {
+      var selected = form.querySelectorAll('tbody input[type="checkbox"]:checked').length
+      count.textContent = elsewhere + selected
+      var toggle = form.querySelector('#clear-bacs-checkboxes-all')
+      if (toggle) {
+        var total = form.querySelectorAll('tbody input[type="checkbox"]').length
+        toggle.checked = selected === total
+        toggle.indeterminate = selected > 0 && selected < total
+      }
+    }
+    form.addEventListener('click', updateCount)
+    form.addEventListener('change', updateCount)
+    updateCount()
+    var selectAllLabel = form.querySelector('label[for="clear-bacs-checkboxes-all"] .govuk-visually-hidden')
+    if (selectAllLabel) selectAllLabel.textContent = 'Select all transactions on this page'
+    // The MoJ toggle does not restore its internal state from persisted row values.
+    // Use the native checked state so its first click can also deselect a saved page.
+    var toggle = form.querySelector('#clear-bacs-checkboxes-all')
+    if (toggle) toggle.addEventListener('click', function (event) {
+      event.stopImmediatePropagation()
+      var checked = toggle.checked
+      form.querySelectorAll('tbody input[type="checkbox"]').forEach(function (input) { input.checked = checked })
+      updateCount()
+    }, true)
+    form.querySelectorAll('.moj-pagination a').forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        form.elements['fi-intent'].value = 'page'
+        form.elements['fi-target-page'].value = new URL(link.href).searchParams.get('page') || '1'
+        form.requestSubmit()
+      })
+    })
   })
 })

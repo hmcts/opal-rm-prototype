@@ -1,0 +1,59 @@
+{% extends "finance/ucd/layout" %}
+
+{% set journeyName = "Print cheques" %}
+
+{% set pageName = "Confirm next cheque" %}
+
+{% block beforeContent %}
+
+
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-half">
+
+
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+
+      <form data-finance-form novalidate class="govuk-form-group" action="print-cheques?chequesPrinted=true" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Last cheque number</p>
+          <p class="govuk-!-font-size-27 govuk-!-margin-bottom-4">0000002883</p>
+
+
+
+        {{ govukInput({id: "nextChequeNumber", name: "nextChequeNumber", label: {text: "Next cheque number", classes: "govuk-label--s"}, classes: "govuk-input--width-10", value: data["nextChequeNumber"], errorMessage: fieldErrors["nextChequeNumber"]}) }}
+
+        {% if sequenceMessage %}{{ mojAlert({variant: "warning", dismissible: false, text: sequenceMessage}) }}{% endif %}
+
+
+
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Confirm and print
+          </button>
+
+          <p class="govuk-body"><a href="./print-cheques" class="govuk-link govuk-link--no-visited-state">Cancel</a></p>
+        </div>
+
+      </form>
+
+
+    </div>
+  </div>
+
+
+
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

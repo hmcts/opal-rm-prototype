@@ -1,0 +1,109 @@
+{% extends "finance/ucd/layout" %}
+
+
+{% set pageName = "Pay minor creditors (normal)" %}
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+        <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+        <form data-finance-form novalidate class="govuk-form-group" action="payout-minor?minorCreditorsPaidOut=true" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+        {% set chequeHtml %}
+        {{ govukInput({
+          id: "cheques-payout",
+          name: "cheques-payout",
+          type: "text",
+          classes: "govuk-input--width-5",
+          prefix: {
+            text: "£"
+          },
+          label: {
+            text: "Minimum payment",
+            classes: "govuk-label--s"
+          }
+        , value: data["cheques-payout"], errorMessage: fieldErrors["cheques-payout"]}) }}
+        {% endset -%}
+
+        {% set bacsHtml %}
+        {{ govukInput({
+          id: "bacs-payout",
+          name: "bacs-payout",
+          type: "text",
+          classes: "govuk-input--width-5",
+          prefix: {
+            text: "£"
+          },
+          label: {
+            text: "Minimum payment",
+            classes: "govuk-label--s"
+          }
+        , value: data["bacs-payout"], errorMessage: fieldErrors["bacs-payout"]}) }}
+        {% endset -%}
+
+        {{ govukCheckboxes({
+          name: "payoutMethod",
+          fieldset: {
+            legend: {
+              text: "Payout method",
+              isPageHeading: false,
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "Paid by cheque",
+              text: "Paid by cheque",
+              conditional: {
+                html: chequeHtml
+              }
+            },
+            {
+              value: "Paid by BACS",
+              text: "Paid by BACS",
+              conditional: {
+                html: bacsHtml
+              }
+            }
+          ]
+        , values: data["payoutMethod"] or [], errorMessage: fieldErrors["payoutMethod"]}) }}
+
+
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Pay out
+          </button>
+
+          <p class="govuk-body"><a href="./payout-minor" class="govuk-link govuk-link--no-visited-state">Cancel</a></p>
+        </div>
+
+      </form>
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

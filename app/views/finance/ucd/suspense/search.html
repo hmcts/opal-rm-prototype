@@ -1,0 +1,80 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Search for a suspense item" %}
+
+
+
+{% block beforeContent %}
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if errors %}
+    {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: errors
+      }) }}
+    {% endif %}
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/suspense/search">
+
+      {% set businessUnitError = false %}
+      {% set referenceNumberError = false %}
+      {% set referenceNumberErrorText = "" %}
+
+      {% if errors %}
+      {% for error in errors %}
+      {% if error.href == '#businessUnit' %}
+      {% set businessUnitError = true %}
+      {% endif %}
+      {% if error.href == '#suspenseReference' %}
+      {% set referenceNumberError = true %}
+      {% set referenceNumberErrorText = error.text %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+
+      {% if data['serviceDomain'] == "Fines" %}
+
+      {% else %}
+
+
+
+      {% endif %}
+
+      {{ govukInput({
+        label: {
+          text: "Suspense reference number",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-4",
+        id: "suspenseReference",
+        name: "suspenseReference",
+        errorMessage: {
+          text: referenceNumberErrorText
+        } if referenceNumberError
+      , value: data["suspenseReference"], errorMessage: fieldErrors["suspenseReference"]}) }}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Search"
+        }) }}
+
+        <a class="govuk-link govuk-link--no-visited-state" href="/finance">Cancel</a>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

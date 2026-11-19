@@ -8,7 +8,7 @@
         name: cell.select.name, classes: "govuk-checkboxes--small", formGroup: { classes: "govuk-!-margin-bottom-0" },
         items: [{ id: cell.select.id, value: cell.select.value, html: labelHtml, checked: cell.select.checked }]
       }) }}{% endset %}
-      {% set unused = renderedRow.push({ html: checkboxHtml }) %}
+      {% set unused = renderedRow.push({ html: checkboxHtml, classes: tableSelectionCellClasses }) %}
     {% elif cell.radio %}
       {% set radioLabelHtml %}<span class="govuk-visually-hidden">{{ cell.radio.text }}</span>{% endset %}
       {% set radioHtml %}{{ govukRadios({
@@ -20,7 +20,7 @@
   {% endfor %}
   {% set unused = renderedRows.push(renderedRow) %}
 {% endfor %}
-<div class="moj-scrollable-pane govuk-!-padding-2" tabindex="0" role="region" aria-label="{{ tableCaption }}">
-  {{ govukTable({ caption: tableCaption, captionClasses: "govuk-visually-hidden", head: tableHead, rows: renderedRows, attributes: tableAttributes }) }}
-</div>
+
+  {{ govukTable({ classes: tableClasses, caption: tableCaption, captionClasses: "govuk-visually-hidden", head: tableHead, rows: renderedRows, attributes: tableAttributes }) }}
+
 {% if pagination %}{{ mojPagination(pagination) }}{% endif %}
