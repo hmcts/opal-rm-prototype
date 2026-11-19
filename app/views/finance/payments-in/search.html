@@ -15,11 +15,11 @@
     <h2 class="govuk-heading-m">Advanced search</h2>
     {{ govukInput({
       id: "pay-last-name", name: "pay-last-name", label: { text: "Last name" },
-      classes: "govuk-input--width-20", value: values["pay-last-name"], errorMessage: errors["pay-last-name"]
+      classes: "govuk-input--width-20", value: values["pay-last-name"], errorMessage: errors["pay-last-name"], attributes: { maxlength: 30 }
     }) }}
     {{ govukInput({
       id: "pay-first-names", name: "pay-first-names", label: { text: "First names" },
-      classes: "govuk-input--width-20", value: values["pay-first-names"], errorMessage: errors["pay-first-names"]
+      classes: "govuk-input--width-20", value: values["pay-first-names"], errorMessage: errors["pay-first-names"], attributes: { maxlength: 20 }
     }) }}
     {{ mojDatePicker({
       leadingZeros: false, id: "pay-date-of-birth", name: "pay-date-of-birth",
@@ -29,7 +29,7 @@
     }) }}
     {{ govukInput({
       id: "pay-postcode", name: "pay-postcode", label: { text: "Postal or zip code" },
-      classes: "govuk-input--width-10", value: values["pay-postcode"], errorMessage: errors["pay-postcode"]
+      classes: "govuk-input--width-10", value: values["pay-postcode"], errorMessage: errors["pay-postcode"], attributes: { maxlength: 10 }
     }) }}
     {{ govukCheckboxes({
       idPrefix: "pay-active-only", name: "pay-active-only", classes: "govuk-checkboxes--small",

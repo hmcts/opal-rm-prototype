@@ -1,10 +1,11 @@
 {% extends "finance/payments-in/layout.html" %}
 {% block paymentContent %}
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{% if intro %}<p class="govuk-body">{{ intro }}</p>{% endif %}
 {% if text %}<p class="govuk-body">{{ text }}</p>{% endif %}
 {% if rows %}{{ govukSummaryList({ rows: rows }) }}{% endif %}
 <form method="post" action="{{ formAction }}"><div class="govuk-button-group">
-  {{ govukButton({ text: buttonText, classes: "govuk-button--warning", preventDoubleClick: true }) }}
+  {{ govukButton({ text: buttonText, classes: buttonClasses if buttonClasses is defined else "govuk-button--warning", preventDoubleClick: true }) }}
   <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText or "Cancel" }}</a>
 </div></form>
 </div></div>

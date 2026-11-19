@@ -1,0 +1,6 @@
+{% for record in recordErrors %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Court bank details", headingLevel: recordHeadingLevel or 4 } }, rows: record.court }) }}</div>
+    <div class="govuk-grid-column-one-half">{{ govukSummaryList({ card: { title: { text: "Respondent bank details", headingLevel: recordHeadingLevel or 4 } }, rows: record.respondent }) }}</div>
+  </div>
+{% else %}<p class="govuk-body">No records found.</p>{% endfor %}

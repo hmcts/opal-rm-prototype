@@ -18049,6 +18049,11 @@ function payAccounts(activeOnly = false) {
   }))
 }
 
+function payCanReceiveMaintenance(account) {
+  return Boolean(account && (hasActiveOrderTerms(account.account) ||
+    BigInt(payParseMoney(getActiveCaseTotalArrears(account.account), true) || '0') > 0n))
+}
+
 function payState(req) {
   if (!req.session.data.paymentsIn || typeof req.session.data.paymentsIn !== 'object') {
     req.session.data.paymentsIn = { units: {} }
@@ -18063,20 +18068,22 @@ function payNewUnit(unit, scenario, automatic = false) {
   const accounts = payAccounts(true)
   const account = (automatic && accounts.find((item) => item.balance === '0')) || accounts[0]
   const now = Date.now()
-  const sources = ['NatWest', 'Telephone', 'Barclaycard', 'allpay']
+  const sources = ['NatWest', 'British Telecom', 'Barclaycard', 'allpay']
   const count = scenario === 'pagination' ? 30 : automatic ? 15 : 6
   for (let index = 0; index < count; index++) {
     const oldIgnored = index === (automatic ? count - 1 : 5)
-    const ignored = index === 4 || oldIgnored
+    const ignored = index === 4 || index === 6 || oldIgnored
+    const hasError = ignored || [0, 2, 5].includes(index)
     const file = {
       id: 'file-' + (index + 1), fileName: 'RM_' + String(index + 1).padStart(3, '0') + '.dat',
       source: sources[index % sources.length], uploadedAt: new Date(now - (count - index) * 60000).toISOString(),
       amount: ignored ? (index === 4 ? '5000' : '0') : '25000', records: ignored ? 1 : 10,
-      errorCount: index === 0 || index === 4 ? 1 : 0, suspenseAmount: index === 0 ? '2500' : '0',
+      errorCount: hasError ? 1 : 0, suspenseAmount: hasError && !ignored ? '2500' : '0',
+      errorType: ignored ? (index === 4 ? 'unknown-bank' : 'zero-value') : index === 2 ? 'transaction-code' : index === 5 ? 'complete-account' : 'no-account',
       ignored, status: oldIgnored ? 'ignored' : 'to-process',
       processedAt: oldIgnored ? new Date(now - 16 * 86400000).toISOString() : null,
       failNextProcess: index === 3, failNextAllocation: index === 1, accountId: account?.id,
-      creditAccounts: automatic && index === 0 && account ? [{ accountId: account.id, balance: '-1000', value: '1000' }] : []
+      creditAccounts: automatic && index === 0 && account ? [{ accountId: account.id, balance: '-1000', value: '1000', updatedAt: new Date(now - 86400000).toISOString() }] : []
     }
     if (oldIgnored) file.uploadedAt = new Date(now - 17 * 86400000).toISOString()
     state.files.push(file)
@@ -18110,7 +18117,7 @@ function payUnitState(req) {
     state.automatic.files = state.automatic.files.filter((file) => !/DWP|AEA/i.test(file.source))
     state.automatic.files.forEach((file) => {
       delete file.overrideInhibits
-      if (file.source === 'British Telecom') file.source = 'Telephone'
+      if (file.source === 'Telephone') file.source = 'British Telecom'
     })
     return state.automatic
   }
@@ -18159,8 +18166,17 @@ function payRequireDraft(req, res, next) {
 }
 
 function payRequirePending(req, res, next) {
-  if (!payUnitState(req)?.draft) return res.redirect(payManual)
-  if (!payUnitState(req).pending?.category) return res.redirect(payManual + '/category')
+  const state = payUnitState(req)
+  if (!state.draft) return res.redirect(payManual)
+  if (!['Maintenance', 'Suspense'].includes(state.pending?.category)) {
+    state.pending = null
+    return res.redirect(payManual + '/category')
+  }
+  if (state.pending.category === 'Maintenance' && state.pending.accountId &&
+    [payManual + '/details', payManual + '/check-payment'].includes(req.path) && req.body?.['pay-action'] !== 'cancel' &&
+    !payCanReceiveMaintenance(payAccounts().find((account) => account.id === state.pending.accountId))) {
+    return res.redirect(payManual + '/confirm-account?account=' + encodeURIComponent(state.pending.accountId))
+  }
   next()
 }
 
@@ -18211,7 +18227,7 @@ function payCheckRows(payment, removing = false) {
   rows.push(paySummary('Payment received from', payment.receivedFrom, detailHref))
   if (payment.category === 'Maintenance' && payment.receivedFrom === 'Third party') rows.push(paySummary('Third party', payment.thirdPartyName, detailHref))
   rows.push(paySummary('Method of payment', payment.method, detailHref))
-  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source === 'British Telecom' ? 'Telephone' : payment.source, detailHref))
+  if (payment.method === 'Credit transfer') rows.push(paySummary('Source', payment.source === 'Telephone' ? 'British Telecom' : payment.source, detailHref))
   if (payment.method !== 'Notes and coins') rows.push(paySummary('Payment reference', payment.reference, detailHref))
   if (payment.category === 'Suspense') {
     rows.push(paySummary('Suspense reason', payReference.reasons.find((item) => item.value === payment.reason)?.text, detailHref))
@@ -18220,7 +18236,8 @@ function payCheckRows(payment, removing = false) {
   if (payment.category === 'Court Fee' || (payment.category === 'Suspense' && payment.reason !== 'UN')) {
     rows.push(paySummary('Payer type', payment.payerType, payManual + '/payer'))
     rows.push(paySummary('Payer name', payPaymentName(payment), payManual + '/payer'))
-    rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
+    rows.push(paySummary('Payer address', [payment.address1, payment.address2, payment.address3, payment.address4, payment.address5, payment.postcode].filter(Boolean).join(', '), payManual + '/payer'))
+    rows.push(paySummary('Country', payment.country ? getCountryLabel(payment.country) : '', payManual + '/payer'))
   }
   return removing ? rows.map(({ actions, ...row }) => row) : rows
 }
@@ -18251,7 +18268,7 @@ router.get(payManual, payRequireUnit, (req, res) => {
       till.status === 'failed' ? { html: payLink(payManual + '/till/' + till.id, till.number).html + '<br>Allocation failed – retry' } : payLink(payManual + '/till/' + till.id, till.number),
       { text: String(till.payments.length), attributes: { 'data-sort-value': till.payments.length } },
       { text: payMoney(paySum(till.payments)), format: 'numeric', attributes: { 'data-sort-value': paySum(till.payments) } },
-      { text: till.createdBy }, { text: payDate(till.createdAt), attributes: { 'data-sort-value': new Date(till.createdAt).getTime() } }]) })
+      { text: till.createdBy }, { text: payDate(till.createdAt, true), attributes: { 'data-sort-value': new Date(till.createdAt).getTime() } }]) })
 })
 
 router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
@@ -18269,19 +18286,38 @@ router.post(payManual + '/allocate', payRequireUnit, (req, res, next) => {
   return redirectWithSessionSave(req, res, next, payManual)
 })
 
-router.get(payManual + '/new-till', payRequireUnit, (req, res) => {
+function payRenderDraftTill(req, res, errors = {}) {
   const state = payUnitState(req)
   state.draft = state.draft || { payments: [] }
   const page = payPage(state.draft.payments, req, payManual + '/new-till')
-  return payRender(req, res, 'till', { heading: 'Till details', backHref: payManual, editable: true, ...page,
+  return payRender(req, res, 'till', { heading: 'Till details', backHref: state.draft.payments.length ? payManual + '/leave-till' : payManual, editable: true, ...page, errors,
     total: payMoney(paySum(state.draft.payments)), count: state.draft.payments.length,
-    tableCaption: 'Payments in this till', tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
+    tableCaption: 'Payments in this till', tableAttributes: { id: 'pay-payments' }, tableHead: [{ text: 'Category' }, { text: 'Name' }, { text: 'Amount', format: 'numeric' },
       { text: 'Received from' }, { text: 'Method' }, { text: 'Actions' }], tableRows: payPaymentRows(page.items, true) })
+}
+
+router.get(payManual + '/new-till', payRequireUnit, (req, res) => payRenderDraftTill(req, res))
+
+router.get(payManual + '/leave-till', payRequireUnit, payRequireDraft, (req, res) =>
+  payRender(req, res, 'confirm-action', { heading: 'Leave this draft till?',
+    intro: 'The payments you have added will be saved. You can continue this draft till from Manual cash input.',
+    backHref: payManual + '/new-till', cancelHref: payManual + '/new-till', formAction: payManual + '/leave-till',
+    buttonText: 'Yes – leave till', buttonClasses: '', cancelText: 'No – return to till',
+    rows: [paySummary('Payments', payUnitState(req).draft.payments.length)] }))
+
+router.post(payManual + '/leave-till', payRequireUnit, payRequireDraft, (req, res, next) => {
+  payUnitState(req).pending = null
+  return redirectWithSessionSave(req, res, next, payManual)
 })
 
 router.post(payManual + '/new-till', payRequireUnit, payRequireDraft, (req, res, next) => {
   const state = payUnitState(req)
   if (!state.draft.payments.length) return res.redirect(payManual + '/new-till')
+  const needsReview = state.draft.payments.some((payment) =>
+    !['Maintenance', 'Suspense'].includes(payment.category) || !payReference.methods.includes(payment.method) ||
+    (payment.category === 'Maintenance' && !payCanReceiveMaintenance(payAccounts().find((account) => account.id === payment.accountId))) ||
+    (payment.category === 'Suspense' && (payment.reason === 'UN' ? !payment.relevantDetails : !Object.hasOwn(countryLabels, payment.country))))
+  if (needsReview) return payRenderDraftTill(req, res, { 'pay-payments': { text: 'Review or remove payments that use an unsupported option, need payer details or can no longer be paid into the selected account' } })
   const id = String(state.nextTillNumber++)
   state.tills.push({ id, number: id.padStart(6, '0'), createdAt: new Date().toISOString(), createdBy: prototypeCurrentUserName,
     payments: state.draft.payments, status: 'ready' })
@@ -18311,11 +18347,11 @@ router.get(payManual + '/category', payRequireUnit, payRequireDraft, (req, res) 
 
 router.post(payManual + '/category', payRequireUnit, payRequireDraft, (req, res, next) => {
   const category = payText(req.body['pay-category'])
-  if (!['Maintenance', 'Court Fee', 'Suspense'].includes(category)) return payRender(req, res, 'category', {
+  if (!['Maintenance', 'Suspense'].includes(category)) return payRender(req, res, 'category', {
     heading: 'Payment category', backHref: payManual + '/new-till', errors: { 'pay-category': { text: 'Select payment category' } } })
   const state = payUnitState(req)
   if (state.pending?.category !== category) state.pending = { category }
-  return redirectWithSessionSave(req, res, next, payManual + (category === 'Maintenance' ? '/search' : category === 'Court Fee' ? '/court-fee' : '/details'))
+  return redirectWithSessionSave(req, res, next, payManual + (category === 'Maintenance' ? '/search' : '/details'))
 })
 
 function paySearch(req) {
@@ -18341,16 +18377,25 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   const errors = {}
   const number = values['pay-number'].replace(/\s/g, '').toUpperCase()
   const hasAdvanced = Boolean(values['pay-last-name'] || values['pay-first-names'] || values['pay-date-of-birth'] || values['pay-postcode'])
-  if (number && hasAdvanced) errors['pay-number'] = { text: 'Search using an account number or advanced search, not both' }
-  else if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
+  const pending = payUnitState(req).pending
+  pending.searchValues = values
+  if (number && (hasAdvanced || values['pay-active-only'])) {
+    pending.searchCombinationError = true
+    return redirectWithSessionSave(req, res, next, payManual + '/search-combination-error')
+  }
+  delete pending.searchCombinationError
+  if (number && (!/^\d{8}[A-Z]?$/.test(number) || (number.length === 9 && !isValidAccountNumber(number)))) errors['pay-number'] = { text: 'Enter a valid account number, with its check letter if known' }
   else if (!number && !hasAdvanced) errors['pay-number'] = { text: 'Enter an account number or respondent details to search' }
+  if (values['pay-first-names'] && !values['pay-last-name']) errors['pay-last-name'] = { text: 'Enter last name' }
+  for (const [field, label, limit] of [['last-name', 'Last name', 30], ['first-names', 'First names', 20], ['postcode', 'Postal or zip code', 10]]) {
+    if (values['pay-' + field].length > limit) errors['pay-' + field] = { text: label + ' must be ' + limit + ' characters or fewer' }
+  }
   if (values['pay-date-of-birth']) {
     const dateOfBirth = parseDateInput(values['pay-date-of-birth'])
     if (dateOfBirth.kind !== 'valid') errors['pay-date-of-birth'] = { text: 'Enter a valid date of birth' }
     else if (isFutureDate(dateOfBirth.date)) errors['pay-date-of-birth'] = { text: 'Date of birth must be today or in the past' }
   }
   if (Object.keys(errors).length) return payRender(req, res, 'search', { heading: 'Search for a respondent account', backHref: payManual + '/category', values, errors })
-  const pending = payUnitState(req).pending
   // A new search must be followed by account confirmation, including from a stale tab.
   payUnitState(req).pending = { category: 'Maintenance', id: pending.id, searchValues: values,
     search: { number, lastName: values['pay-last-name'], firstNames: values['pay-first-names'],
@@ -18359,7 +18404,12 @@ router.post(payManual + '/search', payRequireUnit, payRequirePending, (req, res,
   return redirectWithSessionSave(req, res, next, number && results.length === 1 ? payManual + '/confirm-account?account=' + results[0].id : payManual + '/search-results')
 })
 
-function payRenderSearchResults(req, res, errors = {}) {
+router.get(payManual + '/search-combination-error', payRequireUnit, payRequirePending, (req, res) => {
+  if (!payUnitState(req).pending.searchCombinationError) return res.redirect(payManual + '/search')
+  return payRender(req, res, 'search-combination-error', { heading: 'There is a problem' })
+})
+
+function payRenderSearchResults(req, res, errors = {}, selected = []) {
   const results = paySearch(req)
   const page = payPage(results, req, payManual + '/search-results')
   const firstRadioId = page.items.length ? 'pay-account-' + page.items[0].id : 'pay-account'
@@ -18371,7 +18421,7 @@ function payRenderSearchResults(req, res, errors = {}) {
       ...['Account', 'Name', 'Applicant', 'Date of birth', 'Address line 1', 'Postcode', 'Balance'].map((text) => ({ text,
         ...(text === 'Balance' ? { format: 'numeric' } : {}), attributes: { 'aria-sort': 'none' } }))],
     tableRows: page.items.map((account) => [
-      { radio: { id: 'pay-account-' + account.id, name: 'pay-account', value: account.id, text: 'Select ' + account.name + ', account ' + account.ref } },
+      { select: { id: 'pay-account-' + account.id, name: 'pay-account', value: account.id, text: 'Select ' + account.name + ', account ' + account.ref, checked: selected.includes(account.id) } },
       payLink('/active-case/' + account.id, account.ref, ' target="_blank" rel="noreferrer noopener" aria-label="View account ' + escapeHtml(account.ref) + ' (opens in new tab)"'),
       payValue(account.name), payValue(account.applicantName),
       { ...payValue(account.restricted ? 'Restricted' : account.dob ? payDate(account.dob) : ''),
@@ -18386,8 +18436,9 @@ router.get(payManual + '/search-results', payRequireUnit, payRequirePending, (re
 
 router.post(payManual + '/search-results', payRequireUnit, payRequirePending, (req, res, next) => {
   const results = paySearch(req)
-  const account = payPage(results, req, payManual + '/search-results').items.find((item) => item.id === payText(req.body['pay-account']))
-  if (!account || results.length > 100) return payRenderSearchResults(req, res, { 'pay-account': { text: 'Select an account' } })
+  const selected = payChecked(req.body['pay-account'])
+  const account = selected.length === 1 && payPage(results, req, payManual + '/search-results').items.find((item) => item.id === selected[0])
+  if (!account || results.length > 100) return payRenderSearchResults(req, res, { 'pay-account': { text: selected.length > 1 ? 'Select only 1 account' : 'Select 1 account' } }, selected)
   return redirectWithSessionSave(req, res, next, payManual + '/confirm-account?account=' + account.id)
 })
 
@@ -18408,7 +18459,7 @@ router.get(payManual + '/confirm-account', payRequireUnit, payRequirePending, (r
   const addressRow = (address) => ({ key: { text: 'Address' }, value: address.length
     ? { html: address.map((line) => escapeHtml(line)).join('<br>') } : payValue('') })
   return payRender(req, res, 'confirm-account', { heading: 'Confirm account', backHref: payManual + '/search-results',
-    account, hold, rows: [
+    account, hold, cannotReceive: !payCanReceiveMaintenance(account), rows: [
       paySummary('Account number', account.ref), paySummary('Name', account.name),
       account.restricted ? paySummary('Address', 'Restricted') : addressRow(account.address),
       paySummary('Total arrears', account.arrears),
@@ -18424,6 +18475,11 @@ router.post(payManual + '/confirm-account', payRequireUnit, payRequirePending, (
   const account = payAccounts().find((item) => item.id === payText(req.body['pay-account']))
   if (!account) return res.redirect(payManual + '/search')
   const state = payUnitState(req)
+  if (!payCanReceiveMaintenance(account)) {
+    if (req.body['pay-action'] !== 'suspense') return res.redirect(payManual + '/confirm-account?account=' + encodeURIComponent(account.id))
+    state.pending = { category: 'Suspense', id: state.pending.id }
+    return redirectWithSessionSave(req, res, next, payManual + '/details')
+  }
   state.pending = { category: 'Maintenance', id: state.pending.id, search: state.pending.search,
     searchValues: state.pending.searchValues, accountId: account.id }
   return redirectWithSessionSave(req, res, next, payManual + '/details')
@@ -18487,16 +18543,20 @@ function payPayerErrors(values) {
   for (const field of values.payerType === 'Company' ? ['companyName'] : ['payerFirstNames', 'payerLastName']) {
     if (values[field]?.length > 50) errors['pay-' + field] = { text: 'Name must be 50 characters or fewer' }
   }
-  for (const field of ['address1', 'address2', 'address3']) {
+  for (const field of ['address1', 'address2', 'address3', 'address4', 'address5']) {
     if (values[field]?.length > 30) errors['pay-' + field] = { text: 'Address line must be 30 characters or fewer' }
   }
-  if (values.postcode && (values.postcode.length > 8 || !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(values.postcode))) {
+  // Address optionality conflicts between the reviewed overview and field table.
+  // Keep it optional pending a decision; Country is unambiguously required.
+  if (!Object.hasOwn(countryLabels, values.country)) errors['pay-country'] = { text: 'Select a country' }
+  if (values.postcode?.length > 8) errors['pay-postcode'] = { text: 'Postcode must be 8 characters or fewer' }
+  else if (values.postcode && values.country === 'united-kingdom' && !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(values.postcode)) {
     errors['pay-postcode'] = { text: 'Enter a valid UK postcode' }
   }
   return errors
 }
 
-const payPayerFields = ['payerType', 'payerTitle', 'payerFirstNames', 'payerLastName', 'companyName', 'address1', 'address2', 'address3', 'postcode']
+const payPayerFields = ['payerType', 'payerTitle', 'payerFirstNames', 'payerLastName', 'companyName', 'address1', 'address2', 'address3', 'address4', 'address5', 'postcode', 'country']
 
 function payStorePayer(pending, values) {
   for (const field of payPayerFields) pending[field] = values[field] || ''
@@ -18563,7 +18623,7 @@ router.post(payManual + '/fee-difference', payRequireUnit, payRequirePending, (r
 
 function payRenderDetails(req, res, values, errors = {}) {
   const pending = payUnitState(req).pending
-  if (values.source === 'British Telecom') values.source = 'Telephone'
+  if (values.source === 'Telephone') values.source = 'British Telecom'
   const account = payAccounts().find((item) => item.id === pending.accountId)
   return payRender(req, res, 'details', { heading: pending.category === 'Suspense' ? 'Suspense details' : 'Payment details',
     backHref: pending.category === 'Maintenance' ? payManual + '/confirm-account?account=' + pending.accountId :
@@ -18602,7 +18662,10 @@ router.post(payManual + '/details', payRequireUnit, payRequirePending, (req, res
   if (values.method === 'Credit transfer' && !payReference.sources.includes(values.source)) errors['pay-source'] = { text: 'Select a source' }
   if (values.reference.length > 50) errors['pay-' + referenceField] = { text: 'Payment reference must be 50 characters or fewer' }
   if (pending.category === 'Suspense' && !payReference.reasons.some((reason) => reason.value === values.reason)) errors['pay-reason'] = { text: 'Select a reason for the suspense' }
-  if (pending.category === 'Suspense' && values.reason === 'UN' && values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
+  if (pending.category === 'Suspense' && values.reason === 'UN') {
+    if (!values.relevantDetails) errors['pay-relevantDetails'] = { text: 'Add relevant details' }
+    else if (values.relevantDetails.length > 1000) errors['pay-relevantDetails'] = { text: 'Relevant details must be 1,000 characters or fewer' }
+  }
   if (pending.category === 'Court Fee') Object.assign(errors, payPayerErrors(values))
   if (Object.keys(errors).length) {
     payInvalidForm(pending, 'details', req.body, errors)
@@ -18655,7 +18718,8 @@ function payMissingStep(req) {
   if (pending.category === 'Court Fee' && (!pending.feeCode || !pending.items || !pending.amount ||
     (BigInt(pending.amount) !== BigInt(pending.expected || '0') && !pending.feeConfirmed))) return '/court-fee'
   if (!pending.detailsComplete || !payReference.methods.includes(pending.method) || !pending.amount) return '/details'
-  if ((pending.category === 'Court Fee' || (pending.category === 'Suspense' && pending.reason !== 'UN')) && !pending.payerComplete) return '/payer'
+  if (pending.category === 'Suspense' && (!payReference.reasons.some((reason) => reason.value === pending.reason) || pending.reason === 'UN' && !pending.relevantDetails)) return '/details'
+  if (pending.category === 'Suspense' && pending.reason !== 'UN' && (!pending.payerComplete || !Object.hasOwn(countryLabels, pending.country))) return '/payer'
   return null
 }
 
@@ -18847,7 +18911,7 @@ function payAutomaticView(req, res) {
       row.push(fileCell, { text: file.source })
       if (tab === 'allocate') row.push({ text: payMoney(file.amount), format: 'numeric', attributes: { 'data-sort-value': file.amount } }, payValue(file.processedBy))
       const date = tab === 'process' ? file.uploadedAt : file.processedAt
-      row.push({ text: payDate(date), attributes: { 'data-sort-value': new Date(date).getTime() } })
+      row.push({ text: payDate(date, true), attributes: { 'data-sort-value': new Date(date).getTime() } })
       return row
     }) })
 }
@@ -18930,21 +18994,60 @@ router.post(payAuto + '/allocate', payRequireUnit, (req, res, next) => {
   })
   const failed = tills.length - allocated
   payFlash(req, allocated + (allocated === 1 ? ' till allocated.' : ' tills allocated.') + (failed ? ' ' + failed + ' failed to allocate. Select the failed tills to try again.' : ''),
-    failed ? 'warning' : 'success', [{ text: 'View cash till reports', href: payAuto + '/reports' }, { text: 'View cash list report', href: payAuto + '/reports?type=cash-list' }])
+    failed ? 'warning' : 'success', [{ text: 'View cash till reports', href: payAuto + '/reports' }, { text: 'View error details report', href: payAuto + '/reports?type=error-details' }])
   return redirectWithSessionSave(req, res, next, payAuto + '?tab=allocate')
 })
 
 router.get(payAuto + '/reports', payRequireUnit, (req, res) => {
   payAdvanceFiles(req)
+  const errorDetails = req.query.type === 'error-details'
   const cashList = req.query.type === 'cash-list'
-  const files = payUnitState(req).files.filter((file) => cashList ? file.status === 'allocated' : ['ready', 'failed-allocation', 'allocated'].includes(file.status))
+  const files = payUnitState(req).files.filter((file) => cashList || errorDetails ? file.status === 'allocated' : ['ready', 'failed-allocation', 'allocated'].includes(file.status))
     .sort((a, b) => b.processedAt.localeCompare(a.processedAt))
-  const page = payPage(files, req, payAuto + '/reports' + (cashList ? '?type=cash-list' : ''))
+  const page = payPage(files, req, payAuto + '/reports' + (errorDetails ? '?type=error-details' : cashList ? '?type=cash-list' : ''))
+  if (errorDetails) return payRender(req, res, 'report-list', { heading: 'Error details reports', backHref: payAuto + '?tab=allocate', ...page,
+    summaryRows: [paySummary('Tills', files.length), paySummary('Errors', files.reduce((total, file) => total + file.errorCount, 0))],
+    tableCaption: 'Error details reports for allocated tills',
+    tableHead: [{ text: 'Till' }, { text: 'File' }, { text: 'Errors', format: 'numeric' }, { text: 'Date allocated' }],
+    tableRows: page.items.map((file) => [payLink(payAuto + '/file/' + file.id + '/errors', file.tillNumber), { text: file.fileName },
+      { text: String(file.errorCount), format: 'numeric' }, { text: payDate(file.allocatedAt, true) }]) })
   return payRender(req, res, 'report-list', { heading: cashList ? 'Cash list report' : 'Cash till reports', backHref: payAuto + '?tab=allocate', ...page,
     summaryRows: [paySummary('Tills', files.length), paySummary('Total records', files.reduce((total, file) => total + file.records, 0)), paySummary('Total amount', payMoney(paySum(files)))],
     tableCaption: 'Automatic cash tills', tableHead: [{ text: 'Till' }, { text: 'File' }, { text: 'Source' }, { text: 'Amount', format: 'numeric' }, { text: 'Date processed' }, { text: 'Status' }],
     tableRows: page.items.map((file) => [payLink(payAuto + '/file/' + file.id, file.tillNumber), { text: file.fileName }, { text: file.source },
-      { text: payMoney(file.amount), format: 'numeric' }, { text: payDate(file.processedAt) }, { text: file.status === 'allocated' ? 'Allocated' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready' }]) })
+      { text: payMoney(file.amount), format: 'numeric' }, { text: payDate(file.processedAt, true) }, { text: file.status === 'allocated' ? 'Allocated' : file.status === 'failed-allocation' ? 'Allocation failed' : 'Ready' }]) })
+})
+
+function payFileErrorRows(file) {
+  if (!file.errorCount && !file.ignored) return []
+  const account = payAccounts().find((item) => item.id === file.accountId)
+  const descriptions = {
+    'no-account': 'No Opal Account',
+    'transaction-code': 'Invalid credit transfer transaction code',
+    'unknown-bank': 'Unknown bank details – records ignored',
+    'complete-account': 'Opal account is complete (No active order terms or outstanding arrears)',
+    'zero-value': 'Zero-value payment – record ignored'
+  }
+  const type = file.errorType || (file.ignored ? BigInt(file.amount) === 0n ? 'zero-value' : 'unknown-bank' : 'no-account')
+  return [{
+    court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary('Beneficiary name', ''),
+      paySummary('Transaction', 'Credit transfer'), paySummary('Amount', payMoney(file.ignored ? file.amount : file.suspenseAmount)),
+      paySummary('Transaction account', type === 'no-account' ? '' : account?.ref)],
+    respondent: [paySummary('Sort code', ''), paySummary('Bank account number', ''),
+      paySummary('Account number', type === 'no-account' ? '' : account?.ref),
+      paySummary('Respondent name', type === 'no-account' || account?.restricted ? '' : account?.name),
+      paySummary('Error', descriptions[type] || descriptions['no-account'])]
+  }]
+}
+
+router.get(payAuto + '/file/:fileId/errors', payRequireUnit, (req, res) => {
+  const file = payUnitState(req).files.find((item) => item.id === req.params.fileId && item.status === 'allocated')
+  if (!file) return res.redirect(payAuto + '?tab=allocate')
+  const page = payPage(payFileErrorRows(file), req, payAuto + '/file/' + encodeURIComponent(file.id) + '/errors')
+  return payRender(req, res, 'error-report', { heading: 'Error details report', caption: 'Till ' + file.tillNumber,
+    backHref: payAuto + '/reports?type=error-details', ...page,
+    summaryRows: [paySummary('File name', file.fileName), paySummary('Source', file.source), paySummary('Date allocated', payDate(file.allocatedAt, true)),
+      paySummary('Errors', file.errorCount)], printLabel: 'Export to PDF', recordErrors: page.items })
 })
 
 router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
@@ -18974,11 +19077,11 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
       return amount ? formatOrderTermAmountWithFrequency(term.responses?.[amount.id], term.responses?.[frequency?.id]) : ''
     }).filter(Boolean).join('; ')
     return [payLink('/active-case/' + credit.account.id, credit.account.ref), payValue(credit.account.lastName || credit.account.companyName),
-      { text: payMoney(credit.balance), format: 'numeric' }, { text: payDate(file.processedAt) },
+      { text: payMoney(credit.balance), format: 'numeric' }, payValue(payDate(credit.updatedAt)),
       { text: payMoney(credit.value), format: 'numeric' }, payValue(terms)]
   })
   return payRender(req, res, 'file-report', { heading: file.ignored ? file.fileName : file.tillNumber,
-    caption: file.ignored ? 'File' : 'Till', ignored: file.ignored, printLabel: 'Export as PDF',
+    caption: file.ignored ? 'File' : 'Till', ignored: file.ignored, printLabel: 'Export to PDF',
     backHref: payAuto + '?tab=' + (file.ignored ? 'ignored' : 'allocate'),
     detailsRows: [paySummary('File name', file.fileName), paySummary('Source', file.source)],
     recordRows: [paySummary('Total amount', payMoney(file.amount)), paySummary('Total records', file.records), paySummary('Total errors', file.errorCount)],
@@ -18987,12 +19090,7 @@ router.get(payAuto + '/file/:fileId', payRequireUnit, (req, res) => {
     creditHead: [{ text: 'Case number' }, { text: 'Surname' }, { text: 'Amount in credit', format: 'numeric' }, { text: 'Date last updated' },
       { text: 'Value', format: 'numeric' }, { text: 'Terms of order' }], creditRows,
     creditTotalRows: [paySummary('Total value to be written to maintenance accounts', payMoney(paySum(creditAccounts, 'value')))],
-    errorRows: file.errorCount ? {
-      court: [paySummary('Sort code', ''), paySummary('Account number/type', ''), paySummary(file.ignored ? 'Creditor name' : 'Beneficiary name', ''),
-        paySummary('Transaction', ''), paySummary('Amount', payMoney(file.ignored ? file.amount : file.suspenseAmount)), paySummary('Transaction account', '')],
-      respondent: [paySummary('Sort code', ''), paySummary('Bank account number', ''), paySummary('Account number', ''), paySummary('Respondent name', ''),
-        paySummary('Error', file.ignored ? 'Bank details not recognised – record ignored' : 'No Opal account – payment held in suspense')]
-    } : null,
+    recordErrors: payFileErrorRows(file),
     outcomeRows: [paySummary('Total value to be written to suspense', payMoney(suspense)), paySummary('Total value of records ignored', payMoney(ignored))] })
 })
 

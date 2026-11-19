@@ -30,14 +30,12 @@
     {{ paymentReference("transfer-reference", "Credit transfer") }}
   {% endset %}
   {{ govukRadios({ name: "pay-method", value: values.method, errorMessage: errors["pay-method"],
-    hint: { text: "Selecting postal order, cheque or credit transfer shows more payment details." },
+    hint: { text: "Selecting a method shows the payment details for that method." },
     fieldset: { legend: { text: "Method of payment", classes: "govuk-fieldset__legend--s" } },
-    items: [{ value: "Notes and coins", text: "Notes and coins" },
-      { value: "Postal order", text: "Postal order", conditional: { html: paymentReference("postal-reference", "Postal order") } },
-      { value: "Cheque", text: "Cheque", conditional: { html: paymentReference("cheque-reference", "Cheque") } },
+    items: [{ value: "Cheque", text: "Cheque", conditional: { html: paymentReference("cheque-reference", "Cheque") } },
       { value: "Credit transfer", text: "Credit transfer", conditional: { html: transferHtml } }] }) }}
   {% if category === "Suspense" %}
-    {% set relevantHtml %}{{ govukCharacterCount({ id: "pay-relevantDetails", name: "pay-relevantDetails", maxlength: 1000, label: { text: "Relevant details (optional)" }, value: values.relevantDetails, errorMessage: errors["pay-relevantDetails"] }) }}{% endset %}
+    {% set relevantHtml %}{{ govukCharacterCount({ id: "pay-relevantDetails", name: "pay-relevantDetails", maxlength: 1000, label: { text: "Relevant details" }, value: values.relevantDetails, errorMessage: errors["pay-relevantDetails"] }) }}{% endset %}
     {% set reasonItems = [] %}{% for reason in reasons %}{% set unused = reasonItems.push({ value: reason.value, text: reason.text, conditional: { html: relevantHtml } if reason.value === "UN" else {} }) %}{% endfor %}
     {{ govukRadios({ name: "pay-reason", value: values.reason, errorMessage: errors["pay-reason"], hint: { text: "Selecting unidentified amount shows a field for relevant details." }, fieldset: { legend: { text: "Reason for suspense", classes: "govuk-fieldset__legend--s" } }, items: reasonItems }) }}
   {% elif category === "Court Fee" %}

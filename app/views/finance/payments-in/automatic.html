@@ -3,7 +3,7 @@
 {% set emptyAllocation = tab === "allocate" and not items.length %}
 {% set emptyIgnored = tab === "ignored" and not items.length %}
 {% set emptyProcess = tab === "process" and not items.length %}
-{% set ignoredTabHtml %}Ignored files {{ mojNotificationBadge({ text: ignoredCount, visuallyHiddenText: "ignored file" if ignoredCount === 1 else "ignored files" }) }}{% endset %}
+{% set ignoredTabHtml %}Ignored files{% if ignoredCount %} {{ mojNotificationBadge({ text: ignoredCount, visuallyHiddenText: "ignored file" if ignoredCount === 1 else "ignored files" }) }}{% endif %}{% endset %}
 {{ mojSubNavigation({ label: "Automatic cash input", items: [
   { text: "Process", href: payAuto + "?tab=process", active: tab === "process" },
   { text: "Allocate", href: payAuto + "?tab=allocate", active: tab === "allocate" },

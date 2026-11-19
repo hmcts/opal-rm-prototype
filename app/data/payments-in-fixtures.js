@@ -91,24 +91,30 @@ module.exports = {
   "sources": [
     "allpay",
     "Barclaycard",
-    "Telephone",
+    "British Telecom",
     "NatWest",
     "Other"
   ],
   "methods": [
-    "Notes and coins",
-    "Postal order",
     "Cheque",
     "Credit transfer"
   ],
   "reasons": [
     {
       "value": "OF",
-      "text": "Maintenance overpayment (OF)"
+      "text": "Fines overpayment (OF)"
     },
     {
       "value": "FA",
-      "text": "Maintenance paid in advance (FA)"
+      "text": "Fine paid in advance (FA)"
+    },
+    {
+      "value": "MA",
+      "text": "Maintenance (MA)"
+    },
+    {
+      "value": "OM",
+      "text": "Maintenance overpayment (OM)"
     },
     {
       "value": "MS",

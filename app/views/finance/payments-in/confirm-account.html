@@ -3,6 +3,7 @@
 <div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
 {% if account.restricted %}{{ mojAlert({ variant: "warning", text: "This account has restricted personal information.", disableAutoFocus: true }) }}{% endif %}
 {% if hold %}{{ mojAlert({ variant: "warning", text: "Payments received for this respondent are held in suspense.", disableAutoFocus: true }) }}{% endif %}
+{% if cannotReceive %}{{ mojAlert({ variant: "error", text: "You cannot pay into this account because it has no active order terms and no outstanding arrears.", disableAutoFocus: true }) }}{% endif %}
 <h2 class="govuk-heading-m">Respondent</h2>
 {{ govukSummaryList({ rows: rows }) }}
 <p class="govuk-body">To see history and notes, you can <a class="govuk-link" href="/active-case/{{ account.id }}" target="_blank" rel="noreferrer noopener">view the account in a new tab</a>.</p>
@@ -10,7 +11,7 @@
 {{ govukSummaryList({ rows: applicantRows }) }}
 <form method="post" action="{{ payManual }}/confirm-account">
   <input type="hidden" name="pay-account" value="{{ account.id }}">
-  <div class="govuk-button-group">{{ govukButton({ text: "Confirm" }) }}<a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></div>
+  <div class="govuk-button-group">{{ govukButton({ text: "Pay into suspense" if cannotReceive else "Confirm", name: "pay-action", value: "suspense" if cannotReceive else "confirm" }) }}<a class="govuk-link" href="{{ payManual }}/cancel-payment">Cancel</a></div>
 </form>
 </div></div>
 {% endblock %}
