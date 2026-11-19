@@ -1,0 +1,20 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = heading %}
+{% block beforeContent %}{{ govukBackLink({text: "Back", href: backHref}) }}{% endblock %}
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if account %}<span class="govuk-caption-l">{{ account.ref }} – {{ account.name }}</span>{% endif %}
+<h1 class="govuk-heading-l">Select order terms to {{ verb }}</h1>
+<p class="govuk-body">You should check order term details before making a {{ "reversal" if verb === "reverse" else "dishonour" }}.</p>
+<p class="govuk-body">View details in <a class="govuk-link" href="/active-case/{{ account.id }}" target="_blank" rel="noopener noreferrer">history and notes (opens in new tab)</a>.</p>
+<form data-finance-form method="post" action="{{ href }}/orders" novalidate>
+{% set rows = [] %}
+{% for term in terms %}
+{% set selection %}{{ govukCheckboxes({idPrefix: "fi-orders-" + term.value, name: "fi-orders", classes: "govuk-checkboxes--small", values: selected, items: [{value: term.value, text: "Select " + term.text, label: {classes: "govuk-visually-hidden"} }]}) }}{% endset %}
+{% set ignored = rows.push([{html: selection}, {text: term.term.code}, {text: term.text}, {text: term.creditor}]) %}
+{% endfor %}
+{% if errors["fi-orders"] %}<p id="fi-orders" class="govuk-error-message"><span class="govuk-visually-hidden">Error:</span>{{ errors["fi-orders"].text }}</p>{% endif %}
+{{ govukTable({caption: "Maintenance order terms", captionClasses: "govuk-visually-hidden", head: [{text: "Select"}, {text: "Order term ID"}, {text: "Order term"}, {text: "Creditor"}], rows: rows}) }}
+<div class="govuk-button-group">{{ govukButton({text: "Continue"}) }}<a class="govuk-link" href="{{ cancelHref }}">Cancel</a></div></form>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Court fees" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./task-list"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+
+            <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+            <nav class="moj-sub-navigation" aria-label="Sub navigation">
+            <ul class="moj-sub-navigation__list">
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link"  href="./court-fees-report?courtFeesReportReturning=true">
+                    Reports
+                </a>
+                </li>
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" aria-current="page" href="./court-fees-transfer">
+                    Transfer court fees
+                </a>
+                </li>
+            </ul>
+            </nav>
+
+            {% if data['transferredReturning'] == "true" %}
+
+                {% else %}
+                {% if data['transferred'] == "true" %}
+                    {{ mojAlert({
+                        variant: "success",
+                        dismissible: true,
+                        html: '5 court fees transferred. Total balance: £3,000.00'
+                    }) }}
+                {% else %}
+                {% endif %}
+
+            {% endif %}
+
+            {% if data['transferred'] == "true" %}
+                <h2 class="govuk-heading-m">Transfer court fees</h2>
+                <p class="govuk-body">There are no court fees to transfer.</p>
+            {% else %}
+
+                <h2 class="govuk-heading-m">Transfer court fees</h2>
+
+                <form data-finance-form novalidate class="govuk-form-group" action="court-fees-transfer?transferred=true" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+                    {{ govukButton({
+                        text: "Transfer",
+                        classes: "govuk-!-margin-bottom-4"
+                    }) }}
+
+                    <p class="govuk-body govuk-hint govuk-!-margin-bottom-2">Select the court fees you want to transfer</p>
+
+
+                    {% set financeHead1 = [] %}
+
+
+                            {% set financeCellHtml %}<span class="govuk-visually-hidden">Actions</span>{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "id": "select-all" } }) %}
+                            {% set financeCellHtml %}Court fee code{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+                            {% set financeCellHtml %}Suspense reference{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, format: "numeric" }) %}
+                            {% set financeCellHtml %}Amount received{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, format: "numeric" }) %}
+                            {% set financeCellHtml %}Date received{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, format: "numeric" }) %}
+
+
+{% set financeRows1 = [] %}
+
+
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}
+                            <div class="govuk-checkboxes__item govuk-checkboxes--small moj-multi-select__checkbox">
+                                <input type="checkbox" class="govuk-checkboxes__input" name="courtFees" value="29" id="29">
+                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0" for="29">
+                                <span class="govuk-visually-hidden">Select suspense reference 29</span>
+                                </label>
+                            </div>
+                            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}C01.1{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}29{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}£250.00{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}12 Jun 2025 at 10:30{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}
+                            <div class="govuk-checkboxes__item govuk-checkboxes--small moj-multi-select__checkbox">
+                                <input type="checkbox" class="govuk-checkboxes__input" name="courtFees" value="37" id="37">
+                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0" for="37">
+                                <span class="govuk-visually-hidden">Select suspense reference 37</span>
+                                </label>
+                            </div>
+                            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}C02.2{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}37{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}£125.00{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}12 Jun 2025 at 10:30{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}
+                            <div class="govuk-checkboxes__item govuk-checkboxes--small moj-multi-select__checkbox">
+                                <input type="checkbox" class="govuk-checkboxes__input" name="courtFees" value="38" id="38">
+                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0" for="38">
+                                <span class="govuk-visually-hidden">Select suspense reference 38</span>
+                                </label>
+                            </div>
+                            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}C01.1{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}38{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}£75.00{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}13 Jun 2025 at 10:30{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}
+                            <div class="govuk-checkboxes__item govuk-checkboxes--small moj-multi-select__checkbox">
+                                <input type="checkbox" class="govuk-checkboxes__input" name="courtFees" value="44" id="44">
+                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0" for="44">
+                                <span class="govuk-visually-hidden">Select suspense reference 44</span>
+                                </label>
+                            </div>
+                            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}C02.2{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}44{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}£500.00{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}13 Jun 2025 at 10:30{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}
+                            <div class="govuk-checkboxes__item govuk-checkboxes--small moj-multi-select__checkbox">
+                                <input type="checkbox" class="govuk-checkboxes__input" name="courtFees" value="45" id="45">
+                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-0" for="45">
+                                <span class="govuk-visually-hidden">Select suspense reference 45</span>
+                                </label>
+                            </div>
+                            {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}C02.2{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}45{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}£750.00{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+                            {% set financeCellHtml %}14 Jun 2025 at 10:30{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>', format: "numeric" }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+
+
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"id": "court-fees", "data-module": "moj-multi-select", "data-multi-select-checkbox": "#select-all"} }) }}
+
+
+
+
+                </form>
+
+            {% endif %}
+
+
+    </div>
+  </div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

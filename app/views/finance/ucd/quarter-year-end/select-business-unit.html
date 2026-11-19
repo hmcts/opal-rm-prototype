@@ -1,0 +1,63 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Quarter and year end" %}
+
+{% block beforeContent %}
+
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+        <form data-finance-form novalidate class="govuk-form-group" action="select-business-unit" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+
+
+        {{ govukRadios({
+          name: "quarterOrYear",
+          fieldset: {
+            legend: {
+              text: "Select check",
+              isPageHeading: false,
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          value: data['quarterOrYear'],
+          items: [
+            {
+              value: "Quarter end only",
+              text: "Quarter end only"
+            },
+            {
+              value: "Quarter and year end",
+              text: "Quarter and year end"
+            }
+          ]
+        , value: data["quarterOrYear"], errorMessage: fieldErrors["quarterOrYear"]}) }}
+
+
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Continue
+          </button>
+
+          <p class="govuk-body"><a href="/finance" class="govuk-link govuk-link--no-visited-state">Cancel</a></p>
+        </div>
+
+      </form>
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

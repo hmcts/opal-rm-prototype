@@ -1,0 +1,106 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Quarter end control totals report" %}
+
+
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: "task-list"
+  }) }}
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      {% if showBanner %}
+        {{ mojAlert({
+          variant: "success",
+          dismissible: true,
+          html: "Report initiated."
+        }) }}
+      {% endif %}
+
+
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+      <form data-finance-form novalidate method="post" action="/finance/quarter-year-end/control-totals">
+        {{ govukButton({
+          text: "Create report"
+        }) }}
+      </form>
+
+      <h2 class="govuk-heading-m">Today</h2>
+
+      {% if reports | length > 0 %}
+
+        {{ govukButton({
+          text: "Refresh",
+          classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+          href: "#"
+        }) }}
+
+
+          {% set financeHead1 = [] %}
+
+
+                {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                {% set financeCellHtml %}Title{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+                {% set financeCellHtml %}Created by{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                {% set financeCellHtml %}Status{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                {% set financeCellHtml %}<span class="govuk-visually-hidden">Actions</span>{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+
+
+{% set financeRows1 = [] %}
+
+              {% for report in reports %}
+                {% set financeRow1 = [] %}
+
+                  {% set financeCellHtml %}
+                    <a class="govuk-link govuk-link--no-visited-state" href="#">{{ report.displayDate }}</a>
+                  {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                  {% set financeCellHtml %}{{ report.title }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                  {% set financeCellHtml %}{{ report.author }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                  {% set financeCellHtml %}{{ report.status }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                  {% set financeCellHtml %}
+                    <a class="govuk-link govuk-link--no-visited-state" href="#">Download</a>
+                  {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+              {% endfor %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+      {% else %}
+        <p class="govuk-body">No quarter end control totals reports have been created.</p>
+
+        {{ govukButton({
+          text: "Refresh",
+          classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+          href: "#"
+        }) }}
+      {% endif %}
+
+    </div>
+  </div>
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

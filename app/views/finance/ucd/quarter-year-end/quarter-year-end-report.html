@@ -1,0 +1,176 @@
+{% extends "finance/ucd/layout" %}
+
+{% set journeyName = "Daily checks" %}
+
+{% set pageName = "Quarter and year end report" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "../finance"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+            {% if showBanner %}
+              {{ mojAlert({
+                variant: "success",
+                dismissible: true,
+                html: "Report initiated."
+              }) }}
+            {% endif %}
+
+            <div class="moj-page-header-actions">
+
+              <div class="moj-page-header-actions__title">
+                <h1 class="govuk-heading-l">{{pageName}}</h1>
+              </div>
+
+              <div class="moj-page-header-actions__actions">
+                <form data-finance-form novalidate method="post" action="./create-report">
+                <div class="moj-button-group moj-button-group--inline">
+                  <button type="submit" class="govuk-button govuk-button--primary" data-module="govuk-button">
+                    Create report
+                  </button>
+                </div>
+                </form>
+              </div>
+            </div>
+
+            <form data-finance-form method="post" action="">
+
+
+              {% set dateRangeConditionalHtml %}
+              <div class="govuk-form-group">
+                <label class="govuk-label govuk-label--s" for="from-date">Enter date from</label>
+                <div id="from-date-hint" class="govuk-hint">For example, 31/01/2023</div>
+                {{ mojDatePicker({
+                  id: "from-date",
+                  name: "fromDate",
+                  value: data['fromDate']
+                , value: data["fromDate"], errorMessage: fieldErrors["fromDate"]}) }}
+
+
+              </div>
+
+              <div class="govuk-form-group">
+                <label class="govuk-label govuk-label--s" for="to-date">Enter date to</label>
+                <div id="to-date-hint" class="govuk-hint">For example, 31/01/2023</div>
+                {{ mojDatePicker({
+                  id: "to-date",
+                  name: "toDate",
+                  value: data['toDate']
+                , value: data["toDate"], errorMessage: fieldErrors["toDate"]}) }}
+              </div>
+              {% endset %}
+
+              {{ govukRadios({
+                idPrefix: "date-filter",
+                name: "dateFilter",
+                fieldset: {
+                  legend: {
+                    text: "Filter by date",
+                    classes: "govuk-fieldset__legend--s"
+                  }
+                },
+                items: [
+                  {
+                    value: "last-7-days",
+                    text: "Last 7 days",
+                    selected: data['dateFilter'] == "last-7-days"
+                  },
+                  {
+                    value: "custom-days",
+                    text: "Custom days",
+                    selected: data['dateFilter'] == "custom-days"
+                  },
+                  {
+                    value: "date-range",
+                    text: "Date range",
+                    selected: data['dateFilter'] == "date-range",
+                    checked: "true",
+                    conditional: {
+                      html: dateRangeConditionalHtml
+                    }
+                  }
+                ]
+              , value: data["dateFilter"], errorMessage: fieldErrors["dateFilter"]}) }}
+
+
+              <button type="submit" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4">Refresh</button>
+            </form>
+
+
+            {# Size modifiers: xl, l, m #}
+            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+            {% set sortedReports = reports %}
+
+            {% if reports | length == 0 %}
+              <h2 class="govuk-heading-m govuk-!-margin-top-6">No reports found</h2>
+            {% else %}
+
+              {% set financeHead1 = [] %}
+
+
+                      {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "descending" } }) %}
+                      {% set financeCellHtml %}Title{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+                      {% set financeCellHtml %}Created by{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                      {% set financeCellHtml %}Status{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                      {% set financeCellHtml %}<span class="govuk-visually-hidden">Actions</span>{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+
+
+{% set financeRows1 = [] %}
+
+                    {% for report in sortedReports %}
+                      {% set financeRow1 = [] %}
+
+                        {% set financeCellHtml %}
+                          <a href="#" class="govuk-link govuk-link--no-visited-state" data-sort-value="{{ report.date }}">
+                            {{ report.displayDate }}
+                          </a>
+                        {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}{{ report.title }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                        {% set financeCellHtml %}{{ report.author }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}{{ report.status }}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}
+                          <a href="#" class="govuk-link govuk-link--no-visited-state" download>Download</a>
+                        {% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% endfor %}
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+            {% endif %}
+
+    </div>
+  </div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

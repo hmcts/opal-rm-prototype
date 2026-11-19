@@ -1,0 +1,12 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = "Daily checks" %}
+{% block content %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+<h1 class="govuk-heading-l">{{ pageName }}</h1>
+<h2 class="govuk-heading-m">Checks to do</h2>
+{% set tasks = [{"title": {"text": "Print cheques"}, "href": "./print-cheques"}, {"title": {"text": "Unpresented cheques report"}, "href": "./unpresented-cheques?unpresentedChequesReturn=true"}, {"title": {"text": "BACS file report"}, "href": "./bacs-file?bacsFileReportReturning=true"}, {"title": {"text": "Bank report"}, "href": "./bank-list?bankReportReturning=true"}, {"title": {"text": "Control totals report"}, "href": "./control-totals?controlTotalsReturning=true"}, {"title": {"text": "Dishonoured cheques report"}, "href": "./dishonoured-cheques?dishonouredChequesReturning=true"}, {"title": {"text": "Witness expenses report"}, "href": "./witnesses?witnessReturning=true"}, {"title": {"text": "Suspense report"}, "href": "./suspense?suspenseReturning=true"}, {"title": {"text": "Reversed payments report"}, "href": "./outstanding-payment?reversedPaymentReturning=true"}, {"title": {"text": "Automated presented cheques"}, "href": "./process-presented-cheques"}, {"title": {"text": "Presented cheques report"}, "href": "./presented-cheques?presentedChequesReturning=true"}] %}
+{{ govukTaskList({items: tasks}) }}
+<p class="govuk-body"><a class="govuk-link" href="/finance">Return to finance</a></p>
+</div></div>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

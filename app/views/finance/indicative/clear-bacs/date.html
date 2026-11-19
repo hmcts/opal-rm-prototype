@@ -1,0 +1,10 @@
+{% extends "finance/payments-in/layout.html" %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% block paymentContent %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  <form method="post" action="{{ action }}" novalidate>
+    {{ mojDatePicker({ id: "fi-date", name: "fi-date", label: { text: "Enter BACS transaction date", classes: "govuk-label--s" }, hint: { text: "For example, 31/01/2023" }, value: values["fi-date"], errorMessage: errors["fi-date"] }) }}
+    <div class="govuk-button-group">{{ govukButton({ text: "Continue" }) }}<a class="govuk-link" href="{{ cancelHref }}">Cancel</a></div>
+  </form>
+</div></div>
+{% endblock %}

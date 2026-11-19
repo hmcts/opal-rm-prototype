@@ -1,0 +1,122 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Cancel cheque" %}
+
+
+
+{% block beforeContent %}
+  <a href="/finance/cancel-cheques/review-details" class="govuk-back-link" id="backLink">Back</a>
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if errors %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: errors
+      }) }}
+    {% endif %}
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    {{ govukSummaryList({
+    rows: [
+        {
+        key: {
+            text: "Cheque number"
+        },
+        value: {
+            text: cheque.chequeNumber
+        }
+        },
+        {
+        key: {
+            text: "Account number"
+        },
+        value: {
+            text: cheque.accountNumber
+        }
+        },
+        {
+        key: {
+            text: "Amount"
+        },
+        value: {
+            text: cheque.amount
+        }
+        }
+    ]
+    }) }}
+
+    <form data-finance-form novalidate method="post" action="/finance/cancel-cheques/cancel-cheque">
+
+      {{ govukRadios({
+        name: "whereFundsShouldGo",
+        fieldset: {
+          legend: {
+            text: "Select where the funds should go",
+            isPageHeading: false,
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        errorMessage: { text: fundsError } if fundsError,
+        value: whereFundsShouldGo,
+        items: [
+          {
+            value: "issue-new-cheque",
+            text: "Issue a new cheque"
+          },
+          {
+            value: "pay-hmcts-other",
+            text: "Pay to HMCTS/Other"
+          },
+          {
+            value: "move-funds-to-suspense",
+            text: "Move the funds to the suspense account"
+          }
+        ]
+      , value: data["whereFundsShouldGo"], errorMessage: fieldErrors["whereFundsShouldGo"]}) }}
+
+      {{ govukCharacterCount({
+        name: "accountNote",
+        id: "account-note",
+        maxlength: 1000,
+        value: accountNote,
+        label: {
+          text: "Enter reason for cancellation",
+          classes: "govuk-label--m",
+          isPageHeading: false
+        },
+        errorMessage: { text: reasonError } if reasonError
+      , value: data["accountNote"], errorMessage: fieldErrors["accountNote"]}) }}
+
+      <div class="govuk-button-group">
+
+        {{ govukButton({
+          text: "Continue",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel</a></p>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

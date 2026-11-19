@@ -1,0 +1,224 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Court fees" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./task-list"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+
+
+
+            <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+            <nav class="moj-sub-navigation" aria-label="Sub navigation">
+            <ul class="moj-sub-navigation__list">
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" aria-current="page" href="./court-fees-report">
+                    Reports
+                </a>
+                </li>
+                <li class="moj-sub-navigation__item">
+                <a class="moj-sub-navigation__link" href="./court-fees-transfer">
+                    Transfer court fees
+                </a>
+                </li>
+            </ul>
+            </nav>
+
+            {% if data['courtFeesReportReturning'] == "true" %}
+
+                {% else %}
+                {% if (data['courtFees'] == "in-progress" or data['courtFees'] == "ready" or data['courtFees2'] == "in-progress" or data['courtFees2'] == "ready") %}
+                    {{ mojAlert({
+                        variant: "success",
+                        dismissible: false,
+                        html: 'Report initiated.'
+                    }) }}
+                {% else %}
+                {% endif %}
+
+            {% endif %}
+
+            <h2 class="govuk-heading-m">Court fees report</h2>
+
+            <div class="govuk-button-group" data-module="edge">
+
+                {% if (data['courtFeesReportCreated'] == "true" and data['courtFeesReportCreated2'] == "true") %}
+                {{ govukButton({
+                    text: "Create report",
+                    classes: "",
+                    href: "#"
+                }) }}
+                {% elseif data['courtFeesReportCreated'] == "true"  %}
+                {{ govukButton({
+                    text: "Create report",
+                    classes: "",
+                    href: "./create-court-fees-report-2"
+                }) }}
+                {% else %}
+                {{ govukButton({
+                    text: "Create report",
+                    classes: "",
+                    href: "./create-court-fees-report"
+                }) }}
+                {% endif %}
+
+
+            </div>
+
+
+
+            {% if data['courtFeesReportCreated'] == "true" %}
+                <h2 class="govuk-heading-m">Today</h2>
+
+
+                {% if data['courtFees'] == "in-progress" %}
+                {{ govukButton({
+                        text: "Refresh",
+                        classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+                        href: "./court-fees-report?courtFees=ready&courtFees2=ready"
+                }) }}
+                {% elseif data['courtFees'] == "ready" %}
+                {{ govukButton({
+                        text: "Refresh",
+                        classes: "govuk-button--secondary govuk-!-margin-bottom-4",
+                        href: "./court-fees-report?courtFees=ready&courtFees2=ready"
+                }) }}
+                {% endif %}
+
+
+
+                {% set financeHead1 = [] %}
+
+
+                        {% set financeCellHtml %}Date and time{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                        {% set financeCellHtml %}Title{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+
+                        {% set financeCellHtml %}Created by{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                        {% set financeCellHtml %}Status{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml, attributes: { "aria-sort": "none" } }) %}
+                        {% set financeCellHtml %}<span class="govuk-visually-hidden">Actions</span>{% endset %}
+{% set ignored = financeHead1.push({ html: financeCellHtml }) %}
+
+
+{% set financeRows1 = [] %}
+
+
+                    {% if (data['courtFeesReportCreated2'] == "true" and data['courtFees2'] == "in-progress") %}
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}Court fees report – {{data['courtFeesReportType2']}}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                            {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}In progress{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% endif %}
+                    {% if (data['courtFeesReportCreated2'] == "true" and data['courtFees2'] == "ready") %}
+                        {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}Court fees report – {{data['courtFeesReportType2']}}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                            {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}Ready{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state"  href="#" download>Download</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% endif %}
+
+                    {% if data['courtFees'] == "in-progress" %}
+                    {% set financeRow1 = [] %}
+
+                            {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}Court fees report – {{data['courtFeesReportType']}}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                            {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}In progress{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                            {% set financeCellHtml %}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% endif %}
+                    {% if data['courtFees'] == "ready" %}
+                    {% set financeRow1 = [] %}
+
+                        {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state" href="#">19 Mar 2025 at 09:10</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}Court fees report – {{data['courtFeesReportType']}}{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+                        {% set financeCellHtml %}jane.smith{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}Ready{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+                        {% set financeCellHtml %}<a class="govuk-link govuk-link--no-visited-state"  href="#" download>Download</a>{% endset %}
+{% set ignored = financeRow1.push({ html: (financeCellHtml | trim) or '<span aria-label="No data">—</span>' }) %}
+
+{% set ignored = financeRows1.push(financeRow1) %}
+                    {% endif %}
+
+
+{{ govukTable({ head: financeHead1, rows: financeRows1, attributes: {"data-module": "moj-sortable-table"} }) }}
+
+
+
+            {% else %}
+            <h2 class="govuk-heading-m">Today</h2>
+
+
+            <p class="govuk-body">No court fees reports have been created.</p>
+
+
+            {% endif %}
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

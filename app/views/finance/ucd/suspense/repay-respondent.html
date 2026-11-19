@@ -1,0 +1,56 @@
+{% extends "finance/ucd/layout" %}
+
+{% set partyTerm = "respondent" if data['serviceDomain'] == "Fines" else "respondent" %}
+{% set pageName = "Repay to " + partyTerm %}
+
+
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/suspense/repay-respondent">
+
+      <input type="hidden" name="suspenseRef" value="{{ suspenseRef }}">
+
+
+        {{ govukInput({
+          label: {
+            text: "Account number",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "For example, 12345678 or 12345678A"
+          },
+          classes: "govuk-input--width-10",
+          id: "account-number",
+          name: "accountNumber"
+        , value: data["accountNumber"], errorMessage: fieldErrors["accountNumber"]}) }}
+
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Search"
+        }) }}
+
+        <a class="govuk-link" href="/finance/suspense/item?ref={{ suspenseRef }}">Cancel</a>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

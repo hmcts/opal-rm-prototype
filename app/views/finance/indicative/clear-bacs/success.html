@@ -1,0 +1,17 @@
+{% extends "finance/payments-in/layout.html" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% block content %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+  {{ govukPanel({ titleText: "BACS transactions cleared successfully" }) }}
+  <p class="govuk-body">Number of transactions cleared or retained:</p>
+  <ul class="govuk-list govuk-list--bullet">
+    <li>{{ clearedCount }} {{ "record has" if clearedCount === 1 else "records have" }} been cleared</li>
+    <li>{{ retainedCount }} {{ "record has" if retainedCount === 1 else "records have" }} been retained</li>
+  </ul>
+  <h2 class="govuk-heading-m">Next steps</h2>
+  <ul class="govuk-list govuk-list--spaced">
+    <li><a class="govuk-link" href="{{ clearHref }}">Clear more BACS transactions</a></li>
+    <li><a class="govuk-link" href="{{ reportHref }}">Generate BACS payments report – Processed</a></li>
+  </ul>
+</div></div>
+{% endblock %}

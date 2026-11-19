@@ -1,0 +1,70 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Select printer" %}
+
+{% block beforeContent %}
+
+{{ govukBackLink({
+  text: "Back",
+  href: "./print-cheques"
+}) }}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        <form data-finance-form novalidate class="govuk-form-group" action="print-confirmation" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+        {{ xGovukAutocomplete({
+            id: "printer",
+            name: "printer",
+            classes: "govuk-!-margin-bottom-8",
+            formGroup:{
+                classes: "govuk-input--width-30"
+            },
+            value: data['printer'],
+            allowEmpty: false,
+            showAllValues: true,
+            label: {
+                isPageHeading: true,
+                classes: "govuk-label--l",
+                text: "Select printer"
+            },
+            items: [
+                { text: "CA0308999P Plymouth Crim Bus 1" },
+                { text: "CA0308763P C/F Printers 3" },
+                { text: "CA0308760P Torquay County Upstairs" },
+                { text: "CA0308794P TORQUAY MC - Main Off" },
+                { text: "CA0308742P Torqu Admin Colour" },
+                { text: "CA0215491P Torquay County" },
+                { text: "CA523E199T MCSS 6.5.2" },
+                { text: "CA0169877B Plymouth CTO" },
+                { text: "CA0308892P Torquay MTD + MFD" },
+                { text: "CA0169878B Plymouth Crim" }
+            ]
+            }) }}
+
+
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Print
+          </button>
+
+          <p class="govuk-body"><a href="./task-list" class="govuk-link govuk-link--no-visited-state">Cancel</a></p>
+        </div>
+
+      </form>
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

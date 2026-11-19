@@ -1,0 +1,40 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Cheque cancelled successfully" %}
+
+
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+    {{ govukPanel({
+      titleText: pageName
+    }) }}
+
+    <p class="govuk-body">{{ message }}</p>
+
+    <h2 class="govuk-heading-m">Next steps</h2>
+
+    <ul class="govuk-list govuk-list--spaced">
+      <li>
+        <a class="govuk-link govuk-link--no-visited-state" href="/finance/cancel-cheques">Cancel another cheque</a>
+      </li>
+      <li>
+        <a class="govuk-link govuk-link--no-visited-state" href="/finance/cancel-cheques/cheque-history">View account history and notes</a>
+      </li>
+    </ul>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

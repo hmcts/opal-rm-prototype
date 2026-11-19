@@ -1,0 +1,18 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = heading %}
+{% block beforeContent %}{{ govukBackLink({text: "Back", href: backHref}) }}{% endblock %}
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if account %}<span class="govuk-caption-l">{{ account.ref }} – {{ account.name }}</span>{% endif %}
+<div class="govuk-grid-row"><div class="govuk-grid-column-two-thirds">
+{% if mismatch === "over" %}
+<h1 class="govuk-heading-l">The {{ "reversal" if verb === "reverse" else "dishonour" }} total does not match the payment amount you entered</h1>
+<p class="govuk-body">The total you have entered to {{ verb }} is more than the payment amount received.</p>
+<p class="govuk-body"><a class="govuk-link" href="{{ href }}/review">Go back</a></p>
+{% else %}
+<h1 class="govuk-heading-l">The {{ "reversal" if verb === "reverse" else "dishonour" }} amount is less than the payment received – do you want to continue?</h1>
+{{ govukSummaryList({rows: [{key: {text: "Payment received"}, value: {text: paymentAmount} }, {key: {text: "Total to " + verb}, value: {text: enteredTotal} }]}) }}
+<form data-finance-form novalidate method="post" action="{{ href }}/amount-exceeded"><div class="govuk-button-group">{{ govukButton({text: "Yes – " + verb}) }}<a class="govuk-link" href="{{ href }}/review">No – go back</a></div></form>
+{% endif %}</div></div>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

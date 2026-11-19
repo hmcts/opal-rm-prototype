@@ -1,0 +1,95 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Confirm and transfer" %}
+
+
+
+{% block beforeContent %}
+  <a href="/finance/suspense/transfer?ref={{ suspenseRef }}" class="govuk-back-link">Back</a>
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    {% if (data['warning'] == "true") %}
+      {{ mojAlert({
+        variant: "warning",
+        title: "Some information could not be imported",
+        showTitleAsHeading: false,
+        dismissible: false,
+        html: 'Account has been written off'
+      }) }}
+    {% endif %}
+
+    {{ govukSummaryList({rows: respondentRows}) }}
+
+    <p class="govuk-body">
+      To see history and notes, you can <a href="/active-case/{{ respondentAccount.id }}" target="_blank" rel="noopener noreferrer" class="govuk-link govuk-link--no-visited-state" >view the account in a new tab</a>.
+    </p>
+
+
+
+    <form data-finance-form novalidate method="post" action="/finance/suspense/confirm-transfer">
+
+      <input type="hidden" name="suspenseRef" value="{{ suspenseRef }}">
+
+
+      <h2 class="govuk-heading-m">Transfer</h2>
+
+      <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-2">Suspense balance</p>
+      <p class="govuk-body">{{ item.balanceFormatted }}</p>
+
+      {{ govukInput({
+        id: "amountToTransfer",
+        name: "amountToTransfer",
+        label: {
+          text: "Amount to transfer",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        prefix: {
+          text: "£"
+        },
+        classes: "govuk-input--width-5",
+        spellcheck: false
+      , value: data["amountToTransfer"], errorMessage: fieldErrors["amountToTransfer"]}) }}
+
+      {# Size modifiers: xl, l, m #}
+
+
+      {{ govukCharacterCount({
+        name: "suspenseNote",
+        id: "suspense-note",
+        maxlength: 1000,
+        label: {
+          text: "Enter suspense note",
+          classes: "govuk-label--m",
+          isPageHeading: "false"
+        }
+      , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
+
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Confirm and transfer"
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" href="/finance/suspense/item?ref={{ suspenseRef }}">Cancel</a></p>
+      </div>
+
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

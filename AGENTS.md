@@ -24,6 +24,7 @@
 - Put any small styling adjustments in `app/assets/sass/application.scss`.
 
 ## Templating guidance
+- Title fields use free-text `govukInput` controls, following existing RM forms, rather than title dropdowns or fixed title lists.
 - Prefer importing and calling macros from GOV.UK Frontend, GOV.UK Prototype Components, or MOJ Frontend instead of writing component markup manually.
 - All date fields must use the MOJ date picker macro from `moj/components/date-picker/macro.njk`. Do not use native HTML date inputs or handwritten date input markup.
 - Keep templates mostly declarative: page structure, copy, and macro calls belong in Nunjucks.
@@ -32,6 +33,7 @@
 - When composing pages, favour standard page sections such as back links, phase banners, service navigation, page headings, inset text, summaries, details, buttons, and form components from the design systems.
 
 ## Tables and pagination
+- Render tables directly without scrollable wrappers. Do not use `moj-scrollable-pane` or add a custom scrolling container.
 - Any table with more than 25 rows must be paginated.
 - Use the MOJ pagination component for paginated tables.
 - Keep pagination state simple and prototype-friendly, usually with query-string page numbers or route-level pagination data.
@@ -66,7 +68,7 @@
 - Keep these folders local-only and ignored by Git. Do not stage, commit, push or copy their contents into published documentation.
 
 ## Writing specifications
-- Use the local [cogworx-spec skill](.agents/skills/cogworx-spec/SKILL.md) for specification and delivery-handover work. It loads the project-specific specification requirements when working in this repository.
+- Use the local [cogworx-document skill](.agents/skills/cogworx-document/SKILL.md) for specification and delivery-handover work. Also read the [Opal project specification requirements](.agents/project-guidance/opal-project-specifications.md) when working in this repository.
 
 ## Design system references
 - GOV.UK Design System: https://design-system.service.gov.uk/

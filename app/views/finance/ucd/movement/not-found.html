@@ -1,0 +1,11 @@
+{% extends "finance/ucd/layout.html" %}
+{% set pageName = heading %}
+{% block beforeContent %}{{ govukBackLink({text: "Back", href: backHref}) }}{% endblock %}
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if account %}<span class="govuk-caption-l">{{ account.ref }} – {{ account.name }}</span>{% endif %}
+<h1 class="govuk-heading-l">Payment not found</h1>
+<p class="govuk-body">No available payment matches the respondent account and date entered.</p>
+<p class="govuk-body"><a class="govuk-link" href="{{ href }}">Try again</a></p>
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

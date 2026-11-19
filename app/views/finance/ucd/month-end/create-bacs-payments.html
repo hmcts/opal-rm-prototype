@@ -1,0 +1,73 @@
+{% extends "finance/ucd/layout" %}
+
+
+{% set pageName = "Create report" %}
+
+{% block beforeContent %}
+
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+
+        <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+        <form data-finance-form novalidate class="govuk-form-group" action="bacs-payments?bacsPayment=in-progress&bacsPaymentReportCreated=true" method="post"><input type="hidden" name="financeScreen" value="{{ sourceScreen }}">
+
+        {{ govukRadios({
+          name: "bacsReportType",
+          idPrefix: "bacsReportType",
+          fieldset: {
+            legend: {
+              text: "BACS payments",
+              isPageHeading: false,
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          value: data['bacsReportType'],
+          items: [
+            {
+              value: "Processed",
+              text: "Processed"
+            },
+            {
+              value: "Unprocessed",
+              text: "Unprocessed"
+            }
+          ]
+        , value: data["bacsReportType"], errorMessage: fieldErrors["bacsReportType"]}) }}
+
+
+
+        <div class="govuk-button-group">
+          <button type="submit" class="govuk-button">
+            Create report
+          </button>
+
+          <p class="govuk-body"><a href="./bacs-payments" class="govuk-link govuk-link--no-visited-state">Cancel</a></p>
+        </div>
+
+      </form>
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

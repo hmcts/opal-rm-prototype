@@ -1,0 +1,93 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Review details" %}
+
+
+
+{% block beforeContent %}
+  <a href="/finance/cancel-cheques" class="govuk-back-link" id="backLink">Back</a>
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    {{ govukSummaryList({
+    rows: [
+        {
+        key: {
+            text: "Cheque number"
+        },
+        value: {
+            text: cheque.chequeNumber
+        }
+        },
+        {
+        key: {
+            text: "Account number"
+        },
+        value: {
+            text: cheque.accountNumber
+        }
+        },
+        {
+        key: {
+            text: "Account name"
+        },
+        value: {
+            text: cheque.accountName
+        }
+        },
+        {
+        key: {
+            text: "Date written"
+        },
+        value: {
+            text: cheque.dateWritten
+        }
+        },
+        {
+        key: {
+            text: "Amount"
+        },
+        value: {
+            text: cheque.amount
+        }
+        }
+    ]
+    }) }}
+
+    <p class="govuk-body">To see history and notes, you can <a class="govuk-link govuk-link--no-visited-state" id="viewAccountLink" href="/finance/cancel-cheques/cheque-history" target="_blank" rel="noopener noreferrer">view the account in a new tab</a>.</p>
+
+    <form data-finance-form novalidate method="post" action="/finance/cancel-cheques/review-details">
+
+      <div class="govuk-button-group govuk-!-margin-top-6">
+
+        {{ govukButton({
+          text: "Continue",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel</a></p>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

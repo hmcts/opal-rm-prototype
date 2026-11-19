@@ -14,9 +14,9 @@
   <h3 class="govuk-heading-s">Maintenance accounts with credit balance</h3>
   <hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
   {% if creditRows.length %}
-    <div class="moj-scrollable-pane" tabindex="0" role="region" aria-label="Maintenance accounts with credit balance">
+
       {{ govukTable({ caption: "Maintenance accounts with credit balance", captionClasses: "govuk-visually-hidden", head: creditHead, rows: creditRows, firstCellIsHeader: false }) }}
-    </div>
+
     {{ govukSummaryList({ rows: creditTotalRows }) }}
   {% else %}<p class="govuk-body">No records found.</p>{% endif %}
 <h3 class="govuk-heading-s">Errors in record details</h3>

@@ -1,0 +1,327 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Repayment" %}
+
+
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: "/finance/repayment/select-business-unit"
+  }) }}
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/repayment/repayment-confirmation">
+
+
+
+
+      {% if data['serviceDomain'] != 'RM' %}
+      {{ govukRadios({
+        name: "repayment",
+        id: "repayment",
+        fieldset: {
+          legend: {
+            text: "Reason for repayment",
+            classes: "govuk-fieldset__legend--s"
+          }
+        },
+        items: [
+          {
+            value: "HMCTS/Other",
+            text: "HMCTS/Other"
+          },
+          {
+            value: "Witness expenses",
+            text: "Witness expenses"
+          },
+          {
+            value: "Victim surcharge",
+            text: "Victim surcharge"
+          },
+          {
+            value: "Criminal court charge",
+            text: "Criminal court charge"
+          }
+        ]
+      , value: data["repayment"], errorMessage: fieldErrors["repayment"]}) }}
+      {% endif %}
+
+
+
+
+      {{ mojDatePicker({
+        id: "dateOfHearing",
+        name: "dateOfHearing",
+        label: {
+          text: "Date of payment" if data['serviceDomain'] == 'RM' else "Date of hearing",
+          classes: "govuk-label--s"
+        },
+        hint: {
+          text: "For example, 31/01/2023"
+        }
+      , value: data["dateOfHearing"], errorMessage: fieldErrors["dateOfHearing"]}) }}
+
+
+      <div>
+      {% set creditorTypeIndividualHTML %}
+        {{ govukInput({ id: "creditorTypeIndividualTitle", name: "creditorTypeIndividualTitle", label: { text: "Title", classes: "govuk-label--s" }, classes: "govuk-!-width-one-quarter", autocomplete: "honorific-prefix", value: data["creditorTypeIndividualTitle"], errorMessage: fieldErrors["creditorTypeIndividualTitle"] }) }}
+
+        {{ govukInput({
+          id: "creditorTypeIndividualFirstName",
+          name: "creditorTypeIndividualFirstName",
+          autocomplete: "name",
+          classes: "govuk-input--width-20",
+          label: {
+            text: "First names",
+            classes: "govuk-label--s"
+          }
+        , value: data["creditorTypeIndividualFirstName"], errorMessage: fieldErrors["creditorTypeIndividualFirstName"]}) }}
+
+        {{ govukInput({
+          id: "creditorTypeIndividualLastName",
+          name: "creditorTypeIndividualLastName",
+          autocomplete: "name",
+          classes: "govuk-input--width-20",
+          label: {
+            text: "Last name",
+            classes: "govuk-label--s"
+          }
+        , value: data["creditorTypeIndividualLastName"], errorMessage: fieldErrors["creditorTypeIndividualLastName"]}) }}
+      {% endset -%}
+
+      {% set creditorTypeCompanyHTML %}
+        {{ govukInput({
+          id: "creditorTypeCompanyName",
+          name: "creditorTypeCompanyName",
+          autocomplete: "organization",
+          classes: "govuk-input--width-30",
+          type: "text",
+          label: {
+            text: "Company name",
+            classes: "govuk-label--s"
+          }
+        , value: data["creditorTypeCompanyName"], errorMessage: fieldErrors["creditorTypeCompanyName"]}) }}
+      {% endset -%}
+
+      {{ govukRadios({
+        name: "creditorType",
+        id: "creditorType",
+        fieldset: {
+          legend: {
+            text: "Creditor type",
+            classes: "govuk-fieldset__legend--s"
+          }
+        },
+        items: [
+          {
+            value: "Individual",
+            text: "Individual",
+            conditional: {
+              html: creditorTypeIndividualHTML
+            }
+          },
+          {
+            value: "Company",
+            text: "Company",
+            conditional: {
+              html: creditorTypeCompanyHTML
+            }
+          }
+        ]
+      , value: data["creditorType"], errorMessage: fieldErrors["creditorType"]}) }}
+      </div>
+
+
+      <div>
+
+      {% call govukFieldset({
+        legend: {
+          text: "Address",
+          classes: "govuk-fieldset__legend--s"
+        }
+      }) %}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 1",
+            classes: "govuk-label"
+          },
+          id: "addressL1",
+          name: "addressL1",
+          autocomplete: "address-line1",
+          classes: "govuk-input--width-30"
+        , value: data["addressL1"], errorMessage: fieldErrors["addressL1"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 2",
+            classes: "govuk-label"
+          },
+          id: "addressL2",
+          name: "addressL2",
+          autocomplete: "address-line2",
+          classes: "govuk-input--width-30"
+        , value: data["addressL2"], errorMessage: fieldErrors["addressL2"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 3",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-30",
+          id: "addressL3",
+          name: "addressL3",
+          autocomplete: "address-line3"
+        , value: data["addressL3"], errorMessage: fieldErrors["addressL3"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 4",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-30",
+          id: "addressL4",
+          name: "addressL4",  value: data["addressL4"], errorMessage: fieldErrors["addressL4"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Address line 5",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-30",
+          id: "addressL5",
+          name: "addressL5",  value: data["addressL5"], errorMessage: fieldErrors["addressL5"]}) }}
+
+        {{ govukInput({
+          label: {
+            text: "Postcode",
+            classes: "govuk-label"
+          },
+          classes: "govuk-input--width-10",
+          id: "postCode",
+          name: "postCode",
+          autocomplete: "postal-code"
+        , value: data["postCode"], errorMessage: fieldErrors["postCode"]}) }}
+
+      {% endcall %}
+
+      </div>
+
+
+      <div>
+      {% set BACSHTML %}
+
+      {{ govukInput({
+        id: "creditorAccountName",
+        name: "creditorAccountName",
+        autocomplete: "name",
+        label: {
+          text: "Name on the account",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-30"
+      , value: data["creditorAccountName"], errorMessage: fieldErrors["creditorAccountName"]}) }}
+
+      {{ govukInput({
+        id: "creditorSortCode",
+        name: "creditorSortCode",
+        label: {
+          text: "Sort code",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-5"
+      , value: data["creditorSortCode"], errorMessage: fieldErrors["creditorSortCode"]}) }}
+
+      {{ govukInput({
+        id: "creditorAccountNumber",
+        name: "creditorAccountNumber",
+        value: data['creditorAccountNumber'],
+        label: {
+          text: "Account number",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-10"
+      , value: data["creditorAccountNumber"], errorMessage: fieldErrors["creditorAccountNumber"]}) }}
+
+      {{ govukInput({
+        id: "creditorPaymentReference",
+        name: "creditorPaymentReference",
+        label: {
+          text: "Payment reference",
+          classes: "govuk-label--s"
+        },
+        classes: "govuk-input--width-10"
+      , value: data["creditorPaymentReference"], errorMessage: fieldErrors["creditorPaymentReference"]}) }}
+
+      {% endset -%}
+
+      {{ govukRadios({
+        name: "repaymentPaymentMethod",
+        id: "repaymentPaymentMethod",
+        fieldset: {
+          legend: {
+            text: "Payment method",
+            isPageHeading: false,
+            classes: "govuk-fieldset__legend--s"
+          }
+        },
+        items: [
+          {
+            value: "Pay by cheque",
+            text: "Pay by cheque"
+          },
+          {
+            value: "Pay by BACS",
+            text: "Pay by BACS",
+            conditional: {
+              html: BACSHTML
+            }
+          }
+        ]
+      , value: data["repaymentPaymentMethod"], errorMessage: fieldErrors["repaymentPaymentMethod"]}) }}
+      </div>
+
+
+      {{ govukInput({
+        id: "amountToRepayment",
+        name: "amountToRepayment",
+        label: {
+          text: "Amount to repay",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        prefix: {
+          text: "£"
+        },
+        classes: "govuk-input--width-5",
+        spellcheck: false
+      , value: data["amountToRepayment"], errorMessage: fieldErrors["amountToRepayment"]}) }}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Repay",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" href="/finance">Cancel</a></p>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}

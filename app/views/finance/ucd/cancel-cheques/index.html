@@ -1,0 +1,70 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "Cancel cheques" %}
+
+
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if error %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: [
+          {
+            text: error,
+            href: "#enterChequeNumber"
+          }
+        ]
+      }) }}
+    {% endif %}
+
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form data-finance-form novalidate method="post" action="/finance/cancel-cheques">
+
+      {% set inputErrorMessage = { text: error } if error %}
+
+      {{ govukInput({
+        id: "enterChequeNumber",
+        name: "enterChequeNumber",
+        label: {
+          text: "Enter cheque number",
+          classes: "govuk-label--s",
+          isPageHeading: false
+        },
+        classes: "govuk-input--width-10",
+        spellcheck: false,
+        value: chequeNumber,
+        errorMessage: inputErrorMessage
+      , value: data["enterChequeNumber"], errorMessage: fieldErrors["enterChequeNumber"]}) }}
+
+      <div class="govuk-button-group">
+
+        {{ govukButton({
+          text: "Continue",
+          classes: ""
+        }) }}
+
+        <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" id="cancelLink" href="/finance">Cancel</a></p>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
+
+

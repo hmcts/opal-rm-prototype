@@ -1,0 +1,31 @@
+{% extends "finance/ucd/layout" %}
+
+{% set pageName = "You cannot transfer, repay or reverse this suspense item" %}
+
+
+
+{% block beforeContent %}
+{% endblock %}
+
+{% block content %}
+{% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
+{% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
+
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <p class="govuk-body">There is no money in this suspense item.</p>
+
+    <p class="govuk-body">
+      <a href="/finance/suspense/item?ref={{ suspenseRef }}" class="govuk-link govuk-link--no-visited-state">Go back</a>
+    </p>
+
+  </div>
+</div>
+
+{% if sourcePagination %}{{ mojPagination(sourcePagination) }}{% endif %}
+{% endblock %}
