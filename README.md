@@ -42,9 +42,11 @@ The latest reconciliation with [the UCD prototype](https://github.com/Cogworx-UC
 
 The other UCD finance journeys are now adapted here for case-by-case RM design work. Start at `/finance`, where the hub identifies the wider journeys as indicative. Future RM changes belong in this repository.
 
-- Suspense: search, notes, respondent and HMCTS transfers, respondent and third-party repayments, reversals, and advance maintenance transfers.
+- Suspense: search, notes, respondent and HMCTS transfers, respondent and third-party repayments, and reversals.
 - Payments: repayment, cheque cancellation, single and multiple BACS reissue, BACS clearing, payment reversal and cheque dishonour with maintenance order term selection and amounts.
 - Checks: daily checks, month end, quarter/year end, example reports, cheque printing steps, presented-cheques processing, court fee transfers, payouts and remittances.
+
+Transfer maintenance paid in advance is excluded from RM: Simon V confirmed that the source Fines journey was descoped under PO-3580. Its imported screen and both the imported and indicative RM routes have been removed.
 
 These journeys retain the UCD screen sequence and controls using RM layouts and GOV.UK/MOJ macros. Source-specific CSS and browser-storage scripts are not imported. Titles use free-text inputs and tables have no scrollable wrappers. Session examples live in `financeUcd` for restored UCD flows and `financeIndicative` for RM clearing and movement demonstrations. They do not post to RM account balances, payment history, bank integrations or Payments In tills. Report content, printer choices, payout groups and financial rules are illustrative. A new private browsing session starts fresh; the existing Clear data journey also resets session examples.
 

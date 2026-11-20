@@ -111,13 +111,6 @@
     ]
   },
   {
-    "source": "suspense/transfer-fines-paid-in-advance.html",
-    "template": "finance/ucd/suspense/transfer-maintenance-paid-in-advance",
-    "url": "/finance/suspense/transfer-maintenance-paid-in-advance",
-    "sha256": "080ef725f8fe6aa20a233a5076510574687adad74deb3f7e2b1bacfbe66e8462",
-    "fields": []
-  },
-  {
     "source": "suspense/transfer.html",
     "template": "finance/ucd/suspense/transfer",
     "url": "/finance/suspense/transfer",
