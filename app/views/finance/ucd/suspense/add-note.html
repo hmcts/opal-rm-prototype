@@ -18,44 +18,17 @@
 
     <div>
 
-      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+      <span class="govuk-caption-l">{{ suspenseRef }}</span>
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      <dl class="govuk-summary-list govuk-!-font-size-">
-        <div class="govuk-summary-list__row">
-          <dt class="govuk-summary-list__key">
-            Created
-          </dt>
-          <dd class="govuk-summary-list__value">
-            {{ firstPaymentTxn.dateFormatted if firstPaymentTxn }}
-          </dd>
-        </div>
-        <div class="govuk-summary-list__row">
-          <dt class="govuk-summary-list__key">
-            Type
-          </dt>
-          <dd class="govuk-summary-list__value">
-            {% if firstPaymentTxn %}
-          {{ firstPaymentTxn.typeLabel }} ({{ firstPaymentTxn.type }})
-        {% endif %}
-          </dd>
-        </div>
-        <div class="govuk-summary-list__row">
-          <dt class="govuk-summary-list__key">
-            Detail
-          </dt>
-          <dd class="govuk-summary-list__value">
-            {% if firstPaymentTxn %}
-          {% if firstPaymentTxn.detail %}
-            {{ firstPaymentTxn.detail }}
-          {% elif firstPaymentTxn.paymentInType == "Manual" %}
-            Manual payment <span>|</span> {{ firstPaymentTxn.paymentMethod }}
-          {% elif firstPaymentTxn.paymentInType == "Auto" %}
-            Auto payment <span>|</span> {{ firstPaymentTxn.accountNumber }} <span>|</span> {{ firstPaymentTxn.source }}
-          {% endif %}
-        {% endif %}
-          </dd>
-        </div>
-      </dl>
+      {% set createdHtml %}{% if firstPaymentTxn.dateFormatted %}{{ firstPaymentTxn.dateFormatted }}{% else %}<span aria-label="No data">—</span>{% endif %}{% endset %}
+      {% set typeHtml %}{% if firstPaymentTxn %}{{ firstPaymentTxn.typeLabel }} ({{ firstPaymentTxn.type }}){% else %}<span aria-label="No data">—</span>{% endif %}{% endset %}
+      {% set detailHtml %}{% include "finance/ucd/suspense/_original-detail.html" %}{% endset %}
+      {{ govukSummaryList({rows: [
+        {key: {text: "Created"}, value: {html: createdHtml} },
+        {key: {text: "Type"}, value: {html: typeHtml} },
+        {key: {text: "Detail"}, value: {html: detailHtml} }
+      ]}) }}
     </div>
 
     <form data-finance-form novalidate method="post" action="/finance/suspense/add-note">
@@ -71,7 +44,7 @@
         label: {
           text: "Enter suspense note",
           classes: "govuk-label--m",
-          isPageHeading: "false"
+          isPageHeading: false
         }
       , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
 

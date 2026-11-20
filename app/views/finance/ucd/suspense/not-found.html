@@ -10,31 +10,13 @@
 
 {% endblock %}
 
+{% set mainClasses = "govuk-!-padding-top-6" %}
+{% block header %}
+  {{ super() }}
+  {% include "finance/ucd/suspense/_search-header.html" %}
+{% endblock %}
+
 {% block content %}
-
-<div>
-  <div class="govuk-width-container">
-
-    <a href="/finance/suspense/search" class="govuk-back-link">Back</a>
-
-    <div class="moj-search">
-      <form data-finance-form novalidate action="/finance/suspense/quick-search" method="post" role="search" class="govuk-!-margin-top-4">
-        <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s moj-search__label govuk-!-font-weight-bold" for="search">
-            Find suspense item
-          </label>
-          <input class="govuk-input moj-search__input govuk-input--width-10" id="search" name="search" value="{{ referenceNumber }}" type="search">
-        </div>
-        <button type="submit" class="govuk-button moj-search__button govuk-!-margin-bottom-0" data-module="govuk-button">
-          Search
-        </button>
-      </form>
-    </div>
-
-
-
-  </div>
-</div>
 
 {% if sourceErrors.length %}{{ govukErrorSummary({titleText: "There is a problem", errorList: sourceErrors}) }}{% endif %}
 {% if sourceFlash %}{{ mojAlert({variant: "success", dismissible: true, text: sourceFlash}) }}{% endif %}
@@ -56,6 +38,7 @@
       <li>the reference number was entered incorrectly</li>
       <li>the suspense item does not exist{% if false %}{% endif %}</li>
     </ul>
+    <p class="govuk-body"><a class="govuk-link" href="/finance/suspense/search">Go back</a></p>
 
   </div>
 </div>

@@ -17,6 +17,7 @@
   <div class="govuk-grid-column-two-thirds">
 
 
+    <span class="govuk-caption-l">{{ suspenseRef }}</span>
     <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
     {% if (data['warning'] == "true") %}
@@ -72,7 +73,7 @@
         label: {
           text: "Enter suspense note",
           classes: "govuk-label--m",
-          isPageHeading: "false"
+          isPageHeading: false
         }
       , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
 

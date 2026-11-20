@@ -1,6 +1,6 @@
 {% extends "finance/ucd/layout" %}
 
-{% set pageName = "Add details and repay 3rd party" %}
+{% set pageName = "Add details and repay third party" %}
 
 
 
@@ -17,6 +17,7 @@
   <div class="govuk-grid-column-two-thirds">
 
 
+    <span class="govuk-caption-l">{{ suspenseRef }}</span>
     <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
     <form data-finance-form novalidate method="post" action="/finance/suspense/confirm-repay-third-party">
@@ -138,6 +139,10 @@
           id: "3rdPartyPostCode",
           name: "3rdPartyPostCode"
         , value: data["3rdPartyPostCode"], errorMessage: fieldErrors["3rdPartyPostCode"]}) }}
+        {{ govukInput({id: "3rdPartyAddressL4", name: "3rdPartyAddressL4", label: {text: "Address line 4"}, classes: "govuk-input--width-30", value: data["3rdPartyAddressL4"], errorMessage: fieldErrors["3rdPartyAddressL4"]}) }}
+
+        {{ govukInput({id: "3rdPartyAddressL5", name: "3rdPartyAddressL5", label: {text: "Address line 5"}, classes: "govuk-input--width-30", value: data["3rdPartyAddressL5"], errorMessage: fieldErrors["3rdPartyAddressL5"]}) }}
+
 
       {% endcall %}
 
@@ -225,7 +230,7 @@
         id: "amountToRepay",
         name: "amountToRepay",
         label: {
-          text: "Amoun to repay",
+          text: "Amount to repay",
           classes: "govuk-label--s",
           isPageHeading: false
         },
@@ -246,7 +251,7 @@
         label: {
           text: "Enter suspense note",
           classes: "govuk-label--m",
-          isPageHeading: "false"
+          isPageHeading: false
         }
       , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
 

@@ -18,6 +18,7 @@
   <div class="govuk-grid-column-two-thirds">
 
 
+    <span class="govuk-caption-l">{{ suspenseRef }}</span>
     <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
     <form data-finance-form novalidate method="post" action="/finance/suspense/repay-respondent">
@@ -28,12 +29,12 @@
         {{ govukInput({
           label: {
             text: "Account number",
-            classes: "govuk-label--m"
+            classes: "govuk-label--s"
           },
           hint: {
             text: "For example, 12345678 or 12345678A"
           },
-          classes: "govuk-input--width-10",
+          classes: "govuk-input--width-20",
           id: "account-number",
           name: "accountNumber"
         , value: data["accountNumber"], errorMessage: fieldErrors["accountNumber"]}) }}

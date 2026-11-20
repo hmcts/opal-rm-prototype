@@ -17,6 +17,7 @@
   <div class="govuk-grid-column-two-thirds">
 
 
+    <span class="govuk-caption-l">{{ suspenseRef }}</span>
     <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
     {{ govukSummaryList({
@@ -45,7 +46,7 @@
         label: {
           text: "Enter suspense note",
           classes: "govuk-label--m",
-          isPageHeading: "false"
+          isPageHeading: false
         }
       , value: data["suspenseNote"], errorMessage: fieldErrors["suspenseNote"]}) }}
 
@@ -53,7 +54,7 @@
         name: "dishonouredCheque",
         fieldset: {
           legend: {
-            text: "Legend text",
+            text: "Reason for reversal",
             isPageHeading: false,
             classes: "govuk-fieldset__legend--s govuk-visually-hidden"
           }

@@ -1,0 +1,11 @@
+{% if firstPaymentTxn.detail %}
+  {{ firstPaymentTxn.detail | safe }}
+{% elif firstPaymentTxn.paymentInType == "Manual adjustment" %}
+  Respondent: {{ firstPaymentTxn.accountNumber }} | {{ firstPaymentTxn.accountName }}
+{% elif firstPaymentTxn.paymentInType == "Manual" %}
+  Manual payment | {{ firstPaymentTxn.paymentMethod }}
+{% elif firstPaymentTxn.paymentInType == "Auto" %}
+  Auto payment | Ref: {{ firstPaymentTxn.accountNumber }} | Source: {{ firstPaymentTxn.source }}
+{% else %}
+  <span aria-label="No data">—</span>
+{% endif %}
