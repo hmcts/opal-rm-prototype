@@ -34,7 +34,7 @@ module.exports = function financeUcd(helpers) {
     res.render = (template, view = {}) => {
       if (/^(suspense|repayment|cancel-cheques|reissue-bacs-payments|daily-checks|month-end|quarter-year-end|reports)\//.test(template)) template='finance/ucd/'+template
 
-      const showNav = /(?:task-list|(?:daily-checks|month-end)\/(?:bank-list|bacs-file|control-totals|unpresented-cheques|presented-cheques|dishonoured-cheques|witnesses|suspense|outstanding-payment|court-fees-report|cheques-report|bacs-payments|write-off-report)|suspense\/(?:search|item|not-found)|(?:cancel-cheques|reissue-bacs-payments)\/index)$/.test(template)
+      const showNav = /(?:task-list|(?:daily-checks|month-end)\/(?:bank-list|bacs-file|control-totals|unpresented-cheques|presented-cheques|dishonoured-cheques|witnesses|suspense|outstanding-payment|court-fees-report|cheques-report|bacs-payments|write-off-report)|suspense\/(?:item|not-found)|(?:cancel-cheques|reissue-bacs-payments)\/index)$/.test(template)
       const definition=screens.find(s=>s.template===template)
       const reported=Array.isArray(view.errors)?view.errors:view.error?[{text:view.error,href:'#'+(definition?.fields[0] || '')}]:[]
       const aliases={'account-number':'accountNumber','suspense-note':'suspenseNote','account-note':'accountNote'}
@@ -88,7 +88,7 @@ module.exports = function financeUcd(helpers) {
       }
       if(['pay-hmcts','reverse'].includes(path))req.body[amountField]=String(balance)
     }
-    if(path==='add-note' && (!String(req.body.suspenseNote || '').trim() || String(req.body.suspenseNote).length>1000))return res.render('finance/ucd/suspense/add-note',{suspenseRef:req.body.suspenseRef,item,sourceErrors:[{href:'#suspense-note',text:'Enter a suspense note of 1,000 characters or fewer'}],fieldErrors:{suspenseNote:{text:'Enter a suspense note of 1,000 characters or fewer'}}})
+    if(path==='add-note' && (!String(req.body.suspenseNote || '').trim() || String(req.body.suspenseNote).length>1000))return res.render('finance/ucd/suspense/add-note',{suspenseRef:req.body.suspenseRef,item,firstPaymentTxn:item?.transactions.find(txn=>txn.firstPayment),sourceErrors:[{href:'#suspense-note',text:'Enter a suspense note of 1,000 characters or fewer'}],fieldErrors:{suspenseNote:{text:'Enter a suspense note of 1,000 characters or fewer'}}})
     next()
   })
   router.get('/suspense/item/:ref/:action?',(req,res)=> {

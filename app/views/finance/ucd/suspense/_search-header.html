@@ -1,0 +1,15 @@
+<div class="rm-metric-card--light govuk-!-padding-bottom-4">
+  <div class="govuk-width-container">
+    {{ govukBackLink({text: "Back", href: "/finance/suspense/search"}) }}
+    <div>
+      <div class="moj-search govuk-!-display-inline-block">
+        <form data-finance-form novalidate action="/finance/suspense/quick-search" method="post" role="search" aria-label="Find suspense item">
+          {% if item %}<input type="hidden" name="currentRef" value="{{ item.referenceNumber }}">{% endif %}
+          {{ govukInput({id: "search", name: "search", type: "search", classes: "moj-search__input govuk-input--width-20", label: {text: "Find suspense item", classes: "govuk-label--s moj-search__label"}, value: searchValue or referenceNumber or item.referenceNumber}) }}
+          {{ govukButton({text: "Search", classes: "moj-search__button"}) }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<hr class="govuk-section-break govuk-section-break--visible">
