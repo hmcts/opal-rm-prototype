@@ -19411,52 +19411,6 @@ function fiReviewRows(fields, values, href) {
     : Array.isArray(values[field.id]) ? values[field.id].join(', ') : values[field.id], href))
 }
 
-router.get(fiSuspense + '/advance', (req, res) => {
-  const flow = fiFlow(req, 'suspense')
-  const items = fiState(req).suspense.filter((item) => item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
-  if (!items.length) return fiRender(req, res, 'detail', { heading: 'Transfer maintenance paid in advance', showNav: true,
-    intro: 'There are no maintenance payments in advance to transfer.', returnHref: fiBase })
-  return fiRender(req, res, 'form', { heading: 'Transfer maintenance paid in advance', showNav: true,
-    applicability: 'The timing and rules for transferring advance maintenance in RM need to be confirmed.',
-    fields: [fiField('advance', 'Maintenance suspense items', 'checkboxes', { items: items.map((item) => ({ value: item.ref, text: item.ref + ' – ' + payMoney(item.amount) })), required: Boolean(items.length) })],
-    intro: items.length ? 'Select maintenance suspense items to demonstrate a transfer.' : 'There are no maintenance payments in advance to transfer.',
-    action: req.path, values: flow.values, errors: flow.errors, buttonText: 'Continue' })
-})
-
-router.post(fiSuspense + '/advance', (req, res) => {
-  const items = fiState(req).suspense.filter((item) => item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
-  const fields = [fiField('advance', 'Maintenance suspense items', 'checkboxes', { items: items.map((item) => ({ value: item.ref, text: item.ref })) })]
-  const { flow, errors } = fiSubmit(req, 'suspense', fields)
-  flow.action = 'advance'
-  delete flow.ref
-  delete flow.valid
-  if (Object.keys(errors).length) return res.redirect(req.path)
-  flow.advance = true
-  return res.redirect(req.path + '/review')
-})
-
-router.get(fiSuspense + '/advance/review', (req, res) => {
-  const flow = fiFlow(req, 'suspense')
-  if (!flow.advance || !flow.values['fi-advance']?.length || Object.keys(flow.errors || {}).length) return res.redirect(fiSuspense + '/advance')
-  flow.reviewed = true
-  return fiRender(req, res, 'review', { heading: 'Check advance maintenance transfer',
-    summaryRows: [paySummary('Suspense references', flow.values['fi-advance'].join(', '), fiSuspense + '/advance')],
-    action: req.path, backHref: fiSuspense + '/advance', cancelHref: fiCancel('suspense', req.path), buttonText: 'Confirm and transfer' })
-})
-
-router.post(fiSuspense + '/advance/review', (req, res) => {
-  const flow = fiFlow(req, 'suspense')
-  const items = fiState(req).suspense.filter((item) => flow.values['fi-advance']?.includes(item.ref) && item.reason === 'Maintenance' && BigInt(item.amount) > 0n)
-  if (!flow.advance || !flow.reviewed || !items.length || Object.keys(flow.errors || {}).length) return res.redirect(fiSuspense + '/advance')
-  items.forEach((item) => {
-    item.history.unshift(fiRecord(req, 'advance', 'Maintenance paid in advance transferred', { amount: item.amount, ref: item.ref }))
-    item.amount = '0'
-  })
-  delete fiState(req).flows.suspense
-  fiFlash(req, 'Maintenance paid in advance transferred')
-  return res.redirect(fiSuspense + '/advance')
-})
-
 // Repayment: source, payee, optional bank details, review and outcome.
 const fiRepayment = fiBase + '/repayment'
 const fiRepaymentSourceFields = [fiField('source', 'Source of repayment', 'radios', { items: fiOptions(['HMCTS/Other', 'Major creditor']) })]

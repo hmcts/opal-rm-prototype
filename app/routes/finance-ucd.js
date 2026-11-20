@@ -21,6 +21,9 @@ module.exports = function financeUcd(helpers) {
     return req.session.data.financeUcd
   }
 
+  // PO-3580: advance transfers were descoped. Return stale links and submissions to Finance.
+  router.all(/^\/suspense\/(?:transfer-maintenance-paid-in-advance|advance(?:\/review)?)(?:\.html)?\/?$/, (req, res) => res.redirect('/finance'))
+
   router.use((req, res, next) => {
     if (req.path.endsWith('.html')) return res.redirect('/finance' + req.path.slice(0,-5) + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''))
 
@@ -148,7 +151,6 @@ module.exports = function financeUcd(helpers) {
     if(!sourceState(req).reissueBacsDestination)return res.redirect('/finance/reissue-bacs-payments')
     next()
   })
-  router.get('/suspense/advance',(req,res)=>res.redirect('/finance/suspense/transfer-maintenance-paid-in-advance'))
 router.post('/quarter-year-end/select-business-unit', (req, res) => {
   const state = sourceState(req)
   if (!['Quarter end only','Quarter and year end'].includes(state.quarterOrYear)) return res.render('finance/ucd/quarter-year-end/select-business-unit',{sourceErrors:[{href:'#quarterOrYear',text:'Select a check'}],fieldErrors:{quarterOrYear:{text:'Select a check'}}})
@@ -1135,41 +1137,6 @@ router.post('/reports/reversed-payments', (req, res) => {
 
   res.redirect('/reports/reversed-payments')
 })
-router.get('/suspense/transfer-maintenance-paid-in-advance', (req, res) => {
-  res.render("finance/ucd/suspense/transfer-maintenance-paid-in-advance")
-})
-
-router.post('/suspense/transfer-maintenance-paid-in-advance', (req, res) => {
-  const now = new Date()
-  const day = now.getDate()
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const month = months[now.getMonth()]
-  const year = now.getFullYear()
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-
-  const formattedDate = `${day} ${month} ${year} at ${hours}:${minutes}`
-  const selectedUnits = sourceState(req)['business-units']
-  if (!sourceState(req)['fines-transferred-dates']) {
-    sourceState(req)['fines-transferred-dates'] = {}
-  }
-  if (selectedUnits) {
-    if (Array.isArray(selectedUnits)) {
-      selectedUnits.forEach(unit => {
-        sourceState(req)['fines-transferred-dates'][unit] = formattedDate
-      })
-    } else {
-      sourceState(req)['fines-transferred-dates'][selectedUnits] = formattedDate
-    }
-  }
-
-  sourceState(req)['fines-transferred'] = 'true'
-  sourceState(req).flash = 'Maintenance paid in advance transferred'
-
-  res.redirect('/suspense/transfer-maintenance-paid-in-advance')
-})
-
-
 function isValidChequeNumber(number) {
   return /^\d{3}$/.test(number) || /^\d{6}$/.test(number) || /^\d{10}$/.test(number)
 }
@@ -1766,7 +1733,7 @@ router.get('/reissue-bacs-payments/payment-history', (req, res) => {
   router.get('/month-end/court-fees-transfer', (req, res) => res.render('finance/ucd/month-end/court-fees-transfer'))
 
   // Source report states are explicit server-rendered transitions, without source JavaScript.
-  const screenForPath = new Map(screens.filter(s => !s.source.startsWith('search/')).map(s => [s.url.replace(/^\/finance/, '').replace(/defendant/g, 'respondent').replace('transfer-fines-paid-in-advance','transfer-maintenance-paid-in-advance'), s]))
+  const screenForPath = new Map(screens.filter(s => !s.source.startsWith('search/')).map(s => [s.url.replace(/^\/finance/, '').replace(/defendant/g, 'respondent'), s]))
   function sourceForm(req, res, screen, messages) {
     const sourceErrors = Object.entries(messages).map(([name, text]) => ({text, href: '#' + ({accountNumber:'account-number',suspenseNote:'suspense-note',accountNote:'account-note'}[name] || name)}))
     return res.render(screen.template, {sourceErrors, fieldErrors: Object.fromEntries(Object.entries(messages).map(([name,text]) => [name,{text}]))})
